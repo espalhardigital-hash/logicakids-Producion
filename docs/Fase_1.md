@@ -693,3 +693,145 @@ Los **Módulos 4 y 5** deben usar principalmente **base de datos de preguntas pr
 Las **plantillas dinámicas** deben usarse como apoyo para crear muchas variaciones sin perder control. Son especialmente útiles en problemas de dinero, compras, cambio, grupos iguales y problemas simples de uno o dos pasos.
 
 Esta estructura permite que LogicaKids tenga una Fase 1 escalable, segura, variada y pedagógicamente controlada.
+
+---
+
+# 12. Modelo de Datos (Base de Datos)
+
+Para implementar la Fase 1, se requiere una arquitectura de base de datos relacional (PostgreSQL) que soporte el seguimiento detallado del alumno y el banco de preguntas.
+
+### 12.1. Tabla: Fases
+Define las etapas del plan de estudio.
+- `id`: Identificador único.
+- `nombre`: "Fase 1 - Fundamentos y Razonamiento".
+- `orden`: Posición en la secuencia global.
+
+### 12.2. Tabla: Preguntas (Banco de Ejercicios)
+El corazón de la Fase 1. Soporta generación híbrida.
+- `id`: ID único.
+- `fase_id`: Relación con Fase 1.
+- `modulo`: (1 a 5) Según la definición pedagógica.
+- `nivel`: Nivel de dificultad dentro del módulo.
+- `tipo_pregunta`: `calculo_directo`, `problema_contexto`, `plantilla_dinamica`.
+- `enunciado`: El texto o expresión matemática.
+- `datos_numericos (JSONB)`: Para plantillas dinámicas (ej: `{"a": 10, "b": 5}`).
+- `respuesta_correcta`: Valor esperado.
+- `explicacion_paso_a_paso (JSONB)`: Estructura para la Tutoría Invisible.
+- `errores_previstos (JSONB)`: Mapeo de respuestas comunes a tipos de error.
+
+### 12.3. Tabla: Alternativas
+Solo para preguntas de opción múltiple.
+- `pregunta_id`: Relación.
+- `texto`: La opción.
+- `es_correcta`: Booleano.
+- `tipo_error`: (Cálculo, Lectura, Atención) Para feedback inmediato.
+
+### 12.4. Tabla: Progreso de Maestría
+Rastrea el avance del alumno en cada bloque (Módulo + Nivel).
+- `alumno_id`: Relación.
+- `modulo`: ID del módulo.
+- `nivel`: ID del nivel.
+- `aciertos_acumulados`: Contador de éxitos.
+- `intentos_totales`: Para calcular la tasa de precisión.
+- `estado`: `bloqueado`, `en_progreso`, `aprobado`.
+
+### 12.5. Tabla: Intentos (Analítica Detallada)
+Registra cada respuesta para generar reportes pedagógicos.
+- `pregunta_id`, `alumno_id`.
+- `respuesta_dada`: Lo que escribió/marcó el alumno.
+- `es_correcta`: Resultado.
+- `tipo_error_detectado`: Basado en el mapeo de `errores_previstos`.
+- `tiempo_respuesta`: En segundos.
+
+---
+
+# 13. Esquemas de Datos Estructurados (JSONB)
+
+La "Tutoría Invisible" depende de que la información esté estructurada para que el frontend pueda presentarla paso a paso.
+
+### 13.1. Esquema de Explicación Paso a Paso
+```json
+{
+  "titulo": "Resolvamos paso a paso",
+  "pasos": [
+    {
+      "orden": 1,
+      "instruccion": "Identifica los datos iniciales",
+      "detalle": "Carlos tiene R$ 50,00."
+    },
+    {
+      "orden": 2,
+      "instruccion": "Suma los gastos realizados",
+      "operacion": "18 + 4 = 22",
+      "detalle": "Gastó R$ 22,00 en total."
+    },
+    {
+      "orden": 3,
+      "instruccion": "Resta los gastos al total inicial",
+      "operacion": "50 - 22 = 28",
+      "detalle": "Le quedan R$ 28,00."
+    }
+  ]
+}
+```
+
+### 13.2. Esquema de Errores Previstos
+```json
+{
+  "mapeo": [
+    {
+      "respuesta": "22",
+      "tipo_error": "problema_incompleto",
+      "feedback": "Calculaste bien los gastos, pero falta restarlos del dinero inicial."
+    },
+    {
+      "respuesta": "68",
+      "tipo_error": "operacion_incorrecta",
+      "feedback": "Parece que sumaste todos los valores en lugar de restar los gastos."
+    }
+  ]
+}
+```
+
+---
+
+# 14. Lógica de Tutoría Invisible
+
+La Tutoría Invisible no debe dar la respuesta, sino guiar el proceso mental.
+
+1. **Detección**: Cuando el alumno falla, el sistema busca la respuesta en el JSON de `errores_previstos`.
+2. **Feedback de Primer Nivel**: Si hay un match, muestra el mensaje específico de ese error.
+3. **Feedback de Segundo Nivel**: Si el alumno falla por segunda vez en la misma pregunta, se activa el modo "Paso a Paso".
+4. **Interacción por Etapas**: El sistema pide al alumno resolver el Paso 1, luego el Paso 2, etc., en lugar de mostrar toda la solución de golpe.
+5. **Registro de Ayuda**: Se marca en la base de datos que el alumno necesitó "Tutoría Activa" para esa pregunta, lo cual reduce el puntaje de maestría para ese intento.
+
+---
+
+# 15. Hoja de Ruta de Implementación (Roadmap)
+
+### Fase A: Preparación del Backend (Semana 1)
+- [ ] Implementar migraciones de base de datos (Tablas definidas en sección 12).
+- [ ] Crear Endpoints de CRUD para el Banco de Preguntas.
+- [ ] Implementar lógica de "Pool de Preguntas" (Asignación aleatoria de un subconjunto del banco al alumno).
+
+### Fase B: Panel Administrador (Semana 2)
+- [ ] Interfaz para carga masiva de preguntas (Excel/JSON).
+- [ ] Editor de Explicaciones Paso a Paso (Editor visual de pasos).
+- [ ] Dashboard de analítica para ver errores comunes por módulo.
+
+### Fase C: Motor de Juego Fase 1 (Semana 3)
+- [ ] Nueva interfaz de juego que soporte "Lectura Matemática" (subrayado de datos).
+- [ ] Integración del motor de Tutoría Invisible.
+- [ ] Sistema de feedback dinámico basado en JSONB.
+
+### Fase D: Calibración y QA (Semana 4)
+- [ ] Pruebas de balanceo de dificultad.
+- [ ] Validación de flujos de aprobación (90% de maestría).
+- [ ] Pruebas de persistencia de progreso offline/online.
+
+---
+
+# 16. Conclusión Estratégica
+
+La Fase 1 transforma LogicaKids de un "generador de ejercicios" a una "plataforma de aprendizaje adaptativo". La clave del éxito reside en la **calidad de los datos estructurados** (explicaciones y errores) más que en el código de la interfaz. Un banco de preguntas bien diseñado permitirá detectar exactamente dónde se pierde el niño (lectura, cálculo o lógica) y actuar en consecuencia sin intervención humana constante.
+
