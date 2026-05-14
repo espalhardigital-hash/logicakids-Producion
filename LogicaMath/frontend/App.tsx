@@ -49,6 +49,7 @@ const App: React.FC = () => {
             password: '',
             role: user.role || 'USER',
             status: user.status || 'ACTIVE',
+            avatar: user.avatar,
             createdAt: user.created_at || new Date().toISOString(),
             settings: user.settings || {},
             unlockedLevel: user.unlocked_level || 0

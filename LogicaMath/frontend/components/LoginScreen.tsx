@@ -58,7 +58,8 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
             status: result.user.status || 'ACTIVE',
             createdAt: result.user.created_at || new Date().toISOString(),
             settings: result.user.settings || {},
-            unlockedLevel: result.user.unlocked_level || 0
+            unlockedLevel: result.user.unlocked_level || 0,
+            avatar: result.user.avatar
           };
 
           onLoginSuccess(user);
@@ -98,7 +99,8 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
               status: 'ACTIVE',
               createdAt: new Date().toISOString(),
               settings: {},
-              unlockedLevel: 0
+              unlockedLevel: 0,
+              avatar: loginResult.user.avatar
             };
             onLoginSuccess(user);
           }
