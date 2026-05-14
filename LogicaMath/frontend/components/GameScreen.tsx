@@ -1,0 +1,416 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { GameStats, Question, GameCategory, Difficulty, UserSettings } from '../types';
+import { generateQuestion, calculateTimeLimit } from '../services/mathService';
+import { Clock, CheckCircle2, XCircle, LogOut, Delete, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface Props {
+  category: GameCategory;
+  difficulty: Difficulty;
+  userSettings?: UserSettings;
+  onEndGame: (stats: GameStats) => void;
+  onExit: () => void;
+}
+
+type FeedbackState = 'none' | 'correct' | 'incorrect';
+
+const TOTAL_QUESTIONS = 3;
+
+const CATEGORY_LABELS: Record<GameCategory, string> = {
+  addition: 'Sumas',
+  subtraction: 'Restas',
+  multiplication: 'Tablas',
+  division: 'División',
+  mixed_add_sub: 'Suma y Resta',
+  mixed_mult_add: 'Mult + Oper',
+  all_mixed: 'Experto',
+  challenge: 'Desafío Mix',
+  logic_sequences: 'Secuencias',
+  logic_patterns: 'Patrones',
+  logic_puzzles: 'Acertijos'
+};
+
+const DIFFICULTY_LABELS: Record<Difficulty, string> = {
+  easy: 'Nivel 1',
+  easy_medium: 'Nivel 2',
+  medium: 'Nivel 3',
+  medium_hard: 'Nivel 4',
+  hard: 'Nivel 5',
+  random_tables: 'Aleatorio'
+};
+
+const keypadVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: { staggerChildren: 0.05, type: "spring", stiffness: 300, damping: 20 }
+  }
+};
+
+const keyVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0 }
+};
+
+const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEndGame, onExit }) => {
+  const [attempt, setAttempt] = useState(0);
+  const [question, setQuestion] = useState<Question | null>(null);
+  const [inputValue, setInputValue] = useState('');
+  const [timeLeft, setTimeLeft] = useState(10);
+  const [stats, setStats] = useState<GameStats>({ correct: 0, incorrect: 0, totalTime: 0 });
+  const [feedback, setFeedback] = useState<FeedbackState>('none');
+  const [maxTimeForQuestion, setMaxTimeForQuestion] = useState(10);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isMounted = useRef(true);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    isMounted.current = true;
+    loadNextQuestion(0);
+
+    return () => {
+      isMounted.current = false;
+      clearTimer();
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    if (feedback !== 'none') {
+      clearTimer();
+      return;
+    }
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          handleTimeOut();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearTimer();
+  }, [feedback, attempt]);
+
+  const loadNextQuestion = (currentAttempt: number) => {
+    if (!isMounted.current) return;
+
+    if (currentAttempt >= TOTAL_QUESTIONS) {
+      onEndGame(stats);
+      return;
+    }
+    const q = generateQuestion(currentAttempt, category, difficulty);
+    const timeLimit = calculateTimeLimit(currentAttempt, difficulty, category, userSettings);
+
+    setQuestion(q);
+    setAttempt(currentAttempt);
+    setMaxTimeForQuestion(timeLimit);
+    setTimeLeft(timeLimit);
+    setInputValue('');
+    setFeedback('none');
+
+    setTimeout(() => {
+      if (isMounted.current) {
+        inputRef.current?.focus();
+      }
+    }, 100);
+  };
+
+  const handleTimeOut = () => {
+    clearTimer();
+    setFeedback('incorrect');
+    setStats((prev) => ({
+      ...prev,
+      incorrect: prev.incorrect + 1,
+      totalTime: prev.totalTime + maxTimeForQuestion
+    }));
+
+    transitionTimeoutRef.current = setTimeout(() => {
+      loadNextQuestion(attempt + 1);
+    }, 2000);
+  };
+
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!question || feedback !== 'none') return;
+
+    clearTimer();
+
+    const userAnswer = parseInt(inputValue);
+    const timeSpent = maxTimeForQuestion - timeLeft;
+    const isCorrect = !isNaN(userAnswer) && userAnswer === question.answer;
+
+    if (isCorrect) {
+      setFeedback('correct');
+      setStats((prev) => ({
+        ...prev,
+        correct: prev.correct + 1,
+        totalTime: prev.totalTime + timeSpent
+      }));
+      transitionTimeoutRef.current = setTimeout(() => {
+        loadNextQuestion(attempt + 1);
+      }, 1000);
+    } else {
+      setFeedback('incorrect');
+      setStats((prev) => ({
+        ...prev,
+        incorrect: prev.incorrect + 1,
+        totalTime: prev.totalTime + timeSpent
+      }));
+      transitionTimeoutRef.current = setTimeout(() => {
+        loadNextQuestion(attempt + 1);
+      }, 2000);
+    }
+  };
+
+  const handleKeypadInput = (num: number) => {
+    if (feedback !== 'none') return;
+    setInputValue(prev => {
+      if (prev.length >= 6) return prev;
+      return prev + num.toString();
+    });
+    inputRef.current?.focus();
+  };
+
+  const handleBackspace = () => {
+    if (feedback !== 'none') return;
+    setInputValue(prev => prev.slice(0, -1));
+    inputRef.current?.focus();
+  };
+
+  if (!question) return <div className="text-white flex items-center justify-center h-full">Cargando desafío...</div>;
+
+  const progressPercentage = (attempt / TOTAL_QUESTIONS) * 100;
+  const timePercentage = (timeLeft / maxTimeForQuestion) * 100;
+
+  // Determine shake effect
+  const isIncorrect = feedback === 'incorrect';
+
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 relative">
+      {/* Background ambient light based on feedback */}
+      <AnimatePresence>
+        {feedback === 'correct' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-green-500/20 blur-3xl pointer-events-none z-0"
+          />
+        )}
+        {feedback === 'incorrect' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-red-500/20 blur-3xl pointer-events-none z-0"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Top Controls */}
+      <div className="w-full max-w-5xl flex justify-between items-center mb-6 z-10">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onExit}
+          className="flex items-center space-x-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl transition-colors border border-white/10"
+        >
+          <LogOut size={18} />
+          <span className="text-sm font-bold uppercase tracking-wider hidden sm:inline">Abortar Misión</span>
+        </motion.button>
+
+        <div className="flex flex-col items-end text-sm font-bold uppercase tracking-widest text-gray-300">
+          <div className="flex items-center space-x-2 bg-white/5 px-4 py-1.5 rounded-full border border-white/10">
+            <span className="text-brand-primary">{CATEGORY_LABELS[category] || 'Misión'}</span>
+            <span className="text-white/30">|</span>
+            <span className="text-brand-secondary">{DIFFICULTY_LABELS[difficulty]}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress & Stats Row */}
+      <div className="w-full max-w-5xl flex flex-col sm:flex-row items-center justify-between mb-8 gap-4 z-10">
+        <div className="flex-1 w-full bg-black/40 rounded-full h-4 border border-white/10 overflow-hidden relative shadow-inner">
+          <motion.div
+            className="h-full bg-gradient-to-r from-brand-primary to-brand-secondary"
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ type: "spring", stiffness: 100 }}
+          />
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white shadow-black drop-shadow-md">
+            Progreso {attempt}/{TOTAL_QUESTIONS}
+          </span>
+        </div>
+        
+        <div className="flex gap-3">
+          <div className="flex items-center space-x-2 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg">
+            <span className="text-xs uppercase text-green-400 font-bold">Aciertos</span>
+            <span className="text-lg font-extrabold text-green-300">{stats.correct}</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg">
+            <span className="text-xs uppercase text-red-400 font-bold">Fallos</span>
+            <span className="text-lg font-extrabold text-red-300">{stats.incorrect}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row items-center justify-center gap-8 w-full max-w-5xl z-10">
+        
+        {/* LEFT: Question Box */}
+        <motion.div 
+          animate={isIncorrect ? { x: [-10, 10, -10, 10, 0] } : {}}
+          transition={{ duration: 0.4 }}
+          className={`flex-1 w-full max-w-xl rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden backdrop-blur-2xl border-2 shadow-2xl transition-colors duration-300 ${
+            feedback === 'correct' 
+              ? 'bg-green-500/10 border-green-400/50 shadow-green-500/20' 
+              : feedback === 'incorrect'
+                ? 'bg-red-500/10 border-red-400/50 shadow-red-500/20'
+                : 'bg-white/5 border-white/10'
+          }`}
+        >
+          {/* Circular Timer behind question */}
+          <div className="absolute top-0 left-0 w-full h-2 bg-black/30">
+            <motion.div 
+              className={`h-full ${timeLeft <= 3 ? 'bg-red-500' : 'bg-brand-primary'}`}
+              animate={{ width: `${timePercentage}%` }}
+              transition={{ duration: 1, ease: "linear" }}
+            />
+          </div>
+
+          <div className="flex flex-col items-center justify-center min-h-[250px]">
+            <AnimatePresence mode="wait">
+              <motion.h2 
+                key={attempt}
+                initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 1.5, filter: 'blur(10px)' }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="text-7xl md:text-8xl font-black text-white tracking-tighter drop-shadow-2xl mb-8 text-center"
+              >
+                {question.text}
+              </motion.h2>
+            </AnimatePresence>
+
+            <form onSubmit={handleSubmit} className="w-full relative max-w-xs">
+              <input
+                ref={inputRef}
+                type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                className="w-full bg-black/40 text-center text-5xl font-bold text-white py-4 rounded-2xl border-2 border-white/20 focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/30 transition-all placeholder-white/10 shadow-inner"
+                placeholder="?"
+                autoFocus
+                disabled={feedback !== 'none'}
+              />
+              <div className="absolute -right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                <AnimatePresence>
+                  {feedback === 'correct' && (
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                      <CheckCircle2 className="text-green-400 w-10 h-10 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]" />
+                    </motion.div>
+                  )}
+                  {feedback === 'incorrect' && (
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex items-center space-x-3">
+                      <XCircle className="text-red-400 w-10 h-10 drop-shadow-[0_0_15px_rgba(248,113,113,0.5)]" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </form>
+
+            <AnimatePresence>
+              {feedback === 'incorrect' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="mt-6 px-6 py-2 bg-red-500 text-white font-black rounded-full text-lg tracking-widest shadow-lg shadow-red-500/40"
+                >
+                  LA RESPUESTA ERA: {question.answer}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* RIGHT: Virtual Keypad (Visible on md+) */}
+        <motion.div 
+          variants={keypadVariants}
+          initial="hidden"
+          animate="show"
+          className="hidden md:block w-[320px] shrink-0"
+        >
+          <div className="grid grid-cols-3 gap-4 p-6 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl">
+            {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
+              <motion.button
+                variants={keyVariants}
+                whileHover={feedback === 'none' ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.15)' } : {}}
+                whileTap={feedback === 'none' ? { scale: 0.9 } : {}}
+                key={num}
+                onClick={() => handleKeypadInput(num)}
+                disabled={feedback !== 'none'}
+                className="aspect-square rounded-2xl bg-white/5 border border-white/10 text-3xl font-bold text-white transition-colors disabled:opacity-50"
+              >
+                {num}
+              </motion.button>
+            ))}
+
+            <motion.button
+              variants={keyVariants}
+              whileHover={feedback === 'none' ? { scale: 1.1 } : {}}
+              whileTap={feedback === 'none' ? { scale: 0.9 } : {}}
+              onClick={handleBackspace}
+              disabled={feedback !== 'none'}
+              className="aspect-square rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-colors disabled:opacity-50 flex items-center justify-center"
+            >
+              <Delete size={28} />
+            </motion.button>
+
+            <motion.button
+              variants={keyVariants}
+              whileHover={feedback === 'none' ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.15)' } : {}}
+              whileTap={feedback === 'none' ? { scale: 0.9 } : {}}
+              onClick={() => handleKeypadInput(0)}
+              disabled={feedback !== 'none'}
+              className="aspect-square rounded-2xl bg-white/5 border border-white/10 text-3xl font-bold text-white transition-colors disabled:opacity-50"
+            >
+              0
+            </motion.button>
+
+            <motion.button
+              variants={keyVariants}
+              whileHover={feedback === 'none' ? { scale: 1.1 } : {}}
+              whileTap={feedback === 'none' ? { scale: 0.9 } : {}}
+              onClick={() => handleSubmit()}
+              disabled={feedback !== 'none'}
+              className="aspect-square rounded-2xl bg-brand-primary text-white transition-colors disabled:opacity-50 shadow-lg shadow-brand-primary/30 flex items-center justify-center"
+            >
+              <ArrowRight size={32} />
+            </motion.button>
+          </div>
+        </motion.div>
+
+      </div>
+    </div>
+  );
+};
+
+export default GameScreen;
