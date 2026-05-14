@@ -63,14 +63,14 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
   // Calculate global progress
   let totalLevelsUnlocked = 0;
   categories.forEach(cat => {
-    totalLevelsUnlocked += Math.min(getCategoryLevel(cat.id), 5); 
+    totalLevelsUnlocked += Math.min(getCategoryLevel(cat.id), 5);
   });
   const maxTotalLevels = 20; // 4 categories * 5 levels
   const remainingLevels = maxTotalLevels - totalLevelsUnlocked;
 
   return (
     <div className="fixed inset-0 bg-[#F8FAFC] text-slate-900 overflow-y-auto w-full h-full custom-scrollbar">
-      <motion.div 
+      <motion.div
         initial="hidden"
         animate="show"
         variants={containerVariants}
@@ -105,7 +105,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
               </span>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-6">
             <div className="flex flex-col items-end">
               <span className="text-xs font-bold text-slate-400 tracking-wider mb-1">TOTAL ESTRELLAS</span>
@@ -114,7 +114,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
                 <span className="text-3xl font-black">0</span>
               </div>
             </div>
-            <button 
+            <button
               onClick={onLogout}
               className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-colors border border-slate-100"
             >
@@ -144,9 +144,9 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
                 <div className={`w-16 h-16 rounded-2xl ${isLocked ? 'bg-slate-300' : cat.color} flex items-center justify-center mb-6 shadow-sm`}>
                   {isLocked ? <Plus size={24} className="text-white opacity-50 rotate-45" /> : cat.icon}
                 </div>
-                
+
                 <h3 className="text-2xl font-black text-slate-800 mb-4">{cat.label}</h3>
-                
+
                 {cat.id === 'challenge' ? (
                   <div className={`${isLocked ? 'bg-slate-100 text-slate-500' : 'bg-pink-50 text-pink-600'} text-[10px] font-bold px-4 py-1.5 rounded-full mb-8 uppercase tracking-wider`}>
                     {isLocked ? 'Desafío Bloqueado' : '¡Reto Final!'}
@@ -163,8 +163,8 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
                     <span className="text-[10px] font-bold text-slate-400">{cat.id === 'challenge' ? (isLocked ? '0%' : '100%') : `${progressPercent}%`}</span>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full ${isLocked ? 'bg-slate-200' : cat.color} rounded-full transition-all duration-1000`} 
+                    <div
+                      className={`h-full ${isLocked ? 'bg-slate-200' : cat.color} rounded-full transition-all duration-1000`}
                       style={{ width: `${cat.id === 'challenge' ? (isLocked ? 0 : 100) : progressPercent}%` }}
                     ></div>
                   </div>
@@ -185,13 +185,13 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
                 {remainingLevels === 0 ? '¡Listo para el Desafío!' : 'Tu Camino a la Fase 1'}
               </h3>
               <p className="text-blue-100 text-sm max-w-xl leading-relaxed">
-                {remainingLevels === 0 
-                  ? 'Has dominado las bases. Supera el Desafío Mixto para avanzar a la Fase 1.' 
+                {remainingLevels === 0
+                  ? 'Has dominado las bases. Supera el Desafío Mixto para avanzar a la Fase 1.'
                   : 'Completa los 5 niveles en las 4 disciplinas para desbloquear el Desafío Mixto y avanzar de fase.'}
               </p>
             </div>
           </div>
-          
+
           <div className="w-24 h-24 rounded-3xl bg-white/10 flex flex-col items-center justify-center shrink-0 border border-white/10">
             <span className="text-3xl font-black text-white mb-1">{remainingLevels}</span>
             <span className="text-[9px] font-bold text-blue-200 tracking-wider">FALTANTES</span>
