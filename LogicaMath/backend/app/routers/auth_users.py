@@ -107,6 +107,41 @@ async def update_user_level(
     
     return {"message": "Nivel actualizado", "unlockedLevels": unlocked_levels}
 
+from pydantic import BaseModel as PydanticBaseModel
+class SelfProfileUpdate(PydanticBaseModel):
+    username: str | None = None
+    email: str | None = None
+    new_password: str | None = None
+
+@router.patch("/users/me/profile")
+async def update_own_profile(
+    data: SelfProfileUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    result = await db.execute(select(UserModel).where(UserModel.id == current_user["id"]))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    if data.username:
+        user.username = data.username
+    if data.email:
+        # Check uniqueness
+        dup = await db.execute(select(UserModel).where(UserModel.email == data.email, UserModel.id != user.id))
+        if dup.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="El email ya está en uso por otro usuario")
+        user.email = data.email
+    if data.new_password:
+        if len(data.new_password) < 6:
+            raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres")
+        user.password_hash = get_password_hash(data.new_password)
+
+    await db.commit()
+    await db.refresh(user)
+    return {"message": "Perfil actualizado", "username": user.username, "email": user.email}
+
+
 @router.post("/users")
 async def save_user(
     user_data: dict = Body(...),

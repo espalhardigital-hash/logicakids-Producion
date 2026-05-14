@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { GameCategory, User } from '../types';
 import { Plus, Minus, X, Divide, LogOut, Trophy, Sparkles, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getAvatarUrl } from '../services/storageService';
 
 interface Props {
   user: User | null;
   onSelectCategory: (category: GameCategory) => void;
   onLogout: () => void;
   onGoAdmin?: () => void;
+  onGoProfile?: () => void;
 }
 
 const containerVariants = {
@@ -22,7 +24,7 @@ const itemVariants = {
 
 
 
-const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGoAdmin }) => {
+const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGoAdmin, onGoProfile }) => {
   const [progress, setProgress] = useState<import('../types').CategoryProgress[]>([]);
 
   useEffect(() => {
@@ -85,10 +87,25 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
             </div>
             <h1 className="text-xl font-bold text-slate-800">Matemáticas Pro</h1>
           </div>
-          <div className="flex space-x-2">
-            <div className="w-16 h-2 bg-slate-200 rounded-full"></div>
-            <div className="w-4 h-2 bg-slate-200 rounded-full"></div>
-          </div>
+          {/* User Avatar Button */}
+          <button
+            onClick={onGoProfile}
+            className="relative group"
+            title="Mi Perfil"
+          >
+            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-blue-500 transition-all duration-300 shadow-md">
+              {user?.avatar ? (
+                <img src={getAvatarUrl(user.avatar)} alt={user?.username} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+                  <span className="text-lg font-black text-white">
+                    {user?.username?.[0]?.toUpperCase() || '?'}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white"></div>
+          </button>
         </motion.div>
 
         {/* Welcome Card */}

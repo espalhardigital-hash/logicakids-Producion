@@ -1,23 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { User, Difficulty, GameCategory } from '../types';
-import { saveUser, uploadAvatar, getAvatarUrl } from '../services/storageService';
-import { ArrowLeft, Camera, Save, Settings, User as UserIcon, Clock, Trash2 } from 'lucide-react';
-
-// Placeholder functions - email/password update via backend not implemented yet
-const updateUserEmail = async (email: string): Promise<{ success: boolean; message?: string }> => {
-  return { success: true }; // TODO: Implement backend endpoint
-};
-const updateUserPassword = async (password: string): Promise<{ success: boolean; message?: string }> => {
-  return { success: true }; // TODO: Implement backend endpoint
-};
-const deleteScores = async (type: string): Promise<void> => {
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  const token = localStorage.getItem('auth_token');
-  await fetch(`${API_URL}/scores`, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-};
+import { User, Difficulty } from '../types';
+import { saveUser, uploadAvatar, getAvatarUrl, updateOwnProfile } from '../services/storageService';
+import { ArrowLeft, Camera, Save, Settings, User as UserIcon, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
   user: User;
@@ -25,19 +10,41 @@ interface Props {
   onBack: () => void;
 }
 
+const difficultyLabels: Record<Difficulty, string> = {
+  'easy': 'Nivel 1 (Fácil)',
+  'easy_medium': 'Nivel 2',
+  'medium': 'Nivel 3 (Medio)',
+  'medium_hard': 'Nivel 4',
+  'hard': 'Nivel 5 (Difícil)',
+  'random_tables': 'Tablas Aleatorias'
+};
+
+const defaultTimers: Record<Difficulty, number> = {
+  'easy': 10,
+  'easy_medium': 12,
+  'medium': 14,
+  'medium_hard': 16,
+  'hard': 18,
+  'random_tables': 15
+};
+
 const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
   const [formData, setFormData] = useState({
     username: user.username,
     email: user.email,
-    password: user.password,
-    avatar: user.avatar || ''
+    password: '',
+    confirmPassword: '',
   });
 
-  const [timers, setTimers] = useState<Partial<Record<Difficulty, number>>>(user.settings.customTimers || {});
-  const [message, setMessage] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [timers, setTimers] = useState<Partial<Record<Difficulty, number>>>(
+    user.settings?.customTimers || {}
+  );
 
-  // State for deferred upload
+  const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error'; message: string }>({
+    type: 'idle', message: ''
+  });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
 
@@ -47,232 +54,275 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setMessage('La imagen es demasiado grande (Máx 5MB)');
-        return;
-      }
-
-      // Create local preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewAvatar(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-
-      // Queue for upload
-      setPendingFile(file);
-      setMessage('Imagen seleccionada. Pulsa "Guardar" para subir y aplicar cambios.');
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setStatus({ type: 'error', message: 'La imagen es demasiado grande (Máx 5MB)' });
+      return;
     }
+    const reader = new FileReader();
+    reader.onloadend = () => setPreviewAvatar(reader.result as string);
+    reader.readAsDataURL(file);
+    setPendingFile(file);
   };
 
   const handleTimerChange = (diff: Difficulty, val: number) => {
     setTimers(prev => ({ ...prev, [diff]: val }));
   };
 
+  const resetTimer = (diff: Difficulty) => {
+    setTimers(prev => {
+      const updated = { ...prev };
+      delete updated[diff];
+      return updated;
+    });
+  };
+
   const handleSave = async () => {
-    setMessage('Procesando cambios...');
+    setStatus({ type: 'loading', message: 'Procesando cambios...' });
 
     try {
-      // 0. Upload Avatar if pending
-      let finalAvatarUrl = formData.avatar;
-
+      // 1. Avatar upload
+      let finalAvatarUrl = formData.avatar || user.avatar || '';
       if (pendingFile) {
-        setMessage('Subiendo nueva imagen de perfil...');
+        setStatus({ type: 'loading', message: 'Subiendo imagen de perfil...' });
         try {
           finalAvatarUrl = await uploadAvatar(pendingFile);
-        } catch (uploadErr: any) {
-          console.error("Upload error:", uploadErr);
-          setMessage(`Error al subir imagen: ${uploadErr.message || 'Fallo de red'}`);
-          return; // Stop saving if upload fails
-        }
-      }
-
-      // 1. Update auth data via backend API
-      if (formData.email !== user.email) {
-        const res = await updateUserEmail(formData.email);
-        if (!res.success) {
-          setMessage(`Error actualizando email: ${res.message}`);
+        } catch (err: any) {
+          setStatus({ type: 'error', message: `Error al subir imagen: ${err.message}` });
           return;
         }
       }
 
-      // Password Update
-      if (formData.password && formData.password !== user.password && formData.password.length >= 6) {
-        const res = await updateUserPassword(formData.password);
-        if (!res.success) {
-          setMessage(`Error actualizando contraseña: ${res.message}`);
+      // 2. Profile + credentials update
+      const profilePayload: { username?: string; email?: string; new_password?: string } = {};
+      if (formData.username !== user.username) profilePayload.username = formData.username;
+      if (formData.email !== user.email) profilePayload.email = formData.email;
+      if (formData.password) {
+        if (formData.password.length < 6) {
+          setStatus({ type: 'error', message: 'La contraseña debe tener mínimo 6 caracteres' });
           return;
         }
-      } else if (formData.password && formData.password.length < 6) {
-        setMessage('La contraseña debe tener al menos 6 caracteres');
-        return;
+        if (formData.password !== formData.confirmPassword) {
+          setStatus({ type: 'error', message: 'Las contraseñas no coinciden' });
+          return;
+        }
+        profilePayload.new_password = formData.password;
       }
 
-      // 2. Save to Backend (Profile Data)
+      if (Object.keys(profilePayload).length > 0) {
+        const res = await updateOwnProfile(profilePayload);
+        if (!res.success) {
+          setStatus({ type: 'error', message: res.message || 'Error al actualizar credenciales' });
+          return;
+        }
+      }
+
+      // 3. Save avatar + settings
       const updatedUser: User = {
         ...user,
         username: formData.username,
         email: formData.email,
-        password: user.password,
-        avatar: finalAvatarUrl, // Use the potentially new URL
-        settings: {
-          ...user.settings,
-          customTimers: timers
-        }
+        avatar: finalAvatarUrl,
+        settings: { ...user.settings, customTimers: timers }
       };
 
       await saveUser(updatedUser);
       onUpdateUser(updatedUser);
-      setPendingFile(null); // Clear pending
-      setMessage('¡Perfil y Credenciales actualizados con éxito!');
-      setTimeout(() => setMessage(''), 3000);
+      setPendingFile(null);
+      setFormData(d => ({ ...d, password: '', confirmPassword: '' }));
+      setStatus({ type: 'success', message: '¡Cambios guardados correctamente!' });
+      setTimeout(() => setStatus({ type: 'idle', message: '' }), 3500);
 
-    } catch (saveError: any) {
-      console.error("Save error:", saveError);
-      setMessage(`Error al guardar: ${saveError.message || 'Failed to fetch'}`);
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message || 'Error inesperado al guardar' });
     }
   };
 
-  const difficultyLabels: Record<Difficulty, string> = {
-    'easy': 'Nivel 1 (Fácil)',
-    'easy_medium': 'Nivel 2',
-    'medium': 'Nivel 3 (Medio)',
-    'medium_hard': 'Nivel 4',
-    'hard': 'Nivel 5 (Difícil)',
-    'random_tables': 'Tablas Aleatorias'
-  };
-
-  const handleDeleteHistory = async () => {
-    if (!window.confirm("¿Estás seguro de que quieres eliminar TODO tu historial de partidas? Esta acción no se puede deshacer.")) {
-      return;
-    }
-
-    try {
-      setMessage('Eliminando historial...');
-      await deleteScores('all');
-      setMessage('Historial eliminado correctamente.');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error: any) {
-      console.error("Delete error:", error);
-      setMessage(`Error: ${error.message}`);
-    }
-  };
+  const currentAvatar = previewAvatar || getAvatarUrl(user.avatar);
 
   return (
-    <div className="w-full max-w-4xl flex flex-col h-[85vh] animate-fade-in">
-      <div className="flex items-center mb-6 px-2">
-        <button
-          onClick={onBack}
-          className="p-2 hover:bg-white/10 rounded-full transition-colors mr-4 bg-white/5 border border-white/10"
-        >
-          <ArrowLeft className="text-white" />
-        </button>
-        <h2 className="text-2xl font-bold text-white">Mi Perfil y Configuración</h2>
-      </div>
+    <div className="fixed inset-0 bg-[#0B1A3A] text-white overflow-y-auto custom-scrollbar">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-5xl mx-auto p-6 md:p-10 min-h-screen"
+      >
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-10">
+          <button
+            onClick={onBack}
+            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all hover:scale-105"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-2xl font-black tracking-tight">Mi Perfil y Configuración</h1>
+        </div>
 
-      <div className="flex-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
+        {/* Main Card */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px]">
 
-        {/* Left Column: Personal Info */}
-        <div className="p-6 md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 bg-black/20 flex flex-col items-center space-y-6">
-          <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 group-hover:border-blue-500 transition-all bg-slate-800 flex items-center justify-center">
-              {previewAvatar || formData.avatar ? (
-                <img src={previewAvatar || getAvatarUrl(formData.avatar)} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <UserIcon size={48} className="text-gray-500" />
+          {/* ── LEFT: Personal Info ── */}
+          <div className="md:w-2/5 bg-black/20 p-8 flex flex-col items-center gap-6 border-b md:border-b-0 md:border-r border-white/10">
+            {/* Avatar */}
+            <div
+              className="relative group cursor-pointer mt-4"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-white/10 group-hover:border-blue-500 transition-all duration-300 bg-slate-800 flex items-center justify-center shadow-xl">
+                {currentAvatar ? (
+                  <img src={currentAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-purple-600">
+                    <span className="text-5xl font-black text-white">{user.username[0]?.toUpperCase()}</span>
+                  </div>
+                )}
+              </div>
+              <div className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera size={24} className="text-white mb-1" />
+                <span className="text-xs text-white font-bold">Cambiar</span>
+              </div>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+            </div>
+            <p className="text-xs text-slate-500 -mt-3">Haz clic en la imagen para cambiarla</p>
+
+            {/* Fields */}
+            <div className="w-full space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1 block">Nombre</label>
+                <input
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1 block">Email</label>
+                <input
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1 block">Nueva Contraseña</label>
+                <input
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Dejar vacío para no cambiar"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all"
+                />
+              </div>
+              {formData.password && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                >
+                  <label className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1 block">Confirmar Contraseña</label>
+                  <input
+                    name="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all"
+                  />
+                </motion.div>
               )}
             </div>
-            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Camera className="text-white" />
-            </div>
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
           </div>
 
-          <div className="w-full space-y-4">
-            <div>
-              <label className="text-xs text-gray-400 uppercase font-bold ml-1">Nombre</label>
-              <input
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
-              />
+          {/* ── RIGHT: Study Settings ── */}
+          <div className="md:w-3/5 p-8 flex flex-col">
+            <div className="flex items-center gap-2 mb-2 text-blue-400">
+              <Settings size={20} />
+              <h2 className="font-black text-lg">Configuración de Estudio</h2>
             </div>
-            <div>
-              <label className="text-xs text-gray-400 uppercase font-bold ml-1">Email</label>
-              <input
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
-              />
+
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 mb-6">
+              <p className="text-sm text-blue-200 leading-relaxed">
+                Ajusta el tiempo límite por pregunta según la dificultad.
+              </p>
+              <p className="text-xs text-blue-300/60 mt-1">(Mínimo 3s - Máximo 60s. "Default" usa el valor estándar de la plataforma)</p>
             </div>
-            <div>
-              <label className="text-xs text-gray-400 uppercase font-bold ml-1">Contraseña</label>
-              <input
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
-              />
+
+            <div className="space-y-5 flex-1 overflow-y-auto custom-scrollbar pr-2">
+              {(Object.keys(difficultyLabels) as Difficulty[]).map((diff) => {
+                const customVal = timers[diff];
+                const displayVal = customVal ?? defaultTimers[diff];
+                const isCustom = customVal !== undefined;
+
+                return (
+                  <div key={diff} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-sm font-semibold text-slate-300">{difficultyLabels[diff]}</label>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-black px-3 py-1 rounded-lg ${isCustom ? 'bg-blue-600 text-white' : 'bg-white/10 text-slate-400'}`}>
+                          {isCustom ? `${displayVal} s` : 'Default s'}
+                        </span>
+                        {isCustom && (
+                          <button
+                            onClick={() => resetTimer(diff)}
+                            className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+                            title="Restablecer"
+                          >
+                            ↺
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Clock size={14} className="text-slate-600 shrink-0" />
+                      <input
+                        type="range"
+                        min="3"
+                        max="60"
+                        step="1"
+                        value={displayVal}
+                        onChange={(e) => handleTimerChange(diff, parseInt(e.target.value))}
+                        className="flex-1 h-2 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Save Button + Status */}
+            <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between gap-4">
+              <AnimatePresence mode="wait">
+                {status.type !== 'idle' && (
+                  <motion.span
+                    key={status.message}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    className={`text-sm font-semibold ${
+                      status.type === 'success' ? 'text-green-400' :
+                      status.type === 'error' ? 'text-red-400' : 'text-blue-300 animate-pulse'
+                    }`}
+                  >
+                    {status.message}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+
+              <button
+                onClick={handleSave}
+                disabled={status.type === 'loading'}
+                className="ml-auto flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black rounded-2xl shadow-lg shadow-blue-900/40 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <Save size={18} />
+                {status.type === 'loading' ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Right Column: Game Settings */}
-        <div className="p-6 md:w-2/3 flex flex-col overflow-y-auto custom-scrollbar">
-          <div className="flex items-center gap-2 mb-4 text-blue-300">
-            <Settings size={20} />
-            <h3 className="font-bold text-lg">Configuración de Estudio</h3>
-          </div>
-
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-6">
-            <p className="text-sm text-blue-200">
-              Ajusta el tiempo límite por pregunta según la dificultad.
-              <br />
-              <span className="text-xs opacity-70">(Mínimo 3s - Máximo 60s)</span>
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            {(Object.keys(difficultyLabels) as Difficulty[]).map((diff) => (
-              <div key={diff} className="flex flex-col space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-gray-300">{difficultyLabels[diff]}</label>
-                  <span className="text-sm font-bold text-white bg-white/10 px-2 py-1 rounded">
-                    {timers[diff] || 'Default'} s
-                  </span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Clock size={16} className="text-gray-500" />
-                  <input
-                    type="range"
-                    min="3"
-                    max="60"
-                    step="1"
-                    value={timers[diff] || 15} // Fallback just for slider position
-                    onChange={(e) => handleTimerChange(diff, parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Danger Zone Removed */}
-          <div className="mt-auto pt-6 flex justify-end items-center gap-4">
-            {message && <span className="text-green-400 font-medium animate-pulse">{message}</span>}
-            <button
-              onClick={handleSave}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/50 transition-all"
-            >
-              <Save size={18} /> Guardar Cambios
-            </button>
-          </div>
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

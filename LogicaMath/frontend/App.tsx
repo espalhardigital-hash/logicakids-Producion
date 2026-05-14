@@ -256,6 +256,7 @@ const App: React.FC = () => {
             onSelectCategory={handleSelectCategory}
             onLogout={handleLogout}
             onGoAdmin={currentUser?.role === 'ADMIN' ? () => setScreen(GameScreenState.ADMIN_PANEL) : undefined}
+            onGoProfile={currentUser ? () => setScreen(GameScreenState.PROFILE) : undefined}
           />
         )}
 

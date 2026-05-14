@@ -307,6 +307,21 @@ export const graduateToFase1 = async (): Promise<void> => {
   }
 };
 
+export const updateOwnProfile = async (data: {
+  username?: string;
+  email?: string;
+  new_password?: string;
+}): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const result = await apiRequest<{ message: string; username: string; email: string }>(
+      '/users/me/profile', 'PATCH', data
+    );
+    return { success: true, message: result.message };
+  } catch (error: any) {
+    return { success: false, message: error.message || 'Error al actualizar perfil' };
+  }
+};
+
 
 // --- SUBJECT MANAGEMENT (NEW) ---
 
