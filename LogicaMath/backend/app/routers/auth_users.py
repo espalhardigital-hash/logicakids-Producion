@@ -249,7 +249,7 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
         print(f"Image processing failed: {img_err}")
         raise HTTPException(status_code=422, detail="Error procesando la imagen.")
 
-    filename = f"avatars/{current_user['id']}_{uuid.uuid4()}.webp"
+    filename = f"{current_user['id']}_{uuid.uuid4()}.webp"
     if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
         raise HTTPException(status_code=503, detail="Configuración S3 incompleta.")
 
@@ -281,7 +281,7 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
         print(f"S3 Upload Error: {e}")
         raise HTTPException(status_code=500, detail=f"Error subiendo imagen: {str(e)}")
 
-@router.get("/avatars/{filename:path}")
+@router.get("/avatars/{filename}")
 async def get_avatar(filename: str):
     if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
         raise HTTPException(status_code=503, detail="Configuración S3 incompleta.")
