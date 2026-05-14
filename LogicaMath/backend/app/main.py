@@ -53,6 +53,21 @@ async def startup_event():
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
             print("✅ Tablas de base de datos verificadas/creadas exitosamente.")
+
+            # --- SAFE MIGRATIONS ---
+            # create_all does NOT add new columns to existing tables.
+            # These ALTER TABLE statements are idempotent (IF NOT EXISTS).
+            migrations = [
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS unlocked_level INTEGER DEFAULT 0",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ",
+            ]
+            from sqlalchemy import text
+            for migration in migrations:
+                await conn.execute(text(migration))
+            print("✅ Migraciones de columnas aplicadas correctamente.")
+
     except Exception as e:
         print(f"❌ Error al verificar/crear tablas: {e}")
 

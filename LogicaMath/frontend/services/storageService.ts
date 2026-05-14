@@ -190,6 +190,7 @@ export const saveUser = async (userToSave: User): Promise<void> => {
     await apiRequest('/users', 'POST', userToSave);
   } catch (e) {
     console.error("Error saving user", e);
+    throw e; // Re-throw so callers can handle the error
   }
 };
 
