@@ -235,38 +235,27 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
           <span className="text-sm font-bold uppercase tracking-wider hidden sm:inline">Abortar Misión</span>
         </motion.button>
 
-        <div className="flex flex-col items-end text-sm font-bold uppercase tracking-widest text-gray-300">
-          <div className="flex items-center space-x-2 bg-white/5 px-4 py-1.5 rounded-full border border-white/10">
+        <div className="flex flex-col items-end text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-gray-300">
+          <div className="flex items-center space-x-3 bg-white/5 px-4 py-2 rounded-full border border-white/10 shadow-lg">
             <span className="text-brand-primary">{CATEGORY_LABELS[category] || 'Misión'}</span>
-            <span className="text-white/30">|</span>
+            <span className="text-white/20">|</span>
             <span className="text-brand-secondary">{DIFFICULTY_LABELS[difficulty]}</span>
+            <span className="text-white/20">|</span>
+            <span className="text-slate-300">PREGUNTA {Math.min(attempt + 1, TOTAL_QUESTIONS)}/{TOTAL_QUESTIONS}</span>
+            <span className="text-white font-black ml-1 text-sm">{timeLeft}S</span>
           </div>
         </div>
       </div>
 
-      {/* Progress & Stats Row */}
-      <div className="w-full max-w-5xl flex flex-col sm:flex-row items-center justify-between mb-8 gap-4 z-10">
-        <div className="flex-1 w-full bg-black/40 rounded-full h-4 border border-white/10 overflow-hidden relative shadow-inner">
+      {/* Progress Bar (Thin) */}
+      <div className="w-full max-w-5xl mb-8 z-10">
+        <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-brand-primary to-brand-secondary"
             initial={{ width: 0 }}
             animate={{ width: `${progressPercentage}%` }}
             transition={{ type: "spring", stiffness: 100 }}
           />
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white shadow-black drop-shadow-md">
-            Progreso {attempt}/{TOTAL_QUESTIONS}
-          </span>
-        </div>
-        
-        <div className="flex gap-3">
-          <div className="flex items-center space-x-2 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg">
-            <span className="text-xs uppercase text-green-400 font-bold">Aciertos</span>
-            <span className="text-lg font-extrabold text-green-300">{stats.correct}</span>
-          </div>
-          <div className="flex items-center space-x-2 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg">
-            <span className="text-xs uppercase text-red-400 font-bold">Fallos</span>
-            <span className="text-lg font-extrabold text-red-300">{stats.incorrect}</span>
-          </div>
         </div>
       </div>
 
@@ -307,7 +296,7 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
               </motion.h2>
             </AnimatePresence>
 
-            <form onSubmit={handleSubmit} className="w-full relative max-w-xs">
+            <form onSubmit={handleSubmit} className="w-full relative max-w-xs mt-4">
               <input
                 ref={inputRef}
                 type="number"
@@ -315,39 +304,47 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
                 pattern="[0-9]*"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                className="w-full bg-black/40 text-center text-5xl font-bold text-white py-4 rounded-2xl border-2 border-white/20 focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/30 transition-all placeholder-white/10 shadow-inner"
+                className={`w-full bg-black/40 text-center text-5xl font-bold text-white py-4 rounded-2xl border-2 focus:outline-none focus:ring-4 transition-all placeholder-white/10 shadow-inner pr-16 ${
+                  feedback === 'incorrect' ? 'border-red-500/50 focus:ring-red-500/30 text-red-300' :
+                  feedback === 'correct' ? 'border-green-500/50 focus:ring-green-500/30' :
+                  'border-white/20 focus:border-brand-primary focus:ring-brand-primary/30'
+                }`}
                 placeholder="?"
                 autoFocus
                 disabled={feedback !== 'none'}
               />
-              <div className="absolute -right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+              
+              {/* Overlays inside the input */}
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-2">
                 <AnimatePresence>
-                  {feedback === 'correct' && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                      <CheckCircle2 className="text-green-400 w-10 h-10 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]" />
+                  {feedback === 'incorrect' && (
+                    <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} className="flex items-center gap-2">
+                      <span className="bg-red-500 text-white font-black text-sm px-3 py-1.5 rounded-xl shadow-lg whitespace-nowrap">
+                        Era: {question.answer}
+                      </span>
+                      <XCircle className="text-red-500 w-8 h-8" />
                     </motion.div>
                   )}
-                  {feedback === 'incorrect' && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex items-center space-x-3">
-                      <XCircle className="text-red-400 w-10 h-10 drop-shadow-[0_0_15px_rgba(248,113,113,0.5)]" />
+                  {feedback === 'correct' && (
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                      <CheckCircle2 className="text-green-400 w-8 h-8 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]" />
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
             </form>
-
-            <AnimatePresence>
-              {feedback === 'incorrect' && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-6 px-6 py-2 bg-red-500 text-white font-black rounded-full text-lg tracking-widest shadow-lg shadow-red-500/40"
-                >
-                  LA RESPUESTA ERA: {question.answer}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            
+            {/* Stats inside the card */}
+            <div className="w-full flex justify-between gap-4 mt-12">
+              <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center shadow-inner">
+                <span className="text-[10px] uppercase font-bold text-gray-500 tracking-widest mb-1">Correctas</span>
+                <span className="text-2xl font-black text-green-400">{stats.correct}</span>
+              </div>
+              <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center shadow-inner">
+                <span className="text-[10px] uppercase font-bold text-gray-500 tracking-widest mb-1">Errores</span>
+                <span className="text-2xl font-black text-red-400">{stats.incorrect}</span>
+              </div>
+            </div>
           </div>
         </motion.div>
 
@@ -406,6 +403,7 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
               <ArrowRight size={32} />
             </motion.button>
           </div>
+          <p className="text-center text-[10px] uppercase font-black text-slate-500 tracking-[0.3em] mt-6">Teclado Numérico</p>
         </motion.div>
 
       </div>

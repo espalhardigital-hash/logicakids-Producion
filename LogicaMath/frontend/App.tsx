@@ -148,7 +148,6 @@ const App: React.FC = () => {
       await saveScore(record);
     } catch (error: any) {
       console.error("Failed to save score:", error);
-      alert(`Error guardando puntuación: ${error.message || 'Error desconocido'}`);
     }
 
     // --- LEVEL PROGRESSION LOGIC ---
