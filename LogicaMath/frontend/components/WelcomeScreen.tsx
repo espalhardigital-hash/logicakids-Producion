@@ -54,21 +54,26 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
     { id: 'challenge', label: 'Desafío Mixto', icon: <Sparkles size={24} className="text-white" />, color: 'bg-[#EC4899]', textColor: 'text-[#EC4899]' },
   ];
 
-  const isCategoryLocked = (categoryId: GameCategory) => {
-    if (categoryId === 'challenge') {
-      // Challenge unlocks only if all other categories are at Level 5 (index 4)
-      const otherCategories: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division'];
-      return otherCategories.some(cat => getCategoryLevel(cat) < 4);
-    }
-    return false;
+  // Sequential unlock order: addition -> subtraction -> multiplication -> division -> challenge
+  // Each unlocks when the PREVIOUS category reaches level index >= 4 (Level 5 completed = index 4)
+  const unlockOrder: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division', 'challenge'];
+
+  const isCategoryLocked = (categoryId: GameCategory): boolean => {
+    if (user?.role === 'ADMIN') return false; // Admin sees all unlocked
+    const idx = unlockOrder.indexOf(categoryId);
+    if (idx === 0) return false; // Sumas always unlocked
+    const prevCat = unlockOrder[idx - 1];
+    return getCategoryLevel(prevCat) < 4; // Requires prev at level index 4 (cleared Level 4)
   };
 
-  // Calculate global progress
+  // Calculate global progress (only the 4 basic categories, 5 levels each = 20 total)
+  const basicCategories: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division'];
   let totalLevelsUnlocked = 0;
-  categories.forEach(cat => {
-    totalLevelsUnlocked += Math.min(getCategoryLevel(cat.id), 5);
+  basicCategories.forEach(cat => {
+    totalLevelsUnlocked += Math.min(getCategoryLevel(cat), 5);
   });
   const maxTotalLevels = 20; // 4 categories * 5 levels
+  const globalProgressPercent = Math.round((totalLevelsUnlocked / maxTotalLevels) * 100);
   const remainingLevels = maxTotalLevels - totalLevelsUnlocked;
 
   return (
@@ -202,26 +207,65 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
         </motion.div>
 
         {/* Bottom Banner */}
-        <motion.div variants={itemVariants} className="w-full bg-blue-600 rounded-[2rem] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between shadow-[0_20px_40px_rgba(37,99,235,0.2)]">
-          <div className="flex items-center mb-6 md:mb-0">
-            <div className="w-20 h-20 rounded-3xl bg-white/10 flex items-center justify-center mr-6 shrink-0 border border-white/10">
-              <Trophy size={40} className="text-white" />
+        <motion.div variants={itemVariants} className="w-full bg-blue-600 rounded-[2rem] p-8 md:p-10 shadow-[0_20px_40px_rgba(37,99,235,0.2)]">
+          {/* Top row: icon + text + counter */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+            <div className="flex items-center">
+              <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mr-5 shrink-0 border border-white/10">
+                <Trophy size={32} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">
+                  {remainingLevels === 0 ? '¡Listo para el Desafío!' : 'Tu Camino a la Fase 1'}
+                </h3>
+                <p className="text-blue-100 text-sm leading-relaxed">
+                  {remainingLevels === 0
+                    ? 'Has dominado las bases. Supera el Desafío Mixto para avanzar a la Fase 1.'
+                    : 'Completa los 5 niveles en las 4 disciplinas para desbloquear el Desafío Mixto.'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-2">
-                {remainingLevels === 0 ? '¡Listo para el Desafío!' : 'Tu Camino a la Fase 1'}
-              </h3>
-              <p className="text-blue-100 text-sm max-w-xl leading-relaxed">
-                {remainingLevels === 0
-                  ? 'Has dominado las bases. Supera el Desafío Mixto para avanzar a la Fase 1.'
-                  : 'Completa los 5 niveles en las 4 disciplinas para desbloquear el Desafío Mixto y avanzar de fase.'}
-              </p>
+            <div className="w-20 h-20 rounded-2xl bg-white/10 flex flex-col items-center justify-center shrink-0 border border-white/10">
+              <span className="text-3xl font-black text-white leading-none">{globalProgressPercent}%</span>
+              <span className="text-[9px] font-bold text-blue-200 tracking-wider mt-1">COMPLETO</span>
             </div>
           </div>
 
-          <div className="w-24 h-24 rounded-3xl bg-white/10 flex flex-col items-center justify-center shrink-0 border border-white/10">
-            <span className="text-3xl font-black text-white mb-1">{remainingLevels}</span>
-            <span className="text-[9px] font-bold text-blue-200 tracking-wider">FALTANTES</span>
+          {/* Progress Bar */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-bold text-blue-200 tracking-widest uppercase">Progreso Fase 0</span>
+              <span className="text-xs font-bold text-white">{totalLevelsUnlocked} / {maxTotalLevels} niveles</span>
+            </div>
+            <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-white rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${globalProgressPercent}%` }}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
+              />
+            </div>
+            {/* Per-category mini indicators */}
+            <div className="flex justify-between mt-3">
+              {basicCategories.map((cat) => {
+                const lvl = getCategoryLevel(cat);
+                const pct = Math.min((lvl / 5) * 100, 100);
+                const labels: Record<string, string> = { addition: 'Sumas', subtraction: 'Restas', multiplication: 'Tablas', division: 'Divis.' };
+                return (
+                  <div key={cat} className="flex flex-col items-center gap-1 w-1/4 px-1">
+                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-white/60 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+                      />
+                    </div>
+                    <span className="text-[9px] font-bold text-blue-200 tracking-wide">{labels[cat]}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </motion.div>
       </motion.div>
