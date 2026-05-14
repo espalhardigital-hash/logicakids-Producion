@@ -667,3 +667,28 @@ class Intento(Base):
             f"pregunta={self.pregunta_id} "
             f"correcta={self.es_correcta}>"
         )
+
+
+# ============================================================
+# TABLA 10: PLATFORM_SETTINGS — Configuración global de la plataforma
+# ============================================================
+
+class PlatformSettings(Base):
+    """
+    Tabla de configuración global de la plataforma.
+    Almacena parámetros pedagógicos configurables por el administrador:
+    - Preguntas por fase
+    - Tiempos por nivel de dificultad
+    - Porcentaje mínimo de aprobación
+    - Estado del cronómetro global
+    """
+    __tablename__ = "platform_settings"
+
+    id = Column(Integer, primary_key=True, default=1)
+    key = Column(String(100), unique=True, nullable=False, index=True)
+    value = Column(JSON, nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    def __repr__(self):
+        return f"<PlatformSettings key={self.key}>"
+

@@ -42,7 +42,8 @@ from .db.session import engine
 from .db.base import Base
 from .models.sql_models import (
     User, Fase, Alumno, Pregunta, Alternativa, 
-    ConfiguracionProgreso, PoolAsignadoAlumno, ProgresoMaestria, Intento
+    ConfiguracionProgreso, PoolAsignadoAlumno, ProgresoMaestria, Intento,
+    PlatformSettings
 )
 
 @app.on_event("startup")

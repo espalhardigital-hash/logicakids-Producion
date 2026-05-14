@@ -9,10 +9,57 @@ from ..schemas import (
     ConfiguracionProgresoCreate, ConfiguracionProgresoUpdate, ConfiguracionProgresoResponse
 )
 from ..db.session import get_db
-from ..models.sql_models import Fase, Pregunta, Alternativa, ConfiguracionProgreso, StatusEnum
+from ..models.sql_models import Fase, Pregunta, Alternativa, ConfiguracionProgreso, StatusEnum, PlatformSettings
 from ..auth import get_admin_user
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+# ============================================================
+# PLATFORM SETTINGS (Pedagogical Configuration)
+# ============================================================
+
+PEDAGOGY_CONFIG_KEY = "pedagogy_config"
+
+DEFAULT_PEDAGOGY_CONFIG = {
+    "questionsPerPhase": 50,
+    "timers": {
+        "easy": 10,
+        "easy_medium": 12,
+        "medium": 14,
+        "medium_hard": 16,
+        "hard": 18,
+    },
+    "useTimer": True,
+    "passingScore": 85,
+}
+
+@router.get("/settings")
+async def get_settings(db: AsyncSession = Depends(get_db)):
+    """Get platform pedagogical settings. Public endpoint (no auth required)."""
+    result = await db.execute(
+        select(PlatformSettings).where(PlatformSettings.key == PEDAGOGY_CONFIG_KEY)
+    )
+    settings = result.scalar_one_or_none()
+    if not settings:
+        return DEFAULT_PEDAGOGY_CONFIG
+    return settings.value
+
+@router.put("/settings")
+async def update_settings(payload: dict, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    """Update platform pedagogical settings. Admin only."""
+    result = await db.execute(
+        select(PlatformSettings).where(PlatformSettings.key == PEDAGOGY_CONFIG_KEY)
+    )
+    settings = result.scalar_one_or_none()
+    
+    if settings:
+        settings.value = payload
+    else:
+        settings = PlatformSettings(key=PEDAGOGY_CONFIG_KEY, value=payload)
+        db.add(settings)
+    
+    await db.commit()
+    return {"status": "ok", "message": "Configuración guardada exitosamente"}
 
 # ============================================================
 # FASES
