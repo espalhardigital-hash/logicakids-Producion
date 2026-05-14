@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 interface Props {
   user: User | null;
-  onStart: (username: string, category: GameCategory, difficulty: Difficulty) => void;
+  onSelectCategory: (category: GameCategory) => void;
   onLeaderboard: (username: string) => void;
   onStudy: () => void;
   onProfile: () => void;
@@ -26,7 +26,7 @@ const itemVariants = {
 
 const difficultyOrder: Difficulty[] = ['easy', 'easy_medium', 'medium', 'medium_hard', 'hard'];
 
-const WelcomeScreen: React.FC<Props> = ({ user, onStart, onLogout }) => {
+const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) => {
   const [progress, setProgress] = useState<import('../types').CategoryProgress[]>([]);
 
   useEffect(() => {
@@ -45,12 +45,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onStart, onLogout }) => {
   };
 
   const handleCategoryClick = (categoryId: GameCategory) => {
-    const currentLevelIdx = getCategoryLevel(categoryId);
-    // Ensure we don't go out of bounds if they completed everything
-    const safeIdx = Math.min(currentLevelIdx, difficultyOrder.length - 1);
-    const difficultyToPlay = difficultyOrder[safeIdx];
-    const finalName = user?.username || "Invitado";
-    onStart(finalName, categoryId, difficultyToPlay);
+    onSelectCategory(categoryId);
   };
 
   const categories: { id: GameCategory; label: string; icon: React.ReactNode; color: string; textColor: string }[] = [

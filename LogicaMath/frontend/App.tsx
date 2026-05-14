@@ -9,6 +9,7 @@ import LoginScreen from './components/LoginScreen';
 import ProfileScreen from './components/ProfileScreen';
 import AdminPanel from './components/AdminPanel';
 import SubjectSelectionScreen from './components/SubjectSelectionScreen';
+import LevelSelectionScreen from './components/LevelSelectionScreen';
 import { saveScore, saveUser, getCurrentUserFull, getSubjects } from './services/storageService';
 import * as authService from './services/authService';
 import { Subject } from './types';
@@ -106,6 +107,11 @@ const App: React.FC = () => {
   };
 
   // --- GAME HANDLERS ---
+
+  const handleSelectCategory = (selectedCategory: GameCategory) => {
+    setCategory(selectedCategory);
+    setScreen(GameScreenState.LEVEL_SELECTION);
+  };
 
   const handleStartGame = (name: string, selectedCategory: GameCategory, selectedDifficulty: Difficulty) => {
     setUsername(name);
@@ -230,13 +236,22 @@ const App: React.FC = () => {
         {screen === GameScreenState.WELCOME && (
           <WelcomeScreen
             user={currentUser}
-            onStart={handleStartGame}
+            onSelectCategory={handleSelectCategory}
             onLeaderboard={handleShowLeaderboard}
             onStudy={() => setScreen(GameScreenState.STUDY_TABLES)}
             onProfile={() => setScreen(GameScreenState.PROFILE)}
             onAdmin={() => setScreen(GameScreenState.ADMIN_PANEL)}
             onLogout={handleLogout}
             subject={selectedSubject}
+          />
+        )}
+
+        {screen === GameScreenState.LEVEL_SELECTION && (
+          <LevelSelectionScreen
+            user={currentUser}
+            category={category}
+            onBack={() => setScreen(GameScreenState.WELCOME)}
+            onSelectLevel={(diff) => handleStartGame(currentUser?.username || "Invitado", category, diff)}
           />
         )}
 

@@ -18,6 +18,7 @@ const PedagogyTab: React.FC = () => {
     hard: 5,
   });
   const [useTimer, setUseTimer] = useState(true);
+  const [passingScore, setPassingScore] = useState(85);
 
   const handleSave = () => {
     alert("Configuración Pedagógica Guardada Correctamente");
@@ -77,6 +78,23 @@ const PedagogyTab: React.FC = () => {
                 {useTimer ? <ToggleRight size={40} className="text-blue-500" /> : <ToggleLeft size={40} className="text-slate-600" />}
               </button>
             </div>
+          </div>
+
+          <div className="mt-4 pt-6 border-t border-white/5 space-y-4">
+            <label className="text-sm text-slate-300 font-bold flex justify-between">
+              Porcentaje para Aprobar
+              <span className="text-green-400">{passingScore}%</span>
+            </label>
+            <input 
+              type="range" 
+              min="50" 
+              max="100" 
+              step="5"
+              value={passingScore}
+              onChange={(e) => setPassingScore(parseInt(e.target.value))}
+              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-green-500"
+            />
+            <p className="text-xs text-slate-500">Mínimo de respuestas correctas requeridas para desbloquear el siguiente nivel.</p>
           </div>
         </motion.div>
 

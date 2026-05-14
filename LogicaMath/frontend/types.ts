@@ -8,7 +8,8 @@ export enum GameScreenState {
   LEADERBOARD,
   STUDY_TABLES,
   PROFILE,
-  ADMIN_PANEL
+  ADMIN_PANEL,
+  LEVEL_SELECTION
 }
 
 export interface Subject {
