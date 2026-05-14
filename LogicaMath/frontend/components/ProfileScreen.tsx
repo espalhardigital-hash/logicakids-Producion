@@ -44,6 +44,15 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
     type: 'idle', message: ''
   });
 
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
+
+  const handlePasswordToggle = () => {
+    setIsEditingPassword(!isEditingPassword);
+    if (isEditingPassword) {
+      setFormData({ ...formData, password: '', confirmPassword: '' });
+    }
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
@@ -208,17 +217,27 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1 block">Nueva Contraseña</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[10px] font-bold text-slate-400 tracking-widest uppercase block">Nueva Contraseña</label>
+                  <button 
+                    onClick={handlePasswordToggle}
+                    className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    {isEditingPassword ? 'Cancelar' : 'Cambiar clave'}
+                  </button>
+                </div>
                 <input
                   name="password"
                   type="password"
+                  autoComplete="new-password"
+                  disabled={!isEditingPassword}
                   value={formData.password}
                   onChange={handleInputChange}
-                  placeholder="Dejar vacío para no cambiar"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all"
+                  placeholder={isEditingPassword ? "Escribe tu nueva contraseña" : "••••••••"}
+                  className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all ${!isEditingPassword ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
-              {formData.password && (
+              {formData.password && isEditingPassword && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
@@ -227,6 +246,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                   <input
                     name="confirmPassword"
                     type="password"
+                    autoComplete="new-password"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all"
