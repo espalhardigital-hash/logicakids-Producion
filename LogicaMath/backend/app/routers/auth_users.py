@@ -272,16 +272,16 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
     try:
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, _upload_to_s3)
-        # Store the full public MinIO URL so frontend can load it directly
-        # Strip trailing slash from endpoint URL just in case
-        endpoint = S3_ENDPOINT_URL.rstrip('/')
-        public_url = f"{endpoint}/{S3_BUCKET_NAME}/{filename}"
-        return {"success": True, "url": public_url}
+        
+        # Return the proxy URL instead of direct MinIO URL because the bucket is PRIVATE
+        # The frontend will resolve this using getAvatarUrl
+        proxy_url = f"/api/avatars/{filename}"
+        return {"success": True, "url": proxy_url}
     except Exception as e:
         print(f"S3 Upload Error: {e}")
         raise HTTPException(status_code=500, detail=f"Error subiendo imagen: {str(e)}")
 
-@router.get("/avatars/{filename}")
+@router.get("/avatars/{filename:path}")
 async def get_avatar(filename: str):
     if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
         raise HTTPException(status_code=503, detail="Configuración S3 incompleta.")
