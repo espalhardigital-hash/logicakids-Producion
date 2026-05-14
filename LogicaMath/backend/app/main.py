@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 
-from .routers import auth_users, admin, pedagogia
+from .routers import auth_users, admin, pedagogia, subjects
 
 load_dotenv()
 
@@ -70,3 +70,4 @@ def read_root():
 app.include_router(auth_users.router)
 app.include_router(admin.router)
 app.include_router(pedagogia.router)
+app.include_router(subjects.router)
