@@ -795,43 +795,95 @@ La "Tutoría Invisible" depende de que la información esté estructurada para q
 
 ---
 
-# 14. Lógica de Tutoría Invisible
+---
 
-La Tutoría Invisible no debe dar la respuesta, sino guiar el proceso mental.
+# 15. Hoja de Ruta de Implementación Detallada (Paso a Paso)
 
-1. **Detección**: Cuando el alumno falla, el sistema busca la respuesta en el JSON de `errores_previstos`.
-2. **Feedback de Primer Nivel**: Si hay un match, muestra el mensaje específico de ese error.
-3. **Feedback de Segundo Nivel**: Si el alumno falla por segunda vez en la misma pregunta, se activa el modo "Paso a Paso".
-4. **Interacción por Etapas**: El sistema pide al alumno resolver el Paso 1, luego el Paso 2, etc., en lugar de mostrar toda la solución de golpe.
-5. **Registro de Ayuda**: Se marca en la base de datos que el alumno necesitó "Tutoría Activa" para esa pregunta, lo cual reduce el puntaje de maestría para ese intento.
+Para garantizar la estabilidad del sistema, la implementación se dividirá en una **Fase Base (Estructura General)** y luego se avanzará **Módulo por Módulo**. Cada módulo debe ser programado, probado y validado antes de pasar al siguiente.
+
+## ETAPA 1: Estructura Base y Lógica General (El Motor)
+
+Antes de programar preguntas específicas, necesitamos que el sistema central pueda gestionarlas.
+
+### Backend (Base)
+- [ ] **Migraciones Finales**: Asegurar que las tablas `Preguntas`, `Alternativas`, `ProgresoMaestria`, e `Intentos` estén operativas en PostgreSQL.
+- [ ] **Servicio de Fases y Módulos**: Crear los endpoints `GET /fases/1/modulos` para devolver la estructura del mapa.
+- [ ] **Gestor de Progreso (Guardado)**: Crear el endpoint `POST /intentos` que recibe las respuestas del niño y calcula el "acierto/error" actualizando `ProgresoMaestria`.
+- [ ] **Despachador de Preguntas (Router)**: Endpoint `GET /preguntas/next?modulo=X&nivel=Y`. Este endpoint decidirá internamente si debe usar el *Generador Aleatorio*, cargar de la *Base de Datos* o instanciar una *Plantilla Dinámica*.
+
+### Frontend (Base)
+- [ ] **Navegación de Fase 1**: Interfaz del mapa principal donde el niño ve los 5 Módulos. Los módulos 2, 3, 4 y 5 deben estar bloqueados si no ha superado el anterior.
+- [ ] **Motor de UI Híbrido (`GameScreenFase1.tsx`)**: Un componente base capaz de renderizar:
+  - Preguntas de texto simple (Generador Aleatorio).
+  - Preguntas con alternativas (Base de Datos).
+  - Preguntas de completar espacios.
+- [ ] **Componente de Tutoría Invisible**: UI flotante o panel lateral que reciba el JSON de `errores_previstos` y `explicacion_paso_a_paso` para mostrar los mensajes dinámicos sin salir de la pantalla de juego.
+- [ ] **Panel Admin (Gestión Base)**: Formularios básicos en React para que los profesores puedan cargar Preguntas y Alternativas en la base de datos.
 
 ---
 
-# 15. Hoja de Ruta de Implementación (Roadmap)
+## ETAPA 2: Implementación Módulo a Módulo
 
-### Fase A: Preparación del Backend (Semana 1)
-- [ ] Implementar migraciones de base de datos (Tablas definidas en sección 12).
-- [ ] Crear Endpoints de CRUD para el Banco de Preguntas.
-- [ ] Implementar lógica de "Pool de Preguntas" (Asignación aleatoria de un subconjunto del banco al alumno).
+Una vez que el Motor Base funciona, pasamos a implementar la lógica pedagógica específica de cada módulo.
 
-### Fase B: Panel Administrador (Semana 2)
-- [ ] Interfaz para carga masiva de preguntas (Excel/JSON).
-- [ ] Editor de Explicaciones Paso a Paso (Editor visual de pasos).
-- [ ] Dashboard de analítica para ver errores comunes por módulo.
+### Módulo 1 — Gimnasio Numérico Mental
+*Objetivo: Cálculo rápido y operaciones combinadas.*
+* **Backend**:
+  - Implementar el algoritmo de **Generación Aleatoria Controlada** para sumas, restas y dobles.
+  - Implementar el generador de Nivel 4 (3 operaciones combinadas respetando prioridad matemática).
+* **Frontend**:
+  - Crear el renderizador de "Tarjetas Flash" (grandes números, ingreso numérico rápido por teclado o botones en pantalla).
+  - Implementar cronómetro visual estricto para este módulo.
+* **Testing y Validación**: Jugar los 4 niveles completos. Validar que nunca salgan números negativos (salvo regla explícita) y que el sistema pase al Módulo 2 al lograr 90% de precisión.
 
-### Fase C: Motor de Juego Fase 1 (Semana 3)
-- [ ] Nueva interfaz de juego que soporte "Lectura Matemática" (subrayado de datos).
-- [ ] Integración del motor de Tutoría Invisible.
-- [ ] Sistema de feedback dinámico basado en JSONB.
+### Módulo 2 — Tablas en Acción
+*Objetivo: Multiplicación, división y relación inversa.*
+* **Backend**:
+  - Algoritmo de generación para familias de operaciones (ej. si genera `3x4=12`, luego preguntar `12/3=?`).
+* **Frontend**:
+  - Representación visual opcional de "Grupos Iguales" (ej. mostrar matrices de puntitos para niveles iniciales).
+  - Componente de teclado numérico que soporte el símbolo de división "÷" visualmente claro.
+* **Testing y Validación**: Comprobar que solo aparezcan las tablas permitidas por el nivel.
 
-### Fase D: Calibración y QA (Semana 4)
-- [ ] Pruebas de balanceo de dificultad.
-- [ ] Validación de flujos de aprobación (90% de maestría).
-- [ ] Pruebas de persistencia de progreso offline/online.
+### Módulo 3 — Tienda Matemática
+*Objetivo: Sistema Monetario.*
+* **Backend**:
+  - Implementar el generador con **Plantillas Dinámicas** (`{"producto": "pan", "precio": 1.50}`).
+  - Asegurar la lógica de terminaciones decimales permitidas (`,00`, `,25`, `,50`, `,75`).
+* **Frontend**:
+  - Crear componentes visuales de "Monedas y Billetes" (opcional pero recomendado) o formato de etiquetas de precio (`R$ 0,00`).
+  - Inputs que formateen automáticamente a 2 decimales para evitar errores de tipeo.
+* **Testing y Validación**: Verificar que las operaciones con decimales flotantes no generen errores de precisión (ej. `0.1 + 0.2 = 0.300000004` en JavaScript debe corregirse en el generador).
+
+### Módulo 4 — Detective de Problemas
+*Objetivo: Lectura Matemática.*
+* **Backend**:
+  - Conectar el despachador de preguntas con la **Base de Datos** (ya no es generador aleatorio).
+  - Enviar el JSON de `errores_previstos`.
+* **Frontend**:
+  - Implementar la herramienta de **"Subrayador"**. El niño debe poder hacer clic en el texto del enunciado para marcar los "Datos Importantes".
+  - Renderizar botones de "Operación a Elegir" (Suma, Resta, Multiplicación, División) antes de pedir el resultado.
+* **Testing y Validación**: Validar que la Tutoría Invisible se dispare correctamente al elegir la operación equivocada.
+
+### Módulo 5 — Constructor de Soluciones
+*Objetivo: Problemas de múltiples pasos.*
+* **Backend**:
+  - Algoritmo de validación por pasos (evaluar si el Paso 1 es correcto antes de permitir el Paso 2).
+  - Despachar el JSON estructurado `explicacion_paso_a_paso`.
+* **Frontend**:
+  - Implementar la UI de "Flujo de Pasos" (Cajas conectadas por flechas donde el resultado de la Caja 1 alimenta a la Caja 2).
+  - Al fallar 2 veces, desbloquear la interfaz de Tutoría Activa que bloquea el avance hasta leer la explicación.
+* **Testing y Validación**: Cargar 5 problemas complejos en la base de datos y simular todos los caminos de error posibles.
 
 ---
 
-# 16. Conclusión Estratégica
+# 16. Conclusión Estratégica y Siguientes Pasos
 
-La Fase 1 transforma LogicaKids de un "generador de ejercicios" a una "plataforma de aprendizaje adaptativo". La clave del éxito reside en la **calidad de los datos estructurados** (explicaciones y errores) más que en el código de la interfaz. Un banco de preguntas bien diseñado permitirá detectar exactamente dónde se pierde el niño (lectura, cálculo o lógica) y actuar en consecuencia sin intervención humana constante.
+La división por módulos garantiza que nunca rompamos el sistema principal. El flujo de trabajo recomendado para nuestro equipo será:
 
+1. **Yo (IA)** programo el Backend Base y el Frontend Base. Lo revisamos juntos.
+2. Pasamos al **Módulo 1**. Desarrollamos generadores y UI. Tú lo pruebas en tu navegador.
+3. Si el Módulo 1 aprueba, lo damos por cerrado (Endpoint/Commit Seguro).
+4. Avanzamos al Módulo 2 y repetimos el ciclo.
+
+Esta metodología "Agile" por Módulos asegura implementaciones precisas, testadas y puestas a prueba de balas antes de avanzar, manteniendo siempre la base de datos íntegra.
