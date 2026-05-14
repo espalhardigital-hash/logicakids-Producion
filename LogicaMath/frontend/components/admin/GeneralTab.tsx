@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, UserRole } from '../types';
-import { getAllUsers, saveUser, deleteUser, getStorageUsage, getAllScores, getUserDetailedAnalytics, adminCreateUser, adminChangePassword, getAvatarUrl, deleteScoreById } from '../services/storageService';
+import { User, UserRole } from '../../types';
+import { getAllUsers, saveUser, deleteUser, getStorageUsage, getAllScores, getUserDetailedAnalytics, adminCreateUser, adminChangePassword, getAvatarUrl, deleteScoreById } from '../../services/storageService';
 import {
   ArrowLeft, Users, Shield, Activity, Database, Search,
   Edit, Trash2, UserX, UserCheck, Plus, X, Key, Check, BarChart2
@@ -206,6 +206,7 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
     u.email.toLowerCase().includes(filter.toLowerCase())
   );
 
+  return (
     <div className="w-full flex flex-col items-center justify-start relative z-10">
       <motion.div 
         initial="hidden"
