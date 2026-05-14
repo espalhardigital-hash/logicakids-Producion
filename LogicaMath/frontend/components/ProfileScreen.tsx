@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { User, Difficulty } from '../types';
-import { saveUser, uploadAvatar, getAvatarUrl, updateOwnProfile } from '../services/storageService';
-import { ArrowLeft, Camera, Save, Settings, User as UserIcon, Clock } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { User, Difficulty, CategoryProgress } from '../types';
+import { saveUser, uploadAvatar, getAvatarUrl, updateOwnProfile, getUserProgress } from '../services/storageService';
+import { ArrowLeft, Camera, Save, Settings, User as UserIcon, Clock, BarChart2, CheckCircle, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
@@ -43,6 +43,20 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
   const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error'; message: string }>({
     type: 'idle', message: ''
   });
+
+  const [activeTab, setActiveTab] = useState<'settings' | 'stats'>('settings');
+  const [statsData, setStatsData] = useState<CategoryProgress[]>([]);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'stats' && statsData.length === 0) {
+      setIsLoadingStats(true);
+      getUserProgress()
+        .then(data => setStatsData(data || []))
+        .catch(console.error)
+        .finally(() => setIsLoadingStats(false));
+    }
+  }, [activeTab, statsData.length]);
 
   const [isEditingPassword, setIsEditingPassword] = useState(false);
 
@@ -256,48 +270,63 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
             </div>
           </div>
 
-          {/* ── RIGHT: Study Settings ── */}
-          <div className="md:w-3/5 p-8 flex flex-col">
-            <div className="flex items-center gap-2 mb-2 text-blue-400">
-              <Settings size={20} />
-              <h2 className="font-black text-lg">Configuración de Estudio</h2>
+          {/* ── RIGHT: Tabs Area ── */}
+          <div className="md:w-3/5 p-8 flex flex-col relative">
+            <div className="flex items-center gap-6 mb-6 border-b border-white/10">
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`pb-3 text-sm font-black tracking-wider transition-colors relative flex items-center gap-2 ${activeTab === 'settings' ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                <Settings size={18} /> Configuración
+                {activeTab === 'settings' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
+              </button>
+              <button
+                onClick={() => setActiveTab('stats')}
+                className={`pb-3 text-sm font-black tracking-wider transition-colors relative flex items-center gap-2 ${activeTab === 'stats' ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                <BarChart2 size={18} /> Estadísticas
+                {activeTab === 'stats' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
+              </button>
             </div>
 
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 mb-6">
-              <p className="text-sm text-blue-200 leading-relaxed">
-                Ajusta el tiempo límite por pregunta según la dificultad.
-              </p>
-              <p className="text-xs text-blue-300/60 mt-1">(Mínimo 3s - Máximo 60s. "Default" usa el valor estándar de la plataforma)</p>
-            </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 relative">
+              {activeTab === 'settings' ? (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 mb-2">
+                    <p className="text-sm text-blue-200 leading-relaxed">
+                      Ajusta el tiempo límite por pregunta según la dificultad.
+                    </p>
+                    <p className="text-xs text-blue-300/60 mt-1">(Mínimo 3s - Máximo 60s. "Default" usa el valor estándar de la plataforma)</p>
+                  </div>
 
-            <div className="space-y-5 flex-1 overflow-y-auto custom-scrollbar pr-2">
-              {(Object.keys(difficultyLabels) as Difficulty[]).map((diff) => {
-                const customVal = timers[diff];
-                const displayVal = customVal ?? defaultTimers[diff];
-                const isCustom = customVal !== undefined;
+                  <div className="space-y-5">
+                    {(Object.keys(difficultyLabels) as Difficulty[]).map((diff) => {
+                      const customVal = timers[diff];
+                      const displayVal = customVal ?? defaultTimers[diff];
+                      const isCustom = customVal !== undefined;
 
-                return (
-                  <div key={diff} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label className="text-sm font-semibold text-slate-300">{difficultyLabels[diff]}</label>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-sm font-black px-3 py-1 rounded-lg ${isCustom ? 'bg-blue-600 text-white' : 'bg-white/10 text-slate-400'}`}>
-                          {isCustom ? `${displayVal} s` : 'Default s'}
-                        </span>
-                        {isCustom && (
-                          <button
-                            onClick={() => resetTimer(diff)}
-                            className="text-xs text-slate-500 hover:text-red-400 transition-colors"
-                            title="Restablecer"
-                          >
-                            ↺
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Clock size={14} className="text-slate-600 shrink-0" />
-                      <input
+                      return (
+                        <div key={diff} className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm font-semibold text-slate-300">{difficultyLabels[diff]}</label>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm font-black px-3 py-1 rounded-lg ${isCustom ? 'bg-blue-600 text-white' : 'bg-white/10 text-slate-400'}`}>
+                                {isCustom ? `${displayVal} s` : 'Default s'}
+                              </span>
+                              {isCustom && (
+                                <button
+                                  onClick={() => resetTimer(diff)}
+                                  className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+                                  title="Restablecer"
+                                >
+                                  ↺
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Clock size={14} className="text-slate-600 shrink-0" />
+                            <input
                         type="range"
                         min="3"
                         max="60"
@@ -311,6 +340,44 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                 );
               })}
             </div>
+          </motion.div>
+        ) : (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            {isLoadingStats ? (
+              <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>
+            ) : statsData.length === 0 ? (
+              <div className="text-center py-10 text-slate-500">Aún no hay estadísticas disponibles.</div>
+            ) : (
+              statsData.map((stat, idx) => (
+                <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col gap-3">
+                  <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                    <span className="font-bold text-lg text-white capitalize">{stat.category}</span>
+                    <span className="text-xs font-black bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">Nivel {stat.unlocked_level}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase text-slate-400 font-bold">Puntuación</span>
+                      <span className="text-xl font-black text-yellow-400">{stat.total_score} pts</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase text-slate-400 font-bold">Precisión</span>
+                      <span className="text-xl font-black text-emerald-400">{stat.accuracy_rate || 0}%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle size={14} className="text-emerald-500" />
+                      <span className="text-sm font-bold text-slate-300">{stat.total_correct} correctas</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <XCircle size={14} className="text-rose-500" />
+                      <span className="text-sm font-bold text-slate-300">{stat.total_errors} errores</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </motion.div>
+        )}
+      </div>
 
             {/* Save Button + Status */}
             <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between gap-4">
