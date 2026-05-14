@@ -47,7 +47,7 @@ const SliderWithTooltip: React.FC<{
     <div className="relative w-full group pt-2">
       {/* Floating tooltip */}
       <div
-        className="absolute -top-1 transform -translate-x-1/2 pointer-events-none transition-all"
+        className="absolute -top-1 transform -translate-x-1/2 pointer-events-none transition-all z-30"
         style={{ left: `${percentage}%` }}
       >
         <div className={`bg-white text-slate-900 font-black text-xs px-2.5 py-1 rounded-lg shadow-xl border border-white/20 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity`}>
@@ -56,11 +56,17 @@ const SliderWithTooltip: React.FC<{
         </div>
       </div>
 
-      {/* Track background with filled portion */}
-      <div className="relative w-full h-2.5 bg-slate-700/80 rounded-full overflow-hidden">
+      {/* Track background */}
+      <div className="relative w-full h-2 bg-slate-700/80 rounded-full">
+        {/* Filled portion */}
         <div
-          className={`h-full rounded-full transition-all duration-150 ${accentColor}`}
+          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-150 ${accentColor}`}
           style={{ width: `${percentage}%` }}
+        />
+        {/* Custom thumb indicator — on top of everything */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 -ml-2.5 rounded-full border-[3px] border-white bg-slate-900 shadow-[0_0_8px_rgba(0,0,0,0.5)] pointer-events-none z-20"
+          style={{ left: `${percentage}%` }}
         />
       </div>
 
@@ -73,17 +79,11 @@ const SliderWithTooltip: React.FC<{
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value))}
         disabled={disabled}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-      />
-
-      {/* Custom thumb indicator */}
-      <div
-        className="absolute top-2 w-5 h-5 -mt-[5px] -ml-2.5 rounded-full border-[3px] border-white bg-slate-900 shadow-lg pointer-events-none transition-all"
-        style={{ left: `${percentage}%` }}
+        className="absolute top-2 left-0 w-full h-2 opacity-0 cursor-pointer disabled:cursor-not-allowed z-30"
       />
 
       {/* Min/Max labels */}
-      <div className="flex justify-between mt-1.5">
+      <div className="flex justify-between mt-2">
         <span className="text-[9px] text-slate-600 font-bold">{min}{unit}</span>
         <span className="text-[9px] text-slate-600 font-bold">{max}{unit}</span>
       </div>
