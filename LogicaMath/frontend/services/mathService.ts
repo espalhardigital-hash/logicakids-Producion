@@ -77,12 +77,25 @@ export const generateQuestion = (attempt: number, category: GameCategory, diffic
       else if (r < 0.75) subCategory = 'mixed_add_sub';
       else subCategory = 'mixed_mult_add';
     } else {
-      // Nivel 5: Mezcla completa Nivel 5
-      subDifficulty = 'hard';
+      // Nivel 5: Mezcla completa Nivel 4+ con operaciones encadenadas complejas
+      // Divisiones usan medium_hard (su máximo nivel), el resto usa hard (Nivel 5)
       const r = Math.random();
-      if (r < 0.3) subCategory = 'division';
-      else if (r < 0.6) subCategory = 'all_mixed';
-      else subCategory = 'mixed_mult_add';
+      if (r < 0.2) {
+        subDifficulty = 'medium_hard'; // División solo tiene hasta Nivel 4
+        subCategory = 'division';
+      } else if (r < 0.4) {
+        subDifficulty = 'hard';
+        subCategory = 'multiplication';
+      } else if (r < 0.6) {
+        subDifficulty = 'medium_hard';
+        subCategory = 'all_mixed';
+      } else if (r < 0.8) {
+        subDifficulty = 'medium_hard';
+        subCategory = 'mixed_mult_add';
+      } else {
+        subDifficulty = 'hard';
+        subCategory = Math.random() < 0.5 ? 'addition' : 'subtraction';
+      }
     }
 
     // Recursivamente llamamos a la función con los parámetros calculados
@@ -207,8 +220,9 @@ export const generateQuestion = (attempt: number, category: GameCategory, diffic
         return { text: `${a} × ${b}`, answer: a * b };
       }
       case 'hard': {
-        // Nivel 5: 12-20 por 3-9
-        const a = getRandomInt(12, 20);
+        // Nivel 5: Factor A específico (12-15, 20, 25... 100) por Factor B (3-9)
+        const aOptions = [12, 13, 14, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100];
+        const a = aOptions[Math.floor(Math.random() * aOptions.length)];
         const b = getRandomInt(3, 9);
         return { text: `${a} × ${b}`, answer: a * b };
       }
@@ -243,12 +257,9 @@ export const generateQuestion = (attempt: number, category: GameCategory, diffic
         quotient = getRandomInt(3, 9);
         break;
       case 'medium_hard':
+      case 'hard':
         divisor = getRandomInt(4, 12);
         quotient = getRandomInt(4, 12);
-        break;
-      case 'hard':
-        divisor = getRandomInt(5, 15);
-        quotient = getRandomInt(5, 20);
         break;
       default:
         divisor = getRandomInt(2, 3);
