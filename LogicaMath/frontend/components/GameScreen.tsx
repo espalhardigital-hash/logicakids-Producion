@@ -14,7 +14,7 @@ interface Props {
 
 type FeedbackState = 'none' | 'correct' | 'incorrect';
 
-const TOTAL_QUESTIONS = 3;
+const TOTAL_QUESTIONS = 50;
 
 const CATEGORY_LABELS: Record<GameCategory, string> = {
   addition: 'Sumas',

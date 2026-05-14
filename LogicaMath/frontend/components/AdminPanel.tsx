@@ -93,13 +93,12 @@ const AdminPanel: React.FC<Props> = ({ onBack }) => {
           })}
         </nav>
 
-        <div className="p-6">
+        <div className="p-6 space-y-3">
           <button
             onClick={onBack}
-            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold transition-all hover:text-white group"
+            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] group"
           >
-            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-            Salir del Panel
+            Ir a Pruebas (Jugar)
           </button>
         </div>
       </div>

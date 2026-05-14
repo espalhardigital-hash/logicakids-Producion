@@ -37,7 +37,7 @@ const App: React.FC = () => {
           const dbUser = await getCurrentUserFull();
           setCurrentUser(dbUser);
           setUsername(dbUser.username);
-          setScreen(GameScreenState.WELCOME);
+          setScreen(dbUser.role === 'ADMIN' ? GameScreenState.ADMIN_PANEL : GameScreenState.WELCOME);
         } catch (error) {
           console.error("Error syncing user profile:", error);
           // Use basic info from stored user
@@ -54,7 +54,7 @@ const App: React.FC = () => {
           };
           setCurrentUser(fallbackUser);
           setUsername(fallbackUser.username);
-          setScreen(GameScreenState.WELCOME);
+          setScreen(fallbackUser.role === 'ADMIN' ? GameScreenState.ADMIN_PANEL : GameScreenState.WELCOME);
         }
       } else {
         // User is not authenticated
@@ -84,7 +84,7 @@ const App: React.FC = () => {
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
     setUsername(user.username);
-    setScreen(GameScreenState.SUBJECT_SELECTION);
+    setScreen(user.role === 'ADMIN' ? GameScreenState.ADMIN_PANEL : GameScreenState.SUBJECT_SELECTION);
   };
 
   const handleGuestPlay = () => {
@@ -287,7 +287,7 @@ const App: React.FC = () => {
 
         {screen === GameScreenState.ADMIN_PANEL && currentUser?.role === 'ADMIN' && (
           <AdminPanel
-            onBack={() => setScreen(GameScreenState.WELCOME)}
+            onBack={() => setScreen(GameScreenState.SUBJECT_SELECTION)}
           />
         )}
       </div>

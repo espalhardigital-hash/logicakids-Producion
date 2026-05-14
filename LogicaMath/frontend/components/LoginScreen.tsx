@@ -295,7 +295,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
         {/* Logo/Title Section */}
         <div className="text-center space-y-2">
           <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 drop-shadow-lg tracking-tight">
-            Math Challenge
+            Logica Kids
           </h1>
           <p className="text-gray-400 text-lg font-light tracking-wide">
             Domina las matemáticas jugando
