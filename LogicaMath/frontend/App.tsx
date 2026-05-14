@@ -109,8 +109,13 @@ const App: React.FC = () => {
   // --- GAME HANDLERS ---
 
   const handleSelectCategory = (selectedCategory: GameCategory) => {
-    setCategory(selectedCategory);
-    setScreen(GameScreenState.LEVEL_SELECTION);
+    if (selectedCategory === 'challenge') {
+      // Challenge mode starts immediately at level 5
+      handleStartGame(currentUser?.username || "Invitado", 'challenge', 'hard');
+    } else {
+      setCategory(selectedCategory);
+      setScreen(GameScreenState.LEVEL_SELECTION);
+    }
   };
 
   const handleStartGame = (name: string, selectedCategory: GameCategory, selectedDifficulty: Difficulty) => {
@@ -177,6 +182,18 @@ const App: React.FC = () => {
           });
           // Note: No longer updating global unlockedLevel to keep categories independent
         }
+      }
+
+      // --- GRADUATION LOGIC ---
+      if (category === 'challenge' && score >= 90) { // Require 90% for graduation
+        import('./services/storageService').then(service => {
+          service.graduateToFase1().then(() => {
+            // Re-sync user info to reflect new phase
+            service.getCurrentUserFull().then(updatedUser => {
+              setCurrentUser(updatedUser);
+            });
+          });
+        });
       }
     }
 

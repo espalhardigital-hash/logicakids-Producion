@@ -75,7 +75,8 @@ export interface User {
   createdAt: string;
   lastLogin?: string;
   settings: UserSettings;
-  unlockedLevel: number; // 0=Easy, 1=EasyMedium, etc. (Max 4)
+  unlockedLevel: number;
+  fase_actual_id?: number;
 }
 
 export interface CategoryProgress {

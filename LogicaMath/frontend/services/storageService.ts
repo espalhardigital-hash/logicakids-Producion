@@ -299,6 +299,14 @@ export const unlockLevel = async (category: import('../types').GameCategory, new
   }
 };
 
+export const graduateToFase1 = async (): Promise<void> => {
+  try {
+    await apiRequest('/pedagogia/graduate-to-fase1', 'POST');
+  } catch (error) {
+    console.error("Error graduating to Fase 1:", error);
+  }
+};
+
 
 // --- SUBJECT MANAGEMENT (NEW) ---
 

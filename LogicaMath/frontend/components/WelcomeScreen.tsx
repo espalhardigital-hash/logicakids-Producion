@@ -48,7 +48,17 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
     { id: 'subtraction', label: 'Restas', icon: <Minus size={24} className="text-white" />, color: 'bg-[#F97316]', textColor: 'text-[#F97316]' },
     { id: 'multiplication', label: 'Tablas', icon: <X size={24} className="text-white" />, color: 'bg-[#A855F7]', textColor: 'text-[#A855F7]' },
     { id: 'division', label: 'Divisiones', icon: <Divide size={24} className="text-white" />, color: 'bg-[#3B82F6]', textColor: 'text-[#3B82F6]' },
+    { id: 'challenge', label: 'Desafío Mixto', icon: <Sparkles size={24} className="text-white" />, color: 'bg-[#EC4899]', textColor: 'text-[#EC4899]' },
   ];
+
+  const isCategoryLocked = (categoryId: GameCategory) => {
+    if (categoryId === 'challenge') {
+      // Challenge unlocks only if all other categories are at Level 5 (index 4)
+      const otherCategories: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division'];
+      return otherCategories.some(cat => getCategoryLevel(cat) < 4);
+    }
+    return false;
+  };
 
   // Calculate global progress
   let totalLevelsUnlocked = 0;
@@ -87,8 +97,12 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
               ¡Hola, {user?.username ? user.username.toLowerCase() : 'invitado'}! <span className="ml-2 text-3xl">👋</span>
             </h2>
             <div className="flex items-center text-slate-500 font-medium">
-              <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-3">FASE 0</span>
-              <span className="text-sm">Dominando las bases matemáticas</span>
+              <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-3">
+                {user?.fase_actual_id === 2 ? 'FASE 1' : 'FASE 0'}
+              </span>
+              <span className="text-sm">
+                {user?.fase_actual_id === 2 ? 'Aprendizaje por Dominio' : 'Dominando las bases matemáticas'}
+              </span>
             </div>
           </div>
           
@@ -110,40 +124,48 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
         </motion.div>
 
         {/* Categories Grid */}
-        <motion.div variants={containerVariants} className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <motion.div variants={containerVariants} className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-10">
           {categories.map((cat) => {
             const levelIdx = getCategoryLevel(cat.id);
             const currentLevel = Math.min(levelIdx + 1, 5); // Display level 1-5
             const progressPercent = Math.min((levelIdx / 5) * 100, 100);
+            const isLocked = isCategoryLocked(cat.id);
 
             return (
               <motion.button
                 variants={itemVariants}
-                whileHover={{ scale: 1.03, y: -5 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleCategoryClick(cat.id)}
+                whileHover={!isLocked ? { scale: 1.03, y: -5 } : {}}
+                whileTap={!isLocked ? { scale: 0.98 } : {}}
+                onClick={() => !isLocked && handleCategoryClick(cat.id)}
                 key={cat.id}
-                className="bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-start text-left transition-all hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]"
+                disabled={isLocked}
+                className={`bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-start text-left transition-all ${isLocked ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]'}`}
               >
-                <div className={`w-16 h-16 rounded-2xl ${cat.color} flex items-center justify-center mb-6 shadow-sm`}>
-                  {cat.icon}
+                <div className={`w-16 h-16 rounded-2xl ${isLocked ? 'bg-slate-300' : cat.color} flex items-center justify-center mb-6 shadow-sm`}>
+                  {isLocked ? <Plus size={24} className="text-white opacity-50 rotate-45" /> : cat.icon}
                 </div>
                 
                 <h3 className="text-2xl font-black text-slate-800 mb-4">{cat.label}</h3>
                 
-                <div className="bg-blue-50 text-blue-600 text-xs font-bold px-4 py-1.5 rounded-full mb-8">
-                  Nivel {currentLevel} de 5
-                </div>
+                {cat.id === 'challenge' ? (
+                  <div className={`${isLocked ? 'bg-slate-100 text-slate-500' : 'bg-pink-50 text-pink-600'} text-[10px] font-bold px-4 py-1.5 rounded-full mb-8 uppercase tracking-wider`}>
+                    {isLocked ? 'Desafío Bloqueado' : '¡Reto Final!'}
+                  </div>
+                ) : (
+                  <div className="bg-blue-50 text-blue-600 text-xs font-bold px-4 py-1.5 rounded-full mb-8">
+                    Nivel {currentLevel} de 5
+                  </div>
+                )}
 
                 <div className="w-full mt-auto">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[10px] font-bold text-slate-400 tracking-wider">PROGRESO</span>
-                    <span className="text-[10px] font-bold text-slate-400">{progressPercent}%</span>
+                    <span className="text-[10px] font-bold text-slate-400">{cat.id === 'challenge' ? (isLocked ? '0%' : '100%') : `${progressPercent}%`}</span>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div 
-                      className={`h-full ${cat.color} rounded-full transition-all duration-1000`} 
-                      style={{ width: `${progressPercent}%` }}
+                      className={`h-full ${isLocked ? 'bg-slate-200' : cat.color} rounded-full transition-all duration-1000`} 
+                      style={{ width: `${cat.id === 'challenge' ? (isLocked ? 0 : 100) : progressPercent}%` }}
                     ></div>
                   </div>
                 </div>
@@ -159,9 +181,13 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
               <Trophy size={40} className="text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-white mb-2">Tu Camino a la Fase 1</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                {remainingLevels === 0 ? '¡Listo para el Desafío!' : 'Tu Camino a la Fase 1'}
+              </h3>
               <p className="text-blue-100 text-sm max-w-xl leading-relaxed">
-                Completa los 5 niveles en las 4 disciplinas para desbloquear retos avanzados de lógica y álgebra.
+                {remainingLevels === 0 
+                  ? 'Has dominado las bases. Supera el Desafío Mixto para avanzar a la Fase 1.' 
+                  : 'Completa los 5 niveles en las 4 disciplinas para desbloquear el Desafío Mixto y avanzar de fase.'}
               </p>
             </div>
           </div>
