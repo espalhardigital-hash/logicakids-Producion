@@ -255,6 +255,7 @@ const App: React.FC = () => {
             user={currentUser}
             onSelectCategory={handleSelectCategory}
             onLogout={handleLogout}
+            onGoAdmin={currentUser?.role === 'ADMIN' ? () => setScreen(GameScreenState.ADMIN_PANEL) : undefined}
           />
         )}
 
@@ -313,7 +314,8 @@ const App: React.FC = () => {
 
         {screen === GameScreenState.ADMIN_PANEL && currentUser?.role === 'ADMIN' && (
           <AdminPanel
-            onBack={() => setScreen(GameScreenState.SUBJECT_SELECTION)}
+            onBack={() => setScreen(GameScreenState.WELCOME)}
+            onLogout={handleLogout}
           />
         )}
       </div>

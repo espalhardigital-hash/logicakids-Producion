@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ArrowLeft, LayoutDashboard, Settings, Activity, Menu, X } from 'lucide-react';
+import { Shield, ArrowLeft, LayoutDashboard, Settings, Activity, Menu, X, LogOut } from 'lucide-react';
 import GeneralTab from './admin/GeneralTab';
 import PedagogyTab from './admin/PedagogyTab';
 
 interface Props {
   onBack: () => void;
+  onLogout: () => void;
 }
 
 type TabType = 'general' | 'pedagogy' | 'performance';
 
-const AdminPanel: React.FC<Props> = ({ onBack }) => {
+const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -99,6 +100,13 @@ const AdminPanel: React.FC<Props> = ({ onBack }) => {
             className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] group"
           >
             Ir a Pruebas (Jugar)
+          </button>
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-slate-400 hover:text-red-400 font-bold transition-all"
+          >
+            <LogOut size={18} />
+            Cerrar Sesión
           </button>
         </div>
       </div>

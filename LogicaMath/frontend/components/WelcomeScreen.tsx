@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { GameCategory, User } from '../types';
-import { Plus, Minus, X, Divide, LogOut, Trophy } from 'lucide-react';
+import { Plus, Minus, X, Divide, LogOut, Trophy, Sparkles, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Props {
   user: User | null;
   onSelectCategory: (category: GameCategory) => void;
   onLogout: () => void;
+  onGoAdmin?: () => void;
 }
 
 const containerVariants = {
@@ -21,7 +22,7 @@ const itemVariants = {
 
 
 
-const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) => {
+const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGoAdmin }) => {
   const [progress, setProgress] = useState<import('../types').CategoryProgress[]>([]);
 
   useEffect(() => {
@@ -107,6 +108,15 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
           </div>
 
           <div className="flex items-center space-x-6">
+            {user?.role === 'ADMIN' && onGoAdmin && (
+              <button
+                onClick={onGoAdmin}
+                className="p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl text-purple-500 hover:text-purple-700 transition-colors border border-purple-100"
+                title="Panel Admin"
+              >
+                <Shield size={20} />
+              </button>
+            )}
             <div className="flex flex-col items-end">
               <span className="text-xs font-bold text-slate-400 tracking-wider mb-1">TOTAL ESTRELLAS</span>
               <div className="flex items-center text-amber-500">
@@ -114,7 +124,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) =>
                 <span className="text-3xl font-black">0</span>
               </div>
             </div>
-            <button
+            <button 
               onClick={onLogout}
               className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-colors border border-slate-100"
             >
