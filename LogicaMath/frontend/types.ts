@@ -26,13 +26,7 @@ export type GameCategory =
   | 'addition'
   | 'subtraction'
   | 'multiplication'
-  | 'division'
-  | 'mixed_add_sub'
-  | 'mixed_mult_add'
-  | 'all_mixed'
-  | 'logic_sequences'
-  | 'logic_patterns'
-  | 'logic_puzzles';
+  | 'division';
 
 export type Difficulty = 'easy' | 'easy_medium' | 'medium' | 'medium_hard' | 'hard' | 'random_tables';
 

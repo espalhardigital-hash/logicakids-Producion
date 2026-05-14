@@ -1,5 +1,5 @@
 """
-Seed Pedagogico - Plataforma Educativa Pedro II
+Seed Pedagogico - LogicaKids Pro
 ================================================
 Crea datos iniciales para la plataforma:
   - Fases (Fase 0 y Fase 1)

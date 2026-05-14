@@ -237,12 +237,7 @@ const App: React.FC = () => {
           <WelcomeScreen
             user={currentUser}
             onSelectCategory={handleSelectCategory}
-            onLeaderboard={handleShowLeaderboard}
-            onStudy={() => setScreen(GameScreenState.STUDY_TABLES)}
-            onProfile={() => setScreen(GameScreenState.PROFILE)}
-            onAdmin={() => setScreen(GameScreenState.ADMIN_PANEL)}
             onLogout={handleLogout}
-            subject={selectedSubject}
           />
         )}
 

@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { ScoreRecord, CategoryProgress, GameCategory } from '../types';
 import { getTopScoresByUser, getUserProgress, deleteScoreById } from '../services/storageService';
-import { ArrowLeft, Calendar, CheckCircle, XCircle, ChevronDown, ChevronUp, Plus, Minus, X, Divide, Hash, Zap, BrainCircuit, Calculator, TrendingUp, Target, Gamepad2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, XCircle, ChevronDown, ChevronUp, Plus, Minus, X, Divide, Calculator, TrendingUp, Target, Gamepad2, Trash2 } from 'lucide-react';
 
 interface Props {
   username: string;
   onBack: () => void;
 }
 
-const CATEGORY_CONFIG: Record<GameCategory, { label: string; color: string; icon: React.ReactNode }> = {
+const CATEGORY_CONFIG: Partial<Record<GameCategory, { label: string; color: string; icon: React.ReactNode }>> = {
   addition: { label: 'Sumas', color: 'bg-green-500', icon: <Plus size={16} /> },
   subtraction: { label: 'Restas', color: 'bg-orange-500', icon: <Minus size={16} /> },
   multiplication: { label: 'Tablas', color: 'bg-purple-500', icon: <X size={16} /> },
   division: { label: 'División', color: 'bg-pink-500', icon: <Divide size={16} /> },
-  mixed_add_sub: { label: 'Suma y Resta', color: 'bg-teal-500', icon: <Hash size={16} /> },
-  mixed_mult_add: { label: 'Mult + Oper', color: 'bg-indigo-500', icon: <Zap size={16} /> },
-  all_mixed: { label: 'Experto', color: 'bg-rose-500', icon: <BrainCircuit size={16} /> },
   challenge: { label: 'Desafío Mix', color: 'bg-blue-500', icon: <Calculator size={16} /> }
 };
 

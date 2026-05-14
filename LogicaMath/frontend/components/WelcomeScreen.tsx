@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { GameCategory, Difficulty, User } from '../types';
+import { GameCategory, User } from '../types';
 import { Plus, Minus, X, Divide, LogOut, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Props {
   user: User | null;
   onSelectCategory: (category: GameCategory) => void;
-  onLeaderboard: (username: string) => void;
-  onStudy: () => void;
-  onProfile: () => void;
-  onAdmin: () => void;
   onLogout: () => void;
-  subject: import('../types').Subject | null;
 }
 
 const containerVariants = {
@@ -24,7 +19,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
 
-const difficultyOrder: Difficulty[] = ['easy', 'easy_medium', 'medium', 'medium_hard', 'hard'];
+
 
 const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout }) => {
   const [progress, setProgress] = useState<import('../types').CategoryProgress[]>([]);

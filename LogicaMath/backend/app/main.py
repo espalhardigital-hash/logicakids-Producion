@@ -13,7 +13,7 @@ S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
 S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
 S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME")
 
-app = FastAPI(title="Plataforma Educativa Pedro II API", version="3.0.0")
+app = FastAPI(title="LogicaKids Pro API", version="3.0.0")
 
 # Security Headers
 if os.getenv("ENABLE_SECURITY_HEADERS", "true").lower() == "true":
@@ -61,7 +61,7 @@ async def startup_event():
 
 @app.get("/")
 def read_root():
-    return {"message": "Plataforma Educativa Pedro II - Backend API"}
+    return {"message": "LogicaKids Pro - Backend API"}
 
 # ============================================================
 # INCLUDE ROUTERS
