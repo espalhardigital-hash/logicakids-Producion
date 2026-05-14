@@ -8,8 +8,12 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const getAvatarUrl = (url: string | undefined | null) => {
   if (!url) return '';
-  if (url.startsWith('http')) return url;
-  return url.startsWith('/api') ? `${API_URL}${url.replace('/api', '')}` : `${API_URL}${url}`;
+  // Full absolute URL (MinIO public URL, CDN, etc.) — use directly
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  // Legacy relative path like /api/avatars/file.webp — convert via API_URL
+  if (url.startsWith('/api')) return `${API_URL}${url.replace('/api', '')}`;
+  // Any other relative path
+  return `${API_URL}${url}`;
 };
 
 // HELPER: Authenticated API request

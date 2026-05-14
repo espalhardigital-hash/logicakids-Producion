@@ -243,34 +243,79 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
         buffer = io.BytesIO()
         image.save(buffer, format="WEBP", quality=80, optimize=True)
         buffer.seek(0)
-        file_extension = "webp"
+        image_bytes = buffer.getvalue()
         content_type = "image/webp"
     except Exception as img_err:
         print(f"Image processing failed: {img_err}")
         raise HTTPException(status_code=422, detail="Error procesando la imagen.")
 
-    filename = f"{current_user['id']}_{uuid.uuid4()}.{file_extension}"
+    filename = f"avatars/{current_user['id']}_{uuid.uuid4()}.webp"
     if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
         raise HTTPException(status_code=503, detail="Configuración S3 incompleta.")
+
+    import asyncio
+    def _upload_to_s3():
+        s3 = boto3.client(
+            's3',
+            endpoint_url=S3_ENDPOINT_URL,
+            aws_access_key_id=S3_ACCESS_KEY,
+            aws_secret_access_key=S3_SECRET_KEY,
+            region_name=S3_REGION
+        )
+        s3.put_object(
+            Bucket=S3_BUCKET_NAME,
+            Key=filename,
+            Body=image_bytes,
+            ContentType=content_type
+        )
+
     try:
-        s3 = boto3.client('s3', endpoint_url=S3_ENDPOINT_URL, aws_access_key_id=S3_ACCESS_KEY, aws_secret_access_key=S3_SECRET_KEY, region_name=S3_REGION)
-        s3.upload_fileobj(buffer, S3_BUCKET_NAME, filename, ExtraArgs={'ContentType': content_type})
-        url = f"/api/avatars/{filename}"
-        return {"success": True, "url": url}
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, _upload_to_s3)
+        # Store the full public MinIO URL so frontend can load it directly
+        # Strip trailing slash from endpoint URL just in case
+        endpoint = S3_ENDPOINT_URL.rstrip('/')
+        public_url = f"{endpoint}/{S3_BUCKET_NAME}/{filename}"
+        return {"success": True, "url": public_url}
     except Exception as e:
-        print(f"S3 Error: {e}")
+        print(f"S3 Upload Error: {e}")
         raise HTTPException(status_code=500, detail=f"Error subiendo imagen: {str(e)}")
 
 @router.get("/avatars/{filename}")
 async def get_avatar(filename: str):
     if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
         raise HTTPException(status_code=503, detail="Configuración S3 incompleta.")
+    import asyncio
+    from botocore.exceptions import ClientError
+    
+    def _fetch_from_s3():
+        s3 = boto3.client(
+            's3',
+            endpoint_url=S3_ENDPOINT_URL,
+            aws_access_key_id=S3_ACCESS_KEY,
+            aws_secret_access_key=S3_SECRET_KEY,
+            region_name=S3_REGION
+        )
+        try:
+            response = s3.get_object(Bucket=S3_BUCKET_NAME, Key=filename)
+            content = response['Body'].read()
+            content_type = response.get('ContentType', 'image/webp')
+            return content, content_type
+        except ClientError as e:
+            error_code = e.response['Error']['Code']
+            if error_code in ('NoSuchKey', '404'):
+                return None, None
+            raise
+
     try:
-        s3 = boto3.client('s3', endpoint_url=S3_ENDPOINT_URL, aws_access_key_id=S3_ACCESS_KEY, aws_secret_access_key=S3_SECRET_KEY, region_name=S3_REGION)
-        response = s3.get_object(Bucket=S3_BUCKET_NAME, Key=filename)
-        return StreamingResponse(response['Body'], media_type="image/webp")
-    except s3.exceptions.NoSuchKey:
-        raise HTTPException(status_code=404, detail="Avatar no encontrado")
+        loop = asyncio.get_event_loop()
+        content, content_type = await loop.run_in_executor(None, _fetch_from_s3)
+        if content is None:
+            raise HTTPException(status_code=404, detail="Avatar no encontrado")
+        from fastapi.responses import Response
+        return Response(content=content, media_type=content_type)
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error fetching avatar {filename}: {e}")
         raise HTTPException(status_code=500, detail="Error obteniendo imagen")
