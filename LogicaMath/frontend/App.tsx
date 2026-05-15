@@ -305,6 +305,7 @@ const App: React.FC = () => {
             hasNextLevel={hasNextLevel}
             isPass={isPass}
             adminConfig={adminConfig}
+            category={category}
           />
         )}
 

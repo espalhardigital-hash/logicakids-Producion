@@ -361,3 +361,15 @@ export const saveAdminSettings = async (settings: import('../types').PedagogyCon
     throw error;
   }
 };
+
+// --- AI ANALYSIS ---
+
+export const getAIAnalysis = async (category: string): Promise<string> => {
+  try {
+    const result = await apiRequest<{ analysis: string }>(`/ai/analyze/${category}`);
+    return result.analysis;
+  } catch (error) {
+    console.error("Error fetching AI analysis:", error);
+    return "No se pudo obtener el análisis de IA en este momento.";
+  }
+};

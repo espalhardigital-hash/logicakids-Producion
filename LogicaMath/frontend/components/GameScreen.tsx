@@ -205,7 +205,7 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, admin
 
   if (!question) return <div className="text-white flex items-center justify-center h-full">Cargando desafío...</div>;
 
-  const progressPercentage = (attempt / TOTAL_QUESTIONS) * 100;
+  const progressPercentage = (attempt / totalQuestions) * 100;
   const timePercentage = (timeLeft / maxTimeForQuestion) * 100;
 
   // Determine shake effect

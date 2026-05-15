@@ -11,6 +11,8 @@ interface Props {
   onNextLevel: () => void;
   hasNextLevel: boolean;
   isPass: boolean;
+  category: string;
+  adminConfig?: import('../types').PedagogyConfig | null;
 }
 
 const containerVariants = {
@@ -23,7 +25,28 @@ const itemVariants = {
   show: { opacity: 1, y: 0 }
 };
 
-const ResultsScreen: React.FC<Props> = ({ stats, username, onRestart, onHome, onNextLevel, hasNextLevel, isPass }) => {
+const ResultsScreen: React.FC<Props> = ({ stats, username, onRestart, onHome, onNextLevel, hasNextLevel, isPass, category, adminConfig }) => {
+  const [aiAnalysis, setAiAnalysis] = React.useState<string | null>(null);
+  const [loadingAi, setLoadingAi] = React.useState(false);
+
+  const fetchAiAnalysis = async () => {
+    setLoadingAi(true);
+    try {
+      const { getAIAnalysis } = await import('../services/storageService');
+      const analysis = await getAIAnalysis(category);
+      setAiAnalysis(analysis);
+    } catch (error) {
+      setAiAnalysis("No se pudo obtener el análisis en este momento.");
+    } finally {
+      setLoadingAi(false);
+    }
+  };
+
+  React.useEffect(() => {
+    // Only fetch if they finished a full game (or just always show it)
+    fetchAiAnalysis();
+  }, [category]);
+
   const totalQuestions = stats.correct + stats.incorrect;
   const score = totalQuestions > 0 ? Math.round((stats.correct / totalQuestions) * 100) : 0;
   const avgTime = totalQuestions > 0 ? (stats.totalTime / totalQuestions).toFixed(2) : "0.00";
@@ -90,6 +113,33 @@ const ResultsScreen: React.FC<Props> = ({ stats, username, onRestart, onHome, on
           </div>
         </div>
       </motion.div>
+      
+      {/* AI Tutor Section */}
+      <motion.div variants={itemVariants} className="w-full bg-blue-900/20 backdrop-blur-md border border-blue-400/30 p-6 rounded-3xl text-left relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <Award size={64} className="text-blue-400" />
+        </div>
+        <h3 className="text-blue-300 font-black uppercase tracking-widest text-xs mb-3 flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+          </span>
+          Tutor IA LogicaKids
+        </h3>
+        
+        {loadingAi ? (
+          <div className="flex flex-col gap-2">
+            <div className="h-4 bg-blue-400/10 rounded w-3/4 animate-pulse"></div>
+            <div className="h-4 bg-blue-400/10 rounded w-full animate-pulse"></div>
+            <div className="h-4 bg-blue-400/10 rounded w-5/6 animate-pulse"></div>
+          </div>
+        ) : (
+          <div className="text-blue-100 text-sm leading-relaxed font-medium whitespace-pre-wrap">
+            {aiAnalysis || "Preparando análisis pedagógico..."}
+          </div>
+        )}
+      </motion.div>
+
 
       <motion.div variants={itemVariants} className="flex flex-col w-full gap-4">
          {isPass && hasNextLevel && (
