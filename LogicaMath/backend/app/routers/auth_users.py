@@ -380,6 +380,49 @@ async def get_scores(
     
     return (target_user.settings or {}).get("scores", [])
 
+@router.delete("/scores/{score_id}")
+async def delete_score(
+    score_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a specific score by ID. Admin can delete any score, users can only delete their own."""
+    if current_user.get("role") == "ADMIN":
+        # Admin: search all users for the score
+        result = await db.execute(select(UserModel))
+        all_users = result.scalars().all()
+        for u in all_users:
+            settings = u.settings or {}
+            scores = settings.get("scores", [])
+            original_len = len(scores)
+            scores = [s for s in scores if s.get("id") != score_id]
+            if len(scores) < original_len:
+                settings["scores"] = scores
+                from sqlalchemy.orm.attributes import flag_modified
+                u.settings = settings
+                flag_modified(u, "settings")
+                await db.commit()
+                return {"message": "Score eliminado exitosamente"}
+        raise HTTPException(status_code=404, detail="Score no encontrado")
+    else:
+        # Regular user: only delete own scores
+        result = await db.execute(select(UserModel).where(UserModel.id == current_user["id"]))
+        user = result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        settings = user.settings or {}
+        scores = settings.get("scores", [])
+        original_len = len(scores)
+        scores = [s for s in scores if s.get("id") != score_id]
+        if len(scores) == original_len:
+            raise HTTPException(status_code=404, detail="Score no encontrado")
+        settings["scores"] = scores
+        from sqlalchemy.orm.attributes import flag_modified
+        user.settings = settings
+        flag_modified(user, "settings")
+        await db.commit()
+        return {"message": "Score eliminado exitosamente"}
+
 @router.get("/users/me/progress")
 async def get_user_progress(
     db: AsyncSession = Depends(get_db),
