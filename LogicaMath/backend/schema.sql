@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS alumnos (
     user_id VARCHAR NOT NULL UNIQUE,
     nombre VARCHAR(120) NOT NULL,
     edad INTEGER,
-    fase_actual_id INTEGER,
+    fase_actual_id INTEGER NOT NULL DEFAULT 1,
     estado status_enum DEFAULT 'activo' NOT NULL,
     fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ultima_modificacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

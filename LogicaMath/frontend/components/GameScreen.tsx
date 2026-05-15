@@ -117,17 +117,17 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, admin
     }
 
     timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          handleTimeOut();
-          return 0;
-        }
-        return prev - 1;
-      });
+      setTimeLeft((prev) => prev > 0 ? prev - 1 : 0);
     }, 1000);
 
     return () => clearTimer();
   }, [feedback, attempt]);
+
+  useEffect(() => {
+    if (timeLeft === 0 && feedback === 'none') {
+      handleTimeOut();
+    }
+  }, [timeLeft, feedback]);
 
   const loadNextQuestion = (nextAttempt: number) => {
     if (!isMounted.current) return;

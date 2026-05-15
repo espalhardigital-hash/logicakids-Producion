@@ -152,8 +152,11 @@ async def responder_pregunta(
         alternativa_elegida = next((a for a in pregunta.alternativas if a.id == respuesta.alternativa_id), None)
         if alternativa_elegida:
             es_correcta = alternativa_elegida.es_correcta
-    elif respuesta.respuesta_dada:
-        es_correcta = (respuesta.respuesta_dada.strip().lower() == pregunta.respuesta_correcta.strip().lower())
+    elif respuesta.respuesta_dada is not None:
+        if pregunta.respuesta_correcta is not None:
+            es_correcta = (respuesta.respuesta_dada.strip().lower() == pregunta.respuesta_correcta.strip().lower())
+        else:
+            es_correcta = False
     
     # 4. Obtener/Crear ProgresoMaestria
     result = await db.execute(
@@ -241,6 +244,9 @@ async def graduate_to_fase1(db: AsyncSession = Depends(get_db), current_user: di
     result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
     alumno = result.scalar_one_or_none()
     
+    if not alumno:
+        raise HTTPException(status_code=404, detail="Perfil de alumno no encontrado")
+        
     # 2. Buscar Fase 1 (orden = 1)
     result = await db.execute(select(Fase).where(Fase.orden == 1))
     fase_uno = result.scalar_one_or_none()

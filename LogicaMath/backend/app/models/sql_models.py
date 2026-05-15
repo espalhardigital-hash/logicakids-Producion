@@ -179,7 +179,7 @@ class Alumno(Base):
     edad = Column(Integer, nullable=True)
 
     # Acceso rapido a la fase actual (Mejora #5)
-    fase_actual_id = Column(Integer, ForeignKey("fases.id"), nullable=True)
+    fase_actual_id = Column(Integer, ForeignKey("fases.id"), nullable=False, default=1)
 
     estado = Column(
         Enum(StatusEnum, name="status_alumnos", native_enum=False),

@@ -23,6 +23,7 @@ services:
       - "traefik.http.routers.${NOMBRE_APP:-sumas}-api.tls.certresolver=letsencrypt"
       - "traefik.http.middlewares.${NOMBRE_APP:-sumas}-stripprefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.${NOMBRE_APP:-sumas}-api.middlewares=${NOMBRE_APP:-sumas}-stripprefix"
+      - "traefik.http.services.${NOMBRE_APP:-sumas}-api.loadbalancer.server.port=8000"
 
   # ===== FRONTEND (React + Nginx) =====
   frontend:

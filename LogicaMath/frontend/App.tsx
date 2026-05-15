@@ -192,8 +192,8 @@ const App: React.FC = () => {
           // Call API to attempt unlock
           // The backend guarantees it only updates if newLevel > currentLevel
           import('./services/storageService').then(service => {
-            service.unlockLevel(category, nextLevel);
-          });
+            service.unlockLevel(category, nextLevel).catch(err => console.error("Error unlocking level:", err));
+          }).catch(err => console.error("Error importando storageService:", err));
           // Note: No longer updating global unlockedLevel to keep categories independent
         }
       }
@@ -205,9 +205,9 @@ const App: React.FC = () => {
             // Re-sync user info to reflect new phase
             service.getCurrentUserFull().then(updatedUser => {
               setCurrentUser(updatedUser);
-            });
-          });
-        });
+            }).catch(err => console.error("Error syncing user:", err));
+          }).catch(err => console.error("Error in graduation:", err));
+        }).catch(err => console.error("Error importando storageService:", err));
       }
     }
 

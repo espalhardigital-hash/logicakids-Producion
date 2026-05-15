@@ -73,6 +73,7 @@ async def get_all_users(db: AsyncSession = Depends(get_db), admin_user: dict = D
             "status": u.status,
             "avatar": u.avatar,
             "unlocked_level": u.unlocked_level,
+            "unlockedLevel": u.unlocked_level,
             "createdAt": u.created_at.isoformat() if u.created_at else None,
             "lastLogin": u.last_login.isoformat() if u.last_login else None,
         }
@@ -161,14 +162,28 @@ async def save_user(
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
     if current_user["role"] != "ADMIN":
-        allowed = ["username", "avatar", "settings"]
+        allowed = ["username", "avatar"]
         for key in allowed:
             if key in user_data:
                 setattr(user, key, user_data[key])
+        if "settings" in user_data and isinstance(user_data["settings"], dict):
+            new_settings = user_data["settings"]
+            current_settings = user.settings or {}
+            for protected in ["scores", "unlockedLevels"]:
+                if protected in current_settings:
+                    new_settings[protected] = current_settings[protected]
+                elif protected in new_settings:
+                    del new_settings[protected]
+            user.settings = new_settings
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(user, "settings")
     else:
         for key in ["username", "avatar", "settings", "role", "status", "unlocked_level"]:
             if key in user_data:
                 setattr(user, key, user_data[key])
+                if key == "settings":
+                    from sqlalchemy.orm.attributes import flag_modified
+                    flag_modified(user, "settings")
     
     await db.commit()
     await db.refresh(user)
@@ -176,6 +191,7 @@ async def save_user(
         "id": user.id, "username": user.username, "email": user.email,
         "role": user.role, "status": user.status, "avatar": user.avatar,
         "unlocked_level": user.unlocked_level,
+        "unlockedLevel": user.unlocked_level,
         "createdAt": user.created_at.isoformat() if user.created_at else None,
         "lastLogin": user.last_login.isoformat() if user.last_login else None
     }
@@ -363,6 +379,9 @@ async def get_scores(
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
+    if user and current_user.get("role") != "ADMIN" and user != current_user.get("username"):
+        raise HTTPException(status_code=403, detail="Not authorized to view other users' scores")
+
     if current_user.get("role") == "ADMIN" and not user:
         result = await db.execute(select(UserModel))
         users = result.scalars().all()
