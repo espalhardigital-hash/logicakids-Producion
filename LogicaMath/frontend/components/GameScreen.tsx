@@ -81,6 +81,12 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (attempt >= TOTAL_QUESTIONS) {
+      onEndGame(stats);
+    }
+  }, [attempt, stats, onEndGame]);
+
   const clearTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -111,7 +117,7 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
     if (!isMounted.current) return;
 
     if (currentAttempt >= TOTAL_QUESTIONS) {
-      onEndGame(stats);
+      setAttempt(currentAttempt);
       return;
     }
     const q = generateQuestion(currentAttempt, category, difficulty);

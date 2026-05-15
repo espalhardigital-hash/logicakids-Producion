@@ -319,3 +319,110 @@ async def get_avatar(filename: str):
     except Exception as e:
         print(f"Error fetching avatar {filename}: {e}")
         raise HTTPException(status_code=500, detail="Error obteniendo imagen")
+
+# --- SCORES AND PROGRESS (Saved in User Settings) ---
+
+class ScoreRecordBase(PydanticBaseModel):
+    id: str
+    user: str
+    score: int
+    correctCount: int
+    errorCount: int
+    avgTime: float
+    date: str
+    subject_id: str | None = None
+    category: str | None = None
+    difficulty: str | None = None
+
+@router.post("/scores")
+async def save_score(
+    score: ScoreRecordBase,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    result = await db.execute(select(UserModel).where(UserModel.id == current_user["id"]))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    settings = user.settings or {}
+    scores = settings.get("scores", [])
+    scores.append(score.model_dump() if hasattr(score, "model_dump") else score.dict())
+    
+    settings["scores"] = scores
+    from sqlalchemy.orm.attributes import flag_modified
+    user.settings = settings
+    flag_modified(user, "settings")
+    await db.commit()
+    return {"message": "Score guardado exitosamente"}
+
+@router.get("/scores")
+async def get_scores(
+    user: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user.get("role") == "ADMIN" and not user:
+        result = await db.execute(select(UserModel))
+        users = result.scalars().all()
+        all_scores = []
+        for u in users:
+            s = (u.settings or {}).get("scores", [])
+            all_scores.extend(s)
+        return all_scores
+    
+    target_username = user if user else current_user.get("username")
+    result = await db.execute(select(UserModel).where(UserModel.username == target_username))
+    target_user = result.scalar_one_or_none()
+    
+    if not target_user:
+        return []
+    
+    return (target_user.settings or {}).get("scores", [])
+
+@router.get("/users/me/progress")
+async def get_user_progress(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    result = await db.execute(select(UserModel).where(UserModel.id == current_user["id"]))
+    user = result.scalar_one_or_none()
+    if not user:
+        return []
+
+    settings = user.settings or {}
+    unlocked_levels = settings.get("unlockedLevels", {})
+    scores = settings.get("scores", [])
+
+    progress_by_cat = {}
+    categories = ["addition", "subtraction", "multiplication", "division", "challenge"]
+    for cat in categories:
+        progress_by_cat[cat] = {
+            "category": cat,
+            "unlocked_level": unlocked_levels.get(cat, 0),
+            "total_games": 0,
+            "total_score": 0,
+            "total_correct": 0,
+            "total_errors": 0,
+            "total_time_seconds": 0,
+        }
+    
+    for s in scores:
+        cat = s.get("category")
+        if cat in progress_by_cat:
+            progress_by_cat[cat]["total_games"] += 1
+            progress_by_cat[cat]["total_score"] += s.get("score", 0)
+            progress_by_cat[cat]["total_correct"] += s.get("correctCount", 0)
+            progress_by_cat[cat]["total_errors"] += s.get("errorCount", 0)
+            progress_by_cat[cat]["total_time_seconds"] += s.get("avgTime", 0) * (s.get("correctCount", 0) + s.get("errorCount", 0))
+
+    for cat_data in progress_by_cat.values():
+        tq = cat_data["total_correct"] + cat_data["total_errors"]
+        if tq > 0:
+            cat_data["accuracy_rate"] = round((cat_data["total_correct"] / tq) * 100)
+            cat_data["avg_response_time"] = round(cat_data["total_time_seconds"] / tq, 2)
+        else:
+            cat_data["accuracy_rate"] = 0
+            cat_data["avg_response_time"] = 0
+
+    return list(progress_by_cat.values())
