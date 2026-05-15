@@ -341,3 +341,23 @@ export const getSubjects = async (): Promise<import('../types').Subject[]> => {
     ];
   }
 };
+
+// --- SETTINGS (ADMIN & PEDAGOGY) ---
+
+export const getAdminSettings = async (): Promise<import('../types').PedagogyConfig | null> => {
+  try {
+    return await apiRequest<import('../types').PedagogyConfig>('/admin/settings');
+  } catch (error) {
+    console.error("Error fetching admin settings:", error);
+    return null;
+  }
+};
+
+export const saveAdminSettings = async (settings: import('../types').PedagogyConfig): Promise<void> => {
+  try {
+    await apiRequest('/admin/settings', 'PUT', settings);
+  } catch (error) {
+    console.error("Error saving admin settings:", error);
+    throw error;
+  }
+};

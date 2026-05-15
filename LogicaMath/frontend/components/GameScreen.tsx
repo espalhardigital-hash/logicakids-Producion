@@ -8,13 +8,15 @@ interface Props {
   category: GameCategory;
   difficulty: Difficulty;
   userSettings?: UserSettings;
+  adminConfig?: import('../types').PedagogyConfig | null;
   onEndGame: (stats: GameStats) => void;
   onExit: () => void;
 }
 
 type FeedbackState = 'none' | 'correct' | 'incorrect';
 
-const TOTAL_QUESTIONS = 50;
+// Default fallback if adminConfig is not loaded
+const FALLBACK_TOTAL_QUESTIONS = 50;
 
 const CATEGORY_LABELS: Record<GameCategory, string> = {
   addition: 'Sumas',
@@ -53,12 +55,15 @@ const keyVariants = {
   show: { opacity: 1, y: 0 }
 };
 
-const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEndGame, onExit }) => {
+const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, adminConfig, onEndGame, onExit }) => {
+  const totalQuestions = adminConfig?.questionsPerPhase || FALLBACK_TOTAL_QUESTIONS;
+
   const [attempt, setAttempt] = useState(0);
   const [question, setQuestion] = useState<Question | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [timeLeft, setTimeLeft] = useState(10);
   const [stats, setStats] = useState<GameStats>({ correct: 0, incorrect: 0, totalTime: 0 });
+  const statsRef = useRef<GameStats>({ correct: 0, incorrect: 0, totalTime: 0 });
   const [feedback, setFeedback] = useState<FeedbackState>('none');
   const [maxTimeForQuestion, setMaxTimeForQuestion] = useState(10);
 
@@ -82,10 +87,21 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
   }, []);
 
   useEffect(() => {
-    if (attempt >= TOTAL_QUESTIONS) {
-      onEndGame(stats);
+    if (attempt >= totalQuestions) {
+      // Call onEndGame with the latest stats from ref to avoid stale closure
+      onEndGame(statsRef.current);
     }
-  }, [attempt, stats, onEndGame]);
+  }, [attempt, onEndGame, totalQuestions]);
+
+  const updateStats = (isCorrect: boolean, timeSpent: number) => {
+    const newStats = {
+      correct: statsRef.current.correct + (isCorrect ? 1 : 0),
+      incorrect: statsRef.current.incorrect + (isCorrect ? 0 : 1),
+      totalTime: statsRef.current.totalTime + timeSpent
+    };
+    statsRef.current = newStats;
+    setStats(newStats);
+  };
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -113,18 +129,18 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
     return () => clearTimer();
   }, [feedback, attempt]);
 
-  const loadNextQuestion = (currentAttempt: number) => {
+  const loadNextQuestion = (nextAttempt: number) => {
     if (!isMounted.current) return;
 
-    if (currentAttempt >= TOTAL_QUESTIONS) {
-      setAttempt(currentAttempt);
+    if (nextAttempt >= totalQuestions) {
+      setAttempt(nextAttempt);
       return;
     }
-    const q = generateQuestion(currentAttempt, category, difficulty);
-    const timeLimit = calculateTimeLimit(currentAttempt, difficulty, category, userSettings);
+    const q = generateQuestion(nextAttempt, category, difficulty);
+    const timeLimit = calculateTimeLimit(nextAttempt, difficulty, category, userSettings, adminConfig);
 
     setQuestion(q);
-    setAttempt(currentAttempt);
+    setAttempt(nextAttempt);
     setMaxTimeForQuestion(timeLimit);
     setTimeLeft(timeLimit);
     setInputValue('');
@@ -140,11 +156,7 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
   const handleTimeOut = () => {
     clearTimer();
     setFeedback('incorrect');
-    setStats((prev) => ({
-      ...prev,
-      incorrect: prev.incorrect + 1,
-      totalTime: prev.totalTime + maxTimeForQuestion
-    }));
+    updateStats(false, maxTimeForQuestion);
 
     transitionTimeoutRef.current = setTimeout(() => {
       loadNextQuestion(attempt + 1);
@@ -163,21 +175,13 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
 
     if (isCorrect) {
       setFeedback('correct');
-      setStats((prev) => ({
-        ...prev,
-        correct: prev.correct + 1,
-        totalTime: prev.totalTime + timeSpent
-      }));
+      updateStats(true, timeSpent);
       transitionTimeoutRef.current = setTimeout(() => {
         loadNextQuestion(attempt + 1);
       }, 1000);
     } else {
       setFeedback('incorrect');
-      setStats((prev) => ({
-        ...prev,
-        incorrect: prev.incorrect + 1,
-        totalTime: prev.totalTime + timeSpent
-      }));
+      updateStats(false, timeSpent);
       transitionTimeoutRef.current = setTimeout(() => {
         loadNextQuestion(attempt + 1);
       }, 2000);
@@ -247,7 +251,7 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, onEnd
             <span className="text-white/20">|</span>
             <span className="text-brand-secondary">{DIFFICULTY_LABELS[difficulty]}</span>
             <span className="text-white/20">|</span>
-            <span className="text-slate-300">PREGUNTA {Math.min(attempt + 1, TOTAL_QUESTIONS)}/{TOTAL_QUESTIONS}</span>
+            <span className="text-slate-300">PREGUNTA {Math.min(attempt + 1, totalQuestions)}/{totalQuestions}</span>
             <span className="text-white font-black ml-1 text-sm">{timeLeft}S</span>
           </div>
         </div>

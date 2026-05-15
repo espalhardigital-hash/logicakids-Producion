@@ -8,6 +8,7 @@ interface Props {
   category: GameCategory;
   onBack: () => void;
   onSelectLevel: (difficulty: Difficulty) => void;
+  adminConfig?: import('../types').PedagogyConfig | null;
 }
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -30,9 +31,15 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
 
-const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelectLevel }) => {
+const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelectLevel, adminConfig }) => {
   const [unlockedLevel, setUnlockedLevel] = useState<number>(0);
-  const [passingScore, setPassingScore] = useState<number>(85); // TODO: get from admin settings if needed
+  const [passingScore, setPassingScore] = useState<number>(85);
+
+  useEffect(() => {
+    if (adminConfig) {
+      setPassingScore(adminConfig.passingScore);
+    }
+  }, [adminConfig]);
 
   useEffect(() => {
     // If admin, unlock all levels. Else fetch progress.

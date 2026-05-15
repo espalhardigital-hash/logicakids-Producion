@@ -12,8 +12,14 @@ export const calculateTimeLimit = (
   attempt: number,
   difficulty: Difficulty,
   category: GameCategory,
-  userSettings?: UserSettings
+  userSettings?: UserSettings,
+  adminConfig?: import('../types').PedagogyConfig | null
 ): number => {
+  // 0. Global Timer Disable
+  if (adminConfig && adminConfig.useTimer === false) {
+    return 999; // Effectively disable timer
+  }
+
   // 1. Priority: User Custom Settings (if defined for this difficulty)
   if (userSettings?.customTimers && userSettings.customTimers[difficulty]) {
     const customTime = userSettings.customTimers[difficulty];
@@ -30,7 +36,13 @@ export const calculateTimeLimit = (
     else effectiveDifficulty = 'hard';
   }
 
-  // 2. Default Time Logic as requested
+  // 2. Admin Config Timers
+  if (adminConfig && adminConfig.timers) {
+    const adminTime = adminConfig.timers[effectiveDifficulty as keyof typeof adminConfig.timers];
+    if (adminTime) return adminTime;
+  }
+
+  // 3. Default Time Logic as fallback
   switch (effectiveDifficulty) {
     case 'easy': return 10;
     case 'easy_medium': return 12;

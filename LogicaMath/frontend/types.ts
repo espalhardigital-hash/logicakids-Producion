@@ -90,3 +90,16 @@ export interface CategoryProgress {
   accuracy_rate?: number;
   avg_response_time?: number;
 }
+
+export interface PedagogyConfig {
+  questionsPerPhase: number;
+  timers: {
+    easy: number;
+    easy_medium: number;
+    medium: number;
+    medium_hard: number;
+    hard: number;
+  };
+  useTimer: boolean;
+  passingScore: number;
+}

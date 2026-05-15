@@ -1,27 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Settings, Clock, Layers, ToggleLeft, ToggleRight, CheckCircle, AlertCircle, Loader2, Percent, Target } from 'lucide-react';
-import { getIdToken } from '../../services/authService';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { getAdminSettings, saveAdminSettings } from '../../services/storageService';
+import { PedagogyConfig } from '../../types';
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
-
-interface PedagogyConfig {
-  questionsPerPhase: number;
-  timers: {
-    easy: number;
-    easy_medium: number;
-    medium: number;
-    medium_hard: number;
-    hard: number;
-  };
-  useTimer: boolean;
-  passingScore: number;
-}
 
 const DEFAULT_CONFIG: PedagogyConfig = {
   questionsPerPhase: 50,
@@ -106,9 +92,8 @@ const PedagogyTab: React.FC = () => {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/admin/settings`);
-      if (res.ok) {
-        const data = await res.json();
+      const data = await getAdminSettings();
+      if (data) {
         const merged = { ...DEFAULT_CONFIG, ...data, timers: { ...DEFAULT_CONFIG.timers, ...(data.timers || {}) } };
         setConfig(merged);
         setSavedConfig(merged);
@@ -124,24 +109,10 @@ const PedagogyTab: React.FC = () => {
     setSaving(true);
     setSaveStatus('idle');
     try {
-      const token = await getIdToken();
-      const res = await fetch(`${API_URL}/admin/settings`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(config),
-      });
-
-      if (res.ok) {
-        setSaveStatus('success');
-        setSavedConfig({ ...config });
-        setTimeout(() => setSaveStatus('idle'), 3000);
-      } else {
-        setSaveStatus('error');
-        setTimeout(() => setSaveStatus('idle'), 3000);
-      }
+      await saveAdminSettings(config);
+      setSaveStatus('success');
+      setSavedConfig({ ...config });
+      setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (err) {
       console.error("Failed to save settings:", err);
       setSaveStatus('error');

@@ -10,6 +10,7 @@ import os
 from PIL import Image, ImageOps
 from typing import List
 from datetime import datetime
+from pydantic import BaseModel as PydanticBaseModel
 
 from ..schemas import Token, UserRegister, UserLogin, User, CategoryLevelUpdate, UserCreate
 from ..db.session import get_db

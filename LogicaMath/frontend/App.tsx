@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameScreenState, GameStats, GameCategory, ScoreRecord, Difficulty, User } from './types';
+import { GameScreenState, GameStats, GameCategory, ScoreRecord, Difficulty, User, PedagogyConfig } from './types';
 import WelcomeScreen from './components/WelcomeScreen';
 import GameScreen from './components/GameScreen';
 import ResultsScreen from './components/ResultsScreen';
@@ -10,7 +10,7 @@ import ProfileScreen from './components/ProfileScreen';
 import AdminPanel from './components/AdminPanel';
 import SubjectSelectionScreen from './components/SubjectSelectionScreen';
 import LevelSelectionScreen from './components/LevelSelectionScreen';
-import { saveScore, saveUser, getCurrentUserFull, getSubjects } from './services/storageService';
+import { saveScore, saveUser, getCurrentUserFull, getSubjects, getAdminSettings } from './services/storageService';
 import * as authService from './services/authService';
 import { Subject } from './types';
 
@@ -27,6 +27,7 @@ const App: React.FC = () => {
   const [gameStats, setGameStats] = useState<GameStats | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [adminConfig, setAdminConfig] = useState<PedagogyConfig | null>(null);
 
   // Auto-Restore Session on mount
   useEffect(() => {
@@ -68,7 +69,15 @@ const App: React.FC = () => {
 
     checkAuth();
     loadSubjects();
+    loadAdminConfig();
   }, []);
+
+  const loadAdminConfig = async () => {
+    const config = await getAdminSettings();
+    if (config) {
+      setAdminConfig(config);
+    }
+  };
 
   const loadSubjects = async () => {
     try {
@@ -158,6 +167,9 @@ const App: React.FC = () => {
 
     try {
       await saveScore(record);
+      // Sync user data to get updated progress/settings
+      const updatedUser = await getCurrentUserFull();
+      handleUpdateUser(updatedUser);
     } catch (error: any) {
       console.error("Failed to save score:", error);
     }
@@ -172,8 +184,9 @@ const App: React.FC = () => {
 
       // If user passed this difficulty (and presumably it was their max or lower)
       if (currentDiffIndex !== -1 && currentDiffIndex < difficultyOrder.length - 1) {
-        // Determine if pass? Let's say score >= 60%
-        if (score >= 60) {
+        // Determine if pass based on admin config or default 85%
+        const requiredScore = adminConfig?.passingScore || 85;
+        if (score >= requiredScore) {
           const nextLevel = currentDiffIndex + 1;
 
           // Call API to attempt unlock
@@ -225,7 +238,7 @@ const App: React.FC = () => {
   const hasNextLevel = category !== 'challenge' && currentDiffIndex !== -1 && currentDiffIndex < difficultyOrder.length - 1;
   const totalQ = gameStats ? gameStats.correct + gameStats.incorrect : 0;
   const lastScore = gameStats && totalQ > 0 ? (gameStats.correct / totalQ) * 100 : 0;
-  const isPass = lastScore >= 60;
+  const isPass = lastScore >= (adminConfig?.passingScore || 85);
 
   return (
     <div className="min-h-screen w-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-700 via-slate-900 to-black flex flex-col items-center justify-center p-4 overflow-hidden">
@@ -267,6 +280,7 @@ const App: React.FC = () => {
             category={category}
             onBack={() => setScreen(GameScreenState.WELCOME)}
             onSelectLevel={(diff) => handleStartGame(currentUser?.username || "Invitado", category, diff)}
+            adminConfig={adminConfig}
           />
         )}
 
@@ -275,6 +289,7 @@ const App: React.FC = () => {
             category={category}
             difficulty={difficulty}
             userSettings={currentUser?.settings}
+            adminConfig={adminConfig}
             onEndGame={handleEndGame}
             onExit={handleGoHome}
           />
@@ -289,6 +304,7 @@ const App: React.FC = () => {
             onNextLevel={handleNextLevel}
             hasNextLevel={hasNextLevel}
             isPass={isPass}
+            adminConfig={adminConfig}
           />
         )}
 
