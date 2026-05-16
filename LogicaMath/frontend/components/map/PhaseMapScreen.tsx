@@ -180,10 +180,12 @@ export default function PhaseMapScreen({
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-50 font-sans pb-20 relative overflow-hidden">
-      {/* Background decorations - Ambient Glow */}
-      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-900/20 blur-[120px] rounded-full pointer-events-none z-0" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none z-0" />
+    <div className="min-h-screen bg-gradient-to-b from-[#0B0F19] via-[#0F172A] to-[#070A13] text-slate-50 font-sans pb-20 relative overflow-hidden">
+      {/* Background decorations - Ambient Glow Distributed along Scroll height */}
+      <div className="absolute top-[-5%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-[25%] right-[-15%] w-[600px] h-[600px] bg-purple-600/10 blur-[150px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-[55%] left-[-15%] w-[500px] h-[500px] bg-teal-600/8 blur-[150px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-[-5%] right-[-10%] w-[600px] h-[600px] bg-pink-600/8 blur-[150px] rounded-full pointer-events-none z-0" />
 
       {/* Dashboard Header Bar */}
       <header className="max-w-6xl mx-auto p-6 md:p-10 flex flex-col md:flex-row items-center justify-between z-10 relative gap-6">
@@ -298,7 +300,7 @@ export default function PhaseMapScreen({
                       className={`w-full max-w-[380px] p-6 rounded-[2.5rem] border-2 transition-all duration-300 relative overflow-hidden group
                         ${isUnlocked 
                           ? 'bg-slate-800/80 border-slate-700/80 hover:border-slate-500 cursor-pointer hover:-translate-y-2 hover:shadow-2xl hover:bg-slate-800' 
-                          : 'bg-slate-900/50 border-slate-800/50 opacity-60 cursor-not-allowed'}
+                          : 'bg-slate-900/50 border-slate-800/50 cursor-not-allowed'}
                       `}
                     >
                       {/* Premium Inner Accent Glow on Hover */}
@@ -308,7 +310,7 @@ export default function PhaseMapScreen({
 
                       {/* Header block within card */}
                       <div className="flex items-center justify-between mb-6 relative z-10">
-                        <div className={`w-14 h-14 flex items-center justify-center rounded-2xl transition-all duration-300 ${isUnlocked ? `${phase.color} text-white shadow-lg ${phase.shadow}` : 'bg-slate-800 text-slate-500'}`}>
+                        <div className={`w-14 h-14 flex items-center justify-center rounded-2xl transition-all duration-300 ${phase.color} text-white shadow-lg ${phase.shadow}`}>
                           <SafeIcon icon={phase.icon} size={28} />
                         </div>
                         <div className="text-right">
@@ -324,17 +326,23 @@ export default function PhaseMapScreen({
                       </div>
 
                       {/* Phase Title */}
-                      <h3 className={`text-2xl font-black mb-2 relative z-10 md:text-3xl ${isUnlocked ? 'text-white' : 'text-slate-400'}`}>
+                      <h3 className={`text-2xl font-black mb-2 relative z-10 md:text-3xl ${isUnlocked ? 'text-white' : 'text-slate-200'}`}>
                         {phase.title}
                       </h3>
                       
                       {/* Phase Description */}
-                      <p className={`text-sm leading-relaxed relative z-10 ${isUnlocked ? 'text-slate-300' : 'text-slate-600'}`}>
+                      <p className={`text-sm leading-relaxed relative z-10 ${isUnlocked ? 'text-slate-300' : 'text-slate-400'}`}>
                         {phase.description}
                       </p>
 
-                      {/* Enter Button (Unlocked Only) */}
-                      {isUnlocked && (
+                      {/* Symmetrical Button Layout */}
+                      {!isUnlocked ? (
+                        <div className="mt-8 relative z-10">
+                          <button disabled className="w-full py-3 rounded-xl bg-slate-800/40 text-slate-500 font-bold border border-slate-800/60 cursor-not-allowed flex items-center justify-center gap-2">
+                            <SafeIcon icon={Lock} size={14} /> Fase Resguardada
+                          </button>
+                        </div>
+                      ) : (
                         <div className="mt-8 relative z-10">
                           <button className="w-full py-3 rounded-xl bg-slate-700/50 text-white font-bold group-hover:bg-blue-500 transition-colors">
                             Entrar a Fase {phase.index}
