@@ -1,26 +1,26 @@
-# Especificación de Interfaz de Usuario: Fase 1 — Calentamiento Aritmético
+# Especificación de Interfaz de Usuario: Fase 1 — Calentamiento Aritmético (Fase 0)
 
-Esta fase representa la base matemática y el calentamiento aritmético de la plataforma **LogicaKids Pro**. Consiste en un juego interactivo de cálculo mental veloz que evalúa y refuerza las destrezas operativas elementales de los alumnos antes de adentrarse en dinámicas lógicas abstractas.
+Esta fase representa la base matemática y el calentamiento aritmético de la plataforma **LogicaKids Pro**. Consiste en un juego interactivo de cálculo mental veloz y generación 100% dinámica que evalúa y refuerza las destrezas operativas elementales de los alumnos antes de adentrarse en dinámicas lógicas abstractas.
 
 ---
 
-## 1. Propósito Pedagógico
+## 1. Propósito Pedagógico y Objetivo
 
-* **Objetivo General**: Desarrollar agilidad de cálculo mental y exactitud en las cuatro disciplinas matemáticas elementales: **Sumas, Restas, Tablas de Multiplicar y Divisiones**, además de un **Desafío Mixto** final.
+* **Objetivo General**: Asegurar la nivelación, agilidad y maestría operativa del alumno en las cuatro disciplinas matemáticas elementales (**Sumas, Restas, Tablas de Multiplicar y Divisiones**) junto a un **Desafío Mixto** final, garantizando que posee la fluidez matemática necesaria para abordar los retos más abstractos de fases posteriores.
 * **Habilidades Desarrolladas**:
-  1. Cálculo y recuperación de memoria numérica a corto plazo.
-  2. Concentración bajo presión de tiempo (cronómetro).
-  3. Reconocimiento ágil del valor de operaciones invertidas (multiplicación vs división).
+  1. Agilidad de cálculo mental y recuperación rápida de memoria numérica.
+  2. Concentración sostenida bajo presión de tiempo dinámico (cronómetro por pregunta).
+  3. Relación de operaciones complementarias (ej. suma-resta, multiplicación-división).
 
 ---
 
 ## 2. Layout y Diseño Visual de la Interfaz (`GameScreen.tsx`)
 
-La interfaz de juego utiliza una distribución de pantalla dividida (split-layout) orientada a la inmersión visual y a la comodidad táctil en dispositivos móviles y de escritorio.
+La interfaz de juego utiliza una distribución de pantalla dividida (split-layout) orientada a la inmersión visual y a la comodidad táctil tanto en dispositivos móviles como de escritorio.
 
 ```
 +-------------------------------------------------------------+
-|  [Abortar Misión]                Fase 1 | Nivel X | P. 1/40 |
+|  [Abortar Misión]                Fase 1 | Nivel X | P. 1/50 |
 |  [=========================== Progress ===================] |
 |                                                             |
 |   +-----------------------+     +-----------------------+   |
@@ -53,30 +53,75 @@ La interfaz de juego utiliza una distribución de pantalla dividida (split-layou
 
 ---
 
-## 3. Comportamiento y Flujo de Juego
+## 3. Lógica de Generación de Preguntas por Nivel
 
-1. **Selección de Nivel**:
-   - El alumno selecciona la categoría (Sumas, Restas, etc.) y se le presentan 5 niveles en un mapa lineal.
-   - Cada nivel se desbloquea superando el nivel anterior con el porcentaje de precisión objetivo.
-2. **Entrada a Juego**:
-   - Carga inmediata del primer desafío. El temporizador inicia automáticamente.
-   - El input numérico recibe el foco activo de forma automática.
-3. **Procesamiento de Respuestas**:
-   - El alumno puede ingresar la respuesta mediante el teclado físico o el teclado en pantalla.
-   - Al presionar *Enter* o hacer clic en *OK*, el temporizador se detiene, se muestra el feedback visual y auditivo durante 1 a 2 segundos y se pasa a la siguiente pregunta.
-4. **Fin de Misión**:
-   - Al completar la cantidad total de preguntas configuradas para la fase (por defecto 40 preguntas), se detiene el juego y se renderiza `ResultsScreen.tsx`.
-   - **Pantalla de Resultados**: Tarjeta premium con puntuación, análisis de tutoría IA de LogicaKids detallando fortalezas y debilidades, y el botón de graduación al siguiente nivel.
+La generación de ejercicios es totalmente dinámica, adaptándose con precisión al nivel de dificultad seleccionado:
+
+### ➕ Sumas (Adición)
+* **Nivel 1**: 1 dígito + 1 dígito (Números del 1 al 9).
+* **Nivel 2**: 2 dígitos + 1 dígito (A: 10-20, B: 1-9).
+* **Nivel 3**: 2 dígitos + 2 dígitos (Ambos entre 10-50).
+* **Nivel 4**: Tres números de 1 dígito (A + B + C, todos 1-9).
+* **Nivel 5**: Suma de 3 números (A, B: 10-50, C: 1-9).
+
+### ➖ Restas (Sustracción)
+* **Nivel 1**: A (2-10) menos B (1 a A-1). *Garantiza resultado > 0 para evitar negativos*.
+* **Nivel 2**: A (10-20) menos B (1-9).
+* **Nivel 3**: A (20-50) menos B (2-9).
+* **Nivel 4**: 2 dígitos menos 2 dígitos simples (A: 30-99, B: 10-25). *Garantiza A > B*.
+* **Nivel 5**: 2 dígitos menos 2 dígitos complejos (A: 50-99, B: 20 a A-10).
+
+### ✖️ Multiplicaciones
+* **Nivel 1**: Multiplicar por 1, 2 o 10 (A ∈ {1, 2, 10}, B: 1-10).
+* **Nivel 2**: Tablas del 2 al 5 (A: 2-5, B: 1-10).
+* **Nivel 3**: Tablas del 2 al 9 (A: 2-9, B: 2-10).
+* **Nivel 4**: Tablas extendidas (A: 6-12, B: 3-10).
+* **Nivel 5**: 2 dígitos por 1 dígito (A: 12-15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100; B: 3-9).
+
+### ➗ Divisiones
+*Técnica: Se genera primero la multiplicación (Divisor × Cociente = Dividendo) para asegurar resultados exactos enteros.*
+* **Nivel 1**: Divisor 2-3, Cociente 2-5.
+* **Nivel 2**: Divisor 2-5, Cociente 2-10.
+* **Nivel 3**: Divisor 3-9, Cociente 3-9.
+* **Nivel 4**: Divisor 4-12, Cociente 4-12.
+* **Nivel 5**: Divisor y cociente combinados con dividendos complejos de hasta 3 dígitos.
+
+### ⚡ Modo "Desafío Mixto" (Progresión Dinámica)
+En este modo, las 50 preguntas escalan de dificultad y combinan operaciones de forma progresiva dentro de la misma sesión de juego:
+* **Preguntas 1 al 10**: Nivel 1 — Sumas (50%) o Restas (50%).
+* **Preguntas 11 al 20**: Nivel 2 — Sumas (33%), Restas (33%) o Multiplicaciones (33%).
+* **Preguntas 21 al 30**: Nivel 3 — Mezcla equitativa de las 4 operaciones (25% c/u).
+* **Preguntas 31 al 40**: Nivel 4 — Operaciones de nivel 4 y mezcla de divisiones.
+* **Preguntas 41 al 50**: Nivel 5 — Mezcla completa de nivel 4+ y operaciones complejas.
 
 ---
 
-## 4. Parámetros de Configuración Técnica
+## 4. Comportamiento y Flujo de Juego
 
-* **Preguntas por Nivel**: 40 preguntas.
-* **Puntaje Mínimo de Aprobación**: 90% (36 de 40 correctas).
-* **Control de Tiempo por Pregunta**:
-  - Nivel 1 (Fácil): 15 segundos.
-  - Nivel 2: 12 segundos.
-  - Nivel 3: 10 segundos.
-  - Nivel 4: 8 segundos.
-  - Nivel 5 (Difícil): 6 segundos.
+1. **Selección de Nivel**:
+   * El alumno selecciona la disciplina y visualiza los 5 niveles en la interfaz interactiva.
+   * Los niveles se desbloquean secuencialmente al superar el nivel anterior con el criterio de aciertos exigido. El Administrador goza de un bypass de desbloqueo completo para pruebas.
+2. **Entrada a Juego**:
+   * Carga inmediata de la primera pregunta. El temporizador inicia automáticamente.
+   * El input numérico recibe el foco activo para permitir respuesta fluida con teclado físico o en pantalla.
+3. **Procesamiento de Respuestas**:
+   * Al presionar *Enter* o pulsar *OK*, el temporizador se detiene, muestra el feedback visual (verde/rojo) por 1.5 segundos y avanza a la siguiente pregunta.
+4. **Fin de Misión**:
+   * Al completar las **50 preguntas**, se detiene el cronómetro y se redirige a `ResultsScreen.tsx`.
+   * **Pantalla de Resultados**: Tarjeta premium con puntuación, análisis de la IA con fortalezas/debilidades y botón para avanzar o repetir.
+
+---
+
+## 5. Parámetros de Configuración Técnica
+
+Los siguientes parámetros representan los valores estándar de fábrica, los cuales son **100% editables en tiempo real** por los docentes desde el **Panel de Administrador** para flexibilizar la exigencia:
+
+* **Preguntas por Bloque / Sesión**: 50 preguntas.
+* **Puntaje Mínimo de Aprobación (Estándar)**: **95%** (ej. 48 aciertos de 50 preguntas).
+* **Control de Tiempo por Pregunta (Estándar)**:
+  * **Nivel 1 (Fácil)**: 10 segundos.
+  * **Nivel 2 (Fácil-Medio)**: 12 segundos.
+  * **Nivel 3 (Medio)**: 14 segundos.
+  * **Nivel 4 (Medio-Difícil)**: 16 segundos.
+  * **Nivel 5 (Difícil)**: 18 segundos.
+  *(A mayor dificultad algorítmica, se otorgan más segundos para incentivar la resolución mental reflexiva sin frustración)*.
