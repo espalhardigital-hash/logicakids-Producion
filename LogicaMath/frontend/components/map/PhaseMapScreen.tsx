@@ -272,7 +272,7 @@ export default function PhaseMapScreen({
             className="flex flex-col gap-12"
           >
             {phases.map((phase, i) => {
-              const isUnlocked = phase.index <= currentPhase;
+              const isUnlocked = user.role === 'ADMIN' || phase.index <= currentPhase;
               const alignRight = i % 2 !== 0;
 
               return (
