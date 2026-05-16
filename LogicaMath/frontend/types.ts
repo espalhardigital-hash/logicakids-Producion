@@ -13,14 +13,6 @@ export enum GameScreenState {
   MY_PROGRESS
 }
 
-export interface Subject {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  icon?: string;
-  is_active: boolean;
-}
 
 export type GameCategory =
   | 'challenge'

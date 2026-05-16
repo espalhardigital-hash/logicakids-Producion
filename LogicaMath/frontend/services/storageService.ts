@@ -324,32 +324,6 @@ export const updateOwnProfile = async (data: {
 };
 
 
-// --- SUBJECT MANAGEMENT (NEW) ---
-
-export const getSubjects = async (): Promise<import('../types').Subject[]> => {
-  // Lista estática de materias para LogicaKids Pro
-  return [
-    { 
-      id: '1', 
-      name: 'Matemáticas', 
-      slug: 'math', 
-      description: 'Desafía tu mente con números y operaciones.', 
-      icon: 'calculator', 
-      is_active: true, 
-      created_at: '' 
-    },
-    { 
-      id: '2', 
-      name: 'Lógica', 
-      slug: 'logic', 
-      description: 'Entrena tu cerebro con patrones y acertijos.', 
-      icon: 'brain', 
-      is_active: true, 
-      created_at: '' 
-    }
-  ];
-};
-
 // --- SETTINGS (ADMIN & PEDAGOGY) ---
 
 export const getAdminSettings = async (): Promise<import('../types').PedagogyConfig | null> => {

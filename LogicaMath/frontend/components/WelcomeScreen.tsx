@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GameCategory, User } from '../types';
-import { Plus, Minus, X, Divide, LogOut, Trophy, Sparkles, Shield } from 'lucide-react';
+import { Plus, Minus, X, Divide, LogOut, Trophy, Sparkles, Shield, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getAvatarUrl } from '../services/storageService';
 
@@ -176,10 +176,15 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
                 onClick={() => !isLocked && handleCategoryClick(cat.id)}
                 key={cat.id}
                 disabled={isLocked}
-                className={`bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-start text-left transition-all ${isLocked ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]'}`}
+                className={`bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-start text-left transition-all ${isLocked ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]'}`}
               >
-                <div className={`w-16 h-16 rounded-2xl ${isLocked ? 'bg-slate-300' : cat.color} flex items-center justify-center mb-6 shadow-sm`}>
-                  {isLocked ? <Plus size={24} className="text-white opacity-50 rotate-45" /> : cat.icon}
+                <div className={`relative w-16 h-16 rounded-2xl ${cat.color} flex items-center justify-center mb-6 shadow-sm transition-all duration-500 ${isLocked ? 'opacity-60 saturate-[0.4]' : ''}`}>
+                  {cat.icon}
+                  {isLocked && (
+                    <div className="absolute -top-2 -right-2 bg-slate-900 border-2 border-white rounded-full p-1.5 shadow-lg flex items-center justify-center">
+                      <Lock size={12} className="text-white" />
+                    </div>
+                  )}
                 </div>
 
                 <h3 className="text-2xl font-black text-slate-800 mb-4">{cat.label}</h3>

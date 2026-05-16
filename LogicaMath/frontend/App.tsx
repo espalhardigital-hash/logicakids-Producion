@@ -8,11 +8,9 @@ import StudyTablesScreen from './components/StudyTablesScreen';
 import LoginScreen from './components/LoginScreen';
 import ProfileScreen from './components/ProfileScreen';
 import AdminPanel from './components/AdminPanel';
-import SubjectSelectionScreen from './components/SubjectSelectionScreen';
 import LevelSelectionScreen from './components/LevelSelectionScreen';
-import { saveScore, saveUser, getCurrentUserFull, getSubjects, getAdminSettings } from './services/storageService';
+import { saveScore, saveUser, getCurrentUserFull, getAdminSettings } from './services/storageService';
 import * as authService from './services/authService';
-import { Subject } from './types';
 
 const App: React.FC = () => {
   // Start at LOGIN screen
@@ -25,8 +23,6 @@ const App: React.FC = () => {
   const [category, setCategory] = useState<GameCategory>('challenge');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [gameStats, setGameStats] = useState<GameStats | null>(null);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [adminConfig, setAdminConfig] = useState<PedagogyConfig | null>(null);
 
   // Auto-Restore Session on mount
@@ -68,7 +64,6 @@ const App: React.FC = () => {
     };
 
     checkAuth();
-    loadSubjects();
     loadAdminConfig();
   }, []);
 
@@ -79,14 +74,6 @@ const App: React.FC = () => {
     }
   };
 
-  const loadSubjects = async () => {
-    try {
-      const data = await getSubjects();
-      setSubjects(data);
-    } catch (error) {
-      console.error("Error loading subjects:", error);
-    }
-  };
 
   // Difficulty Mapping for Progression
   const difficultyOrder: Difficulty[] = ['easy', 'easy_medium', 'medium', 'medium_hard', 'hard', 'random_tables'];
@@ -95,13 +82,13 @@ const App: React.FC = () => {
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
     setUsername(user.username);
-    setScreen(user.role === 'ADMIN' ? GameScreenState.ADMIN_PANEL : GameScreenState.SUBJECT_SELECTION);
+    setScreen(user.role === 'ADMIN' ? GameScreenState.ADMIN_PANEL : GameScreenState.WELCOME);
   };
 
   const handleGuestPlay = () => {
     setCurrentUser(null);
     setUsername('');
-    setScreen(GameScreenState.SUBJECT_SELECTION);
+    setScreen(GameScreenState.WELCOME);
   };
 
   const handleLogout = async () => {
@@ -135,12 +122,6 @@ const App: React.FC = () => {
     setScreen(GameScreenState.PLAYING);
   };
 
-  const handleSelectSubject = (subject: Subject) => {
-    setSelectedSubject(subject);
-    // If it's math, go to welcome (which has the category selector)
-    // If it's logic, we'll use same welcome but it should adapt
-    setScreen(GameScreenState.WELCOME);
-  };
 
   const handleShowStats = () => {
     setScreen(GameScreenState.MY_PROGRESS);
@@ -159,7 +140,6 @@ const App: React.FC = () => {
       errorCount: stats.incorrect,
       avgTime: avgTime,
       date: new Date().toISOString(),
-      subject_id: selectedSubject?.id,
       category: category,
       difficulty: category === 'challenge' ? 'mixed' : difficulty
     };
@@ -228,7 +208,7 @@ const App: React.FC = () => {
   };
 
   const handleGoHome = () => {
-    setScreen(GameScreenState.SUBJECT_SELECTION);
+    setScreen(GameScreenState.WELCOME);
     setGameStats(null);
   };
 
@@ -255,13 +235,6 @@ const App: React.FC = () => {
           />
         )}
 
-        {screen === GameScreenState.SUBJECT_SELECTION && (
-          <SubjectSelectionScreen
-            subjects={subjects}
-            onSelect={handleSelectSubject}
-            onBack={() => setScreen(GameScreenState.WELCOME)}
-          />
-        )}
 
         {screen === GameScreenState.WELCOME && (
           <WelcomeScreen
