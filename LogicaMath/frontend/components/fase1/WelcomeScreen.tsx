@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GameCategory, User } from '../../types';
-import { Plus, Minus, X, Divide, LogOut, Trophy, Sparkles, Shield, Lock } from 'lucide-react';
+import { Plus, Minus, X, Divide, Trophy, Sparkles, Shield, Lock, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getAvatarUrl } from '../../services/storageService';
 
@@ -139,14 +139,6 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
           </div>
 
           <div className="flex items-center space-x-4 sm:space-x-6">
-            {onBackMap && (
-              <button 
-                onClick={onBackMap}
-                className="px-4 py-3 bg-blue-50 hover:bg-blue-100 rounded-2xl text-blue-600 font-bold transition-colors border border-blue-100 text-sm flex items-center gap-1.5 shadow-sm"
-              >
-                Volver al Mapa
-              </button>
-            )}
             {user?.role === 'ADMIN' && onGoAdmin && (
               <button
                 onClick={onGoAdmin}
@@ -167,12 +159,15 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
                 <span className="text-3xl font-black">{totalLevelsUnlocked}</span>
               </div>
             </button>
-            <button 
-              onClick={onLogout}
-              className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-colors border border-slate-100 shadow-sm"
-            >
-              <LogOut size={20} />
-            </button>
+            {onBackMap && (
+              <button 
+                onClick={onBackMap}
+                className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-500 hover:text-blue-600 transition-colors border border-slate-100 shadow-sm flex items-center justify-center group"
+                title="Volver al Mapa"
+              >
+                <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+              </button>
+            )}
           </div>
         </motion.div>
 
