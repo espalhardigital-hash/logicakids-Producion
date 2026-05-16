@@ -185,9 +185,9 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
                 onClick={() => !isLocked && handleCategoryClick(cat.id)}
                 key={cat.id}
                 disabled={isLocked}
-                className={`bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-start text-left transition-all ${isLocked ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]'}`}
+                className={`bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-start text-left transition-all ${isLocked ? 'cursor-not-allowed' : 'hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]'}`}
               >
-                <div className={`relative w-16 h-16 rounded-2xl ${cat.color} flex items-center justify-center mb-6 shadow-sm transition-all duration-500 ${isLocked ? 'opacity-60 saturate-[0.4]' : ''}`}>
+                <div className={`relative w-16 h-16 rounded-2xl ${cat.color} flex items-center justify-center mb-6 shadow-sm transition-all duration-500`}>
                   {cat.icon}
                   {isLocked && (
                     <div className="absolute -top-2 -right-2 bg-slate-900 border-2 border-white rounded-full p-1.5 shadow-lg flex items-center justify-center">
