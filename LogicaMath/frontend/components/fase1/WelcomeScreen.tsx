@@ -178,6 +178,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
             const currentLevel = Math.min(levelIdx + 1, 5); // Display level 1-5
             const progressPercent = Math.min((levelIdx / 5) * 100, 100);
             const isLocked = isCategoryLocked(cat.id);
+            const isDominated = !isLocked && (cat.id === 'challenge' ? (levelIdx >= 1) : progressPercent === 100);
 
             return (
               <motion.button
@@ -200,7 +201,13 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
 
                 <h3 className="text-2xl font-black text-slate-800 mb-4">{cat.label}</h3>
 
-                {cat.id === 'challenge' ? (
+                {isDominated ? (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 font-extrabold text-xs tracking-wide shadow-sm mb-8">
+                    <span className="flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-black mr-0.5">✓</span>
+                    Dominado
+                    <span className="ml-0.5 text-sm">✅</span>
+                  </div>
+                ) : cat.id === 'challenge' ? (
                   <div className={`${isLocked ? 'bg-slate-100 text-slate-500' : 'bg-pink-50 text-pink-600'} text-[10px] font-bold px-4 py-1.5 rounded-full mb-8 uppercase tracking-wider`}>
                     {isLocked ? 'Desafío Bloqueado' : '¡Reto Final!'}
                   </div>

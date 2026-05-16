@@ -273,6 +273,7 @@ export default function PhaseMapScreen({
           >
             {phases.map((phase, i) => {
               const isUnlocked = user.role === 'ADMIN' || phase.index <= currentPhase;
+              const isPhaseDominated = phase.index < currentPhase;
               const alignRight = i % 2 !== 0;
 
               return (
@@ -317,7 +318,11 @@ export default function PhaseMapScreen({
                           <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-1">
                             Fase {phase.index}
                           </span>
-                          {!isUnlocked && (
+                          {isPhaseDominated ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider">
+                              ✓ Dominada ✅
+                            </span>
+                          ) : !isUnlocked && (
                             <span className="text-xs font-bold text-slate-600 flex items-center gap-1 justify-end">
                               <SafeIcon icon={Lock} size={12} /> Bloqueado
                             </span>
@@ -340,6 +345,12 @@ export default function PhaseMapScreen({
                         <div className="mt-8 relative z-10">
                           <button disabled className="w-full py-3 rounded-xl bg-slate-800/40 text-slate-500 font-bold border border-slate-800/60 cursor-not-allowed flex items-center justify-center gap-2">
                             <SafeIcon icon={Lock} size={14} /> Fase Resguardada
+                          </button>
+                        </div>
+                      ) : isPhaseDominated ? (
+                        <div className="mt-8 relative z-10">
+                          <button className="w-full py-3 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 font-bold hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2">
+                            <span>✓</span> Repasar Fase (Dominada) ✅
                           </button>
                         </div>
                       ) : (
