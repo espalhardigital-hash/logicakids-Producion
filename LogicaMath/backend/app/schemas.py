@@ -1,6 +1,6 @@
 """
-Schemas Pydantic - Plataforma Educativa Pedro II
-=================================================
+Schemas Pydantic - LogicaKids Pro
+=================================
 Schemas de validacion y serializacion para todos los endpoints.
 
 Organizados por dominio:

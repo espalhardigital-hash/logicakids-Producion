@@ -1,5 +1,5 @@
 """
-Setup DB Script - Plataforma Educativa Pedro II
+Setup DB Script - LogicaKids Pro
 Crea las tablas en la base de datos PostgreSQL usando SQLAlchemy.
 
 Uso:
@@ -29,7 +29,7 @@ from app.models.sql_models import (
 
 async def setup():
     print("=" * 60)
-    print("Plataforma Pedro II - Database Setup")
+    print("LogicaKids Pro - Database Setup")
     print("=" * 60)
     print()
 

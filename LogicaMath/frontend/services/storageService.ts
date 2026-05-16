@@ -3,16 +3,12 @@ import { getIdToken } from './authService';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-// --- FIREBASE TOKEN MANAGEMENT ---
-// Deprecated: We now obtain token directly from Firebase SDK per request to ensure freshness
-
 export const getAvatarUrl = (url: string | undefined | null) => {
   if (!url) return '';
-  // Full absolute URL (MinIO public URL, CDN, etc.) — use directly
+  // URL absoluta (S3/MinIO)
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  // Legacy relative path like /api/avatars/file.webp — convert via API_URL
+  // Ruta relativa de la API
   if (url.startsWith('/api')) return `${API_URL}${url.replace('/api', '')}`;
-  // Any other relative path
   return `${API_URL}${url}`;
 };
 
@@ -331,15 +327,27 @@ export const updateOwnProfile = async (data: {
 // --- SUBJECT MANAGEMENT (NEW) ---
 
 export const getSubjects = async (): Promise<import('../types').Subject[]> => {
-  try {
-    return await apiRequest<import('../types').Subject[]>('/subjects');
-  } catch (error) {
-    console.error("Error fetching subjects, returning mock data:", error);
-    return [
-      { id: '1', name: 'Matemáticas', slug: 'math', description: 'Desafía tu mente con números y operaciones.', icon: 'calculator', is_active: true, created_at: '' },
-      { id: '2', name: 'Lógica', slug: 'logic', description: 'Entrena tu cerebro con patrones y acertijos.', icon: 'brain', is_active: true, created_at: '' }
-    ];
-  }
+  // Lista estática de materias para LogicaKids Pro
+  return [
+    { 
+      id: '1', 
+      name: 'Matemáticas', 
+      slug: 'math', 
+      description: 'Desafía tu mente con números y operaciones.', 
+      icon: 'calculator', 
+      is_active: true, 
+      created_at: '' 
+    },
+    { 
+      id: '2', 
+      name: 'Lógica', 
+      slug: 'logic', 
+      description: 'Entrena tu cerebro con patrones y acertijos.', 
+      icon: 'brain', 
+      is_active: true, 
+      created_at: '' 
+    }
+  ];
 };
 
 // --- SETTINGS (ADMIN & PEDAGOGY) ---

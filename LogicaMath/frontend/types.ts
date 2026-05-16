@@ -18,7 +18,7 @@ export interface Subject {
   slug: string;
   description?: string;
   icon?: string;
-  active: boolean;
+  is_active: boolean;
 }
 
 export type GameCategory =

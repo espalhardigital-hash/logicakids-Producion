@@ -1,6 +1,6 @@
 /**
- * Auth Service - Backend-based JWT authentication
- * Uses JWT tokens from our own backend (PostgreSQL)
+ * Auth Service - LogicaKids Pro
+ * Maneja la autenticación basada en JWT con el backend de FastAPI.
  */
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -157,7 +157,7 @@ export const isAuthenticated = (): boolean => {
 };
 
 /**
- * Get ID Token for API calls (compatibility wrapper)
+ * Get access token for authenticated API calls
  */
 export const getIdToken = async (): Promise<string | null> => {
   return getStoredToken();

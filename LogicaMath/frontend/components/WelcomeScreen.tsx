@@ -90,7 +90,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
             <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
               <Plus size={20} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold text-slate-800">Matemáticas Pro</h1>
+            <h1 className="text-xl font-bold text-slate-800">LogicaKids Pro</h1>
           </div>
           {/* User Avatar Button */}
           <button

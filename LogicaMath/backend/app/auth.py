@@ -1,6 +1,6 @@
 """
-Auth Module - Plataforma Educativa Pedro II
-============================================
+Auth Module - LogicaKids Pro
+============================
 Maneja JWT, bcrypt, login, register y get_admin_user.
 
 Actualizado para crear automaticamente un perfil de Alumno

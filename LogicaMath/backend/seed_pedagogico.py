@@ -260,7 +260,7 @@ async def create_admin_user():
     print("Creando usuario administrador...")
     async with AsyncSessionLocal() as session:
         result = await session.execute(
-            select(User).where(User.email == "admin@pedroii.edu.br")
+            select(User).where(User.email == "admin@logicakids.pro")
         )
         existing = result.scalar_one_or_none()
 
@@ -272,7 +272,7 @@ async def create_admin_user():
         admin = User(
             id=admin_id,
             username="admin",
-            email="admin@pedroii.edu.br",
+            email="admin@logicakids.pro",
             password_hash=get_password_hash("admin123"),
             role="ADMIN",
             status="ACTIVE",
@@ -280,7 +280,7 @@ async def create_admin_user():
         )
         session.add(admin)
         await session.commit()
-        print(f"  Admin creado: admin@pedroii.edu.br / admin123")
+        print(f"  Admin creado: admin@logicakids.pro / admin123")
         return admin_id
 
 
@@ -387,7 +387,7 @@ async def create_preguntas_ejemplo(admin_id: str):
 
 async def main():
     print("=" * 60)
-    print("Plataforma Pedro II - Seed Pedagogico")
+    print("LogicaKids Pro - Seed Pedagogico")
     print("=" * 60)
     print()
 
@@ -415,7 +415,7 @@ async def main():
     print("=" * 60)
     print()
     print("Resumen:")
-    print(f"  - 1 usuario administrador (admin@pedroii.edu.br / admin123)")
+    print(f"  - 1 usuario administrador (admin@logicakids.pro / admin123)")
     print(f"  - {len(FASES_DATA)} fases creadas (Fase 0 y Fase 1)")
     print(f"  - {len(CONFIGURACION_DATA)} reglas de progreso")
     print(f"  - {len(PREGUNTAS_SUMA_SECCION1)} preguntas de ejemplo (Fase 1, Seccion 1, Suma)")

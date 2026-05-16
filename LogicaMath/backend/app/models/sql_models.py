@@ -1,6 +1,6 @@
 """
-Modelos SQLAlchemy - Plataforma Educativa Pedro II
-===================================================
+Modelos SQLAlchemy - LogicaKids Pro
+===================================
 Plan v4 - 8 tablas pedagogicas + users (autenticacion)
 
 Tabla users:              Autenticacion JWT (copiada del proyecto actual)
