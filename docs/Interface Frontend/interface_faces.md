@@ -162,32 +162,53 @@ De acuerdo al backend y a la lógica establecida, estructuramos el mapa con la s
 
 ---
 
-## 6. Plan de Acción Detallado para la Implementación
-
-### Paso 1: Reorganización de Archivos y Modularización Básica
-- [x] Crear el directorio `frontend/components/fase1/`.
-- [x] Mover los componentes de juego existentes a esta carpeta (`WelcomeScreen.tsx`, `LevelSelectionScreen.tsx`, `GameScreen.tsx`, `ResultsScreen.tsx`, `StudyTablesScreen.tsx`).
-- [x] Actualizar los imports en estos archivos movidos para asegurar que las referencias a `types.ts` y los servicios en `../services/` sigan funcionando perfectamente.
-- [x] Actualizar los imports principales en `App.tsx` para cargar los componentes de la Fase 1 desde su nueva subcarpeta.
-- [x] Resolver los bugs de tipado en `types.ts` y `ProgressScreen.tsx` para asegurar que el proyecto compile con 0 errores.
-- [ ] Mover el panel de administrador principal `AdminPanel.tsx` dentro de `frontend/components/admin/` para consolidar el **Módulo Admin**.
-- [ ] Ajustar las importaciones relativas dentro de `AdminPanel.tsx` e integrarlo adecuadamente en `App.tsx`.
-
-### Paso 2: Creación de la Interfaz del Mapa (`PhaseMapScreen.tsx` en `components/map/`)
-- [ ] Diseñar el componente React para el mapa en zig-zag vertical (conectando los 9 nodos, Fase 1 a Fase 9) con estilos en `index.css` o inline TailwindCSS.
-- [ ] Implementar un array de configuración para las 9 fases (ID, título, descripción, operacion, desbloqueado).
-- [ ] Diseñar los estados visuales del nodo (Aprobado, En Curso, Bloqueado) con animaciones CSS (pulso, hover, float).
-- [ ] Integrar el modal interactivo de candado para las fases bloqueadas.
-
-### Paso 3: Integración y Ruteo en `App.tsx`
-- [ ] Importar `PhaseMapScreen` desde `./components/map/PhaseMapScreen` en `App.tsx`.
-- [ ] Modificar el estado inicial tras el inicio de sesión exitoso en `handleLoginSuccess` y en el `useEffect` de restauración para que redirija a `GameScreenState.PHASE_MAP` en lugar de `GameScreenState.WELCOME`.
-- [ ] Añadir la condición de renderizado para `GameScreenState.PHASE_MAP`.
-- [ ] Configurar el callback de navegación: al hacer clic en el nodo Fase 1, cambiar el estado a `GameScreenState.WELCOME` (que ahora inicia el flujo de la Fase 1).
-- [ ] Vincular los botones globales de Perfil, Estadísticas y Panel de Admin desde el Mapa para asegurar una navegación fluida en toda la aplicación.
-
-### Paso 4: Pruebas y Pulido Visual
-- [ ] Validar que la transición del login al mapa general sea inmediata y sin parpadeos.
-- [ ] Comprobar que al entrar a la Fase 1 el juego funcione exactamente igual que antes (completamente intacto).
-- [ ] Asegurar la adaptabilidad móvil del mapa en zig-zag para que se visualice perfecto en tablets y smartphones.
-- [ ] Integrar el micro-guardado de la fase en la base de datos (conectar con `fase_actual_id` del usuario para que refleje dinámicamente qué nodos están abiertos o cerrados).
+## 6. Plan de Acción Detallado para la Implementación (Completado)
+ 
+ ### Paso 1: Reorganización de Archivos y Modularización Básica
+ - [x] Crear el directorio `frontend/components/fase1/`.
+ - [x] Mover los componentes de juego existentes a esta carpeta (`WelcomeScreen.tsx`, `LevelSelectionScreen.tsx`, `GameScreen.tsx`, `ResultsScreen.tsx`, `StudyTablesScreen.tsx`).
+ - [x] Actualizar los imports en estos archivos movidos para asegurar que las referencias a `types.ts` y los servicios en `../services/` sigan funcionando perfectamente.
+ - [x] Actualizar los imports principales en `App.tsx` para cargar los componentes de la Fase 1 desde su nueva subcarpeta.
+ - [x] Resolver los bugs de tipado en `types.ts` y `ProgressScreen.tsx` para asegurar que el proyecto compile con 0 errores.
+ - [x] Mover el panel de administrador principal `AdminPanel.tsx` dentro de `frontend/components/admin/` para consolidar el **Módulo Admin**.
+ - [x] Ajustar las importaciones relativas dentro de `AdminPanel.tsx` e integrarlo adecuadamente en `App.tsx`.
+ 
+ ### Paso 2: Creación de la Interfaz del Mapa (`PhaseMapScreen.tsx` en `components/map/`)
+ - [x] Diseñar el componente React para el mapa en zig-zag vertical (conectando los 9 nodos, Fase 1 a Fase 9) con estilos en `index.css` o inline TailwindCSS.
+ - [x] Implementar un array de configuración para las 9 fases (ID, título, descripción, operacion, desbloqueado).
+ - [x] Diseñar los estados visuales del nodo (Aprobado, En Curso, Bloqueado) con animaciones CSS (pulso, hover, float).
+ - [x] Integrar el modal interactivo de candado para las fases bloqueadas.
+ 
+ ### Paso 3: Integración y Ruteo en `App.tsx`
+ - [x] Importar `PhaseMapScreen` desde `./components/map/PhaseMapScreen` en `App.tsx`.
+ - [x] Modificar el estado inicial tras el inicio de sesión exitoso en `handleLoginSuccess` y en el `useEffect` de restauración para que redirija a `GameScreenState.PHASE_MAP` en lugar de `GameScreenState.WELCOME`.
+ - [x] Añadir la condición de renderizado para `GameScreenState.PHASE_MAP`.
+ - [x] Configurar el callback de navegación: al hacer clic en el nodo Fase 1, cambiar el estado a `GameScreenState.WELCOME` (que ahora inicia el flujo de la Fase 1).
+ - [x] Vincular los botones globales de Perfil, Estadísticas y Panel de Admin desde el Mapa para asegurar una navegación fluida en toda la aplicación.
+ 
+ ### Paso 4: Pruebas y Pulido Visual
+ - [x] Validar que la transición del login al mapa general sea inmediata y sin parpadeos.
+ - [x] Comprobar que al entrar a la Fase 1 el juego funcione exactamente igual que antes (completamente intacto).
+ - [x] Asegurar la adaptabilidad móvil del mapa en zig-zag para que se visualice perfecto en tablets y smartphones.
+ - [x] Integrar el micro-guardado de la fase en la base de datos (conectar con `fase_actual_id` del usuario para que refleje dinámicamente qué nodos están abiertos o cerrados).
+ 
+ ---
+ 
+ ## 7. Refinamientos de UI/UX y Funcionalidades Premium Integradas
+ 
+ Durante las fases de pruebas de integración y pulido, se implementaron las siguientes mejoras ultra-premium que superan las expectativas iniciales del diseño:
+ 
+ 1. **🎨 Estética de Fondo Cósmico Continuo**:
+    - Reemplazo del color plano por un degradado profundo `bg-gradient-to-b from-[#0B0F19] via-[#0F172A] to-[#070A13]`.
+    - Distribución dinámica de **4 grandes esferas de resplandor ambiental (Glow)** (`blur-[150px]`) ubicadas estratégicamente a lo largo de la altura vertical de scroll, eliminando cortes de color abruptos.
+ 2. **✨ Iconos Bloqueados Totalmente Vívidos**:
+    - Para mantener la motivación del alumno, las fases y módulos bloqueados ahora se muestran con sus iconos en **colores vivos y resplandores neon originales**, mientras que el bloqueo se representa mediante elegantes candados en los conectores y cabeceras.
+ 3. **🏆 Insignia Premium de Dominio (Dominado ✅)**:
+    - Integración de una cápsula en verde menta `bg-emerald-50` con borde `border-emerald-200` y texto extra-negrita que muestra `✓ Dominado ✅` cuando un módulo de la Fase 1 o una Fase completa se ha superado al 100%.
+    - El botón inferior de las fases dominadas cambia dinámicamente a `✓ Repasar Fase (Dominada) ✅`.
+ 4. **👑 Bypass Total para Administradores**:
+    - Las cuentas con rol `ADMIN` (como `amilcar_admin`) omiten instantáneamente cualquier restricción, desbloqueando todas las fases, módulos y niveles para facilitar la auditoría y tests rápidos.
+ 5. **↩️ Retorno Intuitivo en la Fase 1 (No-Logout)**:
+    - Configuración del botón cuadrado superior para retornar al Mapa Principal con el icono `ArrowLeft` (flecha interactiva) en lugar de cerrar la sesión, evitando deslogueos accidentales.
+ 6. **👤 Widget de Perfil Limpio y Ampliado**:
+    - Rediseño premium del widget del alumno en ambas cabeceras, eliminando la etiqueta de "VER PERFIL" para expandir a `w-12 h-12` (48px) el tamaño del avatar y colocando el nombre en un formato de texto extra-negrita de gran elegancia.
