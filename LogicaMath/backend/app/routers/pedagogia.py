@@ -30,6 +30,9 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
     result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
     alumno = result.scalar_one_or_none()
     
+    if not alumno:
+        raise HTTPException(status_code=404, detail="Perfil de alumno no encontrado.")
+    
     # 2. Obtener Fase Actual
     fase_actual = None
     configuracion_bloque = None
@@ -87,6 +90,7 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                             Pregunta.operacion == bloque_activo.operacion,
                             Pregunta.estado == StatusEnum.ACTIVO
                         ))
+                        .order_by(func.random())
                         .limit(1)
                     )
                     pregunta_db = result.scalar_one_or_none()
@@ -153,7 +157,7 @@ async def responder_pregunta(
         if alternativa_elegida:
             es_correcta = alternativa_elegida.es_correcta
     elif respuesta.respuesta_dada is not None:
-        if pregunta.respuesta_correcta is not None:
+        if pregunta.respuesta_correcta is not None and respuesta.respuesta_dada.strip():
             es_correcta = (respuesta.respuesta_dada.strip().lower() == pregunta.respuesta_correcta.strip().lower())
         else:
             es_correcta = False

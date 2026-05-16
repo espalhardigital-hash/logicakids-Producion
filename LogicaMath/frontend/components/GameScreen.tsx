@@ -236,23 +236,23 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, admin
       {/* Top Controls */}
       <div className="w-full max-w-5xl flex justify-between items-center mb-6 z-10">
         <motion.button
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
           whileTap={{ scale: 0.95 }}
           onClick={onExit}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl transition-colors border border-white/10"
+          className="flex items-center space-x-2 text-gray-400 hover:text-white glass-button px-5 py-2.5 rounded-2xl transition-all"
         >
           <LogOut size={18} />
-          <span className="text-sm font-bold uppercase tracking-wider hidden sm:inline">Abortar Misión</span>
+          <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">Abortar Misión</span>
         </motion.button>
 
         <div className="flex flex-col items-end text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-gray-300">
-          <div className="flex items-center space-x-3 bg-white/5 px-4 py-2 rounded-full border border-white/10 shadow-lg">
+          <div className="flex items-center space-x-3 glass-card px-5 py-3 rounded-2xl shadow-xl">
             <span className="text-brand-primary">{CATEGORY_LABELS[category] || 'Misión'}</span>
             <span className="text-white/20">|</span>
             <span className="text-brand-secondary">{DIFFICULTY_LABELS[difficulty]}</span>
             <span className="text-white/20">|</span>
-            <span className="text-slate-300">PREGUNTA {Math.min(attempt + 1, totalQuestions)}/{totalQuestions}</span>
-            <span className="text-white font-black ml-1 text-sm">{timeLeft}S</span>
+            <span className="text-slate-300">DESAFÍO {Math.min(attempt + 1, totalQuestions)}/{totalQuestions}</span>
+            <span className="text-white font-black ml-1 text-base">{timeLeft}s</span>
           </div>
         </div>
       </div>
@@ -275,12 +275,12 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, admin
         <motion.div 
           animate={isIncorrect ? { x: [-10, 10, -10, 10, 0] } : {}}
           transition={{ duration: 0.4 }}
-          className={`flex-1 w-full max-w-xl rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden backdrop-blur-2xl border-2 shadow-2xl transition-colors duration-300 ${
+          className={`flex-1 w-full max-w-xl rounded-[3rem] p-8 md:p-14 relative overflow-hidden glass-card transition-all duration-500 ${
             feedback === 'correct' 
-              ? 'bg-green-500/10 border-green-400/50 shadow-green-500/20' 
+              ? 'ring-4 ring-green-500/50 shadow-green-500/20' 
               : feedback === 'incorrect'
-                ? 'bg-red-500/10 border-red-400/50 shadow-red-500/20'
-                : 'bg-white/5 border-white/10'
+                ? 'ring-4 ring-red-500/50 shadow-red-500/20'
+                : 'ring-1 ring-white/10'
           }`}
         >
           {/* Circular Timer behind question */}
@@ -365,16 +365,16 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, admin
           animate="show"
           className="hidden md:block w-[320px] shrink-0"
         >
-          <div className="grid grid-cols-3 gap-4 p-6 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl">
+          <div className="grid grid-cols-3 gap-4 p-7 glass-card rounded-[3rem]">
             {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
               <motion.button
                 variants={keyVariants}
-                whileHover={feedback === 'none' ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.15)' } : {}}
-                whileTap={feedback === 'none' ? { scale: 0.9 } : {}}
+                whileHover={feedback === 'none' ? { scale: 1.08, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+                whileTap={feedback === 'none' ? { scale: 0.92 } : {}}
                 key={num}
                 onClick={() => handleKeypadInput(num)}
                 disabled={feedback !== 'none'}
-                className="aspect-square rounded-2xl bg-white/5 border border-white/10 text-3xl font-bold text-white transition-colors disabled:opacity-50"
+                className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white transition-all disabled:opacity-30"
               >
                 {num}
               </motion.button>

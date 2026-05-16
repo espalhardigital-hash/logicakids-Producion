@@ -93,13 +93,13 @@ async def get_current_user(
         "status": user.status,
         "avatar": user.avatar,
         "settings": user.settings or {},
+        # Datos pedagogicos del alumno
+        "alumno_id": alumno.id if alumno else None,
+        "fase_actual_id": alumno.fase_actual_id if alumno else None,
         "unlocked_level": user.unlocked_level,
         "unlockedLevel": user.unlocked_level,
         "createdAt": user.created_at.isoformat() if user.created_at else None,
         "lastLogin": user.last_login.isoformat() if user.last_login else None,
-        # Datos pedagogicos del alumno
-        "alumno_id": alumno.id if alumno else None,
-        "fase_actual_id": alumno.fase_actual_id if alumno else None,
     }
 
 
@@ -164,6 +164,20 @@ async def create_user(db: AsyncSession, username: str, email: str, password: str
         nombre=username,  # Default name = username
         fase_actual_id=fase_cero.id if fase_cero else None,
     )
+    
+    # Pre-populate unlockedLevels in settings if missing
+    if not new_user.settings:
+        new_user.settings = {
+            "unlockedLevels": {
+                "addition": 1,
+                "subtraction": 0,
+                "multiplication": 0,
+                "division": 0,
+                "challenge": 0
+            },
+            "scores": []
+        }
+    
     db.add(alumno)
     
     await db.commit()
