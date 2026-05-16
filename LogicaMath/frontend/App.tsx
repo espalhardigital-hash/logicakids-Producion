@@ -3,7 +3,7 @@ import { GameScreenState, GameStats, GameCategory, ScoreRecord, Difficulty, User
 import WelcomeScreen from './components/WelcomeScreen';
 import GameScreen from './components/GameScreen';
 import ResultsScreen from './components/ResultsScreen';
-import LeaderboardScreen from './components/LeaderboardScreen';
+import ProgressScreen from './components/ProgressScreen';
 import StudyTablesScreen from './components/StudyTablesScreen';
 import LoginScreen from './components/LoginScreen';
 import ProfileScreen from './components/ProfileScreen';
@@ -142,9 +142,8 @@ const App: React.FC = () => {
     setScreen(GameScreenState.WELCOME);
   };
 
-  const handleShowLeaderboard = (name: string) => {
-    setUsername(name);
-    setScreen(GameScreenState.LEADERBOARD);
+  const handleShowStats = () => {
+    setScreen(GameScreenState.MY_PROGRESS);
   };
 
   const handleEndGame = async (stats: GameStats) => {
@@ -271,6 +270,7 @@ const App: React.FC = () => {
             onLogout={handleLogout}
             onGoAdmin={currentUser?.role === 'ADMIN' ? () => setScreen(GameScreenState.ADMIN_PANEL) : undefined}
             onGoProfile={currentUser ? () => setScreen(GameScreenState.PROFILE) : undefined}
+            onGoStats={handleShowStats}
           />
         )}
 
@@ -309,8 +309,8 @@ const App: React.FC = () => {
           />
         )}
 
-        {screen === GameScreenState.LEADERBOARD && (
-          <LeaderboardScreen
+        {screen === GameScreenState.MY_PROGRESS && (
+          <ProgressScreen
             username={username}
             onBack={() => setScreen(GameScreenState.WELCOME)}
           />

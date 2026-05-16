@@ -10,6 +10,7 @@ interface Props {
   onLogout: () => void;
   onGoAdmin?: () => void;
   onGoProfile?: () => void;
+  onGoStats?: () => void;
 }
 
 const containerVariants = {
@@ -24,7 +25,7 @@ const itemVariants = {
 
 
 
-const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGoAdmin, onGoProfile }) => {
+const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGoAdmin, onGoProfile, onGoStats }) => {
   const [progress, setProgress] = useState<import('../types').CategoryProgress[]>([]);
 
   useEffect(() => {
@@ -139,13 +140,17 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
                 <Shield size={20} />
               </button>
             )}
-            <div className="flex flex-col items-end">
-              <span className="text-xs font-bold text-slate-400 tracking-wider mb-1">TOTAL ESTRELLAS</span>
-              <div className="flex items-center text-amber-500">
-                <Trophy size={24} className="mr-2" />
-                <span className="text-3xl font-black">0</span>
+            <button 
+              onClick={onGoStats}
+              className="flex flex-col items-end hover:scale-105 active:scale-95 transition-transform group"
+              title="Mi Progreso"
+            >
+              <span className="text-xs font-bold text-slate-400 tracking-wider mb-1 group-hover:text-amber-400 transition-colors">MI PROGRESO</span>
+              <div className="flex items-center text-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-2xl group-hover:bg-amber-500/20 transition-all">
+                <Trophy size={22} className="mr-2 animate-pulse" />
+                <span className="text-3xl font-black">{totalLevelsUnlocked}</span>
               </div>
-            </div>
+            </button>
             <button 
               onClick={onLogout}
               className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-colors border border-slate-100"

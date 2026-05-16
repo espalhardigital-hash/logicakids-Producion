@@ -9,7 +9,8 @@ export enum GameScreenState {
   STUDY_TABLES,
   PROFILE,
   ADMIN_PANEL,
-  LEVEL_SELECTION
+  LEVEL_SELECTION,
+  MY_PROGRESS
 }
 
 export interface Subject {
