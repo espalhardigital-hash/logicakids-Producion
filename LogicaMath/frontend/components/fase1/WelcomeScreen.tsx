@@ -97,21 +97,31 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
           {/* User Avatar Button */}
           <button
             onClick={onGoProfile}
-            className="relative group"
+            className="flex items-center space-x-3 group relative text-left"
             title="Mi Perfil"
           >
-            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-blue-500 transition-all duration-300 shadow-md">
-              {user?.avatar ? (
-                <img src={getAvatarUrl(user.avatar)} alt={user?.username} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-                  <span className="text-lg font-black text-white">
-                    {user?.username?.[0]?.toUpperCase() || '?'}
-                  </span>
-                </div>
-              )}
+            <div className="hidden sm:block text-right">
+              <p className="text-slate-700 font-bold text-sm leading-tight group-hover:text-blue-500 transition-colors">
+                {user?.username ? user.username.toLowerCase() : 'invitado'}
+              </p>
+              <p className="text-[10px] text-slate-400 font-medium group-hover:text-blue-400 transition-colors">
+                Ver Perfil
+              </p>
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white"></div>
+            <div className="relative">
+              <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-blue-500 transition-all duration-300 shadow-md">
+                {user?.avatar ? (
+                  <img src={getAvatarUrl(user.avatar)} alt={user?.username} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+                    <span className="text-lg font-black text-white">
+                      {user?.username?.[0]?.toUpperCase() || '?'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white"></div>
+            </div>
           </button>
         </motion.div>
 
