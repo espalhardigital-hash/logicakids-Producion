@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GameStats, Question, GameCategory, Difficulty, UserSettings } from '../types';
-import { generateQuestion, calculateTimeLimit } from '../services/mathService';
+import { GameStats, Question, GameCategory, Difficulty, UserSettings } from '../../types';
+import { generateQuestion, calculateTimeLimit } from '../../services/mathService';
 import { Clock, CheckCircle2, XCircle, LogOut, Delete, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,7 +8,7 @@ interface Props {
   category: GameCategory;
   difficulty: Difficulty;
   userSettings?: UserSettings;
-  adminConfig?: import('../types').PedagogyConfig | null;
+  adminConfig?: import('../../types').PedagogyConfig | null;
   onEndGame: (stats: GameStats) => void;
   onExit: () => void;
 }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { GameCategory, User } from '../types';
+import { GameCategory, User } from '../../types';
 import { Plus, Minus, X, Divide, LogOut, Trophy, Sparkles, Shield, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getAvatarUrl } from '../services/storageService';
+import { getAvatarUrl } from '../../services/storageService';
 
 interface Props {
   user: User | null;
@@ -11,6 +11,7 @@ interface Props {
   onGoAdmin?: () => void;
   onGoProfile?: () => void;
   onGoStats?: () => void;
+  onBackMap?: () => void;
 }
 
 const containerVariants = {
@@ -25,12 +26,12 @@ const itemVariants = {
 
 
 
-const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGoAdmin, onGoProfile, onGoStats }) => {
-  const [progress, setProgress] = useState<import('../types').CategoryProgress[]>([]);
+const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGoAdmin, onGoProfile, onGoStats, onBackMap }) => {
+  const [progress, setProgress] = useState<import('../../types').CategoryProgress[]>([]);
 
   useEffect(() => {
     if (user && user.role !== 'ADMIN') {
-      import('../services/storageService').then(service => {
+      import('../../services/storageService').then(service => {
         service.getUserProgress().then(setProgress);
       });
     }
@@ -130,11 +131,19 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
             </div>
           </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4 sm:space-x-6">
+            {onBackMap && (
+              <button 
+                onClick={onBackMap}
+                className="px-4 py-3 bg-blue-50 hover:bg-blue-100 rounded-2xl text-blue-600 font-bold transition-colors border border-blue-100 text-sm flex items-center gap-1.5 shadow-sm"
+              >
+                Volver al Mapa
+              </button>
+            )}
             {user?.role === 'ADMIN' && onGoAdmin && (
               <button
                 onClick={onGoAdmin}
-                className="p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl text-purple-500 hover:text-purple-700 transition-colors border border-purple-100"
+                className="p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl text-purple-500 hover:text-purple-700 transition-colors border border-purple-100 shadow-sm"
                 title="Panel Admin"
               >
                 <Shield size={20} />
@@ -146,14 +155,14 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
               title="Mi Progreso"
             >
               <span className="text-xs font-bold text-slate-400 tracking-wider mb-1 group-hover:text-amber-400 transition-colors">MI PROGRESO</span>
-              <div className="flex items-center text-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-2xl group-hover:bg-amber-500/20 transition-all">
+              <div className="flex items-center text-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-2xl group-hover:bg-amber-500/20 transition-all shadow-sm">
                 <Trophy size={22} className="mr-2 animate-pulse" />
                 <span className="text-3xl font-black">{totalLevelsUnlocked}</span>
               </div>
             </button>
             <button 
               onClick={onLogout}
-              className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-colors border border-slate-100"
+              className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-colors border border-slate-100 shadow-sm"
             >
               <LogOut size={20} />
             </button>

@@ -13,7 +13,7 @@ interface Props {
   onBack: () => void;
 }
 
-const CATEGORY_CONFIG: Record<GameCategory, { label: string; color: string; icon: React.ReactNode; glow: string }> = {
+const CATEGORY_CONFIG: Partial<Record<GameCategory, { label: string; color: string; icon: React.ReactNode; glow: string }>> = {
   addition: { label: 'Sumas', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: <Plus size={20} />, glow: 'shadow-[0_0_20px_rgba(16,185,129,0.15)]' },
   subtraction: { label: 'Restas', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: <Minus size={20} />, glow: 'shadow-[0_0_20px_rgba(249,115,22,0.15)]' },
   multiplication: { label: 'Tablas', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: <X size={20} />, glow: 'shadow-[0_0_20px_rgba(168,85,247,0.15)]' },

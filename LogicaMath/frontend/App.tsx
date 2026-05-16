@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { GameScreenState, GameStats, GameCategory, ScoreRecord, Difficulty, User, PedagogyConfig } from './types';
-import WelcomeScreen from './components/WelcomeScreen';
-import GameScreen from './components/GameScreen';
-import ResultsScreen from './components/ResultsScreen';
+import WelcomeScreen from './components/fase1/WelcomeScreen';
+import PhaseMapScreen from './components/map/PhaseMapScreen';
+import GameScreen from './components/fase1/GameScreen';
+import ResultsScreen from './components/fase1/ResultsScreen';
 import ProgressScreen from './components/ProgressScreen';
-import StudyTablesScreen from './components/StudyTablesScreen';
+import StudyTablesScreen from './components/fase1/StudyTablesScreen';
 import LoginScreen from './components/LoginScreen';
 import ProfileScreen from './components/ProfileScreen';
-import AdminPanel from './components/AdminPanel';
-import LevelSelectionScreen from './components/LevelSelectionScreen';
+import AdminPanel from './components/admin/AdminPanel';
+import LevelSelectionScreen from './components/fase1/LevelSelectionScreen';
 import { saveScore, saveUser, getCurrentUserFull, getAdminSettings } from './services/storageService';
 import * as authService from './services/authService';
 
@@ -35,7 +36,7 @@ const App: React.FC = () => {
           const dbUser = await getCurrentUserFull();
           setCurrentUser(dbUser);
           setUsername(dbUser.username);
-          setScreen(dbUser.role === 'ADMIN' ? GameScreenState.ADMIN_PANEL : GameScreenState.WELCOME);
+          setScreen(GameScreenState.PHASE_MAP);
         } catch (error) {
           console.error("Error syncing user profile:", error);
           // Use basic info from stored user
@@ -53,7 +54,7 @@ const App: React.FC = () => {
           };
           setCurrentUser(fallbackUser);
           setUsername(fallbackUser.username);
-          setScreen(fallbackUser.role === 'ADMIN' ? GameScreenState.ADMIN_PANEL : GameScreenState.WELCOME);
+          setScreen(GameScreenState.PHASE_MAP);
         }
       } else {
         // User is not authenticated
@@ -82,7 +83,7 @@ const App: React.FC = () => {
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
     setUsername(user.username);
-    setScreen(user.role === 'ADMIN' ? GameScreenState.ADMIN_PANEL : GameScreenState.WELCOME);
+    setScreen(GameScreenState.PHASE_MAP);
   };
 
   const handleGuestPlay = () => {
@@ -236,6 +237,23 @@ const App: React.FC = () => {
         )}
 
 
+        {screen === GameScreenState.PHASE_MAP && currentUser && (
+          <PhaseMapScreen
+            user={currentUser}
+            onSelectPhase={(phaseIndex) => {
+              if (phaseIndex === 1) {
+                setScreen(GameScreenState.WELCOME);
+              } else {
+                alert(`¡La Fase ${phaseIndex} está desbloqueada! Muy pronto implementaremos sus dinámicas de juego.`);
+              }
+            }}
+            onLogout={handleLogout}
+            onGoProfile={() => setScreen(GameScreenState.PROFILE)}
+            onGoStats={() => setScreen(GameScreenState.MY_PROGRESS)}
+            onGoAdmin={currentUser.role === 'ADMIN' ? () => setScreen(GameScreenState.ADMIN_PANEL) : undefined}
+          />
+        )}
+
         {screen === GameScreenState.WELCOME && (
           <WelcomeScreen
             user={currentUser}
@@ -244,6 +262,7 @@ const App: React.FC = () => {
             onGoAdmin={currentUser?.role === 'ADMIN' ? () => setScreen(GameScreenState.ADMIN_PANEL) : undefined}
             onGoProfile={currentUser ? () => setScreen(GameScreenState.PROFILE) : undefined}
             onGoStats={handleShowStats}
+            onBackMap={currentUser ? () => setScreen(GameScreenState.PHASE_MAP) : undefined}
           />
         )}
 
@@ -264,7 +283,7 @@ const App: React.FC = () => {
             userSettings={currentUser?.settings}
             adminConfig={adminConfig}
             onEndGame={handleEndGame}
-            onExit={handleGoHome}
+            onExit={() => setScreen(GameScreenState.PHASE_MAP)}
           />
         )}
 
@@ -273,7 +292,7 @@ const App: React.FC = () => {
             stats={gameStats}
             username={username}
             onRestart={handleRestart}
-            onHome={handleGoHome}
+            onHome={() => setScreen(GameScreenState.PHASE_MAP)}
             onNextLevel={handleNextLevel}
             hasNextLevel={hasNextLevel}
             isPass={isPass}
@@ -285,13 +304,13 @@ const App: React.FC = () => {
         {screen === GameScreenState.MY_PROGRESS && (
           <ProgressScreen
             username={username}
-            onBack={() => setScreen(GameScreenState.WELCOME)}
+            onBack={() => setScreen(GameScreenState.PHASE_MAP)}
           />
         )}
 
         {screen === GameScreenState.STUDY_TABLES && (
           <StudyTablesScreen
-            onBack={() => setScreen(GameScreenState.WELCOME)}
+            onBack={() => setScreen(GameScreenState.PHASE_MAP)}
             onPractice={() => handleStartGame(username || 'Estudiante', 'multiplication', 'random_tables')}
           />
         )}
@@ -300,13 +319,13 @@ const App: React.FC = () => {
           <ProfileScreen
             user={currentUser}
             onUpdateUser={handleUpdateUser}
-            onBack={() => setScreen(GameScreenState.WELCOME)}
+            onBack={() => setScreen(GameScreenState.PHASE_MAP)}
           />
         )}
 
         {screen === GameScreenState.ADMIN_PANEL && currentUser?.role === 'ADMIN' && (
           <AdminPanel
-            onBack={() => setScreen(GameScreenState.WELCOME)}
+            onBack={() => setScreen(GameScreenState.PHASE_MAP)}
             onLogout={handleLogout}
           />
         )}

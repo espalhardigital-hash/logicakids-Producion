@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameCategory, Difficulty, User } from '../types';
+import { GameCategory, Difficulty, User } from '../../types';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -8,7 +8,7 @@ interface Props {
   category: GameCategory;
   onBack: () => void;
   onSelectLevel: (difficulty: Difficulty) => void;
-  adminConfig?: import('../types').PedagogyConfig | null;
+  adminConfig?: import('../../types').PedagogyConfig | null;
 }
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -46,7 +46,7 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
     if (user?.role === 'ADMIN') {
       setUnlockedLevel(4); // 0-indexed, so 4 is level 5
     } else {
-      import('../services/storageService').then(service => {
+      import('../../services/storageService').then(service => {
         service.getUserProgress().then(progress => {
           const catProgress = progress.find(p => p.category === category);
           setUnlockedLevel(catProgress?.unlocked_level ?? 0);

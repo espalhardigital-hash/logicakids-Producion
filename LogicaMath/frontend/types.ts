@@ -1,6 +1,7 @@
 
 export enum GameScreenState {
   LOGIN,
+  PHASE_MAP,        // Nuevo estado principal post-login
   WELCOME,
   SUBJECT_SELECTION,
   PLAYING,
@@ -19,7 +20,13 @@ export type GameCategory =
   | 'addition'
   | 'subtraction'
   | 'multiplication'
-  | 'division';
+  | 'division'
+  | 'mixed_add_sub'
+  | 'mixed_mult_add'
+  | 'all_mixed'
+  | 'logic_sequences'
+  | 'logic_patterns'
+  | 'logic_puzzles';
 
 export type Difficulty = 'easy' | 'easy_medium' | 'medium' | 'medium_hard' | 'hard' | 'random_tables';
 

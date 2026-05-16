@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ArrowLeft, LayoutDashboard, Settings, Activity, Menu, X, LogOut } from 'lucide-react';
-import GeneralTab from './admin/GeneralTab';
-import PedagogyTab from './admin/PedagogyTab';
+import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut } from 'lucide-react';
+import GeneralTab from './GeneralTab';
+import PedagogyTab from './PedagogyTab';
 
 interface Props {
   onBack: () => void;

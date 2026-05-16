@@ -1,10 +1,10 @@
-# Documento de reglas para generación y carga de preguntas — Fase 1 LogicaKids
+# Documento de reglas para generación y carga de preguntas — Fase 2 LogicaKids
 
 ## 1. Propósito del documento
 
-Este documento define cómo deben generarse, almacenarse y presentar las preguntas de la **Fase 1 de LogicaKids**.
+Este documento define cómo deben generarse, almacenarse y presentar las preguntas de la **Fase 2 de LogicaKids**.
 
-La Fase 1 tiene como objetivo principal desarrollar en el niño:
+La Fase 2 tiene como objetivo principal desarrollar en el niño:
 
 1. **Seguridad numérica**.
 2. **Cálculo mental**.

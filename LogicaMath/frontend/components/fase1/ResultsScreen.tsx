@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameStats } from '../types';
+import { GameStats } from '../../types';
 import { RefreshCcw, Home, Award, ArrowRight, Clock, Timer, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -12,7 +12,7 @@ interface Props {
   hasNextLevel: boolean;
   isPass: boolean;
   category: string;
-  adminConfig?: import('../types').PedagogyConfig | null;
+  adminConfig?: import('../../types').PedagogyConfig | null;
 }
 
 const containerVariants = {
@@ -32,7 +32,7 @@ const ResultsScreen: React.FC<Props> = ({ stats, username, onRestart, onHome, on
   const fetchAiAnalysis = async () => {
     setLoadingAi(true);
     try {
-      const { getAIAnalysis } = await import('../services/storageService');
+      const { getAIAnalysis } = await import('../../services/storageService');
       const analysis = await getAIAnalysis(category);
       setAiAnalysis(analysis);
     } catch (error) {
