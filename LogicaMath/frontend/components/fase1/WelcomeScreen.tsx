@@ -97,19 +97,16 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
           {/* User Avatar Button */}
           <button
             onClick={onGoProfile}
-            className="flex items-center space-x-3 group relative text-left"
+            className="flex items-center space-x-3.5 group relative text-left hover:scale-[1.02] active:scale-[0.98] transition-transform"
             title="Mi Perfil"
           >
             <div className="hidden sm:block text-right">
-              <p className="text-slate-700 font-bold text-sm leading-tight group-hover:text-blue-500 transition-colors">
+              <p className="text-slate-800 font-black text-base tracking-tight group-hover:text-blue-600 transition-colors leading-none">
                 {user?.username ? user.username.toLowerCase() : 'invitado'}
-              </p>
-              <p className="text-[10px] text-slate-400 font-medium group-hover:text-blue-400 transition-colors">
-                Ver Perfil
               </p>
             </div>
             <div className="relative">
-              <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-blue-500 transition-all duration-300 shadow-md">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-blue-500 transition-all duration-300 shadow-md">
                 {user?.avatar ? (
                   <img src={getAvatarUrl(user.avatar)} alt={user?.username} className="w-full h-full object-cover" />
                 ) : (

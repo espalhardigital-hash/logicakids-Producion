@@ -200,22 +200,23 @@ export default function PhaseMapScreen({
           {/* User Profile Button */}
           <div 
             onClick={onGoProfile}
-            className="flex items-center gap-3 cursor-pointer group bg-slate-800/50 hover:bg-slate-800 py-2 px-4 rounded-full transition-colors border border-transparent hover:border-slate-700 w-full sm:w-auto justify-center sm:justify-start"
+            className="flex items-center gap-3.5 cursor-pointer group bg-slate-800/50 hover:bg-slate-800 p-1.5 pr-6 rounded-full transition-all border border-transparent hover:border-slate-700/80 w-full sm:w-auto justify-center sm:justify-start hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] active:scale-[0.98]"
           >
-            <div className="w-10 h-10 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center overflow-hidden group-hover:border-blue-500 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center overflow-hidden group-hover:border-blue-500 transition-all duration-300 shadow-inner">
               {user.avatar ? (
                 <img 
                   src={getAvatarUrl(user.avatar)} 
                   alt={user.username} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                 />
               ) : (
-                <SafeIcon icon={UserIcon} className="text-slate-400 group-hover:text-blue-400 transition-colors" size={20} />
+                <SafeIcon icon={UserIcon} className="text-slate-400 group-hover:text-blue-400 transition-colors" size={24} />
               )}
             </div>
             <div className="text-left hidden sm:block">
-              <p className="text-white font-bold leading-tight">{user.username}</p>
-              <p className="text-[10px] uppercase font-black tracking-widest text-slate-500 group-hover:text-blue-400 transition-colors">Ver Perfil</p>
+              <p className="text-white font-black text-base tracking-tight group-hover:text-blue-400 transition-colors leading-none">
+                {user.username}
+              </p>
             </div>
           </div>
 
