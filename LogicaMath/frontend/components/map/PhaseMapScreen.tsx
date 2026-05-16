@@ -2,6 +2,7 @@ import React, { useState, Component } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Zap, Brain, BookOpen, PieChart, Square, Box, Map, Lightbulb, GraduationCap, User as UserIcon, X, HelpCircle } from 'lucide-react';
 import { User } from '../../types';
+import { getAvatarUrl } from '../../services/storageService';
 
 // React Error Boundary specifically designed to catch icon rendering failures
 class SafeIconErrorBoundary extends Component<{ children: React.ReactNode; fallback: React.ReactNode }, { hasError: boolean }> {
@@ -187,6 +188,11 @@ export default function PhaseMapScreen({
       {/* Dashboard Header Bar */}
       <header className="max-w-6xl mx-auto p-6 md:p-10 flex flex-col md:flex-row items-center justify-between z-10 relative gap-6">
         <div className="text-center md:text-left">
+          <div className="flex items-center justify-center md:justify-start mb-2">
+            <span className="text-[10px] uppercase font-black tracking-widest text-blue-400 bg-blue-950/60 px-3 py-1 rounded-full border border-blue-900/50">
+              LogicaKids
+            </span>
+          </div>
           <h1 className="text-4xl font-black text-white mb-2 tracking-tight">Tu Viaje Matemático</h1>
           <p className="text-slate-400 font-medium">Fase Actual: {currentPhase}</p>
         </div>
@@ -197,7 +203,15 @@ export default function PhaseMapScreen({
             className="flex items-center gap-3 cursor-pointer group bg-slate-800/50 hover:bg-slate-800 py-2 px-4 rounded-full transition-colors border border-transparent hover:border-slate-700 w-full sm:w-auto justify-center sm:justify-start"
           >
             <div className="w-10 h-10 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center overflow-hidden group-hover:border-blue-500 transition-colors">
-              <SafeIcon icon={UserIcon} className="text-slate-400 group-hover:text-blue-400 transition-colors" size={20} />
+              {user.avatar ? (
+                <img 
+                  src={getAvatarUrl(user.avatar)} 
+                  alt={user.username} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                />
+              ) : (
+                <SafeIcon icon={UserIcon} className="text-slate-400 group-hover:text-blue-400 transition-colors" size={20} />
+              )}
             </div>
             <div className="text-left hidden sm:block">
               <p className="text-white font-bold leading-tight">{user.username}</p>
