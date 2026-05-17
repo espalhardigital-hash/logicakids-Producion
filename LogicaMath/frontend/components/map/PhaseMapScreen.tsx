@@ -299,11 +299,11 @@ export default function PhaseMapScreen({
                       className={`w-full max-w-[380px] p-6 rounded-[2.5rem] border transition-all duration-300 relative overflow-hidden group
                         ${isUnlocked 
                           ? 'bg-white border-slate-100 hover:bg-slate-50 hover:border-blue-500/50 hover:shadow-xl dark:bg-[#162033] dark:border-slate-800 dark:hover:bg-[#1a263d] dark:hover:border-blue-500/50 cursor-pointer hover:-translate-y-2' 
-                          : 'bg-white/90 border-slate-200/80 dark:bg-[#162033]/95 dark:border-slate-800/70 opacity-90 cursor-not-allowed hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700/80'}
+                          : 'bg-white/95 border-slate-200/80 dark:bg-[#162033]/90 dark:border-slate-800/70 shadow-md cursor-not-allowed hover:border-slate-300 dark:hover:border-slate-700/80'}
                       `}
                     >
                       {/* Premium Inner Accent Glow on Hover */}
-                      <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity duration-300 blur-[60px] ${phase.color}`} />
+                      <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity duration-300 blur-[50px] ${phase.color} pointer-events-none`} />
 
                       {/* Header block within card */}
                       <div className="flex items-center justify-between mb-6 relative z-10">
@@ -319,7 +319,7 @@ export default function PhaseMapScreen({
                               ✓ Dominada ✅
                             </span>
                           ) : !isUnlocked && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50 font-extrabold text-[10px] uppercase tracking-wider shadow-sm">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50 font-extrabold text-[10px] uppercase tracking-wider shadow-sm animate-pulse">
                               <SafeIcon icon={Lock} size={10} /> Bloqueada 🔒
                             </span>
                           )}
@@ -327,19 +327,19 @@ export default function PhaseMapScreen({
                       </div>
 
                       {/* Phase Title */}
-                      <h3 className={`text-2xl font-black mb-2 relative z-10 md:text-3xl font-display ${isUnlocked ? 'text-slate-900 dark:text-white' : 'text-slate-800 dark:text-slate-200'}`}>
+                      <h3 className="text-2xl font-black mb-2 relative z-10 md:text-3xl font-display text-slate-900 dark:text-white">
                         {phase.title}
                       </h3>
                       
                       {/* Phase Description */}
-                      <p className={`text-sm leading-relaxed relative z-10 ${isUnlocked ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400'}`}>
+                      <p className="text-sm leading-relaxed relative z-10 text-slate-600 dark:text-slate-300">
                         {phase.description}
                       </p>
 
                       {/* Symmetrical Button Layout */}
                       {!isUnlocked ? (
                         <div className="mt-8 relative z-10">
-                          <button disabled className="w-full py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 dark:bg-[#0a0f1c]/40 dark:border-slate-800/60 dark:text-slate-400 font-extrabold cursor-not-allowed flex items-center justify-center gap-2 font-sans transition-all">
+                          <button disabled className="w-full py-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:bg-amber-950/20 dark:border-amber-900/50 dark:text-amber-400 font-extrabold cursor-not-allowed flex items-center justify-center gap-2 font-sans transition-all">
                             <SafeIcon icon={Lock} size={14} className="text-amber-500 animate-pulse" /> Fase Resguardada
                           </button>
                         </div>
