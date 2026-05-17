@@ -169,7 +169,7 @@ async def create_user(db: AsyncSession, username: str, email: str, password: str
     if not new_user.settings:
         new_user.settings = {
             "unlockedLevels": {
-                "addition": 1,
+                "addition": 0,
                 "subtraction": 0,
                 "multiplication": 0,
                 "division": 0,
