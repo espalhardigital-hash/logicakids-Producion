@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GameCategory, Difficulty, User } from '../../types';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft, Lock, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Props {
@@ -102,6 +102,7 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
         >
           {[0, 1, 2, 3, 4].map((levelIndex) => {
             const isUnlocked = levelIndex <= unlockedLevel;
+            const isPassed = levelIndex < unlockedLevel;
             const diff = difficultyOrder[levelIndex];
 
             return (
@@ -115,7 +116,9 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
                 className={`
                   relative flex flex-col items-center justify-center p-8 rounded-[2rem] w-[160px] h-[200px] border transition-all
                   ${isUnlocked 
-                    ? 'bg-white border-blue-500/20 shadow-[0_10px_30px_rgba(59,130,246,0.06)] hover:border-blue-500 hover:shadow-[0_20px_40px_rgba(59,130,246,0.15)] cursor-pointer dark:bg-[#162033] dark:border-slate-800 dark:hover:border-blue-500' 
+                    ? isPassed
+                      ? 'bg-emerald-50/40 border-emerald-500/20 shadow-[0_10px_30px_rgba(16,185,129,0.04)] hover:border-emerald-500 hover:shadow-[0_20px_40px_rgba(16,185,129,0.12)] cursor-pointer dark:bg-emerald-950/10 dark:border-emerald-900/30 dark:hover:border-emerald-500'
+                      : 'bg-white border-blue-500/20 shadow-[0_10px_30px_rgba(59,130,246,0.06)] hover:border-blue-500 hover:shadow-[0_20px_40px_rgba(59,130,246,0.15)] cursor-pointer dark:bg-[#162033] dark:border-slate-800 dark:hover:border-blue-500' 
                     : 'bg-slate-100 border-slate-200 opacity-70 dark:bg-[#0a0f1c] dark:border-slate-800/40 dark:shadow-none cursor-not-allowed shadow-sm'
                   }
                 `}
@@ -124,16 +127,38 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
                 <div className={`
                   w-16 h-16 rounded-full flex items-center justify-center mb-6 text-xl font-black transition-colors
                   ${isUnlocked 
-                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400' 
+                    ? isPassed
+                      ? 'bg-emerald-500 text-white dark:bg-emerald-600 dark:text-emerald-50'
+                      : 'bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400' 
                     : 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-600'
                   }
                 `}>
-                  {isUnlocked ? (levelIndex + 1) : <Lock size={20} />}
+                  {isUnlocked 
+                    ? isPassed 
+                      ? <Check size={28} strokeWidth={3} /> 
+                      : (levelIndex + 1) 
+                    : <Lock size={20} />
+                  }
                 </div>
 
-                <span className={`text-xl font-bold tracking-tight font-display ${isUnlocked ? 'text-[#0B1A3A] dark:text-white' : 'text-slate-400 dark:text-slate-600'}`}>
+                <span className={`text-xl font-bold tracking-tight font-display 
+                  ${isUnlocked 
+                    ? isPassed
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-[#0B1A3A] dark:text-white' 
+                    : 'text-slate-400 dark:text-slate-600'
+                  }
+                `}>
                   Nivel {levelIndex + 1}
                 </span>
+
+                {/* Symmetrical Pulsing Indicator for Passed Levels */}
+                {isPassed && (
+                  <span className="absolute top-4 right-4 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                )}
               </motion.button>
             );
           })}
