@@ -7,6 +7,9 @@ echo "============================================="
 echo "Starting LogicaKids Backend Startup Flow..."
 echo "============================================="
 
+# 0. Wait for PostgreSQL database to be ready
+python wait_for_db.py
+
 # 1. Run database migrations using Alembic
 echo "Step 1/3: Running database migrations with Alembic..."
 alembic upgrade head
