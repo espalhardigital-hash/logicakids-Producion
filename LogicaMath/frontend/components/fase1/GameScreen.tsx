@@ -352,18 +352,21 @@ const GameScreen: React.FC<Props> = ({
           </div>
 
           <div className="flex flex-col items-center justify-center min-h-[250px]">
-            <AnimatePresence mode="wait">
-              <motion.h2 
-                key={attempt}
-                initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 1.5, filter: 'blur(10px)' }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="text-7xl md:text-8xl font-black text-slate-900 dark:text-white tracking-tighter mb-8 text-center font-display"
-              >
-                {question.text}
-              </motion.h2>
-            </AnimatePresence>
+            {/* Display Board for Equation with dynamic background */}
+            <div className="w-full bg-slate-50 dark:bg-slate-950/40 rounded-3xl py-8 px-4 flex items-center justify-center mb-8 border border-slate-200/80 dark:border-slate-800/50 shadow-inner">
+              <AnimatePresence mode="wait">
+                <motion.h2 
+                  key={attempt}
+                  initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 1.5, filter: 'blur(10px)' }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="text-7xl md:text-8xl font-black text-slate-950 dark:text-white tracking-tighter text-center font-display"
+                >
+                  {question.text}
+                </motion.h2>
+              </AnimatePresence>
+            </div>
 
             <form onSubmit={handleSubmit} className="w-full relative max-w-xs mt-4">
               <input
@@ -373,10 +376,10 @@ const GameScreen: React.FC<Props> = ({
                 pattern="[0-9]*"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                className={`w-full bg-slate-50 dark:bg-[#0a0f1c]/40 text-center text-5xl font-bold text-slate-900 dark:text-white py-4 rounded-2xl border-2 focus:outline-none focus:ring-4 transition-all placeholder-slate-300 dark:placeholder-white/10 shadow-inner pr-16 ${
+                className={`w-full bg-white dark:bg-[#0a0f1c]/40 text-center text-5xl font-black text-slate-950 dark:text-white py-4 rounded-2xl border-2 focus:outline-none focus:ring-4 transition-all placeholder-slate-350 dark:placeholder-white/10 shadow-inner pr-16 ${
                   feedback === 'incorrect' ? 'border-red-500/50 focus:ring-red-500/30 text-red-600 dark:text-red-400' :
                   feedback === 'correct' ? 'border-green-500/50 focus:ring-green-500/30' :
-                  'border-slate-200 dark:border-slate-850 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-blue-500/20 dark:focus:ring-blue-500/20'
+                  'border-slate-200 dark:border-slate-800 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-blue-500/20 dark:focus:ring-blue-500/20'
                 }`}
                 placeholder="?"
                 autoFocus
@@ -433,7 +436,7 @@ const GameScreen: React.FC<Props> = ({
                 key={num}
                 onClick={() => handleKeypadInput(num)}
                 disabled={feedback !== 'none'}
-                className="aspect-square rounded-[1.5rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-4xl font-black text-slate-800 dark:text-white transition-all disabled:opacity-30 cursor-pointer font-display flex items-center justify-center shadow-sm"
+                className="aspect-square rounded-[1.5rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-4xl font-black text-slate-950 dark:text-white transition-all disabled:opacity-30 cursor-pointer font-display flex items-center justify-center shadow-sm"
               >
                 {num}
               </motion.button>
@@ -456,7 +459,7 @@ const GameScreen: React.FC<Props> = ({
               whileTap={feedback === 'none' ? { scale: 0.92 } : {}}
               onClick={() => handleKeypadInput(0)}
               disabled={feedback !== 'none'}
-              className="aspect-square rounded-[1.5rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-3xl font-black text-slate-850 dark:text-white transition-colors disabled:opacity-50 cursor-pointer font-display flex items-center justify-center shadow-sm"
+              className="aspect-square rounded-[1.5rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-3xl font-black text-slate-950 dark:text-white transition-colors disabled:opacity-50 cursor-pointer font-display flex items-center justify-center shadow-sm"
             >
               0
             </motion.button>
