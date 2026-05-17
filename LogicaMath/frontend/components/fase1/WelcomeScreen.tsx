@@ -241,7 +241,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
 
         {/* Bottom Banner (Fills horizontally and presents progress or challenge launch) */}
         <motion.div variants={itemVariants} className="w-full">
-          {remainingLevels === 0 ? (
+          {remainingLevels === 0 || user?.role === 'ADMIN' ? (
             /* Premium Banner for Dominating all 4 basic disciplines -> Ready for Challenge */
             <div className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] p-8 md:p-10 shadow-[0_20px_45px_rgba(37,99,235,0.35)] flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500 relative overflow-hidden group">
               {/* Soft visual background bubbles */}
