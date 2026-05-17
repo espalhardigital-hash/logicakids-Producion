@@ -180,7 +180,7 @@ export default function PhaseMapScreen({
   };
 
   return (
-    <div className="min-h-screen bg-v3-surface-container text-v3-text font-sans pb-20 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-b from-v3-surface-container via-v3-bg-mid to-v3-bg-end text-v3-text font-sans pb-20 relative overflow-hidden transition-colors duration-300">
       {/* Background decorations - Ambient Glow Distributed along Scroll height */}
       <div className="absolute top-[-5%] left-[-10%] w-[500px] h-[500px] bg-blue-600/5 dark:bg-blue-600/10 blur-[150px] rounded-full pointer-events-none z-0" />
       <div className="absolute top-[25%] right-[-15%] w-[600px] h-[600px] bg-purple-600/5 dark:bg-purple-600/10 blur-[150px] rounded-full pointer-events-none z-0" />

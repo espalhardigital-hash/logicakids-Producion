@@ -8,51 +8,55 @@
   /* Habilitar color-scheme nativo en el navegador */
   color-scheme: light dark;
 
-  /* Superficies y Contenedores */
-  --color-v3-surface: light-dark(#ffffff, #191919);
-  --color-v3-overlay-background: light-dark(rgba(252, 252, 252, 0.3), rgba(25, 25, 25, 0.3));
-  --color-v3-surface-left-nav: light-dark(#fafafa, #191919);
-  --color-v3-surface-left-nav-border: light-dark(#e2e3e4, #262626);
-  --color-v3-surface-container: light-dark(#ffffff, #1f1f1f);
-  --color-v3-surface-container-high: light-dark(#fcfcfc, #252525);
-  --color-v3-surface-container-highest: light-dark(#f4f5f5, #2a2a2a);
+  /* Superficies y Degradados de Fondo */
+  --color-v3-surface-container: light-dark(#f8fafc, #0b0f19);       /* Pizarra claro inicial / Navy oscuro inicial */
+  --color-v3-bg-mid: light-dark(#f1f5f9, #0f172a);                  /* Pizarra claro medio / Navy oscuro medio */
+  --color-v3-bg-end: light-dark(#e2e8f0, #070a13);                  /* Pizarra claro final / Navy oscuro final */
+
+  /* Contenedores de Tarjetas y Modales */
+  --color-v3-surface: light-dark(#ffffff, #090d16);                 /* Fondo modal: Blanco / Negro azulado */
+  --color-v3-surface-container-high: light-dark(#ffffff, #131b2e);  /* Fondo tarjeta: Blanco / Navy slate */
+  --color-v3-surface-container-highest: light-dark(#f8fafc, #1e293b); /* Tarjeta hover: Gris sutil / Slate */
+  --color-v3-surface-left-nav: light-dark(#f1f5f9, #0f172a);
+  --color-v3-surface-left-nav-border: light-dark(#cbd5e1, #1e293b);
+  --color-v3-overlay-background: light-dark(rgba(255, 255, 255, 0.4), rgba(11, 15, 25, 0.4));
 
   /* Botones y Acciones */
-  --color-v3-button-container: light-dark(#ffffff, #323232);
-  --color-v3-button-container-high: light-dark(#eaeaeb, #424242);
-  --color-v3-button-container-highest: light-dark(#caccce, #555555);
-  --color-v3-button-container-accent: light-dark(#dbeafe, #393f51);
-  --color-v3-hover: light-dark(#f4f5f5, #323232);
+  --color-v3-button-container: light-dark(#ffffff, #1e293b);        /* Botón neutro: Blanco / Slate */
+  --color-v3-button-container-high: light-dark(#e2e8f0, #334155);
+  --color-v3-button-container-highest: light-dark(#cbd5e1, #475569);
+  --color-v3-button-container-accent: light-dark(#dbeafe, #1e3a8a); /* Botón azul: Celeste claro / Azul marino */
+  --color-v3-hover: light-dark(#f1f5f9, #2d3748);                   /* Hover neutro: Gris claro / Gris slate */
 
-  /* Textos */
-  --color-v3-text: light-dark(#2b2d31, #d4d4d4);
-  --color-v3-text-var: light-dark(#6c717a, #8c8c8c);
-  --color-v3-text-disable: light-dark(#bdc1c6, #3e3e3e);
-  --color-v3-text-on-button: light-dark(#2b2d31, #fcfcfc);
+  /* Textos de Alta Legibilidad */
+  --color-v3-text: light-dark(#0f172a, #ffffff);                    /* Título principal: Slate Negro / Blanco puro */
+  --color-v3-text-var: light-dark(#334155, #94a3b8);                /* Descripciones: Slate Carbón / Gris suave */
+  --color-v3-text-disable: light-dark(#94a3b8, #475569);            /* Deshabilitado: Gris medio / Slate apagado */
+  --color-v3-text-on-button: light-dark(#0f172a, #ffffff);
   --color-v3-text-on-button-reverse: light-dark(#ffffff, #ffffff);
-  --color-v3-text-link: light-dark(#2483e2, #87a9ff);
-  --color-v3-chat-separator: light-dark(#b7babd, #8c8c8c);
+  --color-v3-text-link: light-dark(#2563eb, #3b82f6);
+  --color-v3-chat-separator: light-dark(#cbd5e1, #334155);
 
-  /* Bordes y Líneas */
-  --color-v3-outline: light-dark(#e2e3e4, #333333);
-  --color-v3-outline-var: light-dark(#eaeaeb, #262626);
-  --color-v3-outline-accent: light-dark(#2483e2, #87a9ff);
+  /* Bordes de Alta Definición */
+  --color-v3-outline: light-dark(#94a3b8, #334155);                 /* Bordes activos: Gris pizarra / Slate */
+  --color-v3-outline-var: light-dark(#cbd5e1, #1e293b);             /* Bordes normales: Gris medio / Slate oscuro */
+  --color-v3-outline-accent: light-dark(#2563eb, #3b82f6);
 
   /* Estados y Alertas */
-  --color-v3-error-text: light-dark(#690005, #690005);
-  --color-v3-error-container: light-dark(#ffdad6, #ffdad6);
-  --color-v3-warning-text: light-dark(#2a1700, #2a1700);
-  --color-v3-warning-container: light-dark(#ffddb7, #ffddb7);
+  --color-v3-error-text: light-dark(#991b1b, #f87171);
+  --color-v3-error-container: light-dark(#fee2e2, #7f1d1d);
+  --color-v3-warning-text: light-dark(#854d0e, #fbbf24);
+  --color-v3-warning-container: light-dark(#fef9c3, #78350f);
 
-  /* Colores de Acento (Fases / Modulos) */
-  --color-v3-accent-1: light-dark(#fcbd00, #fcbd00);
+  /* Colores de Acento Estables */
+  --color-v3-accent-1: #fcbd00;
   --color-v3-accent-light-1: light-dark(#fff7e0, #3a321b);
-  --color-v3-accent-2: light-dark(#c597ff, #c597ff);
+  --color-v3-accent-2: #c597ff;
   --color-v3-accent-light-2: light-dark(#f8f3ff, #332d3a);
-  --color-v3-accent-3: light-dark(#d73a49, #d73a49);
-  --color-v3-accent-4: light-dark(#3ca059, #3ddb85);
-  --color-v3-accent-5: light-dark(#7887b5, #8790ab);
-  --color-v3-accent-6: light-dark(#e87400, #ffb74d);
+  --color-v3-accent-3: #d73a49;
+  --color-v3-accent-4: light-dark(#16a34a, #3ddb85);
+  --color-v3-accent-5: light-dark(#4f46e5, #8790ab);
+  --color-v3-accent-6: #e87400;
 
   /* Sombras Semánticas */
   --v3-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -69,6 +73,8 @@
   --color-v3-surface-left-nav: var(--color-v3-surface-left-nav);
   --color-v3-surface-left-nav-border: var(--color-v3-surface-left-nav-border);
   --color-v3-surface-container: var(--color-v3-surface-container);
+  --color-v3-bg-mid: var(--color-v3-bg-mid);
+  --color-v3-bg-end: var(--color-v3-bg-end);
   --color-v3-surface-container-high: var(--color-v3-surface-container-high);
   --color-v3-surface-container-highest: var(--color-v3-surface-container-highest);
 
@@ -110,16 +116,16 @@
 
 @layer base {
   body {
-    background-color: var(--color-v3-surface-container);
+    background-image: linear-gradient(to bottom, var(--color-v3-surface-container), var(--color-v3-bg-mid), var(--color-v3-bg-end));
     color: var(--color-v3-text);
     font-family: var(--font-inter);
-    @apply antialiased;
+    @apply antialiased min-h-screen w-full;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 }
 
 .glass-card {
-  @apply bg-v3-surface-container border border-v3-outline-var shadow-v3-shadow-md rounded-2xl;
+  @apply bg-v3-surface-container-high border border-v3-outline-var shadow-v3-shadow-md rounded-2xl;
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
