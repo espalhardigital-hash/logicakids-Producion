@@ -481,7 +481,7 @@ async def get_user_progress(
     for cat in categories:
         progress_by_cat[cat] = {
             "category": cat,
-            "unlocked_level": 5 if user.role == "ADMIN" else unlocked_levels.get(cat, 0),
+            "unlocked_level": 5 if user.role == "ADMIN" else unlocked_levels.get(cat, 1),
             "total_games": 0,
             "total_score": 0,
             "total_correct": 0,

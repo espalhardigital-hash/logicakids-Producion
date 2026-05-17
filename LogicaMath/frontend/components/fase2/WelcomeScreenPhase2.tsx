@@ -135,6 +135,16 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
   // Sequential unlock order for Phase 2 disciplines
   const unlockOrder: GameCategory[] = ['gym', 'tables_action', 'store', 'detective', 'builder'];
 
+  // Calculate global progress for Phase 2 (5 categories * 5 levels = 20)
+  const basicCategories: GameCategory[] = ['gym', 'tables_action', 'store', 'detective', 'builder'];
+  let totalLevelsUnlocked = 0;
+  basicCategories.forEach(cat => {
+    totalLevelsUnlocked += Math.min(getCategoryLevel(cat), 5);
+  });
+  const maxTotalLevels = 25; // 5 categories * 5 levels
+  const globalProgressPercent = Math.round((totalLevelsUnlocked / maxTotalLevels) * 100);
+  const remainingLevels = maxTotalLevels - totalLevelsUnlocked;
+
   const isCategoryLocked = (categoryId: GameCategory): boolean => {
     if (user?.role === 'ADMIN') return false;
     if (categoryId === 'challenge_fase2') {
@@ -145,16 +155,6 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
     const prevCat = unlockOrder[idx - 1];
     return getCategoryLevel(prevCat) < 4; // Requires previous level 4 cleared
   };
-
-  // Calculate global progress for Phase 2 (5 categories * 5 levels = 20)
-  const basicCategories: GameCategory[] = ['gym', 'tables_action', 'store', 'detective', 'builder'];
-  let totalLevelsUnlocked = 0;
-  basicCategories.forEach(cat => {
-    totalLevelsUnlocked += Math.min(getCategoryLevel(cat), 5);
-  });
-  const maxTotalLevels = 25; // 5 categories * 5 levels
-  const globalProgressPercent = Math.round((totalLevelsUnlocked / maxTotalLevels) * 100);
-  const remainingLevels = maxTotalLevels - totalLevelsUnlocked;
 
   return (
     <div className="fixed inset-0 bg-slate-50 text-slate-900 dark:bg-[#070b14] dark:text-white overflow-y-auto w-full h-full custom-scrollbar transition-colors duration-300">

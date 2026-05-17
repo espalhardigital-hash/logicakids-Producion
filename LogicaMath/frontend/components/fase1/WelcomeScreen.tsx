@@ -39,7 +39,8 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
     if (!user) return 1;
     if (user.role === 'ADMIN') return 6; // Nivel 6 para dar el 100%
     const catProgress = progress.find(p => p.category === categoryId);
-    return catProgress?.unlocked_level ?? 1; // Si no hay progreso, el Nivel 1 está desbloqueado
+    const lvl = catProgress?.unlocked_level ?? 1;
+    return lvl <= 0 ? 1 : lvl; // Asegurar que el nivel minimo inicial siempre sea 1 y no 0
   };
 
   const handleCategoryClick = (categoryId: GameCategory) => {
@@ -58,17 +59,6 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
   // Sequential unlock order for basic disciplines
   const unlockOrder: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division'];
 
-  const isCategoryLocked = (categoryId: GameCategory): boolean => {
-    if (user?.role === 'ADMIN') return false;
-    if (categoryId === 'challenge') {
-      return remainingLevels > 0;
-    }
-    const idx = unlockOrder.indexOf(categoryId);
-    if (idx === 0) return false; // Sumas is always unlocked
-    const prevCat = unlockOrder[idx - 1];
-    return (getCategoryLevel(prevCat) - 1) < 4; // Requires previous level 4 cleared (at least 4 passed levels)
-  };
-
   // Calculate global progress based on passed levels
   const basicCategories: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division'];
   let totalLevelsPassed = 0;
@@ -80,6 +70,17 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
   const maxTotalLevels = 20; // 4 categories * 5 levels
   const globalProgressPercent = Math.round((totalLevelsPassed / maxTotalLevels) * 100);
   const remainingLevels = maxTotalLevels - totalLevelsPassed;
+
+  const isCategoryLocked = (categoryId: GameCategory): boolean => {
+    if (user?.role === 'ADMIN') return false;
+    if (categoryId === 'challenge') {
+      return remainingLevels > 0;
+    }
+    const idx = unlockOrder.indexOf(categoryId);
+    if (idx === 0) return false; // Sumas is always unlocked
+    const prevCat = unlockOrder[idx - 1];
+    return (getCategoryLevel(prevCat) - 1) < 4; // Requires previous level 4 cleared (at least 4 passed levels)
+  };
 
   const currentPhaseId = user?.fase_actual_id ?? 1;
 

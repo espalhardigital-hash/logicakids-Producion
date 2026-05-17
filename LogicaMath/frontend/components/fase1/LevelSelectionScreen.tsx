@@ -48,8 +48,8 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
       import('../../services/storageService').then(service => {
         service.getUserProgress().then(progress => {
           const catProgress = progress.find(p => p.category === category);
-          // Cambiar el ?? 0 por ?? 1 (El nivel 1 es el mínimo desbloqueado)
-          setUnlockedLevel(catProgress?.unlocked_level ?? 1); 
+          const lvl = catProgress?.unlocked_level ?? 1;
+          setUnlockedLevel(lvl <= 0 ? 1 : lvl); 
         });
       });
     }
