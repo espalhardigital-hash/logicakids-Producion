@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GameCategory, User } from '../../types';
-import { Plus, Minus, X, Divide, Trophy, Sparkles, Shield, Lock, ArrowLeft } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Plus, Minus, X as CloseIcon, Divide, Trophy, Sparkles, Shield, Lock, ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getAvatarUrl } from '../../services/storageService';
 
 interface Props {
@@ -23,8 +23,6 @@ const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
-
-
 
 const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGoAdmin, onGoProfile, onGoStats, onBackMap }) => {
   const [progress, setProgress] = useState<import('../../types').CategoryProgress[]>([]);
@@ -48,27 +46,26 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
     onSelectCategory(categoryId);
   };
 
+  // Only the 4 basic categories are shown in the main grid for symmetry
   const categories: { id: GameCategory; label: string; icon: React.ReactNode; color: string; textColor: string }[] = [
     { id: 'addition', label: 'Sumas', icon: <Plus size={24} className="text-white" />, color: 'bg-[#10B981]', textColor: 'text-[#10B981]' },
     { id: 'subtraction', label: 'Restas', icon: <Minus size={24} className="text-white" />, color: 'bg-[#F97316]', textColor: 'text-[#F97316]' },
-    { id: 'multiplication', label: 'Tablas', icon: <X size={24} className="text-white" />, color: 'bg-[#A855F7]', textColor: 'text-[#A855F7]' },
+    { id: 'multiplication', label: 'Tablas', icon: <CloseIcon size={24} className="text-white" />, color: 'bg-[#A855F7]', textColor: 'text-[#A855F7]' },
     { id: 'division', label: 'Divisiones', icon: <Divide size={24} className="text-white" />, color: 'bg-[#3B82F6]', textColor: 'text-[#3B82F6]' },
-    { id: 'challenge', label: 'Desafío Mixto', icon: <Sparkles size={24} className="text-white" />, color: 'bg-[#EC4899]', textColor: 'text-[#EC4899]' },
   ];
 
-  // Sequential unlock order: addition -> subtraction -> multiplication -> division -> challenge
-  // Each unlocks when the PREVIOUS category reaches level index >= 4 (Level 5 completed = index 4)
-  const unlockOrder: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division', 'challenge'];
+  // Sequential unlock order
+  const unlockOrder: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division'];
 
   const isCategoryLocked = (categoryId: GameCategory): boolean => {
-    if (user?.role === 'ADMIN') return false; // Admin sees all unlocked
+    if (user?.role === 'ADMIN') return false;
     const idx = unlockOrder.indexOf(categoryId);
-    if (idx === 0) return false; // Sumas always unlocked
+    if (idx === 0) return false; // Sumas is always unlocked
     const prevCat = unlockOrder[idx - 1];
-    return getCategoryLevel(prevCat) < 4; // Requires prev at level index 4 (cleared Level 4)
+    return getCategoryLevel(prevCat) < 4; // Requires previous level 4 cleared
   };
 
-  // Calculate global progress (only the 4 basic categories, 5 levels each = 20 total)
+  // Calculate global progress
   const basicCategories: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division'];
   let totalLevelsUnlocked = 0;
   basicCategories.forEach(cat => {
@@ -78,35 +75,42 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
   const globalProgressPercent = Math.round((totalLevelsUnlocked / maxTotalLevels) * 100);
   const remainingLevels = maxTotalLevels - totalLevelsUnlocked;
 
+  const currentPhaseId = user?.fase_actual_id ?? 1;
+
   return (
-    <div className="fixed inset-0 bg-[#F8FAFC] text-slate-900 overflow-y-auto w-full h-full custom-scrollbar">
+    <div className="fixed inset-0 bg-slate-50 text-slate-900 dark:bg-[#070b14] dark:text-white overflow-y-auto w-full h-full custom-scrollbar transition-colors duration-300">
+      {/* Background decorations - Ambient Glow */}
+      <div className="absolute top-[-5%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/10 blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-[-5%] right-[-10%] w-[600px] h-[600px] bg-purple-500/10 dark:bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none z-0" />
+
       <motion.div
         initial="hidden"
         animate="show"
         variants={containerVariants}
-        className="max-w-5xl mx-auto p-6 md:p-10 flex flex-col items-center justify-start min-h-screen"
+        className="max-w-6xl mx-auto p-6 md:p-10 flex flex-col items-center justify-start min-h-screen relative z-10"
       >
         {/* Header Bar */}
-        <motion.div variants={itemVariants} className="w-full flex justify-between items-center mb-10">
+        <motion.div variants={itemVariants} className="w-full flex justify-between items-center mb-8">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
               <Plus size={20} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold text-slate-800">LogicaKids Pro</h1>
+            <h1 className="text-xl font-black text-slate-900 dark:text-white font-display">LogicaKids Pro</h1>
           </div>
+          
           {/* User Avatar Button */}
           <button
             onClick={onGoProfile}
-            className="flex items-center space-x-3.5 group relative text-left hover:scale-[1.02] active:scale-[0.98] transition-transform"
+            className="flex items-center space-x-3.5 group relative text-left hover:scale-[1.02] active:scale-[0.98] transition-transform cursor-pointer"
             title="Mi Perfil"
           >
             <div className="hidden sm:block text-right">
-              <p className="text-slate-800 font-black text-base tracking-tight group-hover:text-blue-600 transition-colors leading-none">
+              <p className="text-slate-900 dark:text-white font-black text-base tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-none font-display">
                 {user?.username ? user.username.toLowerCase() : 'invitado'}
               </p>
             </div>
             <div className="relative">
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-blue-500 transition-all duration-300 shadow-md">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-800 group-hover:border-blue-500 transition-all duration-300 shadow-md">
                 {user?.avatar ? (
                   <img src={getAvatarUrl(user.avatar)} alt={user?.username} className="w-full h-full object-cover" />
                 ) : (
@@ -117,23 +121,34 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
                   </div>
                 )}
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white"></div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white dark:border-[#070b14]"></div>
             </div>
           </button>
         </motion.div>
 
+        {/* Back Link Breadcrumb (Desktop / Navigation Friendly) */}
+        {onBackMap && (
+          <button 
+            onClick={onBackMap}
+            className="self-start flex items-center gap-2 mb-6 text-sm font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer group font-sans border-none bg-transparent"
+          >
+            <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+            Volver al Mapa General
+          </button>
+        )}
+
         {/* Welcome Card */}
-        <motion.div variants={itemVariants} className="w-full bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] mb-8 flex flex-col md:flex-row justify-between items-center border border-slate-100">
+        <motion.div variants={itemVariants} className="w-full bg-white dark:bg-[#162033] border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none mb-8 flex flex-col md:flex-row justify-between items-center transition-all duration-300">
           <div className="flex flex-col items-start mb-4 md:mb-0">
-            <h2 className="text-4xl font-black text-slate-800 mb-2 flex items-center">
+            <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-2 flex items-center font-display">
               ¡Hola, {user?.username ? user.username.toLowerCase() : 'invitado'}! <span className="ml-2 text-3xl">👋</span>
             </h2>
-            <div className="flex items-center text-slate-500 font-medium">
+            <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
               <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-3">
-                {user?.fase_actual_id === 2 ? 'FASE 1' : 'FASE 0'}
+                FASE {currentPhaseId}
               </span>
               <span className="text-sm">
-                {user?.fase_actual_id === 2 ? 'Aprendizaje por Dominio' : 'Dominando las bases matemáticas'}
+                {currentPhaseId >= 1 ? 'Dominando las bases matemáticas' : 'Aprendizaje por Dominio'}
               </span>
             </div>
           </div>
@@ -142,7 +157,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
             {user?.role === 'ADMIN' && onGoAdmin && (
               <button
                 onClick={onGoAdmin}
-                className="p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl text-purple-500 hover:text-purple-700 transition-colors border border-purple-100 shadow-sm"
+                className="p-4 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/20 dark:hover:bg-purple-950/40 rounded-2xl text-purple-600 dark:text-purple-400 hover:text-purple-700 transition-colors border border-purple-200/30 shadow-sm cursor-pointer"
                 title="Panel Admin"
               >
                 <Shield size={20} />
@@ -150,35 +165,26 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
             )}
             <button 
               onClick={onGoStats}
-              className="flex flex-col items-end hover:scale-105 active:scale-95 transition-transform group"
+              className="flex flex-col items-end hover:scale-105 active:scale-95 transition-transform group cursor-pointer"
               title="Mi Progreso"
             >
-              <span className="text-xs font-bold text-slate-400 tracking-wider mb-1 group-hover:text-amber-400 transition-colors">MI PROGRESO</span>
-              <div className="flex items-center text-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-2xl group-hover:bg-amber-500/20 transition-all shadow-sm">
+              <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1 uppercase font-display">TOTAL ESTRELLAS</span>
+              <div className="flex items-center text-amber-500 bg-amber-500/10 border border-amber-500/20 dark:border-amber-500/30 px-4 py-2 rounded-2xl group-hover:bg-amber-500/20 transition-all shadow-sm">
                 <Trophy size={22} className="mr-2 animate-pulse" />
-                <span className="text-3xl font-black">{totalLevelsUnlocked}</span>
+                <span className="text-3xl font-black font-display leading-none">{totalLevelsUnlocked}</span>
               </div>
             </button>
-            {onBackMap && (
-              <button 
-                onClick={onBackMap}
-                className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-500 hover:text-blue-600 transition-colors border border-slate-100 shadow-sm flex items-center justify-center group"
-                title="Volver al Mapa"
-              >
-                <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-              </button>
-            )}
           </div>
         </motion.div>
 
-        {/* Categories Grid */}
-        <motion.div variants={containerVariants} className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-10">
+        {/* Categories Grid (Symmetrical 4-Column Layout on Desktop) */}
+        <motion.div variants={containerVariants} className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {categories.map((cat) => {
             const levelIdx = getCategoryLevel(cat.id);
             const currentLevel = Math.min(levelIdx + 1, 5); // Display level 1-5
             const progressPercent = Math.min((levelIdx / 5) * 100, 100);
             const isLocked = isCategoryLocked(cat.id);
-            const isDominated = !isLocked && (cat.id === 'challenge' ? (levelIdx >= 1) : progressPercent === 100);
+            const isDominated = !isLocked && progressPercent === 100;
 
             return (
               <motion.button
@@ -188,44 +194,43 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
                 onClick={() => !isLocked && handleCategoryClick(cat.id)}
                 key={cat.id}
                 disabled={isLocked}
-                className={`bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-start text-left transition-all ${isLocked ? 'cursor-not-allowed' : 'hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]'}`}
+                className={`rounded-[2.5rem] p-8 border flex flex-col items-start text-left transition-all duration-300
+                  ${isLocked 
+                    ? 'bg-slate-100 border-slate-200 opacity-70 dark:bg-[#0a0f1c] dark:border-slate-800/40 cursor-not-allowed' 
+                    : 'bg-white border-slate-100 shadow-xl dark:bg-[#162033] dark:border-slate-800 dark:shadow-none hover:shadow-2xl hover:border-blue-500/30 dark:hover:border-blue-500/30 cursor-pointer'}`}
               >
-                <div className={`relative w-16 h-16 rounded-2xl ${cat.color} flex items-center justify-center mb-6 shadow-sm transition-all duration-500`}>
+                <div className={`relative w-16 h-16 rounded-2xl ${cat.color} flex items-center justify-center mb-6 shadow-md transition-all duration-300`}>
                   {cat.icon}
                   {isLocked && (
-                    <div className="absolute -top-2 -right-2 bg-slate-900 border-2 border-white rounded-full p-1.5 shadow-lg flex items-center justify-center">
+                    <div className="absolute -top-1.5 -right-1.5 bg-slate-950 border border-slate-800 dark:border-slate-700 rounded-full p-1.5 shadow-lg flex items-center justify-center">
                       <Lock size={12} className="text-white" />
                     </div>
                   )}
                 </div>
 
-                <h3 className="text-2xl font-black text-slate-800 mb-4">{cat.label}</h3>
+                <h3 className="text-2xl font-black font-display text-slate-800 dark:text-white mb-4">{cat.label}</h3>
 
                 {isDominated ? (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 font-extrabold text-xs tracking-wide shadow-sm mb-8">
+                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border bg-emerald-50 border-emerald-200 text-emerald-600 dark:bg-emerald-950/40 dark:border-emerald-800/30 dark:text-emerald-400 font-extrabold text-xs tracking-wide shadow-sm mb-8 font-sans">
                     <span className="flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-black mr-0.5">✓</span>
                     Dominado
                     <span className="ml-0.5 text-sm">✅</span>
                   </div>
-                ) : cat.id === 'challenge' ? (
-                  <div className={`${isLocked ? 'bg-slate-100 text-slate-500' : 'bg-pink-50 text-pink-600'} text-[10px] font-bold px-4 py-1.5 rounded-full mb-8 uppercase tracking-wider`}>
-                    {isLocked ? 'Desafío Bloqueado' : '¡Reto Final!'}
-                  </div>
                 ) : (
-                  <div className="bg-blue-50 text-blue-600 text-xs font-bold px-4 py-1.5 rounded-full mb-8">
+                  <div className="bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-8 border border-blue-200/20 dark:border-blue-500/20 font-sans">
                     Nivel {currentLevel} de 5
                   </div>
                 )}
 
                 <div className="w-full mt-auto">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-bold text-slate-400 tracking-wider">PROGRESO</span>
-                    <span className="text-[10px] font-bold text-slate-400">{cat.id === 'challenge' ? (isLocked ? '0%' : '100%') : `${progressPercent}%`}</span>
+                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-wider">PROGRESO</span>
+                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500">{progressPercent}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${isLocked ? 'bg-slate-200' : cat.color} rounded-full transition-all duration-1000`}
-                      style={{ width: `${cat.id === 'challenge' ? (isLocked ? 0 : 100) : progressPercent}%` }}
+                      className={`h-full ${isLocked ? 'bg-slate-300 dark:bg-slate-700' : cat.color} rounded-full transition-all duration-1000`}
+                      style={{ width: `${progressPercent}%` }}
                     ></div>
                   </div>
                 </div>
@@ -234,67 +239,96 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
           })}
         </motion.div>
 
-        {/* Bottom Banner */}
-        <motion.div variants={itemVariants} className="w-full bg-blue-600 rounded-[2rem] p-8 md:p-10 shadow-[0_20px_40px_rgba(37,99,235,0.2)]">
-          {/* Top row: icon + text + counter */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-            <div className="flex items-center">
-              <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mr-5 shrink-0 border border-white/10">
-                <Trophy size={32} className="text-white" />
+        {/* Bottom Banner (Fills horizontally and presents progress or challenge launch) */}
+        <motion.div variants={itemVariants} className="w-full">
+          {remainingLevels === 0 ? (
+            /* Premium Banner for Dominating all 4 basic disciplines -> Ready for Challenge */
+            <div className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] p-8 md:p-10 shadow-[0_20px_45px_rgba(37,99,235,0.35)] flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500 relative overflow-hidden group">
+              {/* Soft visual background bubbles */}
+              <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] bg-white/5 rounded-full blur-2xl pointer-events-none" />
+              
+              <div className="flex items-center">
+                <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mr-5 shrink-0 border border-white/20 shadow-inner">
+                  <Trophy size={32} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-white mb-1 font-display tracking-tight">
+                    Tu Camino a la Fase {currentPhaseId + 1}
+                  </h3>
+                  <p className="text-blue-100 text-sm leading-relaxed font-medium max-w-xl">
+                    ¡Has dominado las 4 disciplinas! Ahora debes superar el Desafío Mixto final para avanzar a la Fase {currentPhaseId + 1}.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-1">
-                  {remainingLevels === 0 ? '¡Listo para el Desafío!' : 'Tu Camino a la Fase 1'}
-                </h3>
-                <p className="text-blue-100 text-sm leading-relaxed">
-                  {remainingLevels === 0
-                    ? 'Has dominado las bases. Supera el Desafío Mixto para avanzar a la Fase 1.'
-                    : 'Completa los 5 niveles en las 4 disciplinas para desbloquear el Desafío Mixto.'}
-                </p>
-              </div>
+              <button 
+                onClick={() => handleCategoryClick('challenge')}
+                className="px-8 py-3.5 bg-white hover:bg-slate-50 text-blue-600 font-bold rounded-2xl shadow-lg transition-all shrink-0 text-base font-sans cursor-pointer active:scale-95"
+              >
+                Iniciar Prueba Final
+              </button>
             </div>
-            <div className="w-20 h-20 rounded-2xl bg-white/10 flex flex-col items-center justify-center shrink-0 border border-white/10">
-              <span className="text-3xl font-black text-white leading-none">{globalProgressPercent}%</span>
-              <span className="text-[9px] font-bold text-blue-200 tracking-wider mt-1">COMPLETO</span>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold text-blue-200 tracking-widest uppercase">Progreso Fase 0</span>
-              <span className="text-xs font-bold text-white">{totalLevelsUnlocked} / {maxTotalLevels} niveles</span>
-            </div>
-            <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-white rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${globalProgressPercent}%` }}
-                transition={{ duration: 1.2, ease: 'easeOut' }}
-              />
-            </div>
-            {/* Per-category mini indicators */}
-            <div className="flex justify-between mt-3">
-              {basicCategories.map((cat) => {
-                const lvl = getCategoryLevel(cat);
-                const pct = Math.min((lvl / 5) * 100, 100);
-                const labels: Record<string, string> = { addition: 'Sumas', subtraction: 'Restas', multiplication: 'Tablas', division: 'Divis.' };
-                return (
-                  <div key={cat} className="flex flex-col items-center gap-1 w-1/4 px-1">
-                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-white/60 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
-                      />
-                    </div>
-                    <span className="text-[9px] font-bold text-blue-200 tracking-wide">{labels[cat]}</span>
+          ) : (
+            /* Progress Banner showing outstanding levels to unlock challenge */
+            <div className="w-full bg-white dark:bg-[#162033] border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:shadow-none transition-all duration-300">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+                <div className="flex items-center">
+                  <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center mr-5 shrink-0">
+                    <Trophy size={32} className="text-blue-600 dark:text-blue-400" />
                   </div>
-                );
-              })}
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1 font-display tracking-tight">
+                      Tu Camino a la Fase {currentPhaseId + 1}
+                    </h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed font-medium">
+                      Completa los 5 niveles en las 4 disciplinas para desbloquear el Desafío Mixto y avanzar de fase.
+                    </p>
+                  </div>
+                </div>
+                <div className="w-20 h-20 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 flex flex-col items-center justify-center shrink-0 shadow-sm">
+                  <span className="text-3xl font-black font-display leading-none">{globalProgressPercent}%</span>
+                  <span className="text-[9px] font-black tracking-wider mt-1 uppercase font-display">Progreso</span>
+                </div>
+              </div>
+
+              {/* General Progress Bar */}
+              <div>
+                <div className="flex justify-between items-center mb-2 font-sans">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider">PROGRESO GENERAL DE LA FASE</span>
+                  <span className="text-xs font-black text-blue-600 dark:text-blue-400">{totalLevelsUnlocked} / {maxTotalLevels} Niveles</span>
+                </div>
+                <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-blue-600 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${globalProgressPercent}%` }}
+                    transition={{ duration: 1.2, ease: 'easeOut' }}
+                  />
+                </div>
+
+                {/* Per-category mini indicators */}
+                <div className="flex justify-between mt-4">
+                  {basicCategories.map((cat) => {
+                    const lvl = getCategoryLevel(cat);
+                    const pct = Math.min((lvl / 5) * 100, 100);
+                    const labels: Record<string, string> = { addition: 'Sumas', subtraction: 'Restas', multiplication: 'Tablas', division: 'Divisiones' };
+                    return (
+                      <div key={cat} className="flex flex-col items-center gap-1.5 w-1/4 px-2">
+                        <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-blue-500/80 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+                          />
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">{labels[cat]}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </motion.div>
       </motion.div>
     </div>
