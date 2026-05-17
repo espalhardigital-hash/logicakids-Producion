@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     )
 
     DATABASE_URL: Optional[str] = Field(None, description="Database connection URL")
-    GOOGLE_API_KEY: Optional[str] = Field(None, description="Google Gemini API Key")
+    GOOGLE_API_KEY: Optional[str] = Field(None, validation_alias="GEMINI_API_KEY", description="Google Gemini API Key")
     SECRET_KEY: Optional[str] = Field(None, description="JWT Secret Key")
     JWT_ALGORITHM: str = Field("HS256", description="JWT Algorithm")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(10080, description="Access Token Expire Minutes")

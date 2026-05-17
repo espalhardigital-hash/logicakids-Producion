@@ -33,6 +33,10 @@ S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
 S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME")
 S3_REGION = os.environ.get("S3_REGION", "us-east-1")
 
+# Absolute path resolution for local storage fallback
+ROUTER_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_AVATARS_DIR = os.path.join(os.path.dirname(ROUTER_DIR), "static", "avatars")
+
 
 @router.post("/auth/register", response_model=Token)
 async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
@@ -271,7 +275,7 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
     # LOCAL FALLBACK IF S3 NOT CONFIGURED
     if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
         print("S3 configuration incomplete. Using local storage fallback for avatar upload.")
-        static_dir = os.path.join("app", "static", "avatars")
+        static_dir = STATIC_AVATARS_DIR
         os.makedirs(static_dir, exist_ok=True)
         local_filepath = os.path.join(static_dir, filename)
         try:
@@ -314,7 +318,7 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
 @router.get("/avatars/{filename}")
 async def get_avatar(filename: str):
     # Check if exists locally first
-    local_path = os.path.join("app", "static", "avatars", filename)
+    local_path = os.path.join(STATIC_AVATARS_DIR, filename)
     if os.path.exists(local_path):
         from fastapi.responses import FileResponse
         return FileResponse(local_path, media_type="image/webp")

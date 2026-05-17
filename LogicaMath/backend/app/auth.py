@@ -154,26 +154,26 @@ async def create_user(db: AsyncSession, username: str, email: str, password: str
     db.add(new_user)
     await db.flush()  # Flush to get the user ID before creating alumno
     
-    # Find Fase 0 (the initial phase)
-    result = await db.execute(select(Fase).where(Fase.orden == 0))
-    fase_cero = result.scalar_one_or_none()
+    # Find Fase 1 (the initial phase)
+    result = await db.execute(select(Fase).where(Fase.orden == 1))
+    fase_inicial = result.scalar_one_or_none()
     
     # Create alumno profile linked to user
     alumno = Alumno(
         user_id=new_user.id,
         nombre=username,  # Default name = username
-        fase_actual_id=fase_cero.id if fase_cero else None,
+        fase_actual_id=fase_inicial.id if fase_inicial else 1,
     )
     
-    # Pre-populate unlockedLevels in settings if missing
+    # Pre-populate unlockedLevels in settings if missing (using level 1 as starting level)
     if not new_user.settings:
         new_user.settings = {
             "unlockedLevels": {
-                "addition": 0,
-                "subtraction": 0,
-                "multiplication": 0,
-                "division": 0,
-                "challenge": 0
+                "addition": 1,
+                "subtraction": 1,
+                "multiplication": 1,
+                "division": 1,
+                "challenge": 1
             },
             "scores": []
         }
