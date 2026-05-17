@@ -37,7 +37,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
 
   const getCategoryLevel = (categoryId: GameCategory) => {
     if (!user) return 0;
-    if (user.role === 'ADMIN') return 4; // Max level
+    if (user.role === 'ADMIN') return 5; // Max level (100% completed progress)
     const catProgress = progress.find(p => p.category === categoryId);
     return catProgress?.unlocked_level ?? 0;
   };

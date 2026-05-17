@@ -271,7 +271,7 @@ export default function PhaseMapScreen({
           >
             {phases.map((phase, i) => {
               const isUnlocked = user.role === 'ADMIN' || phase.index <= currentPhase;
-              const isPhaseDominated = phase.index < currentPhase;
+              const isPhaseDominated = user.role === 'ADMIN' || phase.index < currentPhase;
               const alignRight = i % 2 !== 0;
 
               return (
