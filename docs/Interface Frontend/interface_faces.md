@@ -1,214 +1,170 @@
-# Plan de Acción y Arquitectura: Mapa General de Fases (Fases 1 - 9)
+# Plan de Acción y Arquitectura: Mapa General de Fases (Fases 1 - 9) - Versión 3.0 (Certificada)
 
-Este documento detalla la planificación técnica, la modularización del frontend y el diseño estético de la nueva interfaz principal para **LogicaKids Pro**. El objetivo es encapsular la aplicación de matemáticas actual como la **Fase 1** e introducir un **Mapa de Progreso General** que guíe al alumno a través de las 9 fases del plan pedagógico del Viaje Matemático (Fase 1 a Fase 9).
+Este documento detalla la planificación técnica, la modularización del frontend, la integración con el backend asíncrono y el diseño estético de la interfaz principal para **LogicaKids Pro**. Tras la auditoría de estabilización y certificación final, el sistema ha transicionado de una arquitectura desconectada offline (v1.0) a un entorno estructurado en la nube (v3.0) con enrutamiento dinámico, estado centralizado y un motor de juego con autoridad en el servidor (Server-Authoritative).
 
 ---
 
 ## 1. Objetivos del Proyecto
 
-1. **Nueva Interfaz Principal (Dashboard Modular)**: Crear una pantalla de entrada post-login (`PhaseMapScreen`) alojada dentro de su propia estructura modular, la cual mostrará un mapa visual del camino de aprendizaje con las 9 fases en zig-zag (estilo Duolingo/Candy Crush, desde la Fase 1 a la Fase 9).
-2. **Encapsulamiento de la Fase 1**: Convertir todo el flujo y diseño actual de la aplicación de matemáticas (selección de categorías, niveles y juego interactivo con teclado numérico) en el contenido exclusivo de la **Fase 1**.
-3. **Navegación Basada en Progreso**:
-   - **Fase 1**: Disponible para todos. Al dar clic, se abre el sub-menú de matemáticas actual de calentamiento aritmético.
-   - **Fases 2 a 9**: Bloqueadas o desbloqueadas según el progreso del alumno obtenido desde el backend (`fase_actual_id` o `unlockedLevel`). Al dar clic en una fase desbloqueada, el usuario accede a sus pantallas específicas. Al dar clic en una fase bloqueada, se muestra un modal dinámico premium con un candado interactivo y los requisitos de desbloqueo.
-4. **Modularización del Frontend**: Reorganizar el directorio de componentes del frontend en carpetas por fases (`fase1` a `fase9`) y crear un módulo independiente para el mapa principal (`components/map/`) para garantizar una arquitectura escalable y limpia.
-5. **Modularización del Panel de Administrador**: Consolidar el panel administrativo en su propio directorio `components/admin/` separando las vistas de gestión del flujo principal de los alumnos.
+1. **Nueva Interfaz Principal (Dashboard Modular)**: Crear una pantalla de entrada post-login (`PhaseMapScreen`) alojada dentro de su propia estructura modular, la cual muestra un mapa visual del camino de aprendizaje con las 9 fases en zig-zag (estilo Duolingo/Candy Crush, desde la Fase 1 a la Fase 9).
+2. **Encapsulamiento de la Fase 1**: Convertir todo el flujo de la aplicación de matemáticas en el contenido exclusivo de la **Fase 1** (Aritmética Básica), integrándolo directamente con el backend.
+3. **Navegación Basada en Progreso Asíncrono**:
+   - **Fase 1**: Disponible para todos de inicio.
+   - **Fases 2 a 9**: Desbloqueadas dinámicamente según el progreso real del alumno persistido en la base de datos PostgreSQL (`fase_actual_id` o `unlockedLevel`). Al dar clic en una fase bloqueada, se abre un modal premium con candado interactivo y los requisitos exactos de desbloqueo obtenidos en tiempo real de la API de pedagogía.
+4. **Desacoplamiento y Modularización Estricta**: Reorganizar el frontend en carpetas por fases (`fase1` a `fase9`) y consolidar módulos independientes para el mapa principal (`components/map/`) y el panel de administración (`components/admin/`).
+5. **Arquitectura Conectada (Server-Authoritative)**: Eliminar el estado zombie e independiente del generador de preguntas local (`mathService.ts`). La UI del juego interactúa directamente con el motor pedagógico del backend a través de endpoints seguros en FastAPI.
 
 ---
 
-## 2. Arquitectura de Navegación y Flujo de Pantallas
+## 2. Arquitectura de Navegación y Enrutamiento Declarativo
 
-Para integrar el Mapa General sin alterar la estabilidad del flujo actual, expandiremos la máquina de estados de navegación en `App.tsx` agregando un estado central: `PHASE_MAP`.
+Para cumplir con las directrices del **Reporte de Análisis**, el sistema ha eliminado la máquina de estados local en `App.tsx` (basada en el estado manual `screen` de `useState`) y ha adoptado **React Router DOM v6+**. Esto permite el uso correcto del historial del navegador (botón "Atrás"), soporte de enlaces directos (deep linking) y carga perezosa de vistas pesadas.
 
-### Nueva Máquina de Estados (`GameScreenState`)
+### Árbol de Rutas y Flujo Declarativo
 
 ```mermaid
-stateDiagram-v2
-    [*] --> LOGIN : Cargar App
-    LOGIN --> PHASE_MAP : Autenticación Exitosa
+graph TD
+    A[Cargar Aplicación] --> B{¿Autenticado?}
+    B -- No --> C[Ruta: /login]
+    B -- Sí --> D{¿Rol de Usuario?}
     
-    state PHASE_MAP {
-        [*] --> VisualizarMapa : Mostrar Fases 1-9
-        VisualizarMapa --> VerPerfil : Clic Perfil
-        VisualizarMapa --> VerEstadisticas : Clic Logros/Progreso
-        VisualizarMapa --> PanelAdmin : Clic Admin (Si es ADMIN)
-    }
-
-    PHASE_MAP --> FASE_1_FLOW : Clic en Nodo Fase 1
-    PHASE_MAP --> FASE_2_FLOW : Clic en Nodo Fase 2 (Desbloqueado)
-    PHASE_MAP --> FASE_3_9_FLOW : Clic en Nodo Fases 3-9 (Desbloqueado)
-
-    state FASE_1_FLOW {
-        [*] --> WelcomeScreen_F1 : Categorías (Suma, Resta, etc.)
-        WelcomeScreen_F1 --> LevelSelection_F1 : Seleccionar Nivel
-        LevelSelection_F1 --> GameScreen_F1 : Jugando
-        GameScreen_F1 --> ResultsScreen_F1 : Resultados
-        ResultsScreen_F1 --> WelcomeScreen_F1 : Volver
-        WelcomeScreen_F1 --> PHASE_MAP : Clic "Volver al Mapa"
-    }
-
-    FASE_2_FLOW --> PHASE_MAP : Volver al Mapa
-    FASE_3_9_FLOW --> PHASE_MAP : Volver al Mapa
+    D -- ADMIN --> E[Ruta: /admin/*]
+    D -- ALUMNO --> F[Ruta: /map]
+    
+    F --> G[Ruta: /fase/1/*]
+    F --> H[Ruta: /profile]
+    F --> I[Ruta: /progress]
+    
+    subgraph Módulo Fase 1
+        G --> G1[/fase/1/welcome - Categorías]
+        G1 --> G2[/fase/1/level-selection - Niveles]
+        G2 --> G3[/fase/1/play - Jugando]
+        G3 --> G4[/fase/1/results - Resultados]
+        G4 --> G1
+    end
 ```
 
-### Modificación de Estados en `types.ts`
-Agregaremos `PHASE_MAP` a la navegación:
+### Gestión de Rutas en React Router v6
+
+La navegación y renderizado se maneja a través de un enrutador declarativo (`BrowserRouter` / `<Routes>`), protegiendo los accesos mediante un componente `<ProtectedRoute>` que valida la sesión activa del usuario:
+
 ```typescript
-export enum GameScreenState {
-  LOGIN,
-  PHASE_MAP,        // Nuevo estado principal post-login
-  WELCOME,          // Se convertirá en el menú de categorías de la Fase 1
-  PLAYING,          // Fase 1
-  RESULTS,          // Fase 1
-  LEVEL_SELECTION,  // Fase 1
-  STUDY_TABLES,     // Auxiliar
-  PROFILE,          // Acceso global
-  ADMIN_PANEL,      // Acceso global
-  MY_PROGRESS       // Acceso global
-}
+// Estructura declarativa del enrutamiento
+<Routes>
+  <Route path="/login" element={<LoginScreen />} />
+  <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+    <Route index element={<Navigate to="/map" replace />} />
+    <Route path="map" element={<PhaseMapScreen />} />
+    <Route path="profile" element={<ProfileScreen />} />
+    <Route path="progress" element={<ProgressScreen />} />
+    <Route path="admin/*" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+    
+    {/* Sub-rutas específicas para la Fase 1 */}
+    <Route path="fase/1">
+      <Route path="welcome" element={<WelcomeScreen />} />
+      <Route path="levels" element={<LevelSelectionScreen />} />
+      <Route path="play" element={<GameScreen />} />
+      <Route path="results" element={<ResultsScreen />} />
+      <Route path="tables" element={<StudyTablesScreen />} />
+    </Route>
+  </Route>
+</Routes>
 ```
 
 ---
 
-## 3. Modularización del Frontend (Propuesta de Archivos)
+## 3. Arquitectura del Estado Global y Autenticación
 
-Para separar correctamente las responsabilidades, reestructuraremos el directorio `frontend/components` de la siguiente forma. En particular, la vista principal del mapa estará estructurada en su propia carpeta modular `components/map/` y el panel de administración en `components/admin/` para mantener desacoplados sus sub-componentes:
+Para evitar el antipatrón de *Prop Drilling* (paso excesivo de props) y asegurar un flujo robusto en el frontend, se implementaron dos soluciones complementarias:
+
+### 3.1. Contexto de Autenticación (`AuthContext`)
+Centraliza el inicio de sesión, el registro, la recarga del usuario actual (`currentUser`) y la gestión de tokens JWT almacenados en `localStorage`.
+- **Auditoría de Seguridad - Interceptor Global**: Para blindar el ciclo JWT, se añade un interceptor HTTP global en el cliente de peticiones (Axios/Fetch). Si la API devuelve un código `HTTP 401 Unauthorized` por expiración de token, el interceptor limpia automáticamente la sesión local y redirige de inmediato a la ruta `/login`, evitando estados inconsistentes o loops de carga infinitos.
+
+### 3.2. Gestión de Progreso con Zustand (`appStore.ts`)
+Un almacén ligero y asíncrono para gestionar:
+- Progresión de niveles y logros pedagógicos de la sesión.
+- Parámetros de juego dinámicos y configuración de la interfaz.
+- Estado de sincronización en tiempo real con el backend PostgreSQL.
+
+---
+
+## 4. Modularización del Frontend (Estructura de Directorios)
+
+El frontend está estructurado en módulos atómicos desacoplados para mejorar la mantenibilidad y permitir **Lazy Loading (Carga Perezosa)** en producción mediante `React.lazy`:
 
 ```
 frontend/
+├── context/
+│   └── AuthContext.tsx        # Gestión global de sesión y JWT (Bearer token)
+├── store/
+│   └── appStore.ts            # Almacén Zustand para progreso y configuraciones
+├── services/
+│   ├── api.ts                 # Cliente HTTP central con Interceptor de Error 401
+│   ├── authService.ts         # Login, registro y token refresh
+│   └── pedagogiaService.ts    # Endpoints asíncronos de /pedagogia en el backend
 ├── components/
-│   ├── admin/                 # MODULO DEL PANEL DE ADMINISTRACIÓN
-│   │   ├── AdminPanel.tsx     # Pantalla controladora principal de Administración
-│   │   └── components/        # Sub-componentes específicos (Configuraciones, Tablas de alumnos, logs)
+│   ├── admin/                 # MÓDULO DEL PANEL DE ADMINISTRACIÓN (Acceso Exclusivo)
+│   │   ├── AdminPanel.tsx     # Controlador principal de administración
+│   │   └── components/        # Sub-componentes específicos (Alumnos, Configuraciones, Logs)
 │   │
-│   ├── map/                   # MODULO DE LA VISTA PRINCIPAL (MAPA GENERAL)
-│   │   ├── PhaseMapScreen.tsx # Pantalla principal del mapa en Zig-Zag (Fases 1 - 9)
-│   │   └── components/        # Componentes exclusivos del mapa (Burbujas de Nodos, Líneas de Conexión, Candados y Tooltips)
+│   ├── map/                   # MÓDULO DE LA VISTA PRINCIPAL (MAPA GENERAL)
+│   │   ├── PhaseMapScreen.tsx # Mapa interactivo en zig-zag vertical (Fases 1 - 9)
+│   │   └── components/        # Burbujas de Nodos, Conectores, Candados y Modales
 │   │
-│   ├── fase1/                 # Encapsulamiento del flujo actual de matemáticas (Calentamiento)
-│   │   ├── WelcomeScreen.tsx
+│   ├── fase1/                 # Módulo de la Fase 1 (Calentamiento Aritmético)
+│   │   ├── WelcomeScreen.tsx  # Categorías del calentamiento
 │   │   ├── LevelSelectionScreen.tsx
-│   │   ├── GameScreen.tsx
-│   │   ├── ResultsScreen.tsx
+│   │   ├── GameScreen.tsx     # Juego con Autoridad en Servidor
+│   │   ├── ResultsScreen.tsx  # Resultados con feedback IA
 │   │   └── StudyTablesScreen.tsx
-│   ├── fase2/                 # Desarrollo Numérico y Razonamiento
-│   ├── fase3/                 # Problemas de Texto
-│   ├── fase4/                 # Fracciones, Porcentajes y Gráficos
-│   ├── fase5/                 # Geometría Plana
-│   ├── fase6/                 # Geometría Espacial
-│   ├── fase7/                 # Coordenadas y Desplazamientos
-│   ├── fase8/                 # Probabilidad, Combinatoria y Lógica
-│   ├── fase9/                 # Simulados Pedro II (Examen de Admisión)
 │   │
-│   ├── common/                # Componentes reutilizables (Botones, Modales, Cards)
-│   ├── ProfileScreen.tsx      # Perfil de usuario (globalizado)
-│   ├── ProgressScreen.tsx     # Dashboard de estadísticas (globalizado)
-│   └── LoginScreen.tsx        # Login inicial (globalizado)
+│   ├── common/                # Componentes comunes (Botones, Modales, Cards, Loaders)
+│   └── ProfileScreen.tsx      # Gestión del perfil de usuario y avatar
 ```
-
-### Ventajas de Modularizar el Panel de Administrador
-
-Modularizar por completo el panel administrativo trayendo el componente principal `AdminPanel.tsx` a su propio módulo aislado `/admin/` aporta los siguientes beneficios técnicos:
-
-1. **Seguridad y Carga Perezosa (Lazy Loading)**: Al aislar físicamente el código de administración del código que consumen los alumnos, en fases de optimización se puede configurar el enrutamiento para que el JavaScript administrativo se cargue de manera perezosa (`React.lazy`). Esto evita que un alumno normal descargue el código de administración en su navegador, reduciendo el tamaño de la carga y aumentando la seguridad.
-2. **Escalabilidad frente a Nuevas Fases**: Con 9 fases de aprendizaje complejas, el panel administrativo requerirá pantallas para gestionar bancos de preguntas de bases de datos, ver reportes de tutoría IA de cada nivel, configurar timers específicos y gestionar alumnos. Dividir estas herramientas en componentes más pequeños dentro de `/admin/components/` (ej. `PedagogySettings.tsx`, `StudentTable.tsx`, `AuditLogs.tsx`) previene el crecimiento desmedido de un único archivo monolítico.
-3. **Desacoplamiento de Tipos y Servicios**: Centraliza las peticiones del servicio administrativo en componentes aislados, permitiendo refactorizar o actualizar las llamadas del panel de administrador sin tocar los componentes de los juegos que consumen los niños.
-
----
-
-## 4. Diseño Estético y Visual del Mapa General (`PhaseMapScreen.tsx`)
-
-El Mapa de Progreso debe sentirse **vivo, interactivo y sumamente premium**. Utilizaremos una paleta de colores vibrante con estética cyberpunk/glassmorphism (fondos oscuros profundos, gradientes de neón y transparencias con desenfoque).
-
-### Elementos Clave del Mapa en Zig-Zag (Estilo Duolingo):
-
-1. **El Camino Central**:
-   - Una línea curva o en zig-zag que conecta los 9 nodos (Fase 1 a Fase 9).
-   - Utilizaremos un gradiente brillante de color cian a púrpura (`from-cyan-400 to-fuchsia-500`) que fluye a lo largo del camino.
-   - El tramo del camino ya superado por el alumno estará encendido y animado con un efecto de flujo brillante, mientras que el tramo bloqueado estará en gris oscuro semitransparente.
-
-2. **Nodos de Fases Interactivos**:
-   - Cada fase se representará como una burbuja flotante tridimensional (circular con sombras y bordes brillantes).
-   - **Nodo Completado**: Color verde esmeralda/oro con una marca de verificación animada (check) y estrellas flotantes.
-   - **Nodo Fase Actual**: Animación de pulso concéntrico (`ping`), gradiente de color sumamente vibrante y flotación sutil mediante CSS.
-   - **Nodo Bloqueado**: Color grisáceo semitransparente con efecto de cristal esmerilado (glassmorphism) y un icono de candado dorado/bronce centrado.
-
-3. **Ficha de Información Flotante (Hover / Tooltip)**:
-   - Al pasar el cursor sobre un nodo de fase, se desplegará un tooltip flotante premium que muestra:
-     - Nombre de la Fase y su descripción pedagógica.
-     - Progreso porcentual o estrellas obtenidas.
-     - Operaciones o dinámicas que abarca (ej. *Fase 1: Calentamiento Aritmético*).
-
-4. **Efecto de Fondo**:
-   - Gradiente de fondo radial profundo (`from-slate-800 via-slate-950 to-black`) decorado con constelaciones o nodos matemáticos sutiles flotando en el fondo con animaciones de paralaje.
 
 ---
 
 ## 5. Mapeo de Fases y su Contenido Técnico (Viaje Matemático)
 
-De acuerdo al backend y a la lógica establecida, estructuramos el mapa con la siguiente información para cada nodo del Viaje Matemático Pedro II:
+La progresión se gestiona a través de la base de datos PostgreSQL, sirviendo el backend como la **Autoridad Pedagógica** de control de flujo.
 
-| Fase | Título de la Fase | Descripción Pedagógica (Objetivos) | Tipo de Preguntas y Lógica | Estado de Desarrollo |
+| Fase | Título de la Fase | Descripción Pedagógica | Tipo de Preguntas y Mecánica | Estado de Desarrollo |
 | :---: | :--- | :--- | :--- | :--- |
-| **1** | **Calentamiento Aritmético** | Calentamiento y evaluación de Aritmética Básica: sumas, restas, multiplicaciones y divisiones. | Generación Dinámica en Frontend | **Completado (Actual)** |
-| **2** | **Desarrollo Numérico y Razonamiento** | Seguridad numérica, cálculo mental, comprensión del sistema monetario y lectura y estructuración de problemas matemáticos. | Modelo Híbrido (Generación controlada / BD) | *Listo para Conectar* |
-| **3** | **Problemas de Texto** | Enseñar al niño a leer, interpretar y resolver problemas (identificar datos, elegir la operación correcta, resolver en varios pasos). | Banco de Ejercicios en BD / Plantillas | *Oculto / Bloqueado* |
-| **4** | **Fracciones, Porcentajes y Gráficos** | Trabajar la relación entre la parte y el todo mediante fracciones simples, porcentajes estructurados, gráficos de barras/circulares y lectura de tablas. | Banco de Ejercicios en BD / Visuales | *Oculto / Bloqueado* |
-| **5** | **Geometría Plana** | Preparar para ejercicios espaciales utilizando figuras bidimensionales (cuadrados, rectángulos, triángulos), incluyendo el cálculo de su área y perímetro (ej. Tangram). | Banco de Ejercicios en BD / Tangram interactivo | *Oculto / Bloqueado* |
-| **6** | **Geometría Espacial** | Desarrollar la visualización 3D experimentando e interactuando con sólidos geométricos, calculando bloques y aprendiendo el volumen en prismas y cilindros. | Banco de Ejercicios en BD / Bloques 3D | *Oculto / Bloqueado* |
-| **7** | **Coordenadas y Desplazamientos** | Trabajar temas de ubicación y trayectos de puntos en el plano cartesiano, usando pares ordenados y nociones de lateralidad / direcciones cardinales. | Banco de Ejercicios en BD / Plano Cartesiano | *Oculto / Bloqueado* |
-| **8** | **Probabilidad, Combinatoria y Lógica** | Fomentar un razonamiento más estructurado y abstracto para identificar casos favorables, combinaciones, secuencias y uso de divisores/múltiplos. | Banco de Ejercicios en BD / Lógica | *Oculto / Bloqueado* |
-| **9** | **Simulados Pedro II** | Preparación decisiva para el formato real del examen mediante simulacros (cortos, por tema, o completos) con revisión dirigida y análisis de errores o debilidades. | Simulacros con Temporizador y Review | *Oculto / Bloqueado* |
+| **1** | **Calentamiento Aritmético** | Evaluación y soltura en Aritmética Básica: sumas, restas, multiplicaciones y divisiones. | Server-Authoritative (`/pedagogia`) con validación y despacho de preguntas en base de datos. | **Certificado & Conectado** |
+| **2** | **Desarrollo Numérico** | Cálculo mental avanzado, sistema monetario brasileño y lectura lógica de problemas. | Modelo híbrido (Generación controlada y Base de Datos) con `/pedagogia/responder`. | **Listo para Conexión** |
+| **3** | **Problemas de Texto** | Comprensión lectora aplicada, datos relevantes vs. distractores y resolución dirigida. | Banco de Ejercicios en BD con motor interactivo de subrayado. | *Bloqueado en el Mapa* |
+| **4** | **Fracciones y Gráficos** | Relación parte-todo (pasteles/pizzas) y visualización estructurada de datos (gráficas de barras). | Elementos manipulativos SVG interactivos y lecturas de bases de datos. | *Bloqueado en el Mapa* |
+| **5** | **Geometría Plana** | Figuras bidimensionales, perímetros, áreas y resolución espacial interactiva (Tangram). | Banco de datos espacial y canvas interactivos. | *Bloqueado en el Mapa* |
+| **6** | **Geometría Espacial** | Visualización 3D, prismas, cilindros y cálculo visual de volumen (bloques). | Ejercicios espaciales 3D renderizados con HTML/CSS. | *Bloqueado en el Mapa* |
+| **7** | **Coordenadas y Trayectos** | Ubicación en el plano cartesiano, pares ordenados y nociones de direcciones y trayectorias. | Grillas interactivas y caminos cartesianos. | *Bloqueado en el Mapa* |
+| **8** | **Probabilidad y Lógica** | Casos favorables vs posibles, secuencias abstractas, divisores, múltiplos y deducción. | Banco lógico con diagramas de árbol e inputs. | *Bloqueado en el Mapa* |
+| **9** | **Simulados Pedro II** | Preparación de formato real con temporizador para el Examen de Admisión al Colégio Pedro II. | Simulacros cronometrados estructurados, analítica de errores y tutoría IA intensiva. | *Bloqueado en el Mapa* |
 
 ---
 
-## 6. Plan de Acción Detallado para la Implementación (Completado)
- 
- ### Paso 1: Reorganización de Archivos y Modularización Básica
- - [x] Crear el directorio `frontend/components/fase1/`.
- - [x] Mover los componentes de juego existentes a esta carpeta (`WelcomeScreen.tsx`, `LevelSelectionScreen.tsx`, `GameScreen.tsx`, `ResultsScreen.tsx`, `StudyTablesScreen.tsx`).
- - [x] Actualizar los imports en estos archivos movidos para asegurar que las referencias a `types.ts` y los servicios en `../services/` sigan funcionando perfectamente.
- - [x] Actualizar los imports principales en `App.tsx` para cargar los componentes de la Fase 1 desde su nueva subcarpeta.
- - [x] Resolver los bugs de tipado en `types.ts` y `ProgressScreen.tsx` para asegurar que el proyecto compile con 0 errores.
- - [x] Mover el panel de administrador principal `AdminPanel.tsx` dentro de `frontend/components/admin/` para consolidar el **Módulo Admin**.
- - [x] Ajustar las importaciones relativas dentro de `AdminPanel.tsx` e integrarlo adecuadamente en `App.tsx`.
- 
- ### Paso 2: Creación de la Interfaz del Mapa (`PhaseMapScreen.tsx` en `components/map/`)
- - [x] Diseñar el componente React para el mapa en zig-zag vertical (conectando los 9 nodos, Fase 1 a Fase 9) con estilos en `index.css` o inline TailwindCSS.
- - [x] Implementar un array de configuración para las 9 fases (ID, título, descripción, operacion, desbloqueado).
- - [x] Diseñar los estados visuales del nodo (Aprobado, En Curso, Bloqueado) con animaciones CSS (pulso, hover, float).
- - [x] Integrar el modal interactivo de candado para las fases bloqueadas.
- 
- ### Paso 3: Integración y Ruteo en `App.tsx`
- - [x] Importar `PhaseMapScreen` desde `./components/map/PhaseMapScreen` en `App.tsx`.
- - [x] Modificar el estado inicial tras el inicio de sesión exitoso en `handleLoginSuccess` y en el `useEffect` de restauración para que redirija a `GameScreenState.PHASE_MAP` en lugar de `GameScreenState.WELCOME`.
- - [x] Añadir la condición de renderizado para `GameScreenState.PHASE_MAP`.
- - [x] Configurar el callback de navegación: al hacer clic en el nodo Fase 1, cambiar el estado a `GameScreenState.WELCOME` (que ahora inicia el flujo de la Fase 1).
- - [x] Vincular los botones globales de Perfil, Estadísticas y Panel de Admin desde el Mapa para asegurar una navegación fluida en toda la aplicación.
- 
- ### Paso 4: Pruebas y Pulido Visual
- - [x] Validar que la transición del login al mapa general sea inmediata y sin parpadeos.
- - [x] Comprobar que al entrar a la Fase 1 el juego funcione exactamente igual que antes (completamente intacto).
- - [x] Asegurar la adaptabilidad móvil del mapa en zig-zag para que se visualice perfecto en tablets y smartphones.
- - [x] Integrar el micro-guardado de la fase en la base de datos (conectar con `fase_actual_id` del usuario para que refleje dinámicamente qué nodos están abiertos o cerrados).
- 
- ---
- 
- ## 7. Refinamientos de UI/UX y Funcionalidades Premium Integradas
- 
- Durante las fases de pruebas de integración y pulido, se implementaron las siguientes mejoras ultra-premium que superan las expectativas iniciales del diseño:
- 
- 1. **🎨 Estética de Fondo Cósmico Continuo**:
-    - Reemplazo del color plano por un degradado profundo `bg-gradient-to-b from-[#0B0F19] via-[#0F172A] to-[#070A13]`.
-    - Distribución dinámica de **4 grandes esferas de resplandor ambiental (Glow)** (`blur-[150px]`) ubicadas estratégicamente a lo largo de la altura vertical de scroll, eliminando cortes de color abruptos.
- 2. **✨ Iconos Bloqueados Totalmente Vívidos**:
-    - Para mantener la motivación del alumno, las fases y módulos bloqueados ahora se muestran con sus iconos en **colores vivos y resplandores neon originales**, mientras que el bloqueo se representa mediante elegantes candados en los conectores y cabeceras.
- 3. **🏆 Insignia Premium de Dominio (Dominado ✅)**:
-    - Integración de una cápsula en verde menta `bg-emerald-50` con borde `border-emerald-200` y texto extra-negrita que muestra `✓ Dominado ✅` cuando un módulo de la Fase 1 o una Fase completa se ha superado al 100%.
-    - El botón inferior de las fases dominadas cambia dinámicamente a `✓ Repasar Fase (Dominada) ✅`.
- 4. **👑 Bypass Total para Administradores**:
-    - Las cuentas con rol `ADMIN` (como `amilcar_admin`) omiten instantáneamente cualquier restricción, desbloqueando todas las fases, módulos y niveles para facilitar la auditoría y tests rápidos.
- 5. **↩️ Retorno Intuitivo en la Fase 1 (No-Logout)**:
-    - Configuración del botón cuadrado superior para retornar al Mapa Principal con el icono `ArrowLeft` (flecha interactiva) en lugar de cerrar la sesión, evitando deslogueos accidentales.
- 6. **👤 Widget de Perfil Limpio y Ampliado**:
-    - Rediseño premium del widget del alumno en ambas cabeceras, eliminando la etiqueta de "VER PERFIL" para expandir a `w-12 h-12` (48px) el tamaño del avatar y colocando el nombre en un formato de texto extra-negrita de gran elegancia.
+## 6. Siguientes Pasos y Auditoría Técnica (Resuelto & Certificado)
+
+### 6.1. Transición Exclusiva a API Asíncrona (Server-Authoritative)
+- **Cambio Realizado**: Se ha desactivado el motor local offline `mathService.ts` en `GameScreen.tsx`. El juego ahora consume `/pedagogia/responder` enviando la respuesta del usuario para ser procesada en la base de datos de forma segura, actualizando de forma atómica el `ProgresoMaestria` de PostgreSQL.
+- **Ventaja**: Desaparece el "Estado Zombie" del frontend; los parámetros de tiempo límite, aciertos para aprobar (90%) y cantidad de preguntas son consultados dinámicamente desde el backend.
+
+### 6.2. Sincronización Completa de Base de Datos y Alembic
+- **Cambio Realizado**: El esquema físico de la base de datos se ha desacoplado en modelos estructurados bajo el patrón Facade en `sql_models.py` (con `alumno.py`, `pregunta.py`, `progreso.py`, etc.).
+- **Optimización**: Se aplican restricciones `UniqueConstraint` para evitar duplicidad de progresiones y se crearon índices estratégicos como `idx_progreso_alumno_fase` y `idx_pool_alumno_bloque` para optimizar el rendimiento y la velocidad de carga de la API. Las migraciones están bajo control estricto de Alembic.
+
+### 6.3. Solución S3 Environment y Subida de Avatares
+- **Cambio Realizado**: Se configuraron las variables del entorno MinIO/S3 en el entorno de docker/producción. El flujo de subida de avatares en `/upload-avatar` (desde `ProfileScreen.tsx`) es funcional y seguro, eliminando las alertas de arranque del backend.
+
+### 6.4. Eliminación de Archivos Basura y Depósitos Temporales
+- **Cambio Realizado**: Purga del repositorio de scripts temporales de testing local (`check_db_scores.py`) y duplicaciones de configuración sensible (`.env_copia`), garantizando la higiene y seguridad del código base.
+
+---
+
+## 7. Refinamientos de UI/UX y Funcionalidades Premium Integradas
+
+1. **🎨 Estética de Fondo Cósmico Continuo**: Gradiente unificado `bg-gradient-to-b from-[#0B0F19] via-[#0F172A] to-[#070A13]` con esferas de resplandor ambiental neón de fondo (`blur-[150px]`) que fluyen armónicamente con el scroll.
+2. **✨ Iconos de Fases en Colores Vívidos**: Los nodos bloqueados conservan su identidad y color neón original, y el bloqueo se representa mediante elegantes candados interactivos para mantener alta la motivación del alumno.
+3. **🏆 Insignias de Dominio**: Cápsulas interactivas de color verde menta con la leyenda `✓ Dominado ✅` al superar una fase o módulo al 100%, variando dinámicamente el botón de acceso a `✓ Repasar Fase (Dominada) ✅`.
+4. **👑 Bypass Total para Administradores**: Cuentas con rol `ADMIN` omiten restricciones de bloqueo para facilitar la auditoría interactiva de cualquier fase o nivel.
+5. **↩️ Retorno Intuitivo**: Botón de regreso al Mapa General integrado en todas las pantallas de fase, eliminando deslogueos accidentales.

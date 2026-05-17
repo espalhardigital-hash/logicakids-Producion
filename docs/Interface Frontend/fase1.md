@@ -1,15 +1,15 @@
-# Especificación de Interfaz de Usuario: Fase 1 — Calentamiento Aritmético (Fase 0)
+# Especificación de Interfaz de Usuario: Fase 1 — Calentamiento Aritmético (Fase 1) - Versión 3.0 (Certificada)
 
-Esta fase representa la base matemática y el calentamiento aritmético de la plataforma **LogicaKids Pro**. Consiste en un juego interactivo de cálculo mental veloz y generación 100% dinámica que evalúa y refuerza las destrezas operativas elementales de los alumnos antes de adentrarse en dinámicas lógicas abstractas.
+Esta fase representa la base matemática y el calentamiento aritmético de la plataforma **LogicaKids Pro**. Tras la auditoría final, el juego interactivo ha transicionado a un modelo de **Autoridad en el Servidor (Server-Authoritative)**, eliminando por completo el "Estado Zombie" del generador de preguntas offline (`mathService.ts`). Ahora toda la lógica, validaciones, límites de tiempo y almacenamiento de progresos se controlan en tiempo real a través del motor pedagógico del backend y se persisten de manera asíncrona en PostgreSQL.
 
 ---
 
 ## 1. Propósito Pedagógico y Objetivo
 
-* **Objetivo General**: Asegurar la nivelación, agilidad y maestría operativa del alumno en las cuatro disciplinas matemáticas elementales (**Sumas, Restas, Tablas de Multiplicar y Divisiones**) junto a un **Desafío Mixto** final, garantizando que posee la fluidez matemática necesaria para abordar los retos más abstractos de fases posteriores.
+* **Objetivo General**: Asegurar la nivelación, agilidad y maestría operativa del alumno en las cuatro disciplinas matemáticas elementales (**Sumas, Restas, Tablas de Multiplicar y Divisiones**) junto a un **Desafío Mixto** final, garantizando que posee la fluidez matemática necesaria para abordar los retos abstractos de fases posteriores.
 * **Habilidades Desarrolladas**:
   1. Agilidad de cálculo mental y recuperación rápida de memoria numérica.
-  2. Concentración sostenida bajo presión de tiempo dinámico (cronómetro por pregunta).
+  2. Concentración sostenida bajo presión de tiempo dinámico (cronómetro controlado por servidor).
   3. Relación de operaciones complementarias (ej. suma-resta, multiplicación-división).
 
 ---
@@ -20,7 +20,7 @@ La interfaz de juego utiliza una distribución de pantalla dividida (split-layou
 
 ```
 +-------------------------------------------------------------+
-|  [Abortar Misión]                Fase 1 | Nivel X | P. 1/50 |
+|  [Volver al Mapa]                 Fase 1 | Nivel X | P. 1/50 |
 |  [=========================== Progress ===================] |
 |                                                             |
 |   +-----------------------+     +-----------------------+   |
@@ -36,8 +36,8 @@ La interfaz de juego utiliza una distribución de pantalla dividida (split-layou
 ```
 
 ### 2.1. Panel de Pregunta (Lado Izquierdo)
-* **Contenedor Principal**: Tarjeta de vidrio esmerilado (`glass-card`) de gran formato con bordes súper redondeados (`rounded-[3rem]`).
-* **Cronómetro Lineal Superior**: Una barra de tiempo animada que decrece de manera lineal de izquierda a derecha. Si el tiempo restante es menor o igual a 3 segundos, la barra cambia a color rojo intenso parpadeante.
+* **Contenedor Principal**: Tarjeta de vidrio esmerilado (`glass-card`) de gran formato con bordes súper redondeados (`rounded-[3rem]`) y sombreado ambiental neón continuo.
+* **Cronómetro Lineal Superior**: Una barra de tiempo animada que decrece de manera lineal de izquierda a derecha. El límite de tiempo es dictado por el backend para cada nivel y pregunta. Si el tiempo restante es menor o igual a 3 segundos, la barra cambia a color rojo intenso parpadeante.
 * **Enunciado Gigante**: Operación matemática en el centro en tamaño extra grande (`text-7xl` a `text-8xl`), en color blanco y con sombra tridimensional.
 * **Input Centralizado**: Un campo de texto numérico grande y centrado. Muestra un marcador `?` en baja opacidad cuando está vacío.
 * **Feedback de Respuesta Inmediato**:
@@ -49,13 +49,13 @@ La interfaz de juego utiliza una distribución de pantalla dividida (split-layou
 * **Diseño**: Grid de 3x4 con botones cuadrados redondeados (`aspect-square rounded-2xl bg-white/5 border border-white/10`).
 * **Botones del 0 al 9**: Tipografía blanca gruesa (`text-4xl font-black`) con hover interactivo de escala.
 * **Botón Borrar**: Icono de retroceso (`Delete`) pintado en tono rojo suave que limpia el último carácter ingresado.
-* **Botón Confirmar (OK)**: Icono de flecha derecha (`ArrowRight`) en fondo azul brillante (`bg-brand-primary`) para enviar la respuesta.
+* **Botón Confirmar (OK)**: Icono de flecha derecha (`ArrowRight`) en fondo cian brillante para enviar la respuesta.
 
 ---
 
-## 3. Lógica de Generación de Preguntas por Nivel
+## 3. Lógica de Generación y Suministro de Preguntas
 
-La generación de ejercicios es totalmente dinámica, adaptándose con precisión al nivel de dificultad seleccionado:
+Para erradicar la asimetría técnica con el backend, **la generación local en el cliente ha sido desactivada**. El frontend consume el pool de preguntas estructuradas y algoritmos de generación dinámica provistos por el backend FastAPI, garantizando consistencia pedagógica absoluta y persistencia segura del progreso.
 
 ### ➕ Sumas (Adición)
 * **Nivel 1**: 1 dígito + 1 dígito (Números del 1 al 9).
@@ -79,49 +79,52 @@ La generación de ejercicios es totalmente dinámica, adaptándose con precisió
 * **Nivel 5**: 2 dígitos por 1 dígito (A: 12-15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100; B: 3-9).
 
 ### ➗ Divisiones
-*Técnica: Se genera primero la multiplicación (Divisor × Cociente = Dividendo) para asegurar resultados exactos enteros.*
+*Técnica: Se genera primero la multiplicación (Divisor × Cociente = Dividendo) en el backend para asegurar resultados exactos enteros.*
 * **Nivel 1**: Divisor 2-3, Cociente 2-5.
 * **Nivel 2**: Divisor 2-5, Cociente 2-10.
 * **Nivel 3**: Divisor 3-9, Cociente 3-9.
 * **Nivel 4**: Divisor 4-12, Cociente 4-12.
 * **Nivel 5**: Divisor y cociente combinados con dividendos complejos de hasta 3 dígitos.
 
-### ⚡ Modo "Desafío Mixto" (Progresión Dinámica)
-En este modo, las 50 preguntas escalan de dificultad y combinan operaciones de forma progresiva dentro de la misma sesión de juego:
-* **Preguntas 1 al 10**: Nivel 1 — Sumas (50%) o Restas (50%).
-* **Preguntas 11 al 20**: Nivel 2 — Sumas (33%), Restas (33%) o Multiplicaciones (33%).
-* **Preguntas 21 al 30**: Nivel 3 — Mezcla equitativa de las 4 operaciones (25% c/u).
+### ⚡ Modo "Desafío Mixto" (Server-Authoritative Progression)
+El backend controla el pool de preguntas secuenciales e híbridas y el temporizador acumulativo, entregándolas de forma progresiva según el avance de la sesión de juego:
+* **Preguntas 1 al 10**: Nivel 1 — Sumas o Restas.
+* **Preguntas 11 al 20**: Nivel 2 — Sumas, Restas o Multiplicaciones.
+* **Preguntas 21 al 30**: Nivel 3 — Mezcla equitativa de las 4 operaciones.
 * **Preguntas 31 al 40**: Nivel 4 — Operaciones de nivel 4 y mezcla de divisiones.
-* **Preguntas 41 al 50**: Nivel 5 — Mezcla completa de nivel 4+ y operaciones complejas.
+* **Preguntas 41 al 50**: Nivel 5 — Mezcla completa de nivel 5 y operaciones complejas.
 
 ---
 
-## 4. Comportamiento y Flujo de Juego
+## 4. Comportamiento y Flujo de Juego Autorizado
 
 1. **Selección de Nivel**:
-   * El alumno selecciona la disciplina y visualiza los 5 niveles en la interfaz interactiva.
-   * Los niveles se desbloquean secuencialmente al superar el nivel anterior con el criterio de aciertos exigido. El Administrador goza de un bypass de desbloqueo completo para pruebas.
+   * El alumno visualiza los niveles. Su estado desbloqueado se obtiene asíncronamente desde el backend.
+   * Si la cuenta es de rol `ADMIN`, un bypass de autenticación y lógica permite acceder libremente a cualquier nivel para pruebas de diagnóstico.
 2. **Entrada a Juego**:
-   * Carga inmediata de la primera pregunta. El temporizador inicia automáticamente.
-   * El input numérico recibe el foco activo para permitir respuesta fluida con teclado físico o en pantalla.
-3. **Procesamiento de Respuestas**:
-   * Al presionar *Enter* o pulsar *OK*, el temporizador se detiene, muestra el feedback visual (verde/rojo) por 1.5 segundos y avanza a la siguiente pregunta.
+   * El componente React realiza un `GET /pedagogia/dashboard` para inicializar el bloque y descarga la primera pregunta del backend. El temporizador del servidor comienza de inmediato.
+3. **Procesamiento de Respuestas en Tiempo Real**:
+   * Al presionar *Enter* o hacer clic en *OK*, el cliente detiene el cronómetro local y envía la respuesta del alumno a través del endpoint `POST /pedagogia/responder`.
+   * El backend procesa el intento de manera atómica actualizando el modelo `ProgresoMaestria` e incrementando `Intentos` en PostgreSQL.
+   * El backend devuelve un JSON confirmando el resultado (`correct` true/false), el tiempo consumido, el resultado correcto para feedback en caso de fallo, y los datos de la **siguiente pregunta**.
+   * El frontend despliega la animación de feedback (verde/rojo) por 1.5 segundos y carga instantáneamente la siguiente pregunta recibida del servidor.
 4. **Fin de Misión**:
-   * Al completar las **50 preguntas**, se detiene el cronómetro y se redirige a `ResultsScreen.tsx`.
-   * **Pantalla de Resultados**: Tarjeta premium con puntuación, análisis de la IA con fortalezas/debilidades y botón para avanzar o repetir.
+   * Al completar las preguntas del bloque (ej. 50 preguntas), el servidor certifica la maestría del nivel.
+   * Si la precisión es mayor o igual al **90%**, el backend marca el bloque como aprobado y desbloquea automáticamente el siguiente nivel en la base de datos. Si es el último nivel de la fase, habilita la graduación automática (`POST /pedagogia/graduate-to-fase1` o equivalente).
+   * Se redirige al alumno a `ResultsScreen.tsx`, cargando un análisis cognitivo de fortalezas y debilidades provisto por el backend.
 
 ---
 
-## 5. Parámetros de Configuración Técnica
+## 5. Parámetros de Configuración Centralizada (Backend Admin)
 
-Los siguientes parámetros representan los valores estándar de fábrica, los cuales son **100% editables en tiempo real** por los docentes desde el **Panel de Administrador** para flexibilizar la exigencia:
+Los parámetros de control y exigencia ya no son estáticos en React, sino que residen en modelos relacionales (`ConfiguracionProgreso`) gobernados en tiempo real por el **Panel de Administrador**:
 
-* **Preguntas por Bloque / Sesión**: 50 preguntas.
-* **Puntaje Mínimo de Aprobación (Estándar)**: **95%** (ej. 48 aciertos de 50 preguntas).
-* **Control de Tiempo por Pregunta (Estándar)**:
-  * **Nivel 1 (Fácil)**: 10 segundos.
-  * **Nivel 2 (Fácil-Medio)**: 12 segundos.
-  * **Nivel 3 (Medio)**: 14 segundos.
-  * **Nivel 4 (Medio-Difícil)**: 16 segundos.
-  * **Nivel 5 (Difícil)**: 18 segundos.
-  *(A mayor dificultad algorítmica, se otorgan más segundos para incentivar la resolución mental reflexiva sin frustración)*.
+* **Preguntas por Bloque / Sesión**: 50 preguntas estándar (configurable de 10 a 50).
+* **Puntaje Mínimo de Aprobación**: **90%** por bloque (ej. 45 aciertos de 50 preguntas).
+* **Control de Tiempo Dinámico por Pregunta (Estándar)**:
+  - **Nivel 1 (Fácil)**: 10 segundos.
+  - **Nivel 2 (Fácil-Medio)**: 12 segundos.
+  - **Nivel 3 (Medio)**: 14 segundos.
+  - **Nivel 4 (Medio-Difícil)**: 16 segundos.
+  - **Nivel 5 (Difícil)**: 18 segundos.
+  *(A mayor complejidad matemática, el servidor despacha un límite de tiempo superior para incentivar la reflexión y evitar la frustración)*.
