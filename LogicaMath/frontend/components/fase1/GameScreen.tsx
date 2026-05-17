@@ -18,8 +18,7 @@ interface Props {
 
 type FeedbackState = 'none' | 'correct' | 'incorrect';
 
-// Default fallback if adminConfig is not loaded
-const FALLBACK_TOTAL_QUESTIONS = 50;
+const FALLBACK_TOTAL_QUESTIONS = 5;
 
 const CATEGORY_LABELS: Record<GameCategory, string> = {
   addition: 'Sumas',
@@ -104,7 +103,6 @@ const GameScreen: React.FC<Props> = ({
       }
     }
 
-    // If useTimer is false globally or in override, disable timer
     if (!resolvedUseTimer) {
       resolvedTimer = 999;
     }
@@ -151,7 +149,6 @@ const GameScreen: React.FC<Props> = ({
 
   useEffect(() => {
     if (attempt >= totalQuestions) {
-      // Call onEndGame with the latest stats from ref to avoid stale closure
       onEndGame(statsRef.current);
     }
   }, [attempt, onEndGame, totalQuestions]);
@@ -216,7 +213,6 @@ const GameScreen: React.FC<Props> = ({
     }, 100);
   };
 
-
   const handleTimeOut = () => {
     clearTimer();
     setFeedback('incorrect');
@@ -267,16 +263,15 @@ const GameScreen: React.FC<Props> = ({
     inputRef.current?.focus();
   };
 
-  if (!question) return <div className="text-white flex items-center justify-center h-full">Cargando desafío...</div>;
+  if (!question) return <div className="text-slate-900 dark:text-white flex items-center justify-center h-full font-black font-display text-xl">Cargando desafío...</div>;
 
   const progressPercentage = (attempt / totalQuestions) * 100;
   const timePercentage = (timeLeft / maxTimeForQuestion) * 100;
 
-  // Determine shake effect
   const isIncorrect = feedback === 'incorrect';
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 relative">
+    <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 relative text-slate-900 dark:text-white font-sans transition-colors duration-300 z-10">
       {/* Background ambient light based on feedback */}
       <AnimatePresence>
         {feedback === 'correct' && (
@@ -284,7 +279,7 @@ const GameScreen: React.FC<Props> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-green-500/20 blur-3xl pointer-events-none z-0"
+            className="absolute inset-0 bg-green-500/10 dark:bg-green-500/20 blur-3xl pointer-events-none z-0"
           />
         )}
         {feedback === 'incorrect' && (
@@ -292,7 +287,7 @@ const GameScreen: React.FC<Props> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-red-500/20 blur-3xl pointer-events-none z-0"
+            className="absolute inset-0 bg-red-500/10 dark:bg-red-500/20 blur-3xl pointer-events-none z-0"
           />
         )}
       </AnimatePresence>
@@ -300,32 +295,32 @@ const GameScreen: React.FC<Props> = ({
       {/* Top Controls */}
       <div className="w-full max-w-5xl flex justify-between items-center mb-6 z-10">
         <motion.button
-          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           onClick={onExit}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white glass-button px-5 py-2.5 rounded-2xl transition-all"
+          className="flex items-center space-x-2 glass-button px-5 py-2.5 rounded-2xl transition-all cursor-pointer font-sans"
         >
           <LogOut size={18} />
           <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">Abortar Misión</span>
         </motion.button>
 
-        <div className="flex flex-col items-end text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-gray-300">
+        <div className="flex flex-col items-end text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
           <div className="flex items-center space-x-3 glass-card px-5 py-3 rounded-2xl shadow-xl">
-            <span className="text-brand-primary">{CATEGORY_LABELS[category] || 'Misión'}</span>
-            <span className="text-white/20">|</span>
-            <span className="text-brand-secondary">{DIFFICULTY_LABELS[difficulty]}</span>
-            <span className="text-white/20">|</span>
-            <span className="text-slate-300">DESAFÍO {Math.min(attempt + 1, totalQuestions)}/{totalQuestions}</span>
-            <span className="text-white font-black ml-1 text-base">{timeLeft}s</span>
+            <span className="text-blue-600 dark:text-blue-400 font-bold font-display">{CATEGORY_LABELS[category] || 'Misión'}</span>
+            <span className="text-slate-200 dark:text-slate-700">|</span>
+            <span className="text-purple-600 dark:text-purple-400 font-bold font-display">{DIFFICULTY_LABELS[difficulty]}</span>
+            <span className="text-slate-200 dark:text-slate-700">|</span>
+            <span className="text-slate-600 dark:text-slate-300 font-medium">DESAFÍO {Math.min(attempt + 1, totalQuestions)}/{totalQuestions}</span>
+            <span className="text-slate-900 dark:text-white font-black ml-1 text-base font-display">{timeLeft}s</span>
           </div>
         </div>
       </div>
 
-      {/* Progress Bar (Thin) */}
+      {/* Progress Bar */}
       <div className="w-full max-w-5xl mb-8 z-10">
-        <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+        <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-1.5 overflow-hidden shadow-inner">
           <motion.div
-            className="h-full bg-gradient-to-r from-brand-primary to-brand-secondary"
+            className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500"
             initial={{ width: 0 }}
             animate={{ width: `${progressPercentage}%` }}
             transition={{ type: "spring", stiffness: 100 }}
@@ -341,16 +336,16 @@ const GameScreen: React.FC<Props> = ({
           transition={{ duration: 0.4 }}
           className={`flex-1 w-full max-w-xl rounded-[3rem] p-8 md:p-14 relative overflow-hidden glass-card transition-all duration-500 ${
             feedback === 'correct' 
-              ? 'ring-4 ring-green-500/50 shadow-green-500/20' 
+              ? 'ring-4 ring-green-500/50 shadow-green-500/10' 
               : feedback === 'incorrect'
-                ? 'ring-4 ring-red-500/50 shadow-red-500/20'
-                : 'ring-1 ring-white/10'
+                ? 'ring-4 ring-red-500/50 shadow-red-500/10'
+                : 'ring-1 ring-slate-100 dark:ring-white/10 shadow-2xl dark:shadow-none'
           }`}
         >
           {/* Circular Timer behind question */}
-          <div className="absolute top-0 left-0 w-full h-2 bg-black/30">
+          <div className="absolute top-0 left-0 w-full h-2 bg-slate-100 dark:bg-black/35">
             <motion.div 
-              className={`h-full ${timeLeft <= 3 ? 'bg-red-500' : 'bg-brand-primary'}`}
+              className={`h-full ${timeLeft <= 3 ? 'bg-red-500' : 'bg-blue-600 dark:bg-blue-500'}`}
               animate={{ width: `${timePercentage}%` }}
               transition={{ duration: 1, ease: "linear" }}
             />
@@ -364,7 +359,7 @@ const GameScreen: React.FC<Props> = ({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 1.5, filter: 'blur(10px)' }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="text-7xl md:text-8xl font-black text-white tracking-tighter drop-shadow-2xl mb-8 text-center"
+                className="text-7xl md:text-8xl font-black text-slate-900 dark:text-white tracking-tighter mb-8 text-center font-display"
               >
                 {question.text}
               </motion.h2>
@@ -378,10 +373,10 @@ const GameScreen: React.FC<Props> = ({
                 pattern="[0-9]*"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                className={`w-full bg-black/40 text-center text-5xl font-bold text-white py-4 rounded-2xl border-2 focus:outline-none focus:ring-4 transition-all placeholder-white/10 shadow-inner pr-16 ${
-                  feedback === 'incorrect' ? 'border-red-500/50 focus:ring-red-500/30 text-red-300' :
+                className={`w-full bg-slate-50 dark:bg-[#0a0f1c]/40 text-center text-5xl font-bold text-slate-900 dark:text-white py-4 rounded-2xl border-2 focus:outline-none focus:ring-4 transition-all placeholder-slate-300 dark:placeholder-white/10 shadow-inner pr-16 ${
+                  feedback === 'incorrect' ? 'border-red-500/50 focus:ring-red-500/30 text-red-600 dark:text-red-400' :
                   feedback === 'correct' ? 'border-green-500/50 focus:ring-green-500/30' :
-                  'border-white/20 focus:border-brand-primary focus:ring-brand-primary/30'
+                  'border-slate-200 dark:border-slate-850 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-blue-500/20 dark:focus:ring-blue-500/20'
                 }`}
                 placeholder="?"
                 autoFocus
@@ -393,7 +388,7 @@ const GameScreen: React.FC<Props> = ({
                 <AnimatePresence>
                   {feedback === 'incorrect' && (
                     <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} className="flex items-center gap-2">
-                      <span className="bg-red-500 text-white font-black text-sm px-3 py-1.5 rounded-xl shadow-lg whitespace-nowrap">
+                      <span className="bg-red-500 text-white font-black text-sm px-3 py-1.5 rounded-xl shadow-lg whitespace-nowrap font-display">
                         Era: {question.answer}
                       </span>
                       <XCircle className="text-red-500 w-8 h-8" />
@@ -401,7 +396,7 @@ const GameScreen: React.FC<Props> = ({
                   )}
                   {feedback === 'correct' && (
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                      <CheckCircle2 className="text-green-400 w-8 h-8 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]" />
+                      <CheckCircle2 className="text-green-500 dark:text-green-400 w-8 h-8 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]" />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -410,35 +405,35 @@ const GameScreen: React.FC<Props> = ({
             
             {/* Stats inside the card */}
             <div className="w-full flex justify-between gap-4 mt-12">
-              <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center shadow-inner">
-                <span className="text-[10px] uppercase font-bold text-gray-500 tracking-widest mb-1">Correctas</span>
-                <span className="text-2xl font-black text-green-400">{stats.correct}</span>
+              <div className="flex-1 bg-slate-50 border border-slate-250/60 dark:bg-slate-900/40 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-inner transition-colors duration-300">
+                <span className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-widest mb-1 font-display">Correctas</span>
+                <span className="text-2xl font-black text-green-600 dark:text-green-400 font-display">{stats.correct}</span>
               </div>
-              <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center shadow-inner">
-                <span className="text-[10px] uppercase font-bold text-gray-500 tracking-widest mb-1">Errores</span>
-                <span className="text-2xl font-black text-red-400">{stats.incorrect}</span>
+              <div className="flex-1 bg-slate-50 border border-slate-250/60 dark:bg-slate-900/40 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-inner transition-colors duration-300">
+                <span className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-widest mb-1 font-display">Errores</span>
+                <span className="text-2xl font-black text-red-600 dark:text-red-400 font-display">{stats.incorrect}</span>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* RIGHT: Virtual Keypad (Visible on md+) */}
+        {/* RIGHT: Virtual Keypad */}
         <motion.div 
           variants={keypadVariants}
           initial="hidden"
           animate="show"
-          className="hidden md:block w-[320px] shrink-0"
+          className="hidden md:block w-[320px] shrink-0 z-10"
         >
-          <div className="grid grid-cols-3 gap-4 p-7 glass-card rounded-[3rem]">
+          <div className="grid grid-cols-3 gap-4 p-7 glass-card rounded-[3rem] shadow-2xl dark:shadow-none">
             {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
               <motion.button
                 variants={keyVariants}
-                whileHover={feedback === 'none' ? { scale: 1.08, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+                whileHover={feedback === 'none' ? { scale: 1.08, backgroundColor: 'rgba(59,130,246,0.08)' } : {}}
                 whileTap={feedback === 'none' ? { scale: 0.92 } : {}}
                 key={num}
                 onClick={() => handleKeypadInput(num)}
                 disabled={feedback !== 'none'}
-                className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white transition-all disabled:opacity-30"
+                className="aspect-square rounded-[1.5rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-4xl font-black text-slate-800 dark:text-white transition-all disabled:opacity-30 cursor-pointer font-display flex items-center justify-center shadow-sm"
               >
                 {num}
               </motion.button>
@@ -446,38 +441,38 @@ const GameScreen: React.FC<Props> = ({
 
             <motion.button
               variants={keyVariants}
-              whileHover={feedback === 'none' ? { scale: 1.1 } : {}}
-              whileTap={feedback === 'none' ? { scale: 0.9 } : {}}
+              whileHover={feedback === 'none' ? { scale: 1.08 } : {}}
+              whileTap={feedback === 'none' ? { scale: 0.92 } : {}}
               onClick={handleBackspace}
               disabled={feedback !== 'none'}
-              className="aspect-square rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-colors disabled:opacity-50 flex items-center justify-center"
+              className="aspect-square rounded-[1.5rem] bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 transition-colors disabled:opacity-50 flex items-center justify-center cursor-pointer shadow-sm"
             >
               <Delete size={28} />
             </motion.button>
 
             <motion.button
               variants={keyVariants}
-              whileHover={feedback === 'none' ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.15)' } : {}}
-              whileTap={feedback === 'none' ? { scale: 0.9 } : {}}
+              whileHover={feedback === 'none' ? { scale: 1.08 } : {}}
+              whileTap={feedback === 'none' ? { scale: 0.92 } : {}}
               onClick={() => handleKeypadInput(0)}
               disabled={feedback !== 'none'}
-              className="aspect-square rounded-2xl bg-white/5 border border-white/10 text-3xl font-bold text-white transition-colors disabled:opacity-50"
+              className="aspect-square rounded-[1.5rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-3xl font-black text-slate-850 dark:text-white transition-colors disabled:opacity-50 cursor-pointer font-display flex items-center justify-center shadow-sm"
             >
               0
             </motion.button>
 
             <motion.button
               variants={keyVariants}
-              whileHover={feedback === 'none' ? { scale: 1.1 } : {}}
-              whileTap={feedback === 'none' ? { scale: 0.9 } : {}}
+              whileHover={feedback === 'none' ? { scale: 1.08 } : {}}
+              whileTap={feedback === 'none' ? { scale: 0.92 } : {}}
               onClick={() => handleSubmit()}
               disabled={feedback !== 'none'}
-              className="aspect-square rounded-2xl bg-brand-primary text-white transition-colors disabled:opacity-50 shadow-lg shadow-brand-primary/30 flex items-center justify-center"
+              className="aspect-square rounded-[1.5rem] bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 shadow-lg shadow-blue-200 dark:shadow-none flex items-center justify-center cursor-pointer"
             >
               <ArrowRight size={32} />
             </motion.button>
           </div>
-          <p className="text-center text-[10px] uppercase font-black text-slate-500 tracking-[0.3em] mt-6">Teclado Numérico</p>
+          <p className="text-center text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-[0.3em] mt-6 font-display">Teclado Numérico</p>
         </motion.div>
 
       </div>

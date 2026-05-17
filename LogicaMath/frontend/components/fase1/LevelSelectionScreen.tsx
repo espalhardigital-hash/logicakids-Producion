@@ -42,7 +42,6 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
   }, [adminConfig]);
 
   useEffect(() => {
-    // If admin, unlock all levels. Else fetch progress.
     if (user?.role === 'ADMIN') {
       setUnlockedLevel(4); // 0-indexed, so 4 is level 5
     } else {
@@ -51,8 +50,6 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
           const catProgress = progress.find(p => p.category === category);
           setUnlockedLevel(catProgress?.unlocked_level ?? 0);
         });
-        
-        // Optionally fetch the passing score from settings, if implemented globally
       });
     }
   }, [user, category]);
@@ -60,8 +57,12 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
   const categoryName = CATEGORY_NAMES[category] || 'Operaciones';
 
   return (
-    <div className="fixed inset-0 bg-[#F8FAFC] text-slate-900 overflow-y-auto w-full h-full custom-scrollbar">
-      <div className="max-w-5xl mx-auto p-6 md:p-10 flex flex-col min-h-screen">
+    <div className="fixed inset-0 bg-slate-50 text-slate-900 dark:bg-[#070b14] dark:text-white overflow-y-auto w-full h-full custom-scrollbar transition-colors duration-300">
+      {/* Background decorations - Ambient Glow */}
+      <div className="absolute top-[-5%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/10 blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-[-5%] right-[-10%] w-[600px] h-[600px] bg-purple-500/10 dark:bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none z-0" />
+
+      <div className="max-w-5xl mx-auto p-6 md:p-10 flex flex-col min-h-screen relative z-10">
         
         {/* Header / Back Button */}
         <motion.div 
@@ -71,9 +72,9 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
         >
           <button 
             onClick={onBack}
-            className="flex items-center space-x-2 text-slate-500 hover:text-blue-600 transition-colors font-bold"
+            className="flex items-center space-x-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors font-bold border-none bg-transparent cursor-pointer group font-sans"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
             <span>Volver al menú</span>
           </button>
         </motion.div>
@@ -84,11 +85,11 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <h1 className="text-4xl md:text-5xl font-black text-[#0B1A3A] mb-4 tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-black text-[#0B1A3A] dark:text-white mb-4 tracking-tight font-display">
             Niveles De {categoryName}
           </h1>
-          <p className="text-slate-500 text-lg md:text-xl font-medium">
-            Supera cada nivel con al menos <span className="font-bold text-blue-600">{passingScore}%</span> para desbloquear el siguiente.
+          <p className="text-slate-500 dark:text-slate-400 text-lg md:text-xl font-medium font-sans">
+            Supera cada nivel con al menos <span className="font-bold text-blue-600 dark:text-blue-400">{passingScore}%</span> para desbloquear el siguiente.
           </p>
         </motion.div>
 
@@ -112,10 +113,10 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
                 disabled={!isUnlocked}
                 onClick={() => onSelectLevel(diff)}
                 className={`
-                  relative flex flex-col items-center justify-center p-8 rounded-[2rem] w-[160px] h-[200px] transition-all
+                  relative flex flex-col items-center justify-center p-8 rounded-[2rem] w-[160px] h-[200px] border transition-all
                   ${isUnlocked 
-                    ? 'bg-white border-2 border-blue-500/20 shadow-[0_10px_30px_rgba(59,130,246,0.1)] hover:border-blue-500 hover:shadow-[0_20px_40px_rgba(59,130,246,0.2)] cursor-pointer' 
-                    : 'bg-slate-50 border border-slate-100 opacity-70 cursor-not-allowed shadow-sm'
+                    ? 'bg-white border-blue-500/20 shadow-[0_10px_30px_rgba(59,130,246,0.06)] hover:border-blue-500 hover:shadow-[0_20px_40px_rgba(59,130,246,0.15)] cursor-pointer dark:bg-[#162033] dark:border-slate-800 dark:hover:border-blue-500' 
+                    : 'bg-slate-100 border-slate-200 opacity-70 dark:bg-[#0a0f1c] dark:border-slate-800/40 dark:shadow-none cursor-not-allowed shadow-sm'
                   }
                 `}
               >
@@ -123,14 +124,14 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
                 <div className={`
                   w-16 h-16 rounded-full flex items-center justify-center mb-6 text-xl font-black transition-colors
                   ${isUnlocked 
-                    ? 'bg-blue-50 text-blue-600' 
-                    : 'bg-slate-100 text-slate-400'
+                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400' 
+                    : 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-600'
                   }
                 `}>
-                  {isUnlocked ? (levelIndex + 1) : <Lock size={24} />}
+                  {isUnlocked ? (levelIndex + 1) : <Lock size={20} />}
                 </div>
 
-                <span className={`text-xl font-bold tracking-tight ${isUnlocked ? 'text-[#0B1A3A]' : 'text-slate-400'}`}>
+                <span className={`text-xl font-bold tracking-tight font-display ${isUnlocked ? 'text-[#0B1A3A] dark:text-white' : 'text-slate-400 dark:text-slate-600'}`}>
                   Nivel {levelIndex + 1}
                 </span>
               </motion.button>
