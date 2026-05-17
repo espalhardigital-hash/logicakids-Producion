@@ -24,8 +24,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Change ownership of the app directory to the non-privileged user
-RUN chown -R appuser:appgroup /app
+# Make startup script executable and change ownership of the app directory
+RUN chmod +x start.sh && chown -R appuser:appgroup /app
 
 # Switch to the non-privileged user
 USER appuser
@@ -33,5 +33,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Command to run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Command to run the application using start.sh
+CMD ["./start.sh"]
