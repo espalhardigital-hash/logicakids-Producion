@@ -1,15 +1,15 @@
 # Build Stage
-FROM node:22 as build
+FROM node:20 as build
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY . .
 
 # Solo necesitamos la URL del API
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-RUN NODE_OPTIONS="--max-old-space-size=1024" npm run build
+RUN NODE_OPTIONS="--max-old-space-size=512" npm run build
 
 # Production Stage - Nginx
 FROM nginx:alpine
