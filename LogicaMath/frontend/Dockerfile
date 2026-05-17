@@ -1,5 +1,5 @@
 # Build Stage
-FROM node:22-alpine as build
+FROM node:22-slim as build
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm install
@@ -9,7 +9,7 @@ COPY . .
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-RUN npm run build
+RUN NODE_OPTIONS="--max-old-space-size=1024" npm run build
 
 # Production Stage - Nginx
 FROM nginx:alpine
