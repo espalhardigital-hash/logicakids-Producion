@@ -1,6 +1,5 @@
 # Evitar copiar dependencias locales y archivos de compilación de desarrollo
 node_modules
-dist
 .env
 .env.local
 .git
