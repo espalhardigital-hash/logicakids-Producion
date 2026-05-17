@@ -1,97 +1,144 @@
-# 🎨 Especificación de Diseño: Sistema de Temas Dual (Light & Dark Theme)
+# 🎨 Especificación de Diseño: Sistema de Temas v3 (Claro / Oscuro)
 ## LogicaKids Pro
 
-Este documento define la especificación técnica y el plan de diseño semántico para incorporar soporte nativo de **Tema Claro (Light Theme)** y **Tema Oscuro (Dark Theme)** en la interfaz de **LogicaKids Pro**.
+Este documento define la especificación técnica y la arquitectura de diseño semántico para incorporar el nuevo sistema de temas de **LogicaKids Pro** utilizando las variables de diseño **v3** con la función moderna de CSS `light-dark()`. 
 
-El sistema se basa en **Tailwind CSS v4** y un estado global de React inyectado en el nodo raíz de la aplicación, garantizando transiciones suaves y consistencia visual sin colores estáticos (hardcoded).
+Este sistema reemplaza las clases rígidas por variables adaptables a nivel del motor del navegador, garantizando que los colores fluyan de manera automática en base al esquema activo (`color-scheme`).
 
 ---
 
-## 🏗️ 1. Arquitectura del Estado Global: `ThemeContext`
+## 🏗️ 1. Concepto de Diseño y Análisis de Capturas
 
-El sistema utilizará un contexto de React (`ThemeContext`) que gestionará el estado `'light' | 'dark'`. Este contexto se creará siguiendo el blueprint de referencia en `docs/Interface Frontend/archivos apoyo y referencia/ThemeContext.tsx`.
+De acuerdo con las imágenes provistas del panel principal (**"Tu Viaje Matemático"**):
+* **Fondo Principal**: El tema oscuro utiliza un color sólido e integrado (`--color-v3-surface-container`, `#1f1f1f` o `#181818` para gradiente), eliminando contrastes excesivos.
+* **Tarjetas de Fases**: Tienen bordes curvos muy limpios, usando el fondo de contenedor (`--color-v3-surface-container`) o variantes suaves, con iconos encapsulados en cajas de color plano de acento (azul para Fase 1, verde para Fase 2, naranja para Fase 3, etc.) y botones discretos del tipo `--color-v3-button-container` para ingresar a la fase.
+* **Botones Superiores (Pills)**: Los botones de perfil (`ana`), `Estadísticas` y `Cerrar Sesión` se representan como píldoras encapsuladas con bordes delgados usando `--color-v3-outline-var` y textos semánticos `--color-v3-text`, logrando una apariencia limpia y despejada.
+* **Botón Flotante de Tema**: Es una píldora minimalista redonda que encaja perfectamente en la esquina inferior derecha.
 
-### Especificaciones del Mecanismo:
-1. **Persistencia**: El tema se almacena en el navegador bajo la clave `localStorage.getItem('app_theme')`.
-2. **Preferencia del Sistema**: Si no existe una preferencia guardada, el sistema detectará automáticamente la configuración del sistema operativo usando `window.matchMedia('(prefers-color-scheme: dark)').matches`.
-3. **Inyección en el DOM**: Al cambiar el estado, se añadirá o removerá la clase `.dark` en `document.documentElement` (`<html>`), lo cual habilitará la directiva de Tailwind para oscurecer los elementos correspondientes.
+---
 
-### Estructura del Archivo Planificado (`frontend/components/theme/ThemeContext.tsx`):
-```typescript
-import React, { createContext, useContext, useEffect, useState } from 'react';
+## 🎛️ 2. Paleta de Variables CSS v3 (`light-dark()`)
 
-type Theme = 'light' | 'dark';
+Inyectaremos en `:root` el conjunto completo de variables de diseño provisto. La función `light-dark(valor_claro, valor_oscuro)` de CSS resolverá de manera automática el color correcto según el `color-scheme` asignado al elemento `<html>`.
 
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-}
+```css
+:root {
+  /* Habilitar color-scheme nativo en el navegador */
+  color-scheme: light dark;
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+  /* Superficies y Contenedores */
+  --color-v3-surface: light-dark(#ffffff, #191919);
+  --color-v3-overlay-background: light-dark(rgba(252, 252, 252, 0.3), rgba(25, 25, 25, 0.3));
+  --color-v3-surface-left-nav: light-dark(#fafafa, #191919);
+  --color-v3-surface-left-nav-border: light-dark(#e2e3e4, #262626);
+  --color-v3-surface-container: light-dark(#ffffff, #1f1f1f);
+  --color-v3-surface-container-high: light-dark(#fcfcfc, #252525);
+  --color-v3-surface-container-highest: light-dark(#f4f5f5, #2a2a2a);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('app_theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+  /* Botones y Acciones */
+  --color-v3-button-container: light-dark(#ffffff, #323232);
+  --color-v3-button-container-high: light-dark(#eaeaeb, #424242);
+  --color-v3-button-container-highest: light-dark(#caccce, #555555);
+  --color-v3-button-container-accent: light-dark(#dbeafe, #393f51);
+  --color-v3-hover: light-dark(#f4f5f5, #323232);
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('app_theme', theme);
-  }, [theme]);
+  /* Textos */
+  --color-v3-text: light-dark(#2b2d31, #d4d4d4);
+  --color-v3-text-var: light-dark(#6c717a, #8c8c8c);
+  --color-v3-text-disable: light-dark(#bdc1c6, #3e3e3e);
+  --color-v3-text-on-button: light-dark(#2b2d31, #fcfcfc);
+  --color-v3-text-on-button-reverse: light-dark(#ffffff, #ffffff);
+  --color-v3-text-link: light-dark(#2483e2, #87a9ff);
+  --color-v3-chat-separator: light-dark(#b7babd, #8c8c8c);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  };
+  /* Bordes y Líneas */
+  --color-v3-outline: light-dark(#e2e3e4, #333333);
+  --color-v3-outline-var: light-dark(#eaeaeb, #262626);
+  --color-v3-outline-accent: light-dark(#2483e2, #87a9ff);
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
+  /* Estados y Alertas */
+  --color-v3-error-text: light-dark(#690005, #690005);
+  --color-v3-error-container: light-dark(#ffdad6, #ffdad6);
+  --color-v3-warning-text: light-dark(#2a1700, #2a1700);
+  --color-v3-warning-container: light-dark(#ffddb7, #ffddb7);
 
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) throw new Error("useTheme must be used within a ThemeProvider");
-  return context;
+  /* Colores de Acento (Fases / Modulos) */
+  --color-v3-accent-1: light-dark(#fcbd00, #fcbd00);
+  --color-v3-accent-light-1: light-dark(#fff7e0, #3a321b);
+  --color-v3-accent-2: light-dark(#c597ff, #c597ff);
+  --color-v3-accent-light-2: light-dark(#f8f3ff, #332d3a);
+  --color-v3-accent-3: light-dark(#d73a49, #d73a49);
+  --color-v3-accent-4: light-dark(#3ca059, #3ddb85);
+  --color-v3-accent-5: light-dark(#7887b5, #8790ab);
+  --color-v3-accent-6: light-dark(#e87400, #ffb74d);
+
+  /* Sombras Semánticas */
+  --v3-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --v3-shadow-sm: 0 1px 3px 0 rgba(10, 13, 18, 0.1), 0 1px 2px -1px rgba(10, 13, 18, 0.1);
+  --v3-shadow-md: 0 4px 6px -1px rgba(10, 13, 18, 0.1), 0 2px 4px -2px rgba(10, 13, 18, 0.06);
+  --v3-shadow-lg: 0 12px 16px -4px rgba(10, 13, 18, 0.08), 0 4px 6px -2px rgba(10, 13, 18, 0.03), 0 2px 2px -1px rgba(10, 13, 18, 0.04);
+  --v3-shadow-xl: 0 20px 24px -4px rgba(10, 13, 18, 0.08), 0 8px 8px -4px rgba(10, 13, 18, 0.03), 0 3px 3px -1.5px rgba(10, 13, 18, 0.04);
 }
 ```
 
 ---
 
-## ⚡ 2. Integración con Tailwind CSS v4
+## ⚡ 3. Integración en el Bloque `@theme` de Tailwind CSS v4
 
-Dado que **LogicaKids Pro** utiliza **Tailwind CSS v4**, la integración del selector de clase `.dark` requiere registrar la directiva personalizada dentro de `index.css`.
+Para poder utilizar estas variables en clases rápidas de Tailwind (ej. `bg-v3-surface-container`, `text-v3-text`, `border-v3-outline`), las mapearemos dentro de la directiva `@theme` en `frontend/index.css`.
 
-### Cambios a realizar en `frontend/index.css`:
-Añadiremos la variante personalizada inmediatamente después del `@import` de Tailwind para indicarle al compilador de Vite que evalúe la clase `.dark` inyectada en el HTML:
-
+### Configuración del CSS:
 ```css
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Inter:wght@400;700&display=swap');
 
-/* Habilitar selector basado en la clase .dark del nodo raíz en Tailwind v4 */
-@custom-variant dark (&:is(.dark *));
-
 @theme {
-  --color-brand-dark: #0f172a;
-  --color-brand-primary: #3b82f6;
-  --color-brand-secondary: #8b5cf6;
+  /* Enlace directo a las variables de color v3 */
+  --color-v3-surface: var(--color-v3-surface);
+  --color-v3-overlay-background: var(--color-v3-overlay-background);
+  --color-v3-surface-left-nav: var(--color-v3-surface-left-nav);
+  --color-v3-surface-left-nav-border: var(--color-v3-surface-left-nav-border);
+  --color-v3-surface-container: var(--color-v3-surface-container);
+  --color-v3-surface-container-high: var(--color-v3-surface-container-high);
+  --color-v3-surface-container-highest: var(--color-v3-surface-container-highest);
+
+  --color-v3-button-container: var(--color-v3-button-container);
+  --color-v3-button-container-high: var(--color-v3-button-container-high);
+  --color-v3-button-container-highest: var(--color-v3-button-container-highest);
+  --color-v3-button-container-accent: var(--color-v3-button-container-accent);
+  --color-v3-hover: var(--color-v3-hover);
+
+  --color-v3-text: var(--color-v3-text);
+  --color-v3-text-var: var(--color-v3-text-var);
+  --color-v3-text-disable: var(--color-v3-text-disable);
+  --color-v3-text-on-button: var(--color-v3-text-on-button);
+  --color-v3-text-on-button-reverse: var(--color-v3-text-on-button-reverse);
+  --color-v3-text-link: var(--color-v3-text-link);
+
+  --color-v3-outline: var(--color-v3-outline);
+  --color-v3-outline-var: var(--color-v3-outline-var);
+  --color-v3-outline-accent: var(--color-v3-outline-accent);
+
+  --color-v3-accent-1: var(--color-v3-accent-1);
+  --color-v3-accent-light-1: var(--color-v3-accent-light-1);
+  --color-v3-accent-2: var(--color-v3-accent-2);
+  --color-v3-accent-light-2: var(--color-v3-accent-light-2);
+  --color-v3-accent-3: var(--color-v3-accent-3);
+  --color-v3-accent-4: var(--color-v3-accent-4);
+  --color-v3-accent-5: var(--color-v3-accent-5);
+  --color-v3-accent-6: var(--color-v3-accent-6);
+
   --font-outfit: 'Outfit', sans-serif;
+  --font-inter: 'Inter', sans-serif;
 }
 
 @layer base {
   body {
-    /* Fondos y textos semánticos con transiciones suaves */
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased;
-    font-family: var(--font-outfit);
+    /* Fondo semántico nativo e Inter por defecto */
+    background-color: var(--color-v3-surface-container);
+    color: var(--color-v3-text);
+    font-family: var(--font-inter);
+    @apply antialiased;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 }
@@ -99,108 +146,67 @@ Añadiremos la variante personalizada inmediatamente después del `@import` de T
 
 ---
 
-## 🎨 3. Diseño Semántico y Paleta de Colores
+## 🏗️ 4. Ajustes del Orquestador Global (`ThemeContext.tsx`)
 
-Para mantener la estética premium de **LogicaKids Pro**, el diseño sustituirá los colores fijos u oscuros obligatorios por variables semánticas de Tailwind. Esto garantizará que tanto la versión clara como la oscura se vean armoniosas y profesionales.
+Para que la función `light-dark()` funcione en todo su esplendor, el contexto de React no solo añadirá/removerá la clase `.dark` (útil para variantes heredadas de Tailwind), sino que **inyectará la propiedad `colorScheme`** directamente en el HTML del documento.
 
-### Tabla de Equivalencias Semánticas:
-
-| Capa / Elemento | Estilo Tema Claro (Light) | Estilo Tema Oscuro (Dark) | Clases Tailwind Planificadas |
-| :--- | :--- | :--- | :--- |
-| **Fondo Principal** | Gris ultra-claro suave | Azul pizarra profundo / Negro | `bg-slate-50 dark:bg-slate-950` |
-| **Tarjetas / Contenedores** | Blanco puro (semi-translúcido) | Vidrio oscuro esmerilado | `bg-white/80 backdrop-blur-md dark:bg-white/5 dark:backdrop-blur-2xl` |
-| **Texto Principal** | Slate Oscuro (casi negro) | Blanco Puro / Gris muy claro | `text-slate-900 dark:text-white` |
-| **Texto Secundario** | Gris medio apagado | Gris slate suave | `text-slate-500 dark:text-slate-400` |
-| **Bordes y Divisores** | Gris sutil claro | Blanco sutil (10% opacidad) | `border-slate-200/50 dark:border-white/10` |
-| **Botones Neutros** | Gris claro táctil | Cristal negro | `bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20` |
-| **Insignias y Estados** | Bordes suaves definidos | Resplandores (glow) de color | `border-slate-200/80 dark:border-white/5` |
-
-### Modificación de Clases Especiales:
-1. **`.glass-card`**:
-   * **Antes**: `@apply bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl;`
-   * **Ahora (Semántico)**:
-     ```css
-     .glass-card {
-       @apply bg-white/80 border-slate-200/50 shadow-lg 
-              dark:bg-white/5 dark:backdrop-blur-2xl dark:border-white/10 dark:shadow-2xl;
-       transition: background-color 0.3s ease, border-color 0.3s ease;
-     }
-     ```
-2. **`.glass-button`**:
-   * **Antes**: `@apply bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10;`
-   * **Ahora (Semántico)**:
-     ```css
-     .glass-button {
-       @apply bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800 
-              dark:bg-white/10 dark:hover:bg-white/20 dark:border-white/10 dark:text-white;
-       transition: all 0.3s ease;
-     }
-     ```
-
----
-
-## 🎛️ 4. Botón Flotante de Cambio de Tema (`ThemeToggle`)
-
-Para que el usuario pueda alternar libremente el tema, diseñaremos un botón flotante altamente estético ubicado de forma fija (`fixed`) en la esquina de la pantalla.
-
-### Diseño Visual del Botón:
-* **Tema Claro**: Fondo blanco brillante, bordes definidos, icono de Sol (`Sun`) en color ámbar brillante con sutil rotación en hover.
-* **Tema Oscuro**: Cristal esmerilado oscuro, icono de Luna (`Moon`) en color azul violeta neón con animación de pulso.
-
-### Código del Componente Planificado (`frontend/components/theme/ThemeToggle.tsx`):
+### Lógica de Sincronización del Contexto:
 ```typescript
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Sun, Moon } from 'lucide-react';
-import { useTheme } from './ThemeContext';
-
-export const ThemeToggle: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
-
-  return (
-    <motion.button
-      onClick={toggleTheme}
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      whileHover={{ scale: 1.1, rotate: theme === 'light' ? 45 : -15 }}
-      whileTap={{ scale: 0.9 }}
-      className="fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.15)] border cursor-pointer 
-                 bg-white border-slate-200 text-amber-500 hover:bg-slate-50
-                 dark:bg-slate-900 dark:border-white/10 dark:text-indigo-400 dark:hover:bg-slate-800
-                 transition-colors duration-300"
-      aria-label="Cambiar tema"
-    >
-      {theme === 'light' ? <Sun size={22} className="fill-amber-500/20" /> : <Moon size={22} className="fill-indigo-500/20" />}
-    </motion.button>
-  );
-};
+useEffect(() => {
+  const root = window.document.documentElement;
+  
+  if (theme === 'dark') {
+    root.classList.add('dark');
+    root.style.colorScheme = 'dark';
+  } else {
+    root.classList.remove('dark');
+    root.style.colorScheme = 'light';
+  }
+  
+  localStorage.setItem('app_theme', theme);
+}, [theme]);
 ```
 
 ---
 
-## 🚀 5. Plan de Implementación de Código (Fase Futura)
+## 🎨 5. Mapeo Semántico en Componentes Clave
 
-Cuando finalice esta etapa de diseño y decidas codificar, los pasos exactos a seguir serán:
+Para replicar con exactitud el aspecto de las capturas compartidas, utilizaremos las siguientes combinaciones de clases semánticas en la interfaz:
 
-1. **Crear la Carpeta y Contexto**:
-   * Escribir `frontend/components/theme/ThemeContext.tsx` con el código especificado.
-2. **Inyectar el Proveedor (`ThemeProvider`)**:
-   * En [App.tsx](file:///d:/Antigravity/Apps_LogicaKids/LogicaMath/frontend/App.tsx), envolver toda la aplicación:
-     ```typescript
-     import { ThemeProvider } from './components/theme/ThemeContext';
-     
-     const App: React.FC = () => {
-       return (
-         <ThemeProvider>
-           {/* Estructura actual de la aplicación */}
-         </ThemeProvider>
-       );
-     };
-     ```
-3. **Inyectar el Botón Flotante**:
-   * Renderizar `<ThemeToggle />` en la base de `App.tsx` para que esté disponible en todas las vistas (Mapas, Administrador, Juegos).
-4. **Refactorizar Vistas de Pantalla**:
-   * Reemplazar las clases de fondo fijo (`bg-[radial-gradient(...)]` o `bg-black`) por clases semánticas duales en `App.tsx`, `WelcomeScreen.tsx`, `PedagogyTab.tsx`, `ProgressScreen.tsx`, etc.
-   * Utilizar la transición suave de CSS en los elementos contenedor para evitar parpadeos bruscos al cambiar el tema.
-5. **Configurar el CSS Principal**:
-   * Incorporar la línea `@custom-variant dark (&:is(.dark *));` en la cabecera de `index.css`.
+### 1. Pantalla del Mapa del Estudiante (`PhaseMapScreen.tsx`)
+* **Contenedor General (Fondo)**:
+  * Reemplazar gradientes manuales por `bg-v3-surface-container` (que cambia automáticamente de `#ffffff` a `#1f1f1f` o `#181818` para un fondo oscuro limpio).
+* **Cabecera ("Tu Viaje Matemático")**:
+  * Título: `text-v3-text` (claro: slate oscuro `#2b2d31`, oscuro: gris claro `#d4d4d4`).
+  * Subtítulo / "Fase Actual": `text-v3-text-var` (`#6c717a` / `#8c8c8c`).
+* **Botones Superiores (Pills)**:
+  * Los botones `ana`, `Estadísticas` y `Cerrar Sesión` se estilizarán con bordes semánticos y fondos adaptables:
+    `bg-v3-button-container border border-v3-outline-var text-v3-text hover:bg-v3-hover rounded-full px-4 py-2 transition-all duration-200`
+* **Tarjetas de Fases**:
+  * Cuerpo de la tarjeta:
+    `bg-v3-surface-container-high border border-v3-outline-var rounded-2xl shadow-sm p-6`
+  * Botón "Entrar a Fase":
+    `bg-v3-button-container hover:bg-v3-hover text-v3-text border border-v3-outline px-6 py-2 rounded-lg transition-all duration-200`
+
+### 2. Panel del Administrador (`PedagogyTab.tsx`)
+* **Panel Split-Screen**:
+  * Menú lateral de fases: `bg-v3-surface-left-nav border-r border-v3-surface-left-nav-border`
+  * Fondo del panel de controles derecho: `bg-v3-surface-container`
+* **Inputs y Sliders**:
+  * Cajas de entrada: `bg-v3-button-container border border-v3-outline text-v3-text focus:border-v3-outline-accent`
+
+### 3. Pantalla de Juego (`GameScreen.tsx`)
+* **Contenedor de Preguntas**:
+  * Utilizar `bg-v3-surface-container-high` con texto principal `text-v3-text`.
+* **Teclado Táctil**:
+  * Botones de números: `bg-v3-button-container hover:bg-v3-hover text-v3-text border border-v3-outline-var shadow-sm`
+
+---
+
+## 🚀 6. Plan de Ejecución de Código (Siguiente Fase)
+
+Una vez aprobada esta especificación de variables CSS v3:
+1. **Paso 1**: Sobrescribir `frontend/components/theme/ThemeContext.tsx` para sincronizar `root.style.colorScheme`.
+2. **Paso 2**: Actualizar `frontend/index.css` inyectando las 40 variables de diseño v3 y mapeándolas en `@theme`.
+3. **Paso 3**: Reemplazar progresivamente los colores estáticos de fondos, textos y tarjetas en `App.tsx`, `PhaseMapScreen.tsx`, `WelcomeScreen.tsx` y `ProgressScreen.tsx` por sus equivalentes semánticos `--color-v3-...` definidos en este manual.
+4. **Paso 4**: Validar y empaquetar para producción.

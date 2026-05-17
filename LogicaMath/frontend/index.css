@@ -4,31 +4,127 @@
 /* Habilitar selector basado en la clase .dark del nodo raíz en Tailwind v4 */
 @custom-variant dark (&:is(.dark *));
 
+:root {
+  /* Habilitar color-scheme nativo en el navegador */
+  color-scheme: light dark;
+
+  /* Superficies y Contenedores */
+  --color-v3-surface: light-dark(#ffffff, #191919);
+  --color-v3-overlay-background: light-dark(rgba(252, 252, 252, 0.3), rgba(25, 25, 25, 0.3));
+  --color-v3-surface-left-nav: light-dark(#fafafa, #191919);
+  --color-v3-surface-left-nav-border: light-dark(#e2e3e4, #262626);
+  --color-v3-surface-container: light-dark(#ffffff, #1f1f1f);
+  --color-v3-surface-container-high: light-dark(#fcfcfc, #252525);
+  --color-v3-surface-container-highest: light-dark(#f4f5f5, #2a2a2a);
+
+  /* Botones y Acciones */
+  --color-v3-button-container: light-dark(#ffffff, #323232);
+  --color-v3-button-container-high: light-dark(#eaeaeb, #424242);
+  --color-v3-button-container-highest: light-dark(#caccce, #555555);
+  --color-v3-button-container-accent: light-dark(#dbeafe, #393f51);
+  --color-v3-hover: light-dark(#f4f5f5, #323232);
+
+  /* Textos */
+  --color-v3-text: light-dark(#2b2d31, #d4d4d4);
+  --color-v3-text-var: light-dark(#6c717a, #8c8c8c);
+  --color-v3-text-disable: light-dark(#bdc1c6, #3e3e3e);
+  --color-v3-text-on-button: light-dark(#2b2d31, #fcfcfc);
+  --color-v3-text-on-button-reverse: light-dark(#ffffff, #ffffff);
+  --color-v3-text-link: light-dark(#2483e2, #87a9ff);
+  --color-v3-chat-separator: light-dark(#b7babd, #8c8c8c);
+
+  /* Bordes y Líneas */
+  --color-v3-outline: light-dark(#e2e3e4, #333333);
+  --color-v3-outline-var: light-dark(#eaeaeb, #262626);
+  --color-v3-outline-accent: light-dark(#2483e2, #87a9ff);
+
+  /* Estados y Alertas */
+  --color-v3-error-text: light-dark(#690005, #690005);
+  --color-v3-error-container: light-dark(#ffdad6, #ffdad6);
+  --color-v3-warning-text: light-dark(#2a1700, #2a1700);
+  --color-v3-warning-container: light-dark(#ffddb7, #ffddb7);
+
+  /* Colores de Acento (Fases / Modulos) */
+  --color-v3-accent-1: light-dark(#fcbd00, #fcbd00);
+  --color-v3-accent-light-1: light-dark(#fff7e0, #3a321b);
+  --color-v3-accent-2: light-dark(#c597ff, #c597ff);
+  --color-v3-accent-light-2: light-dark(#f8f3ff, #332d3a);
+  --color-v3-accent-3: light-dark(#d73a49, #d73a49);
+  --color-v3-accent-4: light-dark(#3ca059, #3ddb85);
+  --color-v3-accent-5: light-dark(#7887b5, #8790ab);
+  --color-v3-accent-6: light-dark(#e87400, #ffb74d);
+
+  /* Sombras Semánticas */
+  --v3-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --v3-shadow-sm: 0 1px 3px 0 rgba(10, 13, 18, 0.1), 0 1px 2px -1px rgba(10, 13, 18, 0.1);
+  --v3-shadow-md: 0 4px 6px -1px rgba(10, 13, 18, 0.1), 0 2px 4px -2px rgba(10, 13, 18, 0.06);
+  --v3-shadow-lg: 0 12px 16px -4px rgba(10, 13, 18, 0.08), 0 4px 6px -2px rgba(10, 13, 18, 0.03), 0 2px 2px -1px rgba(10, 13, 18, 0.04);
+  --v3-shadow-xl: 0 20px 24px -4px rgba(10, 13, 18, 0.08), 0 8px 8px -4px rgba(10, 13, 18, 0.03), 0 3px 3px -1.5px rgba(10, 13, 18, 0.04);
+}
+
 @theme {
-  --color-brand-dark: #0f172a;
-  --color-brand-primary: #3b82f6;
-  --color-brand-secondary: #8b5cf6;
+  /* Enlace directo a las variables de color v3 */
+  --color-v3-surface: var(--color-v3-surface);
+  --color-v3-overlay-background: var(--color-v3-overlay-background);
+  --color-v3-surface-left-nav: var(--color-v3-surface-left-nav);
+  --color-v3-surface-left-nav-border: var(--color-v3-surface-left-nav-border);
+  --color-v3-surface-container: var(--color-v3-surface-container);
+  --color-v3-surface-container-high: var(--color-v3-surface-container-high);
+  --color-v3-surface-container-highest: var(--color-v3-surface-container-highest);
+
+  --color-v3-button-container: var(--color-v3-button-container);
+  --color-v3-button-container-high: var(--color-v3-button-container-high);
+  --color-v3-button-container-highest: var(--color-v3-button-container-highest);
+  --color-v3-button-container-accent: var(--color-v3-button-container-accent);
+  --color-v3-hover: var(--color-v3-hover);
+
+  --color-v3-text: var(--color-v3-text);
+  --color-v3-text-var: var(--color-v3-text-var);
+  --color-v3-text-disable: var(--color-v3-text-disable);
+  --color-v3-text-on-button: var(--color-v3-text-on-button);
+  --color-v3-text-on-button-reverse: var(--color-v3-text-on-button-reverse);
+  --color-v3-text-link: var(--color-v3-text-link);
+
+  --color-v3-outline: var(--color-v3-outline);
+  --color-v3-outline-var: var(--color-v3-outline-var);
+  --color-v3-outline-accent: var(--color-v3-outline-accent);
+
+  --color-v3-accent-1: var(--color-v3-accent-1);
+  --color-v3-accent-light-1: var(--color-v3-accent-light-1);
+  --color-v3-accent-2: var(--color-v3-accent-2);
+  --color-v3-accent-light-2: var(--color-v3-accent-light-2);
+  --color-v3-accent-3: var(--color-v3-accent-3);
+  --color-v3-accent-4: var(--color-v3-accent-4);
+  --color-v3-accent-5: var(--color-v3-accent-5);
+  --color-v3-accent-6: var(--color-v3-accent-6);
+
+  --shadow-v3-shadow-xs: var(--v3-shadow-xs);
+  --shadow-v3-shadow-sm: var(--v3-shadow-sm);
+  --shadow-v3-shadow-md: var(--v3-shadow-md);
+  --shadow-v3-shadow-lg: var(--v3-shadow-lg);
+  --shadow-v3-shadow-xl: var(--v3-shadow-xl);
+
   --font-outfit: 'Outfit', sans-serif;
+  --font-inter: 'Inter', sans-serif;
 }
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased;
-    font-family: var(--font-outfit);
+    background-color: var(--color-v3-surface-container);
+    color: var(--color-v3-text);
+    font-family: var(--font-inter);
+    @apply antialiased;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 }
 
 .glass-card {
-  @apply bg-white/80 border border-slate-200/50 shadow-lg 
-         dark:bg-white/5 dark:backdrop-blur-2xl dark:border-white/10 dark:shadow-2xl;
+  @apply bg-v3-surface-container border border-v3-outline-var shadow-v3-shadow-md rounded-2xl;
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .glass-button {
-  @apply bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 
-         dark:bg-white/10 dark:hover:bg-white/20 dark:border-white/10 dark:text-white;
-  @apply backdrop-blur-md transition-all duration-300;
+  @apply bg-v3-button-container hover:bg-v3-hover border border-v3-outline text-v3-text rounded-full px-4 py-2 transition-all duration-300;
 }
 
 /* Custom Scrollbar for Leaderboard */
@@ -36,12 +132,12 @@
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #1e293b; 
+  background: var(--color-v3-surface-container); 
 }
 ::-webkit-scrollbar-thumb {
-  background: #475569; 
+  background: var(--color-v3-outline); 
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b; 
+  background: var(--color-v3-outline-accent); 
 }

@@ -235,7 +235,7 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen w-full text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] dark:from-slate-800 dark:via-slate-950 dark:to-black flex flex-col items-center justify-center p-4 overflow-hidden transition-colors duration-300">
+      <div className="min-h-screen w-full text-v3-text bg-v3-surface-container flex flex-col items-center justify-center p-4 overflow-hidden transition-colors duration-300">
 
         {/* Decorative Circles */}
         <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
