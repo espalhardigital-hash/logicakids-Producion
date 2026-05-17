@@ -18,12 +18,12 @@ services:
       - internal_services # Permite comunicarse con el contenedor base_postgres_general
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas_Kids}-api.rule=Host(`${DOMINIO:-matematicas.espalhar.shop}`) && PathPrefix(`/api`, `/docs`, `/redoc`, `/openapi.json`)"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas_Kids}-api.entrypoints=websecure"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas_Kids}-api.tls.certresolver=letsencrypt"
-      - "traefik.http.middlewares.${NOMBRE_APP:-matematicas_Kids}-stripprefix.stripprefix.prefixes=/api"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas_Kids}-api.middlewares=${NOMBRE_APP:-matematicas_Kids}-stripprefix"
-      - "traefik.http.services.${NOMBRE_APP:-matematicas_Kids}-api.loadbalancer.server.port=8000"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.rule=Host(`${DOMINIO:-matematicas.espalhar.shop}`) && PathPrefix(`/api`, `/docs`, `/redoc`, `/openapi.json`)"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.entrypoints=websecure"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.${NOMBRE_APP:-matematicas-kids}-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.middlewares=${NOMBRE_APP:-matematicas-kids}-stripprefix"
+      - "traefik.http.services.${NOMBRE_APP:-matematicas-kids}-api.loadbalancer.server.port=8000"
 
   # ===== FRONTEND (React + Nginx) =====
   frontend:
@@ -37,9 +37,9 @@ services:
       - traefik_proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas_Kids}-web.rule=Host(`${DOMINIO:-matematicas.espalhar.shop}`)"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas_Kids}-web.entrypoints=websecure"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas_Kids}-web.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-web.rule=Host(`${DOMINIO:-matematicas.espalhar.shop}`)"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-web.entrypoints=websecure"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-web.tls.certresolver=letsencrypt"
 
 networks:
   traefik_proxy:
