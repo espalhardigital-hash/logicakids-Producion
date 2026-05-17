@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ThemeProvider } from './components/theme/ThemeContext';
+import { ThemeToggle } from './components/theme/ThemeToggle';
 import { GameScreenState, GameStats, GameCategory, ScoreRecord, Difficulty, User, PedagogyConfig } from './types';
 import WelcomeScreen from './components/fase1/WelcomeScreen';
 import PhaseMapScreen from './components/map/PhaseMapScreen';
@@ -232,13 +234,14 @@ const App: React.FC = () => {
   const isPass = lastScore >= (adminConfig?.passingScore || 85);
 
   return (
-    <div className="min-h-screen w-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-700 via-slate-900 to-black flex flex-col items-center justify-center p-4 overflow-hidden">
+    <ThemeProvider>
+      <div className="min-h-screen w-full text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] dark:from-slate-800 dark:via-slate-950 dark:to-black flex flex-col items-center justify-center p-4 overflow-hidden transition-colors duration-300">
 
-      {/* Decorative Circles */}
-      <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        {/* Decorative Circles */}
+        <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/5 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="w-full max-w-4xl flex justify-center items-center relative z-10 min-h-[600px]">
+        <div className="w-full max-w-4xl flex justify-center items-center relative z-10 min-h-[600px]">
 
         {screen === GameScreenState.LOGIN && (
           <LoginScreen
@@ -343,8 +346,10 @@ const App: React.FC = () => {
             onLogout={handleLogout}
           />
         )}
+        </div>
+        <ThemeToggle />
       </div>
-    </div>
+    </ThemeProvider>
   );
 };
 
