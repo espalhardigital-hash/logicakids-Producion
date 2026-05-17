@@ -43,12 +43,13 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
 
   useEffect(() => {
     if (user?.role === 'ADMIN') {
-      setUnlockedLevel(4); // 0-indexed, so 4 is level 5
+      setUnlockedLevel(6); // Cambiar a 6 para que todos los 5 niveles aparezcan superados
     } else {
       import('../../services/storageService').then(service => {
         service.getUserProgress().then(progress => {
           const catProgress = progress.find(p => p.category === category);
-          setUnlockedLevel(catProgress?.unlocked_level ?? 0);
+          // Cambiar el ?? 0 por ?? 1 (El nivel 1 es el mínimo desbloqueado)
+          setUnlockedLevel(catProgress?.unlocked_level ?? 1); 
         });
       });
     }
@@ -101,8 +102,11 @@ const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelec
           className="flex flex-wrap gap-6"
         >
           {[0, 1, 2, 3, 4].map((levelIndex) => {
-            const isUnlocked = levelIndex <= unlockedLevel;
-            const isPassed = levelIndex < unlockedLevel;
+            // NUEVA LÓGICA:
+            // Desbloqueado si el índice es menor al nivel actual (ej: index 0 < nivel 1 = true)
+            const isUnlocked = levelIndex < unlockedLevel; 
+            // Superado solo si el índice es menor al nivel anterior (nivel actual - 1)
+            const isPassed = levelIndex < (unlockedLevel - 1); 
             const diff = difficultyOrder[levelIndex];
 
             return (

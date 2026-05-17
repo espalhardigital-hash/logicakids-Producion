@@ -36,10 +36,10 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
   }, [user]);
 
   const getCategoryLevel = (categoryId: GameCategory) => {
-    if (!user) return 0;
-    if (user.role === 'ADMIN') return 5; // Max level (100% completed progress)
+    if (!user) return 1;
+    if (user.role === 'ADMIN') return 6; // Nivel 6 para dar el 100%
     const catProgress = progress.find(p => p.category === categoryId);
-    return catProgress?.unlocked_level ?? 0;
+    return catProgress?.unlocked_level ?? 1; // Si no hay progreso, el Nivel 1 está desbloqueado
   };
 
   const handleCategoryClick = (categoryId: GameCategory) => {
@@ -66,18 +66,20 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
     const idx = unlockOrder.indexOf(categoryId);
     if (idx === 0) return false; // Sumas is always unlocked
     const prevCat = unlockOrder[idx - 1];
-    return getCategoryLevel(prevCat) < 4; // Requires previous level 4 cleared
+    return (getCategoryLevel(prevCat) - 1) < 4; // Requires previous level 4 cleared (at least 4 passed levels)
   };
 
-  // Calculate global progress
+  // Calculate global progress based on passed levels
   const basicCategories: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division'];
-  let totalLevelsUnlocked = 0;
+  let totalLevelsPassed = 0;
   basicCategories.forEach(cat => {
-    totalLevelsUnlocked += Math.min(getCategoryLevel(cat), 5);
+    const level = getCategoryLevel(cat);
+    // Solo sumamos los niveles SUPERADOS (nivel actual - 1)
+    totalLevelsPassed += Math.min(Math.max(0, level - 1), 5);
   });
   const maxTotalLevels = 20; // 4 categories * 5 levels
-  const globalProgressPercent = Math.round((totalLevelsUnlocked / maxTotalLevels) * 100);
-  const remainingLevels = maxTotalLevels - totalLevelsUnlocked;
+  const globalProgressPercent = Math.round((totalLevelsPassed / maxTotalLevels) * 100);
+  const remainingLevels = maxTotalLevels - totalLevelsPassed;
 
   const currentPhaseId = user?.fase_actual_id ?? 1;
 
@@ -184,8 +186,9 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
         <motion.div variants={containerVariants} className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
           {categories.map((cat) => {
             const levelIdx = getCategoryLevel(cat.id);
-            const currentLevel = Math.min(levelIdx + 1, 5); // Display level 1-5
-            const progressPercent = Math.min((levelIdx / 5) * 100, 100);
+            const passedLevels = Math.max(0, levelIdx - 1); // Cuántos ha superado
+            const currentLevel = Math.min(levelIdx, 5); // Nivel que se muestra en el texto
+            const progressPercent = Math.min((passedLevels / 5) * 100, 100); // % basado en superados
             const isLocked = isCategoryLocked(cat.id);
             const isDominated = !isLocked && progressPercent === 100;
 
@@ -315,7 +318,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
               <div>
                 <div className="flex justify-between items-center mb-2 font-sans">
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider">PROGRESO GENERAL DE LA FASE</span>
-                  <span className="text-xs font-black text-blue-600 dark:text-blue-400">{totalLevelsUnlocked} / {maxTotalLevels} Niveles</span>
+                  <span className="text-xs font-black text-blue-600 dark:text-blue-400">{totalLevelsPassed} / {maxTotalLevels} Niveles</span>
                 </div>
                 <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <motion.div
@@ -330,7 +333,8 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
                 <div className="flex justify-between mt-4">
                   {basicCategories.map((cat) => {
                     const lvl = getCategoryLevel(cat);
-                    const pct = Math.min((lvl / 5) * 100, 100);
+                    const passedLvl = Math.max(0, lvl - 1);
+                    const pct = Math.min((passedLvl / 5) * 100, 100);
                     const labels: Record<string, string> = { addition: 'Sumas', subtraction: 'Restas', multiplication: 'Tablas', division: 'Divisiones' };
                     return (
                       <div key={cat} className="flex flex-col items-center gap-1.5 w-1/4 px-2">

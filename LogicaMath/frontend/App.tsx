@@ -225,10 +225,10 @@ const AppContent: React.FC = () => {
     if (currentUser && currentUser.role !== 'ADMIN') {
       const currentDiffIndex = difficultyOrder.indexOf(difficulty);
 
-      if (currentDiffIndex !== -1 && currentDiffIndex < difficultyOrder.length - 1) {
+      if (currentDiffIndex !== -1 && currentDiffIndex < difficultyOrder.length) {
         const requiredScore = adminConfig?.passingScore || 85;
         if (score >= requiredScore) {
-          const nextLevel = currentDiffIndex + 1;
+          const nextLevel = currentDiffIndex + 2;
 
           import('./services/storageService').then(service => {
             service.unlockLevel(category, nextLevel).catch(err => console.error("Error unlocking level:", err));
