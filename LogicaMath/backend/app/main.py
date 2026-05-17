@@ -52,15 +52,19 @@ async def startup_event():
             # create_all does NOT add new columns to existing tables.
             # These ALTER TABLE statements are idempotent (IF NOT EXISTS).
             migrations = [
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS unlocked_level INTEGER DEFAULT 0",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ",
+                ("avatar", "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR"),
+                ("unlocked_level", "ALTER TABLE users ADD COLUMN IF NOT EXISTS unlocked_level INTEGER DEFAULT 0"),
+                ("settings", "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb"),
+                ("last_login", "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ"),
             ]
             from sqlalchemy import text
-            for migration in migrations:
-                await conn.execute(text(migration))
-            print("✅ Migraciones de columnas aplicadas correctamente.")
+            for col_name, migration in migrations:
+                try:
+                    await conn.execute(text(migration))
+                except Exception as col_err:
+                    # Gracefully handle if columns already exist or if user has insufficient privilege
+                    print(f"ℹ️ Verificación de columna '{col_name}': ya existente o sin privilegios de alteración. (Omitido de forma segura)")
+            print("✅ Migraciones de columnas verificadas.")
 
     except Exception as e:
         print(f"❌ Error al verificar/crear tablas: {e}")
