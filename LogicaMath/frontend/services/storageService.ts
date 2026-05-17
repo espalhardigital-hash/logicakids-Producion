@@ -33,6 +33,13 @@ async function apiRequest<T>(endpoint: string, method: string = 'GET', body?: an
 
   const response = await fetch(`${API_URL}${endpoint}`, config);
 
+  if (response.status === 401) {
+    console.warn("Sesión expirada o inválida (401). Redireccionando a Login...");
+    localStorage.removeItem('idToken');
+    window.location.href = '/login';
+    throw new Error('Sesión expirada. Por favor, inicia sesión de nuevo.');
+  }
+
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err.detail || err.message || 'API Error');
@@ -306,6 +313,18 @@ export const graduateToFase1 = async (): Promise<void> => {
   } catch (error) {
     console.error("Error graduating to Fase 1:", error);
   }
+};
+
+export const getPedagogiaDashboard = async (): Promise<any> => {
+  return await apiRequest<any>('/pedagogia/dashboard');
+};
+
+export const responderPreguntaPedagogica = async (data: {
+  pregunta_id: number;
+  respuesta_dada: string;
+  tiempo_respuesta_segundos: number;
+}): Promise<import('../types').ResultadoRespuesta> => {
+  return await apiRequest<import('../types').ResultadoRespuesta>('/pedagogia/responder', 'POST', data);
 };
 
 export const updateOwnProfile = async (data: {

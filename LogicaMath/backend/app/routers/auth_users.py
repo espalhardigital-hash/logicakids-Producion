@@ -267,8 +267,21 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
         raise HTTPException(status_code=422, detail="Error procesando la imagen.")
 
     filename = f"{current_user['id']}_{uuid.uuid4()}.webp"
+    
+    # LOCAL FALLBACK IF S3 NOT CONFIGURED
     if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
-        raise HTTPException(status_code=503, detail="Configuración S3 incompleta.")
+        print("S3 configuration incomplete. Using local storage fallback for avatar upload.")
+        static_dir = os.path.join("app", "static", "avatars")
+        os.makedirs(static_dir, exist_ok=True)
+        local_filepath = os.path.join(static_dir, filename)
+        try:
+            with open(local_filepath, "wb") as f:
+                f.write(image_bytes)
+            proxy_url = f"/api/avatars/{filename}"
+            return {"success": True, "url": proxy_url}
+        except Exception as local_err:
+            print(f"Local storage fallback error: {local_err}")
+            raise HTTPException(status_code=500, detail="Configuración S3 incompleta y falló almacenamiento local.")
 
     import asyncio
     def _upload_to_s3():
@@ -300,6 +313,12 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
 
 @router.get("/avatars/{filename}")
 async def get_avatar(filename: str):
+    # Check if exists locally first
+    local_path = os.path.join("app", "static", "avatars", filename)
+    if os.path.exists(local_path):
+        from fastapi.responses import FileResponse
+        return FileResponse(local_path, media_type="image/webp")
+
     if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
         raise HTTPException(status_code=503, detail="Configuración S3 incompleta.")
     import asyncio

@@ -31,8 +31,40 @@ export type GameCategory =
 export type Difficulty = 'easy' | 'easy_medium' | 'medium' | 'medium_hard' | 'hard' | 'random_tables';
 
 export interface Question {
+  id?: number;
   text: string;
   answer: number;
+}
+
+export interface AlternativaParaAlumno {
+  id: number;
+  texto: string;
+  orden: number;
+}
+
+export interface PreguntaParaAlumno {
+  id: number;
+  enunciado: string;
+  tipo_pregunta: string;
+  operacion: string;
+  requiere_subrayado: boolean;
+  tiene_cronometro: boolean;
+  tiempo_limite_segundos: number | null;
+  alternativas: AlternativaParaAlumno[];
+}
+
+export interface ResultadoRespuesta {
+  es_correcta: boolean;
+  respuesta_correcta: string;
+  tipo_feedback: string;
+  aciertos_acumulados: number;
+  intentos_totales: number;
+  porcentaje_actual: number;
+  bloque_completado: boolean;
+  fase_completada: boolean;
+  explicacion_paso_a_paso?: string;
+  tipo_error?: string;
+  feedback_error?: string;
 }
 
 export interface ScoreRecord {

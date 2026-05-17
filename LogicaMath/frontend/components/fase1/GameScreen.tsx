@@ -189,13 +189,49 @@ const GameScreen: React.FC<Props> = ({
     }
   }, [timeLeft, feedback]);
 
-  const loadNextQuestion = (nextAttempt: number) => {
+  const loadNextQuestion = async (nextAttempt: number) => {
     if (!isMounted.current) return;
 
     if (nextAttempt >= totalQuestions) {
       setAttempt(nextAttempt);
       return;
     }
+
+    const isOnline = !!localStorage.getItem('idToken');
+
+    if (isOnline) {
+      try {
+        const { getPedagogiaDashboard } = await import('../../services/storageService');
+        const res = await getPedagogiaDashboard();
+        if (res && res.siguiente_pregunta) {
+          const sp = res.siguiente_pregunta;
+          const q: Question = {
+            id: sp.id,
+            text: sp.enunciado,
+            answer: 0 // El servidor tiene la respuesta correcta
+          };
+          const timeLimit = sp.tiene_cronometro && sp.tiempo_limite_segundos ? sp.tiempo_limite_segundos : 999;
+
+          setQuestion(q);
+          setAttempt(nextAttempt);
+          setMaxTimeForQuestion(timeLimit);
+          setTimeLeft(timeLimit);
+          setInputValue('');
+          setFeedback('none');
+
+          setTimeout(() => {
+            if (isMounted.current) {
+              inputRef.current?.focus();
+            }
+          }, 100);
+          return;
+        }
+      } catch (err) {
+        console.error("Error loading server question, falling back to local:", err);
+      }
+    }
+
+    // Fallback Offline / Invitado
     const q = generateQuestion(nextAttempt, category, difficulty);
     const timeLimit = activeParams.useTimer ? activeParams.timeLimitSeconds : 999;
 
@@ -213,24 +249,100 @@ const GameScreen: React.FC<Props> = ({
     }, 100);
   };
 
-  const handleTimeOut = () => {
+  const handleTimeOut = async () => {
     clearTimer();
     setFeedback('incorrect');
     updateStats(false, maxTimeForQuestion);
+
+    const isOnline = !!localStorage.getItem('idToken') && question?.id !== undefined;
+
+    if (isOnline) {
+      try {
+        const { responderPreguntaPedagogica } = await import('../../services/storageService');
+        const res = await responderPreguntaPedagogica({
+          pregunta_id: question!.id!,
+          respuesta_dada: '', // Vacío representa respuesta incorrecta por tiempo agotado
+          tiempo_respuesta_segundos: maxTimeForQuestion
+        });
+
+        // Revelar respuesta correcta enviada por el servidor
+        setQuestion(prev => prev ? { ...prev, answer: parseInt(res.respuesta_correcta) || 0 } : null);
+
+        if (res.bloque_completado || res.fase_completada) {
+          transitionTimeoutRef.current = setTimeout(() => {
+            onEndGame(statsRef.current);
+          }, 2000);
+          return;
+        }
+      } catch (err) {
+        console.error("Error submitting timeout to server:", err);
+      }
+    }
 
     transitionTimeoutRef.current = setTimeout(() => {
       loadNextQuestion(attempt + 1);
     }, 2000);
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!question || feedback !== 'none') return;
 
     clearTimer();
 
-    const userAnswer = parseInt(inputValue);
+    const isOnline = !!localStorage.getItem('idToken') && question.id !== undefined;
     const timeSpent = maxTimeForQuestion - timeLeft;
+
+    if (isOnline) {
+      try {
+        const { responderPreguntaPedagogica } = await import('../../services/storageService');
+        const res = await responderPreguntaPedagogica({
+          pregunta_id: question.id!,
+          respuesta_dada: inputValue.trim(),
+          tiempo_respuesta_segundos: timeSpent
+        });
+
+        if (res.es_correcta) {
+          setFeedback('correct');
+          updateStats(true, timeSpent);
+
+          if (res.bloque_completado || res.fase_completada) {
+            transitionTimeoutRef.current = setTimeout(() => {
+              onEndGame(statsRef.current);
+            }, 1000);
+            return;
+          }
+
+          transitionTimeoutRef.current = setTimeout(() => {
+            loadNextQuestion(attempt + 1);
+          }, 1000);
+        } else {
+          setFeedback('incorrect');
+          
+          // Revelar respuesta correcta enviada por el servidor
+          setQuestion(prev => prev ? { ...prev, answer: parseInt(res.respuesta_correcta) || 0 } : null);
+
+          updateStats(false, timeSpent);
+
+          if (res.bloque_completado || res.fase_completada) {
+            transitionTimeoutRef.current = setTimeout(() => {
+              onEndGame(statsRef.current);
+            }, 2000);
+            return;
+          }
+
+          transitionTimeoutRef.current = setTimeout(() => {
+            loadNextQuestion(attempt + 1);
+          }, 2000);
+        }
+        return;
+      } catch (err) {
+        console.error("Error submitting answer to server, falling back to local validation:", err);
+      }
+    }
+
+    // Fallback Offline / Invitado
+    const userAnswer = parseInt(inputValue);
     const isCorrect = !isNaN(userAnswer) && userAnswer === question.answer;
 
     if (isCorrect) {
