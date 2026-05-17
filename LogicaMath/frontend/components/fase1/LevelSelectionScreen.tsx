@@ -33,7 +33,7 @@ const itemVariants = {
 
 const LevelSelectionScreen: React.FC<Props> = ({ user, category, onBack, onSelectLevel, adminConfig }) => {
   const [unlockedLevel, setUnlockedLevel] = useState<number>(0);
-  const [passingScore, setPassingScore] = useState<number>(85);
+  const [passingScore, setPassingScore] = useState<number>(90);
 
   useEffect(() => {
     if (adminConfig) {

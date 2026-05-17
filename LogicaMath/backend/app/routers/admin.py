@@ -30,7 +30,7 @@ DEFAULT_PEDAGOGY_CONFIG = {
         "hard": 18,
     },
     "useTimer": True,
-    "passingScore": 85,
+    "passingScore": 90,
 }
 
 @router.get("/settings")

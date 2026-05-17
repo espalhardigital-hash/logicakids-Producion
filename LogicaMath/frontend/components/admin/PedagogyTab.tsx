@@ -140,7 +140,7 @@ const DEFAULT_GLOBAL_CONFIG: PedagogyConfig = {
   questionsPerPhase: 50,
   timers: { easy: 10, easy_medium: 12, medium: 14, medium_hard: 16, hard: 18 },
   useTimer: true,
-  passingScore: 85,
+  passingScore: 90,
 };
 
 const itemVariants = {

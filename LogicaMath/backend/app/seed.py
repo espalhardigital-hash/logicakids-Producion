@@ -34,7 +34,7 @@ DEFAULT_PEDAGOGY_CONFIG = {
         "hard": 18,
     },
     "useTimer": True,
-    "passingScore": 85,
+    "passingScore": 90,
 }
 
 # ============================================================
@@ -103,19 +103,19 @@ FASES_DATA = [
 CONFIGURACION_DATA = [
     # --- FASE 1 (Aritmética Básica) ---
     {"fase_id": 1, "seccion": 1, "operacion": OperacionEnum.SUMA,
-     "cantidad_requerida": 50, "porcentaje_aprobacion": 85,
+     "cantidad_requerida": 50, "porcentaje_aprobacion": 90,
      "orden_desbloqueo": 1, "tipo_feedback": "simple",
      "usa_cronometro": True, "tiempo_default_segundos": 14},
     {"fase_id": 1, "seccion": 1, "operacion": OperacionEnum.RESTA,
-     "cantidad_requerida": 50, "porcentaje_aprobacion": 85,
+     "cantidad_requerida": 50, "porcentaje_aprobacion": 90,
      "orden_desbloqueo": 2, "tipo_feedback": "simple",
      "usa_cronometro": True, "tiempo_default_segundos": 14},
     {"fase_id": 1, "seccion": 1, "operacion": OperacionEnum.MULTIPLICACION,
-     "cantidad_requerida": 50, "porcentaje_aprobacion": 85,
+     "cantidad_requerida": 50, "porcentaje_aprobacion": 90,
      "orden_desbloqueo": 3, "tipo_feedback": "simple",
      "usa_cronometro": True, "tiempo_default_segundos": 14},
     {"fase_id": 1, "seccion": 1, "operacion": OperacionEnum.DIVISION,
-     "cantidad_requerida": 50, "porcentaje_aprobacion": 85,
+     "cantidad_requerida": 50, "porcentaje_aprobacion": 90,
      "orden_desbloqueo": 4, "tipo_feedback": "simple",
      "usa_cronometro": True, "tiempo_default_segundos": 14},
 ]

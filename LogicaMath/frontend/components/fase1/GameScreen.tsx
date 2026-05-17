@@ -77,7 +77,7 @@ const GameScreen: React.FC<Props> = ({
     let resolvedQuestions = adminConfig?.questionsPerPhase || FALLBACK_TOTAL_QUESTIONS;
     let resolvedUseTimer = adminConfig?.useTimer !== false;
     let resolvedTimer = adminConfig?.timers?.[activeLevelKey as keyof typeof adminConfig.timers] || 12;
-    let resolvedPassing = adminConfig?.passingScore || 85;
+    let resolvedPassing = adminConfig?.passingScore || 90;
     let resolvedFeedback = 'simple';
 
     const fId = faseId || 1;

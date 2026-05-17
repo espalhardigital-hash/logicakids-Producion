@@ -226,7 +226,7 @@ const AppContent: React.FC = () => {
       const currentDiffIndex = difficultyOrder.indexOf(difficulty);
 
       if (currentDiffIndex !== -1 && currentDiffIndex < difficultyOrder.length) {
-        const requiredScore = adminConfig?.passingScore || 85;
+        const requiredScore = adminConfig?.passingScore || 90;
         if (score >= requiredScore) {
           const nextLevel = currentDiffIndex + 2;
 
@@ -270,7 +270,7 @@ const AppContent: React.FC = () => {
   const hasNextLevel = category !== 'challenge' && currentDiffIndex !== -1 && currentDiffIndex < difficultyOrder.length - 1;
   const totalQ = gameStats ? gameStats.correct + gameStats.incorrect : 0;
   const lastScore = gameStats && totalQ > 0 ? (gameStats.correct / totalQ) * 100 : 0;
-  const isPass = lastScore >= (adminConfig?.passingScore || 85);
+  const isPass = lastScore >= (adminConfig?.passingScore || 90);
 
   // 5. Al principio del renderizado del componente 'AppContent', si 'isAuthLoading' es true, retorna una pantalla de carga limpia que diga "Verificando sesión...".
   if (isAuthLoading) {
