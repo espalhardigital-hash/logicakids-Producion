@@ -10,7 +10,7 @@ import LoginScreen from './components/LoginScreen';
 import ProfileScreen from './components/ProfileScreen';
 import AdminPanel from './components/admin/AdminPanel';
 import LevelSelectionScreen from './components/fase1/LevelSelectionScreen';
-import { saveScore, saveUser, getCurrentUserFull, getAdminSettings } from './services/storageService';
+import { saveScore, saveUser, getCurrentUserFull, getAdminSettings, getModularConfigs } from './services/storageService';
 import * as authService from './services/authService';
 
 const App: React.FC = () => {
@@ -25,6 +25,7 @@ const App: React.FC = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [gameStats, setGameStats] = useState<GameStats | null>(null);
   const [adminConfig, setAdminConfig] = useState<PedagogyConfig | null>(null);
+  const [modularConfigs, setModularConfigs] = useState<import('./types').ConfiguracionProgreso[]>([]);
 
   // Auto-Restore Session on mount
   useEffect(() => {
@@ -69,9 +70,19 @@ const App: React.FC = () => {
   }, []);
 
   const loadAdminConfig = async () => {
-    const config = await getAdminSettings();
-    if (config) {
-      setAdminConfig(config);
+    try {
+      const [config, mConfigs] = await Promise.all([
+        getAdminSettings(),
+        getModularConfigs()
+      ]);
+      if (config) {
+        setAdminConfig(config);
+      }
+      if (mConfigs) {
+        setModularConfigs(mConfigs);
+      }
+    } catch (err) {
+      console.error("Failed to load admin or modular configs:", err);
     }
   };
 
@@ -282,6 +293,9 @@ const App: React.FC = () => {
             difficulty={difficulty}
             userSettings={currentUser?.settings}
             adminConfig={adminConfig}
+            modularConfigs={modularConfigs}
+            faseId={currentUser?.fase_actual_id || 1}
+            seccion={1} // Defaults to section 1 for dynamic operations
             onEndGame={handleEndGame}
             onExit={() => setScreen(GameScreenState.PHASE_MAP)}
           />

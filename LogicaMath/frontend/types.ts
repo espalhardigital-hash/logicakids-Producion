@@ -103,3 +103,20 @@ export interface PedagogyConfig {
   useTimer: boolean;
   passingScore: number;
 }
+
+export interface ConfiguracionProgreso {
+  id?: number;
+  fase_id: number;
+  seccion: number;
+  operacion: string;
+  cantidad_requerida: number;
+  porcentaje_aprobacion: number;
+  orden_desbloqueo: number;
+  tipo_feedback: string;
+  usa_cronometro: boolean;
+  tiempo_default_segundos: number | null;
+  activo?: boolean;
+  fecha_creacion?: string;
+  ultima_modificacion?: string;
+}
+

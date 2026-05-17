@@ -344,6 +344,25 @@ export const saveAdminSettings = async (settings: import('../types').PedagogyCon
   }
 };
 
+export const getModularConfigs = async (faseId?: number): Promise<import('../types').ConfiguracionProgreso[]> => {
+  try {
+    const endpoint = faseId !== undefined ? `/admin/configuracion?fase_id=${faseId}` : '/admin/configuracion';
+    return await apiRequest<import('../types').ConfiguracionProgreso[]>(endpoint);
+  } catch (error) {
+    console.error("Error fetching modular configs:", error);
+    return [];
+  }
+};
+
+export const saveModularConfig = async (configId: number, data: Partial<import('../types').ConfiguracionProgreso>): Promise<import('../types').ConfiguracionProgreso> => {
+  return await apiRequest<import('../types').ConfiguracionProgreso>(`/admin/configuracion/${configId}`, 'PATCH', data);
+};
+
+export const createModularConfig = async (data: Omit<import('../types').ConfiguracionProgreso, 'id'>): Promise<import('../types').ConfiguracionProgreso> => {
+  return await apiRequest<import('../types').ConfiguracionProgreso>('/admin/configuracion', 'POST', data);
+};
+
+
 // --- AI ANALYSIS ---
 
 export const getAIAnalysis = async (category: string): Promise<string> => {

@@ -9,6 +9,9 @@ interface Props {
   difficulty: Difficulty;
   userSettings?: UserSettings;
   adminConfig?: import('../../types').PedagogyConfig | null;
+  modularConfigs?: import('../../types').ConfiguracionProgreso[];
+  faseId?: number;
+  seccion?: number;
   onEndGame: (stats: GameStats) => void;
   onExit: () => void;
 }
@@ -55,8 +58,68 @@ const keyVariants = {
   show: { opacity: 1, y: 0 }
 };
 
-const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, adminConfig, onEndGame, onExit }) => {
-  const totalQuestions = adminConfig?.questionsPerPhase || FALLBACK_TOTAL_QUESTIONS;
+const GameScreen: React.FC<Props> = ({ 
+  category, difficulty, userSettings, adminConfig, 
+  modularConfigs, faseId, seccion, onEndGame, onExit 
+}) => {
+  // Resolve active parameters applying inheritance:
+  // Module specific -> Phase default -> Platform Global
+  const resolveActiveParams = () => {
+    const levelKeys = ['easy', 'easy_medium', 'medium', 'medium_hard', 'hard'];
+    const activeLevelKey = levelKeys.includes(difficulty) ? difficulty : 'medium';
+
+    // Base fallback is global config
+    let resolvedQuestions = adminConfig?.questionsPerPhase || FALLBACK_TOTAL_QUESTIONS;
+    let resolvedUseTimer = adminConfig?.useTimer !== false;
+    let resolvedTimer = adminConfig?.timers?.[activeLevelKey as keyof typeof adminConfig.timers] || 12;
+    let resolvedPassing = adminConfig?.passingScore || 85;
+    let resolvedFeedback = 'simple';
+
+    const fId = faseId || 1;
+    const sec = seccion || 1;
+    const oper = category === 'addition' ? 'suma' : 
+                 category === 'subtraction' ? 'resta' : 
+                 category === 'multiplication' ? 'multiplicacion' : 
+                 category === 'division' ? 'division' : 'mixta';
+
+    if (modularConfigs) {
+      // 1. Look for Phase Default (seccion = 0)
+      const phaseDefault = modularConfigs.find(c => c.fase_id === fId && c.seccion === 0 && c.activo !== false);
+      if (phaseDefault) {
+        resolvedQuestions = phaseDefault.cantidad_requerida;
+        resolvedUseTimer = phaseDefault.usa_cronometro;
+        resolvedTimer = phaseDefault.tiempo_default_segundos || resolvedTimer;
+        resolvedPassing = phaseDefault.porcentaje_aprobacion;
+        resolvedFeedback = phaseDefault.tipo_feedback;
+      }
+
+      // 2. Look for Module Specific
+      const moduleConfig = modularConfigs.find(c => c.fase_id === fId && c.seccion === sec && c.operacion === oper && c.activo !== false);
+      if (moduleConfig) {
+        resolvedQuestions = moduleConfig.cantidad_requerida;
+        resolvedUseTimer = moduleConfig.usa_cronometro;
+        resolvedTimer = moduleConfig.tiempo_default_segundos || resolvedTimer;
+        resolvedPassing = moduleConfig.porcentaje_aprobacion;
+        resolvedFeedback = moduleConfig.tipo_feedback;
+      }
+    }
+
+    // If useTimer is false globally or in override, disable timer
+    if (!resolvedUseTimer) {
+      resolvedTimer = 999;
+    }
+
+    return {
+      questionsCount: resolvedQuestions,
+      useTimer: resolvedUseTimer,
+      timeLimitSeconds: resolvedTimer,
+      passingScore: resolvedPassing,
+      feedbackType: resolvedFeedback
+    };
+  };
+
+  const activeParams = resolveActiveParams();
+  const totalQuestions = activeParams.questionsCount;
 
   const [attempt, setAttempt] = useState(0);
   const [question, setQuestion] = useState<Question | null>(null);
@@ -137,7 +200,7 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, admin
       return;
     }
     const q = generateQuestion(nextAttempt, category, difficulty);
-    const timeLimit = calculateTimeLimit(nextAttempt, difficulty, category, userSettings, adminConfig);
+    const timeLimit = activeParams.useTimer ? activeParams.timeLimitSeconds : 999;
 
     setQuestion(q);
     setAttempt(nextAttempt);
@@ -152,6 +215,7 @@ const GameScreen: React.FC<Props> = ({ category, difficulty, userSettings, admin
       }
     }, 100);
   };
+
 
   const handleTimeOut = () => {
     clearTimer();
