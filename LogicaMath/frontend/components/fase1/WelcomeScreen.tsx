@@ -130,22 +130,11 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
           </button>
         </motion.div>
 
-        {/* Back Link Breadcrumb (Desktop / Navigation Friendly) */}
-        {onBackMap && (
-          <button 
-            onClick={onBackMap}
-            className="self-start flex items-center gap-2 mb-6 text-sm font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer group font-sans border-none bg-transparent"
-          >
-            <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-            Volver al Mapa General
-          </button>
-        )}
-
         {/* Welcome Card */}
         <motion.div variants={itemVariants} className="w-full bg-white dark:bg-[#162033] border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none mb-8 flex flex-col md:flex-row justify-between items-center transition-all duration-300">
           <div className="flex flex-col items-start mb-4 md:mb-0">
             <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-2 flex items-center font-display">
-              ¡Hola, {user?.username ? user.username.toLowerCase() : 'invitado'}! <span className="ml-2 text-3xl">👋</span>
+              ¡Hola, {user?.username ? user.username.split(/[_.\s]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Invitado'}! <span className="ml-2 text-3xl">👋</span>
             </h2>
             <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
               <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-3">
@@ -172,12 +161,22 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
               className="flex flex-col items-end hover:scale-105 active:scale-95 transition-transform group cursor-pointer"
               title="Mi Progreso"
             >
-              <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1 uppercase font-display">TOTAL ESTRELLAS</span>
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-wider mb-1 uppercase font-display">MI PROGRESO</span>
               <div className="flex items-center text-amber-500 bg-amber-500/10 border border-amber-500/20 dark:border-amber-500/30 px-4 py-2 rounded-2xl group-hover:bg-amber-500/20 transition-all shadow-sm">
                 <Trophy size={22} className="mr-2 animate-pulse" />
                 <span className="text-3xl font-black font-display leading-none">{totalLevelsUnlocked}</span>
               </div>
             </button>
+            
+            {onBackMap && (
+              <button
+                onClick={onBackMap}
+                className="w-12 h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 flex items-center justify-center text-slate-700 dark:text-slate-300 transition-colors border-none cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                title="Volver al Mapa General"
+              >
+                <ArrowLeft size={20} />
+              </button>
+            )}
           </div>
         </motion.div>
 
@@ -215,14 +214,20 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
                 <h3 className="text-2xl font-black font-display text-slate-800 dark:text-white mb-4">{cat.label}</h3>
 
                 {cat.id === 'challenge' ? (
-                  <div className="bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 text-xs font-bold px-4 py-1.5 rounded-full mb-8 border border-amber-200/20 dark:border-amber-500/20 font-sans">
-                    Examen Final
-                  </div>
+                  isDominated ? (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/5 text-amber-500 dark:border-amber-500/20 dark:bg-amber-950/20 dark:text-amber-400 font-extrabold text-[11px] uppercase tracking-wider mb-8 font-sans">
+                      <span>Examen Completado</span>
+                      <span className="text-amber-500 dark:text-amber-400 font-black text-sm">✓</span>
+                    </div>
+                  ) : (
+                    <div className="bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 text-xs font-bold px-4 py-1.5 rounded-full mb-8 border border-amber-200/20 dark:border-amber-500/20 font-sans">
+                      Examen Final
+                    </div>
+                  )
                 ) : isDominated ? (
-                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border bg-emerald-50 border-emerald-200 text-emerald-600 dark:bg-emerald-950/40 dark:border-emerald-800/30 dark:text-emerald-400 font-extrabold text-xs tracking-wide shadow-sm mb-8 font-sans">
-                    <span className="flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-black mr-0.5">✓</span>
-                    Dominado
-                    <span className="ml-0.5 text-sm">✅</span>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/5 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-950/20 dark:text-emerald-400 font-extrabold text-[11px] uppercase tracking-wider mb-8 font-sans">
+                    <span>Dominado</span>
+                    <span className="text-emerald-500 dark:text-emerald-400 font-black text-sm">✓</span>
                   </div>
                 ) : (
                   <div className="bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-8 border border-blue-200/20 dark:border-blue-500/20 font-sans">
