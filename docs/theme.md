@@ -1,131 +1,128 @@
-# 🎨 Especificación de Diseño: Sistema de Temas v3 (Alta Legibilidad y Contraste)
+# 🎨 Especificación Maestra de Diseño: Sistema de Temas Claro y Oscuro (Tailwind CSS)
 ## LogicaKids Pro
 
-Este documento actualiza la especificación técnica del sistema de temas v3 para resolver los problemas de bajo contraste en el **Tema Claro (Light Theme)** y asegurar que el **Tema Oscuro (Dark Theme)** replique con total exactitud los colores de las capturas de soporte (gamas de azul profundo y slate, en lugar de un gris oscuro apagado).
+Este documento especifica de forma unificada y detallada todos los parámetros visuales, colores, fuentes y estilos para el **Tema Claro (Light Theme)** y el **Tema Oscuro (Dark Theme)** de la aplicación. Sirve como referencia técnica definitiva para mantener la consistencia en el diseño utilizando clases nativas de Tailwind CSS y la variante `dark:`.
 
 ---
 
-## 🏗️ 1. Redefinición del Concepto de Diseño y Contraste
-
-Para garantizar una experiencia visual del más alto nivel:
-1. **Contraste en Tema Claro**:
-   * El fondo de la pantalla ya no será blanco puro plano, sino un degradado gris pizarra suave y moderno (`#f8fafc` a `#e2e8f0`).
-   * Las **tarjetas** serán de color blanco puro (`#ffffff`), lo cual las hace destacar con elegancia gracias a sombras semánticas.
-   * Los **bordes** de las tarjetas y píldoras superiores se definirán con un gris pizarra medio visible (`#cbd5e1`), delimitando perfectamente los contenedores.
-   * Las tipografías principales serán casi negras (`#0f172a`, contraste excelente de 16.5:1) y las descripciones serán gris carbón oscuro (`#334155`, contraste de 9.5:1), garantizando una **lectura perfecta y sin fatiga**.
-
-2. **Identidad del Tema Oscuro (Exactitud con Capturas)**:
-   * Reemplazamos los grises planos oscuros (`#1f1f1f`) por la gama de azules marinos y pizarras profundos originales.
-   * El **fondo general** utilizará un degradado fluido de azul-negro a azul pizarra: `from-[#0b0f19] via-[#0f172a] to-[#070a13]`.
-   * Las **tarjetas** tendrán el tono pizarra azulado original (`#131b2e` con bordes `#1e293b`), conservando los destellos e iconos de colores de acento brillantes.
-   * Los textos de botones superiores y píldoras heredarán una base limpia y nítida.
+## 🔤 1. Tipografía y Fuentes de Pantalla
+- **Fuente Principal (Sans):** `"Inter"`, ui-sans-serif, system-ui, sans-serif.
+- **Fuente de Pantalla (Display):** `"Outfit"`, sans-serif (Usada en títulos y encabezados).
+- **Pesos de Títulos:** `font-black` (900) o `font-bold` (700).
+- **Tracking (Espaciado):** 
+  * Títulos Grandes: `tracking-tight`
+  * Etiquetas Pequeñas: `tracking-widest`
 
 ---
 
-## 🎛️ 2. Paleta de Variables CSS v3 Optimizada (`light-dark()`)
+## ☀️ 2. Documentación Detallada del Tema Claro (Light Theme)
 
-Declararemos estas variables adaptables en `:root` de `frontend/index.css`. La función `light-dark()` resolverá automáticamente los valores según el esquema de color activo.
+Diseñado para una apariencia limpia, de alto contraste y excelente legibilidad.
 
-```css
-:root {
-  /* Habilitar color-scheme nativo en el navegador */
-  color-scheme: light dark;
+### 2.1 Fondos y Superficies Generales
+- **Fondo de Pantalla Base:** `bg-slate-50` (`#f8fafc`).
+- **Superficies de Tarjetas (Cards):** `bg-white` (`#ffffff`).
+- **Bordes Predeterminados:** `border-slate-100` (`#f1f5f9`) o `border-slate-200` (`#e2e8f0`).
+- **Sombras:** `shadow-xl` o `shadow-lg` resaltando sobre el fondo claro.
 
-  /* Superficies y Degradados de Fondo */
-  --color-v3-surface-container: light-dark(#f8fafc, #0b0f19);       /* Pizarra claro inicial / Navy oscuro inicial */
-  --color-v3-bg-mid: light-dark(#f1f5f9, #0f172a);                  /* Pizarra claro medio / Navy oscuro medio */
-  --color-v3-bg-end: light-dark(#e2e8f0, #070a13);                  /* Pizarra claro final / Navy oscuro final */
+### 2.2 Colores de Texto
+- **Encabezados Principales:** `text-slate-900` (`#0f172a`).
+- **Texto de Cuerpo / Párrafos:** `text-slate-600` (`#475569`).
+- **Texto Secundario / Labels:** `text-slate-500` (`#64748b`) o `text-slate-400` (`#94a3b8`).
+- **Texto sobre Color Sólido:** `text-white`.
 
-  /* Contenedores de Tarjetas y Modales */
-  --color-v3-surface: light-dark(#ffffff, #090d16);                 /* Fondo modal: Blanco / Negro azulado */
-  --color-v3-surface-container-high: light-dark(#ffffff, #131b2e);  /* Fondo tarjeta: Blanco / Navy slate */
-  --color-v3-surface-container-highest: light-dark(#f8fafc, #1e293b); /* Tarjeta hover: Gris sutil / Slate */
-  --color-v3-surface-left-nav: light-dark(#f1f5f9, #0f172a);
-  --color-v3-surface-left-nav-border: light-dark(#cbd5e1, #1e293b);
-  --color-v3-overlay-background: light-dark(rgba(255, 255, 255, 0.4), rgba(11, 15, 25, 0.4));
+### 2.3 Componentes del Mapa de Fases (GeneralMap)
+- **Badge "Logicakids":** `bg-blue-50` | `border-blue-200` | `text-blue-600`.
+- **Cápsula de Perfil de Usuario:** Contenedor `bg-white` | Borde `border-slate-200`. Avatar: Borde `border-slate-100` | Fondo `bg-slate-100`.
+- **Botón de Estadísticas:** `bg-white` | Borde `border-slate-200` | Texto `text-slate-600` (Hover: `bg-slate-50` | Texto `text-slate-900`).
+- **Línea de Tiempo (Conector):** `bg-slate-200`.
+- **Nodos de la Línea de Tiempo:** `bg-slate-50` | Borde `border-slate-200`.
+- **Tarjetas de Fase (Desbloqueadas):** `bg-white` | Borde `border-slate-100` (Hover: `bg-slate-50` | Borde `border-blue-500/50`).
+- **Tarjetas de Fase (Bloqueadas):** `bg-slate-100` | Borde `border-slate-200` | Opacidad `opacity-70`.
 
-  /* Botones y Acciones */
-  --color-v3-button-container: light-dark(#ffffff, #1e293b);        /* Botón neutro: Blanco / Slate */
-  --color-v3-button-container-high: light-dark(#e2e8f0, #334155);
-  --color-v3-button-container-highest: light-dark(#cbd5e1, #475569);
-  --color-v3-button-container-accent: light-dark(#dbeafe, #1e3a8a); /* Botón azul: Celeste claro / Azul marino */
-  --color-v3-hover: light-dark(#f1f5f9, #2d3748);                   /* Hover neutro: Gris claro / Gris slate */
+### 2.4 Formularios e Inputs
+- **Campos de Entrada (Inputs):** `bg-white` | Borde `border-slate-200` | Texto `text-slate-900` (Placeholder: `text-slate-400`).
+- **Botón Primario:** `bg-blue-600` (Hover: `bg-blue-700` | Sombra: `shadow-blue-200`).
 
-  /* Textos de Alta Legibilidad */
-  --color-v3-text: light-dark(#0f172a, #ffffff);                    /* Título principal: Slate Negro / Blanco puro */
-  --color-v3-text-var: light-dark(#334155, #94a3b8);                /* Descripciones: Slate Carbón / Gris suave */
-  --color-v3-text-disable: light-dark(#94a3b8, #475569);            /* Deshabilitado: Gris medio / Slate apagado */
-  --color-v3-text-on-button: light-dark(#0f172a, #ffffff);
-  --color-v3-text-on-button-reverse: light-dark(#ffffff, #ffffff);
-  --color-v3-text-link: light-dark(#2563eb, #3b82f6);
-  --color-v3-chat-separator: light-dark(#cbd5e1, #334155);
-
-  /* Bordes de Alta Definición */
-  --color-v3-outline: light-dark(#94a3b8, #334155);                 /* Bordes activos: Gris pizarra / Slate */
-  --color-v3-outline-var: light-dark(#cbd5e1, #1e293b);             /* Bordes normales: Gris medio / Slate oscuro */
-  --color-v3-outline-accent: light-dark(#2563eb, #3b82f6);
-
-  /* Estados y Alertas */
-  --color-v3-error-text: light-dark(#991b1b, #f87171);
-  --color-v3-error-container: light-dark(#fee2e2, #7f1d1d);
-  --color-v3-warning-text: light-dark(#854d0e, #fbbf24);
-  --color-v3-warning-container: light-dark(#fef9c3, #78350f);
-
-  /* Colores de Acento Estables */
-  --color-v3-accent-1: #fcbd00;
-  --color-v3-accent-light-1: light-dark(#fff7e0, #3a321b);
-  --color-v3-accent-2: #c597ff;
-  --color-v3-accent-light-2: light-dark(#f8f3ff, #332d3a);
-  --color-v3-accent-3: #d73a49;
-  --color-v3-accent-4: light-dark(#16a34a, #3ddb85);
-  --color-v3-accent-5: light-dark(#4f46e5, #8790ab);
-  --color-v3-accent-6: #e87400;
-
-  /* Sombras */
-  --v3-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --v3-shadow-sm: 0 1px 3px 0 rgba(10, 13, 18, 0.1), 0 1px 2px -1px rgba(10, 13, 18, 0.1);
-  --v3-shadow-md: 0 4px 6px -1px rgba(10, 13, 18, 0.1), 0 2px 4px -2px rgba(10, 13, 18, 0.06);
-  --v3-shadow-lg: 0 12px 16px -4px rgba(10, 13, 18, 0.08), 0 4px 6px -2px rgba(10, 13, 18, 0.03), 0 2px 2px -1px rgba(10, 13, 18, 0.04);
-  --v3-shadow-xl: 0 20px 24px -4px rgba(10, 13, 18, 0.08), 0 8px 8px -4px rgba(10, 13, 18, 0.03), 0 3px 3px -1.5px rgba(10, 13, 18, 0.04);
-}
-```
+### 2.5 Decoración de Fondo
+- **Gradientes de Brillo (Blur):**
+  * Superior Izquierda: `bg-blue-500/10` con `blur-[120px]`.
+  * Inferior Derecha: `bg-purple-500/10` con `blur-[120px]`.
 
 ---
 
-## ⚡ 3. Registro en `@theme` en Tailwind CSS v4
+## 🌙 3. Documentación Detallada del Tema Oscuro (Dark Theme)
 
-Registraremos las variables de degradado (`bg-mid`, `bg-end`) y adaptaremos el `body` para pintar el fondo degradado en toda la pantalla de forma semántica.
+Esquema de colores diseñado para una estética "Futurista/Nocturna" con alto contraste en elementos interactivos y uso de azul medianoche profundo y negro.
+
+### 3.1 Fondos y Superficies Generales
+- **Fondo de Pantalla Base:** `bg-[#070b14]` (Azul oscuro casi negro).
+- **Superficies de Tarjetas (Cards):** `bg-[#162033]` (Azul medianoche profundo).
+- **Bordes de Superficies:** `border-slate-800` (`#1e293b`) o `border-slate-700` (`#334155`).
+- **Sombras:** `shadow-2xl` con opacidad reducida o resplandores específicos de color.
+
+### 3.2 Colores de Texto
+- **Encabezados Principales:** `text-white`.
+- **Subtítulos/Labels Destacados:** `text-slate-400` (`#94a3b8`).
+- **Texto de Cuerpo / Párrafos:** `text-slate-300` (`#cbd5e1`).
+- **Texto Secundario / Bloqueado:** `text-slate-600` (`#475569`) o `text-slate-500` (`#64748b`).
+
+### 3.3 Componentes del Mapa de Fases (GeneralMap)
+- **Badge "Logicakids":** `bg-blue-900/40` | Borde `border-blue-500/30` | Texto `text-blue-400`.
+- **Cápsula de Perfil de Usuario:** Contenedor `bg-[#162033]` | Borde `border-slate-800`. Avatar: Borde `border-slate-700` | Fondo `bg-slate-800`.
+- **Botón de Estadísticas:** `bg-[#162033]` | Borde `border-slate-800` | Texto `text-slate-300` (Hover: `bg-slate-800` | Texto `text-white`).
+- **Línea de Tiempo (Conector):** `bg-slate-800/50`.
+- **Nodos de la Línea de Tiempo:** `bg-[#070b14]` | Borde `border-slate-800`.
+- **Tarjetas de Fase (Desbloqueadas):** `bg-[#162033]` | Borde `border-slate-800` (Hover: `bg-[#1a263d]` | Borde `border-blue-500/50` | Efecto Aura `opacity-20` del color de la fase con `blur-[60px]`).
+- **Tarjetas de Fase (Bloqueadas):** `bg-[#0a0f1c]` | Borde `border-slate-800/40` | Opacidad `opacity-70` | Filtro Grayscale.
+
+### 3.4 Formularios e Inputs
+- **Campos de Entrada (Inputs):** `bg-slate-900` | Borde `border-slate-700` | Texto `text-white` (Placeholder: `text-slate-600`).
+- **Botón Primario:** `bg-blue-600` (Hover: `bg-blue-700` | Resplandor interno sutil).
+
+### 3.5 Decoración de Fondo
+- **Gradientes de Brillo (Blur):**
+  * Superior Izquierda: `bg-blue-600/10` con `blur-[120px]`.
+  * Inferior Derecha: `bg-indigo-600/10` con `blur-[120px]`.
+
+---
+
+## 🎨 4. Temas de Fase (Acentos de Color por Defecto)
+Cada fase utiliza un color de acento vibrante idéntico en ambos modos:
+* **Fase 1:** `bg-blue-500` (Efecto resplandor `rgba(59,130,246,0.9)` en dark).
+* **Fase 2:** `bg-emerald-500`
+* **Fase 3:** `bg-orange-500`
+* **Fase 4:** `bg-purple-500`
+* **Fase 5:** `bg-rose-500`
+* **Fase 6:** `bg-indigo-500`
+* **Fase 7:** `bg-teal-500`
+* **Fase 8:** `bg-amber-500`
+* **Fase 9:** `bg-yellow-600`
+
+---
+
+## 🛠️ 5. Configuración de Tailwind CSS v4 (`index.css`)
+
+El archivo principal `index.css` de la aplicación define el comportamiento semántico de base e inyecta las tipografías y animaciones de sacudida (`shake`) requeridas.
 
 ```css
 @theme {
-  /* Registro de colores v3 */
-  --color-v3-surface: var(--color-v3-surface);
-  --color-v3-surface-container: var(--color-v3-surface-container);
-  --color-v3-bg-mid: var(--color-v3-bg-mid);
-  --color-v3-bg-end: var(--color-v3-bg-end);
-  --color-v3-surface-container-high: var(--color-v3-surface-container-high);
-  --color-v3-surface-container-highest: var(--color-v3-surface-container-highest);
-  ...
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --animate-shake: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
 }
 
 @layer base {
   body {
-    /* Fondo degradado dinámico en lugar de plano */
-    background-image: linear-gradient(to bottom, var(--color-v3-surface-container), var(--color-v3-bg-mid), var(--color-v3-bg-end));
-    color: var(--color-v3-text);
-    font-family: var(--font-inter);
-    @apply antialiased min-h-screen w-full;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    @apply bg-slate-50 text-slate-900 font-sans transition-colors duration-300;
+    @apply dark:bg-[#070b14] dark:text-slate-100;
   }
 }
 ```
-
----
-
-## 🚀 4. Plan de Implementación de Código
-
-1. **index.css**: Sobrescribir los tokens hexadecimales y la definición de degradados semánticos en `index.css`.
-2. **App.tsx**: Cambiar el contenedor general para usar:
-   `className="min-h-screen w-full text-v3-text bg-gradient-to-b from-v3-surface-container via-v3-bg-mid to-v3-bg-end flex flex-col items-center justify-center p-4 overflow-hidden transition-colors duration-300"`
-3. **PhaseMapScreen.tsx**: Cambiar el contenedor principal para que use el mismo degradado dinámico de alta definición:
-   `className="min-h-screen bg-gradient-to-b from-v3-surface-container via-v3-bg-mid to-v3-bg-end text-v3-text font-sans pb-20 relative overflow-hidden transition-colors duration-300"`

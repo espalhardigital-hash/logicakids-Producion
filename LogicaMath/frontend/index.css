@@ -4,146 +4,46 @@
 /* Habilitar selector basado en la clase .dark del nodo raíz en Tailwind v4 */
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  /* Habilitar color-scheme nativo en el navegador */
-  color-scheme: light dark;
-
-  /* Superficies y Degradados de Fondo */
-  --color-v3-surface-container: light-dark(#f8fafc, #0b0f19);       /* Pizarra claro inicial / Navy oscuro inicial */
-  --color-v3-bg-mid: light-dark(#f1f5f9, #0f172a);                  /* Pizarra claro medio / Navy oscuro medio */
-  --color-v3-bg-end: light-dark(#e2e8f0, #070a13);                  /* Pizarra claro final / Navy oscuro final */
-
-  /* Contenedores de Tarjetas y Modales */
-  --color-v3-surface: light-dark(#ffffff, #090d16);                 /* Fondo modal: Blanco / Negro azulado */
-  --color-v3-surface-container-high: light-dark(#ffffff, #131b2e);  /* Fondo tarjeta: Blanco / Navy slate */
-  --color-v3-surface-container-highest: light-dark(#f8fafc, #1e293b); /* Tarjeta hover: Gris sutil / Slate */
-  --color-v3-surface-left-nav: light-dark(#f1f5f9, #0f172a);
-  --color-v3-surface-left-nav-border: light-dark(#cbd5e1, #1e293b);
-  --color-v3-overlay-background: light-dark(rgba(255, 255, 255, 0.4), rgba(11, 15, 25, 0.4));
-
-  /* Botones y Acciones */
-  --color-v3-button-container: light-dark(#ffffff, #1e293b);        /* Botón neutro: Blanco / Slate */
-  --color-v3-button-container-high: light-dark(#e2e8f0, #334155);
-  --color-v3-button-container-highest: light-dark(#cbd5e1, #475569);
-  --color-v3-button-container-accent: light-dark(#dbeafe, #1e3a8a); /* Botón azul: Celeste claro / Azul marino */
-  --color-v3-hover: light-dark(#f1f5f9, #2d3748);                   /* Hover neutro: Gris claro / Gris slate */
-
-  /* Textos de Alta Legibilidad */
-  --color-v3-text: light-dark(#0f172a, #ffffff);                    /* Título principal: Slate Negro / Blanco puro */
-  --color-v3-text-var: light-dark(#334155, #94a3b8);                /* Descripciones: Slate Carbón / Gris suave */
-  --color-v3-text-disable: light-dark(#94a3b8, #475569);            /* Deshabilitado: Gris medio / Slate apagado */
-  --color-v3-text-on-button: light-dark(#0f172a, #ffffff);
-  --color-v3-text-on-button-reverse: light-dark(#ffffff, #ffffff);
-  --color-v3-text-link: light-dark(#2563eb, #3b82f6);
-  --color-v3-chat-separator: light-dark(#cbd5e1, #334155);
-
-  /* Bordes de Alta Definición */
-  --color-v3-outline: light-dark(#94a3b8, #334155);                 /* Bordes activos: Gris pizarra / Slate */
-  --color-v3-outline-var: light-dark(#cbd5e1, #1e293b);             /* Bordes normales: Gris medio / Slate oscuro */
-  --color-v3-outline-accent: light-dark(#2563eb, #3b82f6);
-
-  /* Estados y Alertas */
-  --color-v3-error-text: light-dark(#991b1b, #f87171);
-  --color-v3-error-container: light-dark(#fee2e2, #7f1d1d);
-  --color-v3-warning-text: light-dark(#854d0e, #fbbf24);
-  --color-v3-warning-container: light-dark(#fef9c3, #78350f);
-
-  /* Colores de Acento Estables */
-  --color-v3-accent-1: #fcbd00;
-  --color-v3-accent-light-1: light-dark(#fff7e0, #3a321b);
-  --color-v3-accent-2: #c597ff;
-  --color-v3-accent-light-2: light-dark(#f8f3ff, #332d3a);
-  --color-v3-accent-3: #d73a49;
-  --color-v3-accent-4: light-dark(#16a34a, #3ddb85);
-  --color-v3-accent-5: light-dark(#4f46e5, #8790ab);
-  --color-v3-accent-6: #e87400;
-
-  /* Sombras Semánticas */
-  --v3-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --v3-shadow-sm: 0 1px 3px 0 rgba(10, 13, 18, 0.1), 0 1px 2px -1px rgba(10, 13, 18, 0.1);
-  --v3-shadow-md: 0 4px 6px -1px rgba(10, 13, 18, 0.1), 0 2px 4px -2px rgba(10, 13, 18, 0.06);
-  --v3-shadow-lg: 0 12px 16px -4px rgba(10, 13, 18, 0.08), 0 4px 6px -2px rgba(10, 13, 18, 0.03), 0 2px 2px -1px rgba(10, 13, 18, 0.04);
-  --v3-shadow-xl: 0 20px 24px -4px rgba(10, 13, 18, 0.08), 0 8px 8px -4px rgba(10, 13, 18, 0.03), 0 3px 3px -1.5px rgba(10, 13, 18, 0.04);
-}
-
 @theme {
-  /* Enlace directo a las variables de color v3 */
-  --color-v3-surface: var(--color-v3-surface);
-  --color-v3-overlay-background: var(--color-v3-overlay-background);
-  --color-v3-surface-left-nav: var(--color-v3-surface-left-nav);
-  --color-v3-surface-left-nav-border: var(--color-v3-surface-left-nav-border);
-  --color-v3-surface-container: var(--color-v3-surface-container);
-  --color-v3-bg-mid: var(--color-v3-bg-mid);
-  --color-v3-bg-end: var(--color-v3-bg-end);
-  --color-v3-surface-container-high: var(--color-v3-surface-container-high);
-  --color-v3-surface-container-highest: var(--color-v3-surface-container-highest);
-
-  --color-v3-button-container: var(--color-v3-button-container);
-  --color-v3-button-container-high: var(--color-v3-button-container-high);
-  --color-v3-button-container-highest: var(--color-v3-button-container-highest);
-  --color-v3-button-container-accent: var(--color-v3-button-container-accent);
-  --color-v3-hover: var(--color-v3-hover);
-
-  --color-v3-text: var(--color-v3-text);
-  --color-v3-text-var: var(--color-v3-text-var);
-  --color-v3-text-disable: var(--color-v3-text-disable);
-  --color-v3-text-on-button: var(--color-v3-text-on-button);
-  --color-v3-text-on-button-reverse: var(--color-v3-text-on-button-reverse);
-  --color-v3-text-link: var(--color-v3-text-link);
-
-  --color-v3-outline: var(--color-v3-outline);
-  --color-v3-outline-var: var(--color-v3-outline-var);
-  --color-v3-outline-accent: var(--color-v3-outline-accent);
-
-  --color-v3-accent-1: var(--color-v3-accent-1);
-  --color-v3-accent-light-1: var(--color-v3-accent-light-1);
-  --color-v3-accent-2: var(--color-v3-accent-2);
-  --color-v3-accent-light-2: var(--color-v3-accent-light-2);
-  --color-v3-accent-3: var(--color-v3-accent-3);
-  --color-v3-accent-4: var(--color-v3-accent-4);
-  --color-v3-accent-5: var(--color-v3-accent-5);
-  --color-v3-accent-6: var(--color-v3-accent-6);
-
-  --shadow-v3-shadow-xs: var(--v3-shadow-xs);
-  --shadow-v3-shadow-sm: var(--v3-shadow-sm);
-  --shadow-v3-shadow-md: var(--v3-shadow-md);
-  --shadow-v3-shadow-lg: var(--v3-shadow-lg);
-  --shadow-v3-shadow-xl: var(--v3-shadow-xl);
-
-  --font-outfit: 'Outfit', sans-serif;
-  --font-inter: 'Inter', sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --animate-shake: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
 }
 
 @layer base {
   body {
-    background-image: linear-gradient(to bottom, var(--color-v3-surface-container), var(--color-v3-bg-mid), var(--color-v3-bg-end));
-    color: var(--color-v3-text);
-    font-family: var(--font-inter);
-    @apply antialiased min-h-screen w-full;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    @apply bg-slate-50 text-slate-900 font-sans transition-colors duration-300;
+    @apply dark:bg-[#070b14] dark:text-slate-100;
   }
 }
 
 .glass-card {
-  @apply bg-v3-surface-container-high border border-v3-outline-var shadow-v3-shadow-md rounded-2xl;
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  @apply bg-white border border-slate-100 shadow-xl rounded-2xl transition-all duration-300;
+  @apply dark:bg-[#162033] dark:border-slate-800 dark:shadow-none;
 }
 
 .glass-button {
-  @apply bg-v3-button-container hover:bg-v3-hover border border-v3-outline text-v3-text rounded-full px-4 py-2 transition-all duration-300;
+  @apply bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 rounded-full px-4 py-2 transition-all duration-300;
+  @apply dark:bg-[#162033] dark:hover:bg-slate-800 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white;
 }
 
-/* Custom Scrollbar for Leaderboard */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-v3-surface-container); 
+  @apply bg-slate-100 dark:bg-[#070b14]; 
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-v3-outline); 
-  border-radius: 4px;
+  @apply bg-slate-300 rounded-full dark:bg-slate-800; 
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-v3-outline-accent); 
+  @apply bg-blue-500; 
 }
