@@ -197,7 +197,7 @@ const GameScreen: React.FC<Props> = ({
       return;
     }
 
-    const isOnline = !!localStorage.getItem('idToken');
+    const isOnline = !!localStorage.getItem('auth_token');
 
     if (isOnline) {
       try {
@@ -254,7 +254,7 @@ const GameScreen: React.FC<Props> = ({
     setFeedback('incorrect');
     updateStats(false, maxTimeForQuestion);
 
-    const isOnline = !!localStorage.getItem('idToken') && question?.id !== undefined;
+    const isOnline = !!localStorage.getItem('auth_token') && question?.id !== undefined;
 
     if (isOnline) {
       try {
@@ -290,7 +290,7 @@ const GameScreen: React.FC<Props> = ({
 
     clearTimer();
 
-    const isOnline = !!localStorage.getItem('idToken') && question.id !== undefined;
+    const isOnline = !!localStorage.getItem('auth_token') && question.id !== undefined;
     const timeSpent = maxTimeForQuestion - timeLeft;
 
     if (isOnline) {

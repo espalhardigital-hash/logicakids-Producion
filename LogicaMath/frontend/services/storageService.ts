@@ -35,7 +35,8 @@ async function apiRequest<T>(endpoint: string, method: string = 'GET', body?: an
 
   if (response.status === 401) {
     console.warn("Sesión expirada o inválida (401). Redireccionando a Login...");
-    localStorage.removeItem('idToken');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
     window.location.href = '/login';
     throw new Error('Sesión expirada. Por favor, inicia sesión de nuevo.');
   }

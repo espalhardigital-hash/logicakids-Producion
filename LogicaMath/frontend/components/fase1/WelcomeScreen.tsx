@@ -46,19 +46,23 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
     onSelectCategory(categoryId);
   };
 
-  // Only the 4 basic categories are shown in the main grid for symmetry
+  // Categories displayed in the main grid including the ultimate challenge
   const categories: { id: GameCategory; label: string; icon: React.ReactNode; color: string; textColor: string }[] = [
     { id: 'addition', label: 'Sumas', icon: <Plus size={24} className="text-white" />, color: 'bg-[#10B981]', textColor: 'text-[#10B981]' },
     { id: 'subtraction', label: 'Restas', icon: <Minus size={24} className="text-white" />, color: 'bg-[#F97316]', textColor: 'text-[#F97316]' },
     { id: 'multiplication', label: 'Tablas', icon: <CloseIcon size={24} className="text-white" />, color: 'bg-[#A855F7]', textColor: 'text-[#A855F7]' },
     { id: 'division', label: 'Divisiones', icon: <Divide size={24} className="text-white" />, color: 'bg-[#3B82F6]', textColor: 'text-[#3B82F6]' },
+    { id: 'challenge', label: 'Desafío Mixto', icon: <Sparkles size={24} className="text-white" />, color: 'bg-gradient-to-r from-amber-500 to-orange-500', textColor: 'text-amber-500' }
   ];
 
-  // Sequential unlock order
+  // Sequential unlock order for basic disciplines
   const unlockOrder: GameCategory[] = ['addition', 'subtraction', 'multiplication', 'division'];
 
   const isCategoryLocked = (categoryId: GameCategory): boolean => {
     if (user?.role === 'ADMIN') return false;
+    if (categoryId === 'challenge') {
+      return remainingLevels > 0;
+    }
     const idx = unlockOrder.indexOf(categoryId);
     if (idx === 0) return false; // Sumas is always unlocked
     const prevCat = unlockOrder[idx - 1];
@@ -177,8 +181,8 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
           </div>
         </motion.div>
 
-        {/* Categories Grid (Symmetrical 4-Column Layout on Desktop) */}
-        <motion.div variants={containerVariants} className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        {/* Categories Grid (Symmetrical 5-Column Layout on Desktop) */}
+        <motion.div variants={containerVariants} className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
           {categories.map((cat) => {
             const levelIdx = getCategoryLevel(cat.id);
             const currentLevel = Math.min(levelIdx + 1, 5); // Display level 1-5
@@ -210,7 +214,11 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
 
                 <h3 className="text-2xl font-black font-display text-slate-800 dark:text-white mb-4">{cat.label}</h3>
 
-                {isDominated ? (
+                {cat.id === 'challenge' ? (
+                  <div className="bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 text-xs font-bold px-4 py-1.5 rounded-full mb-8 border border-amber-200/20 dark:border-amber-500/20 font-sans">
+                    Examen Final
+                  </div>
+                ) : isDominated ? (
                   <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border bg-emerald-50 border-emerald-200 text-emerald-600 dark:bg-emerald-950/40 dark:border-emerald-800/30 dark:text-emerald-400 font-extrabold text-xs tracking-wide shadow-sm mb-8 font-sans">
                     <span className="flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-black mr-0.5">✓</span>
                     Dominado

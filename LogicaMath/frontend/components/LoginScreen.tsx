@@ -95,11 +95,11 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
               username: loginResult.user.username || username,
               email: loginResult.user.email || email,
               password: '',
-              role: 'USER',
-              status: 'ACTIVE',
-              createdAt: new Date().toISOString(),
-              settings: {},
-              unlockedLevel: 0,
+              role: loginResult.user.role || 'USER',
+              status: loginResult.user.status || 'ACTIVE',
+              createdAt: loginResult.user.created_at || new Date().toISOString(),
+              settings: loginResult.user.settings || {},
+              unlockedLevel: loginResult.user.unlocked_level || 0,
               avatar: loginResult.user.avatar
             };
             onLoginSuccess(user);

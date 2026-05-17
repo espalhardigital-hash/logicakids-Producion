@@ -33,6 +33,25 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Sync category and difficulty from URL if they exist (to preserve state on refresh)
+  useEffect(() => {
+    const playMatch = location.pathname.match(/\/play\/([^/]+)\/([^/]+)/);
+    if (playMatch) {
+      setCategory(playMatch[1] as GameCategory);
+      setDifficulty(playMatch[2] as Difficulty);
+    } else {
+      const levelMatch = location.pathname.match(/\/level-selection\/([^/]+)/);
+      if (levelMatch) {
+        setCategory(levelMatch[1] as GameCategory);
+      } else {
+        const resultsMatch = location.pathname.match(/\/results\/([^/]+)/);
+        if (resultsMatch) {
+          setCategory(resultsMatch[1] as GameCategory);
+        }
+      }
+    }
+  }, [location.pathname]);
+
   // 2. Modifica la función 'loadAdminConfig' y renombrala a 'loadPedagogyAndAdminConfigs'
   const loadPedagogyAndAdminConfigs = async (user: User | null) => {
     try {
@@ -103,9 +122,9 @@ const AppContent: React.FC = () => {
           if (
             location.pathname !== '/login' &&
             location.pathname !== '/welcome' &&
-            location.pathname !== '/play' &&
-            location.pathname !== '/level-selection' &&
-            location.pathname !== '/results' &&
+            !location.pathname.startsWith('/play') &&
+            !location.pathname.startsWith('/level-selection') &&
+            !location.pathname.startsWith('/results') &&
             location.pathname !== '/study-tables'
           ) {
             navigate('/login');
@@ -160,7 +179,7 @@ const AppContent: React.FC = () => {
       handleStartGame(currentUser?.username || "Invitado", 'challenge', 'hard');
     } else {
       setCategory(selectedCategory);
-      navigate('/level-selection');
+      navigate(`/level-selection/${selectedCategory}`);
     }
   };
 
@@ -168,7 +187,7 @@ const AppContent: React.FC = () => {
     setUsername(name);
     setCategory(selectedCategory);
     setDifficulty(selectedDifficulty);
-    navigate('/play');
+    navigate(`/play/${selectedCategory}/${selectedDifficulty}`);
   };
 
   const handleShowStats = () => {
@@ -229,11 +248,11 @@ const AppContent: React.FC = () => {
     }
 
     setGameStats(stats);
-    navigate('/results');
+    navigate(`/results/${category}`);
   };
 
   const handleRestart = () => {
-    navigate('/play');
+    navigate(`/play/${category}/${difficulty}`);
   };
 
   const handleNextLevel = () => {
@@ -241,7 +260,7 @@ const AppContent: React.FC = () => {
     if (currentIndex !== -1 && currentIndex < difficultyOrder.length - 1) {
       const nextDiff = difficultyOrder[currentIndex + 1];
       setDifficulty(nextDiff);
-      navigate('/play');
+      navigate(`/play/${category}/${nextDiff}`);
     }
   };
 
@@ -312,7 +331,7 @@ const AppContent: React.FC = () => {
             />
           } />
 
-          <Route path="/level-selection" element={
+          <Route path="/level-selection/:category" element={
             <LevelSelectionScreen
               user={currentUser}
               category={category}
@@ -322,7 +341,7 @@ const AppContent: React.FC = () => {
             />
           } />
 
-          <Route path="/play" element={
+          <Route path="/play/:category/:difficulty" element={
             <GameScreen
               category={category}
               difficulty={difficulty}
@@ -336,7 +355,7 @@ const AppContent: React.FC = () => {
             />
           } />
 
-          <Route path="/results" element={
+          <Route path="/results/:category" element={
             gameStats ? (
               <ResultsScreen
                 stats={gameStats}
