@@ -14,12 +14,21 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Create a non-privileged user and group
+RUN addgroup --system appgroup && adduser --system --group appuser
+
 # Install python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
 COPY . .
+
+# Change ownership of the app directory to the non-privileged user
+RUN chown -R appuser:appgroup /app
+
+# Switch to the non-privileged user
+USER appuser
 
 # Expose port
 EXPOSE 8000

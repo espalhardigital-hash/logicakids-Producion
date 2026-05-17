@@ -4,23 +4,14 @@ LogicaKids Pro API - Punto de Entrada Principal
 """
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-import os
-from dotenv import load_dotenv
 
 from .routers import auth_users, admin, pedagogia, ai
-
-load_dotenv()
-
-# S3 Configuration Check
-S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
-S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
-S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
-S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME")
+from .config import settings
 
 app = FastAPI(title="LogicaKids Pro API", version="3.0.0")
 
 # Security Headers
-if os.getenv("ENABLE_SECURITY_HEADERS", "true").lower() == "true":
+if settings.ENABLE_SECURITY_HEADERS:
     @app.middleware("http")
     async def add_security_headers(request: Request, call_next):
         response = await call_next(request)
@@ -31,8 +22,7 @@ if os.getenv("ENABLE_SECURITY_HEADERS", "true").lower() == "true":
         return response
 
 # CORS
-origins_str = os.environ.get("ALLOWED_ORIGINS", "*")
-origins = [origin.strip() for origin in origins_str.split(",")]
+origins = [origin.strip() for origin in settings.ALLOWED_ORIGINS.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
@@ -76,7 +66,7 @@ async def startup_event():
         print(f"❌ Error al verificar/crear tablas: {e}")
 
     # S3 warning
-    if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
+    if not all([settings.S3_ACCESS_KEY, settings.S3_SECRET_KEY, settings.S3_ENDPOINT_URL, settings.S3_BUCKET_NAME]):
         print("WARNING: S3 configuration incomplete. Avatar upload will fail.")
 
 @app.get("/")
