@@ -166,7 +166,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
               <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-wider mb-1 uppercase font-display">MI PROGRESO</span>
               <div className="flex items-center text-amber-500 bg-amber-500/10 border border-amber-500/20 dark:border-amber-500/30 px-4 py-2 rounded-2xl group-hover:bg-amber-500/20 transition-all shadow-sm">
                 <Trophy size={22} className="mr-2 animate-pulse" />
-                <span className="text-3xl font-black font-display leading-none">{totalLevelsUnlocked}</span>
+                <span className="text-3xl font-black font-display leading-none">{totalLevelsPassed}</span>
               </div>
             </button>
             
