@@ -4,6 +4,7 @@ import { ThemeProvider } from './components/theme/ThemeContext';
 import { ThemeToggle } from './components/theme/ThemeToggle';
 import { GameScreenState, GameStats, GameCategory, ScoreRecord, Difficulty, User, PedagogyConfig } from './types';
 import WelcomeScreen from './components/fase1/WelcomeScreen';
+import WelcomeScreenPhase2 from './components/fase2/WelcomeScreenPhase2';
 import PhaseMapScreen from './components/map/PhaseMapScreen';
 import GameScreen from './components/fase1/GameScreen';
 import ResultsScreen from './components/fase1/ResultsScreen';
@@ -305,6 +306,8 @@ const AppContent: React.FC = () => {
                 onSelectPhase={(phaseIndex) => {
                   if (phaseIndex === 1) {
                     navigate('/welcome');
+                  } else if (phaseIndex === 2) {
+                    navigate('/welcome-fase2');
                   } else {
                     alert(`¡La Fase ${phaseIndex} está desbloqueada! Muy pronto implementaremos sus dinámicas de juego.`);
                   }
@@ -321,6 +324,18 @@ const AppContent: React.FC = () => {
 
           <Route path="/welcome" element={
             <WelcomeScreen
+              user={currentUser}
+              onSelectCategory={handleSelectCategory}
+              onLogout={handleLogout}
+              onGoAdmin={currentUser?.role === 'ADMIN' ? () => navigate('/admin') : undefined}
+              onGoProfile={currentUser ? () => navigate('/profile') : undefined}
+              onGoStats={handleShowStats}
+              onBackMap={currentUser ? () => navigate('/map') : undefined}
+            />
+          } />
+
+          <Route path="/welcome-fase2" element={
+            <WelcomeScreenPhase2
               user={currentUser}
               onSelectCategory={handleSelectCategory}
               onLogout={handleLogout}

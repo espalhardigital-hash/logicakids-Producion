@@ -26,7 +26,13 @@ export type GameCategory =
   | 'all_mixed'
   | 'logic_sequences'
   | 'logic_patterns'
-  | 'logic_puzzles';
+  | 'logic_puzzles'
+  | 'gym'
+  | 'tables_action'
+  | 'store'
+  | 'detective'
+  | 'builder'
+  | 'challenge_fase2';
 
 export type Difficulty = 'easy' | 'easy_medium' | 'medium' | 'medium_hard' | 'hard' | 'random_tables';
 

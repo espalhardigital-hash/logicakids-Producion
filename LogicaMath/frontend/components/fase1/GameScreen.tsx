@@ -31,7 +31,13 @@ const CATEGORY_LABELS: Record<GameCategory, string> = {
   challenge: 'Desafío Mix',
   logic_sequences: 'Secuencias',
   logic_patterns: 'Patrones',
-  logic_puzzles: 'Acertijos'
+  logic_puzzles: 'Acertijos',
+  gym: 'Gimnasio Mental',
+  tables_action: 'Tablas en Acción',
+  store: 'Tienda Matemática',
+  detective: 'Detective',
+  builder: 'Constructor',
+  challenge_fase2: 'Desafío Mix F2'
 };
 
 const DIFFICULTY_LABELS: Record<Difficulty, string> = {
