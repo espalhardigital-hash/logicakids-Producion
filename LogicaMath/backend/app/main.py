@@ -42,32 +42,35 @@ from .models.sql_models import (
 
 @app.on_event("startup")
 async def startup_event():
-    # Inicializar Base de Datos (crear tablas si no existen)
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            print("✅ Tablas de base de datos verificadas/creadas exitosamente.")
-
-            # --- SAFE MIGRATIONS ---
-            # create_all does NOT add new columns to existing tables.
-            # These ALTER TABLE statements are idempotent (IF NOT EXISTS).
-            migrations = [
-                ("avatar", "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR"),
-                ("unlocked_level", "ALTER TABLE users ADD COLUMN IF NOT EXISTS unlocked_level INTEGER DEFAULT 0"),
-                ("settings", "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb"),
-                ("last_login", "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ"),
-            ]
-            from sqlalchemy import text
-            for col_name, migration in migrations:
-                try:
-                    await conn.execute(text(migration))
-                except Exception as col_err:
-                    # Gracefully handle if columns already exist or if user has insufficient privilege
-                    print(f"ℹ️ Verificación de columna '{col_name}': ya existente o sin privilegios de alteración. (Omitido de forma segura)")
-            print("✅ Migraciones de columnas verificadas.")
-
-    except Exception as e:
-        print(f"❌ Error al verificar/crear tablas: {e}")
+    # Inicializar Base de Datos (crear tablas si no existen) de forma segura y opcional
+    if settings.RUN_MIGRATIONS_ON_STARTUP:
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+                print("✅ Tablas de base de datos verificadas/creadas exitosamente.")
+    
+                # --- SAFE MIGRATIONS ---
+                # create_all does NOT add new columns to existing tables.
+                # These ALTER TABLE statements are idempotent (IF NOT EXISTS).
+                migrations = [
+                    ("avatar", "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR"),
+                    ("unlocked_level", "ALTER TABLE users ADD COLUMN IF NOT EXISTS unlocked_level INTEGER DEFAULT 0"),
+                    ("settings", "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb"),
+                    ("last_login", "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ"),
+                ]
+                from sqlalchemy import text
+                for col_name, migration in migrations:
+                    try:
+                        await conn.execute(text(migration))
+                    except Exception as col_err:
+                        # Gracefully handle if columns already exist or if user has insufficient privilege
+                        print(f"ℹ️ Verificación de columna '{col_name}': ya existente o sin privilegios de alteración. (Omitido de forma segura)")
+                print("✅ Migraciones de columnas verificadas.")
+    
+        except Exception as e:
+            print(f"❌ Error al verificar/crear tablas: {e}")
+    else:
+        print("ℹ️ Inicio en modo producción: creación/alteración automática de tablas en startup omitida.")
 
     # S3 warning
     if not all([settings.S3_ACCESS_KEY, settings.S3_SECRET_KEY, settings.S3_ENDPOINT_URL, settings.S3_BUCKET_NAME]):

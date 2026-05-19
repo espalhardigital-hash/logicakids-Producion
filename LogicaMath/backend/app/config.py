@@ -25,5 +25,9 @@ class Settings(BaseSettings):
     # Security/CORS
     ENABLE_SECURITY_HEADERS: bool = Field(True, description="Enable Security Headers")
     ALLOWED_ORIGINS: str = Field("*", description="Allowed CORS Origins")
+    
+    # Environment control
+    ENVIRONMENT: str = Field("development", description="App environment")
+    RUN_MIGRATIONS_ON_STARTUP: bool = Field(True, description="Run database sync/migrations on startup")
 
 settings = Settings()
