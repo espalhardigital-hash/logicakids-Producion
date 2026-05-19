@@ -1211,7 +1211,7 @@ El Módulo 1 queda cerrado como un flujo completo de entrenamiento, refuerzo y e
 
 ## 👑 Nivel 1: Operación Inversa — Suma y Resta (¡El camino de regreso!)
 
-¡Hola de nuevo, científico de la lógica! Bienvenido al Módulo 2. Hoy vas a descubrir un secreto increíble sobre los números: **las operaciones matemáticas tienen superpoderes inversas**. Esto significa que todo lo que un símbolo construye, su símbolo compañero lo puede deshacer.
+¡Hola de nuevo, científico de la lógica! Bienvenido al Módulo 2. Hoy vas a descubrir un secreto increíble sobre los números: **las operaciones matemáticas tienen superpoderes inversos**. Esto significa que todo lo que un símbolo construye, su símbolo compañero lo puede deshacer.
 
 La **Suma (+)** y la **Resta (-)** son compañeras de equipo inseparables. Si una suma te hace avanzar hacia adelante en la recta numérica, una resta te permite regresar exactamente al mismo punto de partida. ¡Es como el botón de "deshacer" de tu computadora!
 
@@ -1508,6 +1508,18 @@ print(f"¡Éxito! Banco de evaluaciones del Módulo 2 generado con {len(pool_eva
 
 ```
 
+# 4.2.8. Resumen operativo del Módulo 2
+
+| Bloque                                |         Formato |     Cantidad |        Tiempo | Bucle Espejo |             Aprobación |
+| ------------------------------------- | --------------: | -----------: | ------------: | -----------: | ---------------------: |
+| Nivel 1 — Suma y Resta                |           Input | 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 2 — Multiplicación y División   |           Input | 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 3 — El Número Faltante          |           Input | 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 4 — Gran Integración            |           Input | 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Desafío 1 — El Torneo del Retorno     | Opción múltiple | 25 preguntas | 45 s/pregunta |           No |           23/25 (90%)  |
+| Desafío 2 — Los Guardianes del Vacío  | Opción múltiple | 25 preguntas | 60 s/pregunta |           No |           23/25 (90%)  |
+| Desafío Final — Maestro de la Inversa |           Input | 10 preguntas | 45 s/pregunta |           No |            9/10 (90%)  |
+
 ---
 
 Con esto, el **Módulo 2** queda completamente diseñado, desarrollado y acoplado a las especificaciones técnicas del backend. ¡Listo para integrarse en la plataforma!
@@ -1755,50 +1767,92 @@ En este nivel combinaremos todo lo anterior en una misión del mundo real. El si
 
 ## 💻 Script Generador Automatizado del Motor de la Tienda (Módulo 3)
 
-Este script inyecta la batería de preguntas del Módulo 3 respetando la restricción monetaria estricta de centavos amigables mediante una lista fija de opciones flotantes controladas por el servidor.
+Este script inyecta la batería de preguntas del Módulo 3 respetando la restricción monetaria estricta de centavos amigables mediante una lista fija de opciones controladas por el servidor, procesando internamente valores en **centavos enteros** para evitar imprecisiones de coma flotante y limitando los bucles para prevenir bloqueos en base a la regla de `max_intentos`.
 
 ```python
 import random
 import json
 
-CENTAVOS_AMIGABLES = [0.00, 0.25, 0.50, 0.75]
+CENTAVOS_AMIGABLES = [0, 25, 50, 75]
 PRODUCTOS_TIENDA = ["chocolate", "jugo de frutas", "cuaderno", "llavero", "gomitas", "lápiz coleccionable"]
+
+def formato_reales(centavos):
+    return f"{centavos // 100},{centavos % 100:02d}"
+
+def construir_opciones_unicas(correcta_str, distractores_list, cantidad=4):
+    valores = []
+    for val in [correcta_str] + distractores_list:
+        if val not in valores:
+            valores.append(val)
+    while len(valores) < cantidad:
+        # Generar un distractor numérico aleatorio amigable en centavos
+        entero = random.randint(1, 15)
+        dec = random.choice(CENTAVOS_AMIGABLES)
+        nuevo = formato_reales(entero * 100 + dec)
+        if nuevo not in valores:
+            valores.append(nuevo)
+    random.shuffle(valores)
+    return valores
 
 def generar_banco_plantillas_modulo3(cantidad_por_nivel=50):
     banco_completo = []
     
     for nivel in [1, 2, 3, 4]:
         enunciados_nivel = set()
-        while len([q for q in banco_completo if q["nivel_id"] == nivel]) < cantidad_por_nivel:
-            
+        intentos = 0
+        max_intentos = cantidad_por_nivel * 50
+        
+        while len([q for q in banco_completo if q["nivel_id"] == nivel]) < cantidad_por_nivel and intentos < max_intentos:
+            intentos += 1
             prod = random.choice(PRODUCTOS_TIENDA)
-            # Forzar la estructura de centavos amigables combinando enteros y decimales fijos
+            
+            # Operar con centavos enteros
             precio_entero = random.randint(1, 8)
             precio_decimal = random.choice(CENTAVOS_AMIGABLES)
-            precio_total = float(precio_entero) + precio_decimal
+            precio_centavos = precio_entero * 100 + precio_decimal
             
-            str_precio = f"{precio_total:.2f}".replace(".", ",")
+            str_precio = formato_reales(precio_centavos)
             id_pregunta = 3000 + (nivel * 100) + len(banco_completo) + 1
             
             if nivel == 1:
-                # Foco: Reconocimiento y sumas básicas de unidades
-                monedas_50 = random.randint(1, 4)
-                ans = float(monedas_50) * 0.50
-                str_ans = f"{ans:.2f}".replace(".", ",")
-                enunciado = f"En tu bolsillo tienes exactamente {monedas_50} monedas de R$ 0,50. ¿A cuántos reales equivale este dinero?"
+                # Foco: Reconocimiento y sumas de unidades con combinatoria ampliada
+                tipo_objetivo = random.choice(["contar_total", "completar_real", "comparar_valores"])
+                
+                if tipo_objetivo == "contar_total":
+                    monedas_25 = random.randint(0, 8)
+                    monedas_50 = random.randint(0, 6)
+                    if monedas_25 == 0 and monedas_50 == 0: continue
+                    
+                    ans_centavos = (monedas_25 * 25) + (monedas_50 * 50)
+                    str_ans = formato_reales(ans_centavos)
+                    enunciado = f"En tu bolsillo tienes exactamente {monedas_50} monedas de R$ 0,50 y {monedas_25} monedas de R$ 0,25. ¿A cuántos reales equivale este dinero?"
+                
+                elif tipo_objetivo == "completar_real":
+                    monedas_25 = random.randint(1, 3)
+                    ans_centavos = 100 - (monedas_25 * 25)
+                    str_ans = formato_reales(ans_centavos)
+                    enunciado = f"Tienes {monedas_25} monedas de R$ 0,25. ¿Cuánto dinero te falta en centavos para poder completar exactamente R$ 1,00?"
+                
+                else:
+                    monedas_50 = random.randint(1, 3)
+                    ans_centavos = (monedas_50 * 50) + 200 # Billete de 2
+                    str_ans = formato_reales(ans_centavos)
+                    enunciado = f"Si tienes un billete de R$ 2,00 y {monedas_50} monedas de R$ 0,50 en la mano, ¿cuánto dinero tienes en total?"
                 
                 struct = {
                     "id": id_pregunta, "modulo_id": 3, "nivel_id": 1, "tipo_pregunta": "tienda_conteo",
                     "enunciado_macro": enunciado, "respuesta_correcta": str_ans,
-                    "retro_error": "Calculaste mal la agrupación de las monedas de 50 centavos."
+                    "retro_error": "Calculaste mal la agrupación de las monedas y el billete del monedero."
                 }
                 
             elif nivel == 2:
                 # Foco: Cálculo de vuelto directo con billete limpio
                 billete = random.choice([5, 10, 20])
-                if billete <= precio_total: continue
-                ans = float(billete) - precio_total
-                str_ans = f"{ans:.2f}".replace(".", ",")
+                billete_centavos = billete * 100
+                if billete_centavos <= precio_centavos: continue
+                
+                ans_centavos = billete_centavos - precio_centavos
+                str_ans = formato_reales(ans_centavos)
                 enunciado = f"Compras un {prod} que cuesta R$ {str_precio} y pagas en caja con un billete de R$ {billete},00. ¿Cuál es tu vuelto exacto?"
                 
                 struct = {
@@ -1811,12 +1865,13 @@ def generar_banco_plantillas_modulo3(cantidad_por_nivel=50):
                 # Foco: Llenado de carrito con dos productos amigables
                 p2_entero = random.randint(1, 4)
                 p2_decimal = random.choice(CENTAVOS_AMIGABLES)
-                p2_total = float(p2_entero) + p2_decimal
-                ans = precio_total + p2_total
-                str_ans = f"{ans:.2f}".replace(".", ",")
-                str_p2 = f"{p2_total:.2f}".replace(".", ",")
+                p2_centavos = p2_entero * 100 + p2_decimal
                 
-                enunciado = f"Metes en tu carrito un {prod} de R$ {str_precio} and otro artículo que vale R$ {str_p2}. ¿Cuánto dinero debes pagar en total?"
+                ans_centavos = precio_centavos + p2_centavos
+                str_ans = formato_reales(ans_centavos)
+                str_p2 = formato_reales(p2_centavos)
+                
+                enunciado = f"Metes en tu carrito un {prod} de R$ {str_precio} y otro artículo que vale R$ {str_p2}. ¿Cuánto dinero debes pagar en total?"
                 
                 struct = {
                     "id": id_pregunta, "modulo_id": 3, "nivel_id": 3, "tipo_pregunta": "tienda_carrito",
@@ -1825,12 +1880,13 @@ def generar_banco_plantillas_modulo3(cantidad_por_nivel=50):
                 }
                 
             else:
-                # Foco: Decisiones de presupuesto (Alcanza / Falta)
+                # Foco: Decisiones de presupuesto (saldo_sobrante / dinero_faltante)
                 billete = random.choice([5, 10, 15])
-                ans = float(billete) - precio_total
-                str_ans = f"{abs(ans):.2f}".replace(".", ",")
+                billete_centavos = billete * 100
+                ans_centavos = billete_centavos - precio_centavos
+                str_ans = formato_reales(abs(ans_centavos))
                 
-                if ans >= 0:
+                if ans_centavos >= 0:
                     enunciado = f"Tienes un billete de R$ {billete},00 y tu carrito suma R$ {str_precio}. Si te alcanza, ¿cuánto dinero te queda de saldo?"
                 else:
                     enunciado = f"Tienes un billete de R$ {billete},00 y quieres comprar un artículo de R$ {str_precio}. ¿Cuánto dinero te falta en la caja?"
@@ -1854,6 +1910,18 @@ with open("pool_modulo3_tienda.json", "w", encoding="utf-8") as f:
 print(f"¡Éxito! Plantillas del Módulo 3 generadas y exportadas con un total de {len(pool_m3)} registros dinámicos.")
 
 ```
+
+# 4.3.8. Resumen operativo del Módulo 3
+
+| Bloque                                |         Formato |     Cantidad |        Tiempo | Bucle Espejo |             Aprobación |
+| ------------------------------------- | --------------: | -----------: | ------------: | -----------: | ---------------------: |
+| Nivel 1 — Conteo de Monedas           |           Input | 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 2 — Vuelto Exacto               |           Input | 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 3 — Sumas de Carrito            |           Input | 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 4 — Control de Presupuesto      |           Input | 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Desafío 1 — Compras y Vueltos Rápidos | Opción múltiple | 25 preguntas | 45 s/pregunta |           No |           23/25 (90%)  |
+| Desafío 2 — Control de Inventario     | Opción múltiple | 25 preguntas | 60 s/pregunta |           No |           23/25 (90%)  |
+| Desafío Final — El Gerente de la Tienda|           Input | 10 preguntas | 45 s/pregunta |           No |            9/10 (90%)  |
 
 ---
 
@@ -2170,34 +2238,42 @@ Antes de escribir cualquier número en tu teclado, escanea el problema con calma
 
 ## 💻 5. SCRIPT GENERADOR DE BASE DE DATOS (150 PREGUNTAS - NIVEL 4)
 
-Este script inyecta de forma masiva los reactivos correspondientes al nuevo **Nivel 4 (Series y Patrones)** dentro de las tablas de PostgreSQL, garantizando un reparto balanceado entre patrones de suma, resta y multiplicación simple.
+Este script inyecta de forma masiva los reactivos correspondientes al nuevo **Nivel 4 (Series y Patrones)** dentro de las tablas de PostgreSQL, garantizando un reparto balanceado entre patrones de suma, resta y multiplicación simple, y utilizando límites de protección (`max_intentos`) para evitar bucles infinitos.
 
 ```python
 import random
 import json
 
 CONTEXTOS_N4 = [
-    "Un conejo salta por piedras numeradas",
-    "Un tren avanza registrando números en sus vagones",
-    "Sofía organiza sus tazos en filas ordenadas",
-    "Mateo observa las páginas de su libro de colección",
-    "Un robot camina dejando un rastro numérico"
+    "Un conejo salta por piedras numeradas en el bosque",
+    "Un tren de carga avanza registrando números en sus vagones",
+    "Sofía organiza sus tazos brillantes en filas ordenadas",
+    "Mateo observa las páginas de su libro de colección de sellos",
+    "Un robot explorador camina dejando un rastro numérico en el suelo",
+    "Lucas cuenta las manzanas recolectadas por hora en la huerta",
+    "Mariana registra la temperatura exterior cada diez minutos",
+    "Un submarino desciende registrando la profundidad en metros",
+    "Una ardilla trepa acumulando bellotas en ramas numeradas",
+    "Gabriel anota la distancia recorrida en su bicicleta en kilómetros"
 ]
 
 def generar_banco_preguntas_m4_n4(cantidad=150):
     preguntas_generadas = []
     enunciados_unicos = set()
+    intentos = 0
+    max_intentos = cantidad * 50
     
-    # Reparto equitativo: 50 suma, 50 resta, 50 multiplicación simple (dobles)
+    # Reparto equitativo: 1/3 suma, 1/3 resta, 1/3 multiplicación simple (dobles/triples)
     tipos_patron = ["suma", "resta", "multiplicacion_simple"]
     
-    while len(preguntas_generadas) < cantidad:
+    while len(preguntas_generadas) < cantidad and intentos < max_intentos:
+        intentos += 1
         tipo = tipos_patron[len(preguntas_generadas) % 3]
         contexto = random.choice(CONTEXTOS_N4)
         
         if tipo == "suma":
-            salto = random.choice([2, 3, 4, 5, 10])
-            inicio = random.randint(1, 15)
+            salto = random.choice([2, 3, 4, 5, 10, 15, 20])
+            inicio = random.randint(1, 30)
             secuencia = [inicio + (i * salto) for i in range(4)]
             ans = secuencia[-1] + salto
             enunciado = f"{contexto}. La serie es: {secuencia[0]}, {secuencia[1]}, {secuencia[2]}, {secuencia[3]}, ___. ¿Qué número completa el patrón?"
@@ -2205,22 +2281,30 @@ def generar_banco_preguntas_m4_n4(cantidad=150):
             metadata = {"tipo_patron": "suma_fija", "salto": salto}
             
         elif tipo == "resta":
-            salto = random.choice([2, 3, 4, 5, 10])
-            base_final = random.randint(2, 10)
+            salto = random.choice([2, 3, 4, 5, 10, 15, 20])
+            base_final = random.randint(2, 20)
             secuencia_rev = [base_final + (i * salto) for i in range(5)]
-            secuencia = secuencia_rev[::-1]  # Invierte para hacer descendente
+            secuencia = secuencia_rev[::-1]  # descendente
             ans = secuencia[-1] - salto
             enunciado = f"{contexto}. La serie va hacia atrás: {secuencia[0]}, {secuencia[1]}, {secuencia[2]}, {secuencia[3]}, ___. ¿Qué número sigue?"
             explicacion = f"Los números disminuyen restando {salto} en cada paso. Por lo tanto, {secuencia[3]} - {salto} = {ans}."
             metadata = {"tipo_patron": "resta_fija", "salto": salto}
             
-        else: # multiplicacion_simple (Doble controlado)
-            inicio = random.choice([1, 2, 3, 4, 5])
-            secuencia = [inicio * (2 ** i) for i in range(4)]  # Crecimiento factor 2
-            ans = secuencia[-1] * 2
-            enunciado = f"{contexto}. La serie avanza rápido: {secuencia[0]}, {secuencia[1]}, {secuencia[2]}, {secuencia[3]}, ___. ¿Qué número sigue?"
-            explicacion = f"Cada número es el doble del anterior (se multiplica por 2). El doble de {secuencia[-1]} es {ans}."
-            metadata = {"tipo_patron": "multiplicacion_doble", "factor": 2}
+        else: # multiplicacion_simple (Dobles y Triples controlados)
+            factor = random.choice([2, 3])
+            if factor == 2:
+                inicio = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+                secuencia = [inicio * (2 ** i) for i in range(4)]
+                ans = secuencia[-1] * 2
+                explicacion = f"Cada número es el doble del anterior (se multiplica por 2). El doble de {secuencia[-1]} es {ans}."
+            else:
+                inicio = random.choice([1, 2, 3, 4, 5])
+                secuencia = [inicio * (3 ** i) for i in range(3)] # Crecimiento rápido, menos elementos
+                ans = secuencia[-1] * 3
+                explicacion = f"Cada número es el triple del anterior (se multiplica por 3). El triple de {secuencia[-1]} es {ans}."
+                
+            enunciado = f"{contexto}. La serie avanza rápido: {', '.join(map(str, secuencia))}, ___. ¿Qué número sigue?"
+            metadata = {"tipo_patron": "multiplicacion_factorizada", "factor": factor}
 
         if enunciado in enunciados_unicos:
             continue
@@ -2244,6 +2328,9 @@ def generar_banco_preguntas_m4_n4(cantidad=150):
         }
         preguntas_generadas.append(pregunta_estructura)
         
+    if len(preguntas_generadas) < cantidad:
+        raise ValueError(f"No hay suficiente variabilidad para generar {cantidad} preguntas únicas de Nivel 4.")
+        
     return preguntas_generadas
 
 # Ejecución automatizada de generación de datos
@@ -2254,6 +2341,19 @@ with open("pool_modulo4_nivel4.json", "w", encoding="utf-8") as f:
     json.dump(pool_m4_n4, f, ensure_ascii=False, indent=2)
 
 ```
+
+# 4.4.8. Resumen operativo del Módulo 4
+
+| Bloque                                |         Formato |     Cantidad |        Tiempo | Bucle Espejo |             Aprobación |
+| ------------------------------------- | --------------: | -----------: | ------------: | -----------: | ---------------------: |
+| Nivel 1 — Filtro de Datos (Escudo)    | Subrayado tokens| 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 2 — Traductores de Palabras     | Subrayado tokens| 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 3 — Plano de Dos Pasos          | Subrayado tokens| 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 4 — Series y Patrones           | Subrayado tokens| 15 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Nivel 5 — Integrador Completo         | Subrayado tokens| 20 preguntas |    Sin tiempo |           Sí | Según regla del bloque |
+| Desafío 1 — Desafío Lector Rápido     | Opción múltiple | 25 preguntas | 45 s/pregunta |           No |           23/25 (90%)  |
+| Desafío 2 — Operaciones Encadenadas   | Opción múltiple | 25 preguntas | 60 s/pregunta |           No |           23/25 (90%)  |
+| Desafío Final — Maestro Intérprete    |           Input | 10 preguntas | 45 s/pregunta |           No |            9/10 (90%)  |
 
 ---
 
@@ -2682,6 +2782,17 @@ with open("pool_modulo5_nivel3.json", "w", encoding="utf-8") as f:
 
 ```
 
+# 4.5.8. Resumen operativo del Módulo 5
+
+| Bloque                                |         Formato |     Cantidad |        Tiempo | Bucle Espejo |             Aprobación |
+| ------------------------------------- | --------------: | -----------: | ------------: | -----------: | ---------------------: |
+| Nivel 1 — Sumas y Restas Encadenadas  | Chained step    | 15 preguntas |    Sin tiempo | Sí (por paso) | Según regla del bloque |
+| Nivel 2 — Mult/Div Encadenadas        | Chained step    | 15 preguntas |    Sin tiempo | Sí (por paso) | Según regla del bloque |
+| Nivel 3 — Operaciones Mixtas          | Chained step    | 15 preguntas |    Sin tiempo | Sí (por paso) | Según regla del bloque |
+| Desafío 1 — Desafío Constructor Rápido| Opción múltiple | 25 preguntas | 45 s/pregunta |           No |           23/25 (90%)  |
+| Desafío 2 — Cadenas de Decisión       | Opción múltiple | 25 preguntas | 60 s/pregunta |           No |           23/25 (90%)  |
+| Desafío Final — Gran Constructor Master|           Input | 10 preguntas | 45 s/pregunta |           No |            9/10 (90%)  |
+
 ---
 
 Con este bloque completo, el **Módulo 5: Constructor de Soluciones** queda completamente diseñado, estructurado y listo en su dimensión técnica y pedagógica. La Fase 2 de LogicaKids Pro tiene ahora todos sus módulos completamente cerrados para desarrollo.
@@ -2689,57 +2800,70 @@ Con este bloque completo, el **Módulo 5: Constructor de Soluciones** queda comp
 ---
 
 
-# 5. Criterio de Aprobación y Maestría
+# 5. Criterio de Aprobación, Maestría y Terminología de Flujo
 
-La Fase 2 sigue el estándar unificado de progresión de LogicaKids Pro.
+La Fase 2 sigue el estándar unificado de progresión de LogicaKids Pro, pero normalizado con reglas maestras para evitar la arbitrariedad en el tamaño de las pruebas y la confusión terminológica.
 
-Como regla general de la Fase 2, cada bloque de nivel puede contener:
+---
 
-```text
-50 preguntas
-```
+## 5.1. Normalización de Cantidades de Preguntas por Bloque
 
-Este valor puede ser configurable dinámicamente por el administrador.
+Para garantizar un balance entre la asimilación conceptual y la fluidez operativa, se establece la siguiente tabla de cantidades obligatoria para la construcción de interfaces y sesiones:
 
-Sin embargo, el **Módulo 1 — Gimnasio Numérico Mental** adopta una estructura especial de entrenamiento progresivo:
+| Tipo de bloque | Cantidad recomendada | Uso pedagógico / Contexto |
+| :--- | :---: | :--- |
+| **Lectura interactiva** | 3 inputs | Desbloqueo inicial conceptual durante la fase teórica. |
+| **Práctica corta** | 15 preguntas | Módulos de lectura intensa o problemas lógicos largos (Módulo 4 y 5). |
+| **Práctica extendida** | 20 preguntas | Módulos de mayor complejidad integradora. |
+| **Práctica numérica intensiva** | 25 preguntas | Módulos 1, 2 y 3 (calentamiento numérico y automatización de tablas). |
+| **Evaluación estándar** | 25 preguntas | Desafíos de nivel 1 y 2 en formato de opción múltiple. |
+| **Evaluación final** | 10 preguntas | Desafío Final con evocación pura en campo de texto (`input`). |
+| **Banco base amplio** | 50 o 150 preguntas | Pool interno en base de datos PostgreSQL, no reflejado como sesión única. |
 
-```text
-25 preguntas de práctica por nivel
-```
+---
 
-y un bloque adicional de desafíos cronometrados:
+## 5.2. Fórmula Universal de Aprobación y Salida Temprana (Early Exit)
 
-```text
-Desafío 1: 25 preguntas
-Desafío 2: 25 preguntas
-Desafío Final: 10 preguntas
-```
-
-Esta excepción existe porque el Módulo 1 funciona como módulo de entrada, reducción de ansiedad matemática y automatización de reflejos mentales.
-
-Para aprobar un bloque, el alumno debe alcanzar una precisión mínima de:
+Dado que las sesiones varían en longitud (10, 15, 20, 25 o 50 preguntas), el motor de FastAPI no utiliza límites de errores cableados en texto estático. Se aplica de forma estricta la siguiente fórmula matemática:
 
 ```text
-90%
+min_correctas = ceil(total_preguntas × porcentaje_aprobacion)
+max_errores_permitidos = total_preguntas - min_correctas
+early_exit = max_errores_permitidos + 1
 ```
 
-Esto equivale a responder correctamente al menos:
+Mapeo determinista resultante bajo la regla de aprobación del **90%**:
 
-```text
-45 de 50 preguntas
-```
+| Total Preguntas ($N$) | Aprobación Mínima (90%) | Máximo Errores Permitidos | Límite de Salida Temprana (Early Exit) |
+| :---: | :---: | :---: | :---: |
+| **10** | 9 correctas | 1 error | **2º error** (abortar de inmediato) |
+| **15** | 14 correctas | 1 error | **2º error** (abortar de inmediato) |
+| **20** | 18 correctas | 2 errores | **3er error** (abortar de inmediato) |
+| **25** | 23 correctas | 2 errores | **3er error** (abortar de inmediato) |
+| **50** | 45 correctas | 5 errores | **6º error** (abortar de inmediato) |
 
-El avance entre niveles, módulos y fases debe guardarse atómicamente en PostgreSQL.
+Al cumplirse la condición de `early_exit`, el backend interrumpe la sesión y avisa al frontend para disparar el flujo remedial y motivacional.
 
-Esto garantiza:
+---
 
-* consistencia de progresión;
-* prevención de desbloqueos indebidos;
-* integridad de datos;
-* control de permisos;
-* imposibilidad de bypass desde el frontend.
+## 5.3. Clarificación de Terminología de Generación
 
-Solo cuentas con rol `ADMIN` podrán aplicar excepciones controladas.
+Para evitar ambigüedades entre "aleatorio" y "fijo" en los manuales de desarrollo, se declaran los siguientes tres conceptos formales:
+
+1. **Banco Base (Pool)**: El conjunto amplio de preguntas posibles cargadas en PostgreSQL o predefinidas en el motor del backend (ej. las 150 preguntas por módulo).
+2. **Sesión Práctica (Session)**: El subconjunto seleccionado mediante `random.sample()` del Banco Base para ser resuelto por el alumno. Una vez inicializada, el orden y los reactivos de la sesión quedan **congelados** para ese intento específico.
+3. **Pregunta Generada**: El reactivo creado bajo demanda en tiempo real por los algoritmos controlados del backend FastAPI.
+
+---
+
+## 5.4. Sincronización Transaccional de la Maestría
+
+El avance entre niveles, módulos y fases debe guardarse de forma atómica y transaccional en PostgreSQL. Esto garantiza:
+* Consistencia absoluta de la progresión pedagógica.
+* Prevención de desbloqueos indebidos causados por desconexiones o refrescos del navegador.
+* Control estricto de permisos e imposibilidad de eludir validaciones desde el código cliente (frontend).
+
+Solo las cuentas con rol `ADMIN` pueden inyectar excepciones de bypass en la progresión.
 
 ---
 
@@ -2797,18 +2921,25 @@ orden: 2
 
 Representa el banco de ejercicios, preguntas preparadas y plantillas dinámicas.
 
-| Campo                     | Tipo                            | Descripción                         |
-| ------------------------- | ------------------------------- | ----------------------------------- |
-| `id`                      | Integer, Primary Key            | Identificador único                 |
-| `fase_id`                 | Integer, ForeignKey(`fases.id`) | Relación directa con la fase        |
-| `modulo`                  | Integer                         | Módulo pedagógico, del 1 al 5       |
-| `nivel`                   | Integer                         | Nivel de dificultad                 |
-| `tipo_pregunta`           | String                          | Tipo de pregunta                    |
-| `enunciado`               | Text                            | Texto o expresión matemática        |
-| `datos_numericos`         | JSONB                           | Variables numéricas para plantillas |
-| `respuesta_correcta`      | String                          | Resultado esperado                  |
-| `explicacion_paso_a_paso` | JSONB                           | Pasos de solución                   |
-| `errores_previstos`       | JSONB                           | Mapeo de errores esperados          |
+| Campo | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `id` | Integer, Primary Key | Identificador único. |
+| `fase_id` | Integer, ForeignKey(`fases.id`) | Relación directa con la fase. |
+| `modulo` | Integer | Módulo pedagógico, del 1 al 5. |
+| `nivel` | Integer | Nivel de dificultad. |
+| `tipo_pregunta` | String | Tipo de pregunta (ej. `calculo_directo`). |
+| `sub_tipo_desafio` | String, Nullable | Sub-tipo si es evaluación (`desafio_1_estandar`, `desafio_2_avanzado`, `desafio_final_maestria`). |
+| `tipo_interfaz` | String | Tipo de interacción de UI (`opcion_multiple`, `evocacion_pura_input`, `subrayado_tokens`, `chained_step`). |
+| `enunciado` | Text | Texto o expresión matemática limpia. |
+| `payload_tokenizado`| JSONB, Nullable | Array de tokens estructurados interactivos para subrayar. |
+| `datos_numericos` | JSONB, Nullable | Variables numéricas para plantillas. |
+| `respuesta_correcta` | String | Resultado esperado (evocación o letra de opción). |
+| `explicacion_paso_a_paso` | JSONB, Nullable | Pasos detallados para la Tutoría Invisible. |
+| `errores_previstos` | JSONB, Nullable | Mapeo de distractores a tipos de error y retroalimentaciones. |
+| `tiempo_limite_segundos`| Integer, Nullable | Tiempo límite para desafíos. |
+| `origen_pregunta` | String | Procedencia del reactivo (`generada` \| `preparada` \| `plantilla_dinamica`). |
+| `estado` | String | Estado del reactivo en producción (`activa` \| `borrador` \| `retirada`). |
+| `nivel_dificultad` | Integer | Nivel interno de complejidad relativa de 1 a 5. |
 
 ### Tipos de pregunta permitidos
 
@@ -2816,6 +2947,8 @@ Representa el banco de ejercicios, preguntas preparadas y plantillas dinámicas.
 calculo_directo
 problema_contexto
 plantilla_dinamica
+secuencia_logica_patron
+constructor_soluciones_chained
 ```
 
 ---
@@ -3031,9 +3164,110 @@ Ejemplo:
 
 ---
 
+## 8.3. Esquema del Enunciado Tokenizado (Herramienta Subrayadora - Módulo 4)
+
+Para el funcionamiento seguro y determinista de la herramienta de subrayado en el Módulo 4, el enunciado de la pregunta no se envía como texto plano. Se almacena y expone como un esquema estructurado de tokens en una columna JSONB (`payload_tokenizado`).
+
+### Estructura del payload en la Base de Datos
+
+Cada token representa una palabra, número o conector con propiedades que definen si es interactivo y cuál es su rol pedagógico.
+
+```json
+{
+  "tokens": [
+    {
+      "id": 0,
+      "texto": "Lucas",
+      "seleccionable": false,
+      "rol": "conector"
+    },
+    {
+      "id": 1,
+      "texto": "tiene",
+      "seleccionable": false,
+      "rol": "conector"
+    },
+    {
+      "id": 2,
+      "texto": "5 manzanas rojas",
+      "seleccionable": true,
+      "rol": "dato_util",
+      "valor_matematico": 5
+    },
+    {
+      "id": 3,
+      "texto": "en su mochila, y",
+      "seleccionable": false,
+      "rol": "conector"
+    },
+    {
+      "id": 4,
+      "texto": "3 perros",
+      "seleccionable": true,
+      "rol": "distractor",
+      "valor_matematico": 3
+    },
+    {
+      "id": 5,
+      "texto": "jugando en el patio.",
+      "seleccionable": false,
+      "rol": "conector"
+    }
+  ]
+}
+```
+
+### Contrato de Entrada y Salida (API / Pedagógica)
+
+1. **Salida del Backend (Pregunta enviada al frontend)**: El API responde con la colección de tokens tal como está en el modelo. El frontend renderiza un párrafo donde los elementos con `"seleccionable": true` son botones o áreas de texto interactivos (con estilos de cursor de puntero y color sutil al pasar el mouse).
+2. **Entrada al Backend (Respuesta enviada por el alumno)**: El alumno hace clic sobre los elementos interactivos para "subrayarlos" (activando visualmente un estilo de marca-textos). Al presionar el botón "Validar", el frontend no envía texto crudo; envía una estructura con los identificadores enteros de los tokens seleccionados:
+   ```json
+   {
+     "pregunta_id": 4102,
+     "tokens_seleccionados": [2]
+   }
+   ```
+3. **Validación determinista en el Servidor**: El backend verifica si la lista `tokens_seleccionados` coincide exactamente con los ids de los tokens cuyo rol es `"dato_util"` (o la combinación pedagógica solicitada por el nivel), eliminando de raíz las inconsistencias por puntuación, espacios y acentos.
+
+---
+
+## 8.4. Modelo de Registro Detallado de Multi-Pasos (Módulo 5)
+
+En el Módulo 5, al tratarse de problemas resueltos en cadena de múltiples pasos, un modelo de registro plano (`Intento`) no es suficiente porque mezcla y degrada las métricas de acierto. Para solucionarlo, se implementa una separación analítica en dos niveles mediante dos modelos de base de datos relacionales: `IntentoPregunta` (la sesión macro) e `IntentoPaso` (el registro granular por paso).
+
+### Modelo: `IntentoPregunta` (Sesión de la Pregunta)
+Rastrea la resolución general de la pregunta compuesta de 2 pasos.
+
+| Campo | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `id` | Integer, PK | Identificador único del intento general. |
+| `alumno_id` | Integer, FK | Relación con el alumno. |
+| `pregunta_id` | Integer, FK | Relación con la pregunta del Módulo 5. |
+| `aprobada_completa`| Boolean | Indica si completó ambos pasos de forma exitosa. |
+| `intentos_totales` | Integer | Cuántas veces intentó la pregunta (incluyendo fallos). |
+| `tiempo_total` | Float | Tiempo acumulado de resolución en segundos. |
+
+### Modelo: `IntentoPaso` (Registro Granular del Paso)
+Registra cada uno de los intentos individuales de respuesta en un paso específico de la pregunta del Módulo 5.
+
+| Campo | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `id` | Integer, PK | Identificador único de este intento de paso. |
+| `intento_pregunta_id`| Integer, FK | Relación con `IntentoPregunta`. |
+| `paso_numero` | Integer | Número de paso (`1` o `2`). |
+| `respuesta_dada` | String | Valor ingresado por el alumno. |
+| `es_correcta` | Boolean | Resultado de la validación. |
+| `tipo_error_detectado`| String | Error específico diagnosticado en este paso (ej. `calculo`, `operacion`). |
+| `es_espejo` | Boolean | Indica si este intento ocurrió dentro de una variante espejo. |
+| `tiempo_respuesta` | Float | Tiempo consumido en este paso específico. |
+
+Esta separación permite a la **Tutoría Invisible** saber con total precisión que el alumno domina las restas de dos dígitos (Paso 1) pero falla sistemáticamente en las multiplicaciones de factor 3 (Paso 2), sin perder la granularidad de sus errores en el registro de progreso general.
+
+---
+
 # 9. Riesgos Técnicos y Casos de Borde
 
-Para blindar la estabilidad del sistema y asegurar una experiencia de usuario adecuada, el backend and el frontend deben mitigar los siguientes escenarios críticos.
+Para blindar la estabilidad del sistema y asegurar una experiencia de usuario adecuada, el backend y el frontend deben mitigar los siguientes escenarios críticos.
 
 ---
 
@@ -3182,6 +3416,93 @@ distractor_seleccionado
 ```
 
 De esta forma, los reportes y modelos de tutoría pueden consultar patrones de error sin parsear estructuras JSONB pesadas.
+
+---
+
+## 9.4. Bucle Infinito en Scripts de Sembrado (Seeders)
+
+### Escenario
+Los scripts de generación aleatoria utilizan bucles `while len(pool) < cantidad`. Si las restricciones de unicidad (como enunciados o combinaciones numéricas distintas) son demasiado estrictas en comparación con el espacio combinatorio real, el generador entrará en un bucle infinito consumiendo 100% de CPU y bloqueando el despliegue.
+
+### Impacto
+* Bloqueo de pipelines de CI/CD.
+* Agotamiento de recursos en el servidor de base de datos.
+* Demora indefinida en la inicialización de ambientes.
+
+### Regla de mitigación
+Cada bucle de generación aleatoria debe estar protegido por una variable `intentos` y un límite de seguridad estricto `max_intentos` (ej. `cantidad * 50`). Si se alcanza este límite, el script debe interrumpir la ejecución lanzando una excepción clara (`ValueError`) indicando el nivel y módulo del fallo combinatorio.
+
+---
+
+## 9.5. Errores de Precisión en Monedas de Punto Flotante (IEEE 754)
+
+### Escenario
+En el Módulo 3, representar precios y vueltos mediante tipo `Float` en JavaScript o Python (ej. `2.50` o `1.10`) genera imprecisiones acumuladas por la representación decimal binaria (ej. `3.6000000000000005`), haciendo que las comparaciones de respuestas del servidor fallen de forma errática.
+
+### Impacto
+* Falsos negativos injustos para los alumnos.
+* Frustración y quejas por fallos técnicos de centavos.
+* Inconsistencias contables en reportes.
+
+### Regla de mitigación
+Queda prohibido operar con números decimales flotantes en el backend y base de datos para la gestión monetaria. Todos los precios se procesan y almacenan como **enteros en centavos** (ej. `250` en lugar de `2.50`). La interfaz de usuario es la única encargada de formatear el valor a texto legible con coma `R$ X,XX` dividiendo por 100 en la salida.
+
+---
+
+## 9.6. Desabastecimiento del Pool de Muestreo (Starvation)
+
+### Escenario
+Al iniciar un bloque de práctica, el backend ejecuta un muestreo aleatorio (ej. `random.sample(pool, 15)`). Si por algún error de sembrado el banco de preguntas de un nivel particular en PostgreSQL contiene menos registros que la cantidad de preguntas solicitadas para la sesión, el método lanzará una excepción fatal abortando el juego.
+
+### Impacto
+* Caídas de la API al cargar un nivel.
+* Interrupción total de la experiencia del estudiante.
+* Pantallas de error de carga de nivel.
+
+### Regla de mitigación
+El backend debe implementar una validación de tamaño mínimo antes del muestreo. Si `len(pool) < cantidad_solicitada`, debe capturar el caso, registrar una alerta en Sentry y realizar un fallback dinámico (ej. entregar todas las preguntas disponibles o duplicar temporalmente el pool con variaciones leves). Asimismo, se establecen pruebas unitarias automáticas en el pipeline de desarrollo para verificar que el pool de base de datos de cada nivel supere siempre las 150 preguntas.
+
+---
+
+## 9.7. Pérdida de Estado por Refresco de Navegador
+
+### Escenario
+Si el estado de la sesión de práctica (como el contador de errores o el índice actual de pregunta) reside únicamente en la memoria React o en el `localStorage` del frontend, un refresco accidental de la pantalla o un cierre del navegador permitirá al alumno reiniciar su contador de errores y evadir la Salida Temprana (Early Exit).
+
+### Impacto
+* Vulneración del flujo de maestría y progresión pedagógica.
+* Alumnos aprobando niveles mediante el simple método de refrescar la pantalla tras cometer errores.
+
+### Regla de mitigación
+Toda la máquina de estados de la evaluación es **Server-Authoritative**. El backend mantiene en la tabla `SesionEvaluacion` el estado persistente del intento activo (`indice_actual`, `errores_acumulados`). Al cargar la interfaz, el frontend consulta el estado de hidratación al endpoint del backend, reanudando la partida exactamente en el mismo estado en que se quedó, protegiendo las reglas del Early Exit.
+
+---
+
+## 9.8. Manipulación de Parámetros de Calificación (Tampering)
+
+### Escenario
+Endpoints de validación que aceptan parámetros enviados por el cliente del tipo `es_correcta: true` o `puntos_ganados: 10` permiten que cualquier usuario con conocimientos básicos de consola de navegador simule respuestas exitosas enviando peticiones manipuladas a la API.
+
+### Impacto
+* Trampas y alteración fraudulenta del progreso pedagógico.
+* Reportes analíticos de maestría completamente invalidados.
+
+### Regla de mitigación
+El endpoint de respuesta `/pedagogia/responder` únicamente debe aceptar el `pregunta_id` (o `paso_id`) y la `respuesta_dada` (como string crudo o array de IDs de tokens). La lógica de verificación de aciertos y otorgamiento de maestría es de exclusiva autoridad del servidor en base a los registros guardados en PostgreSQL.
+
+---
+
+## 9.9. Condiciones de Carrera en Actualizaciones de Progreso
+
+### Escenario
+Peticiones paralelas enviadas en milisegundos de diferencia por dobles clics rápidos en interfaces táctiles pueden causar que se inserten filas duplicadas de maestría `ProgresoMaestria` para un mismo alumno y nivel, rompiendo la integridad relacional de la base de datos.
+
+### Impacto
+* Duplicados en tablas y fallos de integridad referencial.
+* Pantallas de perfil de alumno cargando progresos inconsistentes.
+
+### Regla de mitigación
+Se aplica una restricción de clave única compuesta `UNIQUE (alumno_id, modulo, nivel)` sobre `ProgresoMaestria` en PostgreSQL. Todas las escrituras de progresión deben manejarse mediante cláusulas de inserción seguras (ej. `UPSERT` / `ON CONFLICT DO UPDATE`) garantizando la idempotencia absoluta de la operación relacional.
 
 ---
 
