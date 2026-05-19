@@ -1,5 +1,6 @@
 import asyncio
 import uuid
+import random
 from datetime import datetime
 from sqlalchemy import select
 
@@ -118,6 +119,33 @@ CONFIGURACION_DATA = [
      "cantidad_requerida": 50, "porcentaje_aprobacion": 90,
      "orden_desbloqueo": 4, "tipo_feedback": "simple",
      "usa_cronometro": True, "tiempo_default_segundos": 14},
+
+    # --- FASE 2 (Desarrollo Numérico y Razonamiento) ---
+    # Módulo 1 (Gimnasio Numérico Mental)
+    {"fase_id": 2, "seccion": 1, "operacion": OperacionEnum.MIXTA,
+     "cantidad_requerida": 15, "porcentaje_aprobacion": 90,
+     "orden_desbloqueo": 1, "tipo_feedback": "detallado",
+     "usa_cronometro": False, "tiempo_default_segundos": 0},
+    # Módulo 2 (Tablas en Acción)
+    {"fase_id": 2, "seccion": 2, "operacion": OperacionEnum.MIXTA,
+     "cantidad_requerida": 15, "porcentaje_aprobacion": 90,
+     "orden_desbloqueo": 2, "tipo_feedback": "detallado",
+     "usa_cronometro": False, "tiempo_default_segundos": 0},
+    # Módulo 3 (Tienda Matemática)
+    {"fase_id": 2, "seccion": 3, "operacion": OperacionEnum.MIXTA,
+     "cantidad_requerida": 20, "porcentaje_aprobacion": 90,
+     "orden_desbloqueo": 3, "tipo_feedback": "detallado",
+     "usa_cronometro": False, "tiempo_default_segundos": 0},
+    # Módulo 4 (Detectives de Historias)
+    {"fase_id": 2, "seccion": 4, "operacion": OperacionEnum.MIXTA,
+     "cantidad_requerida": 10, "porcentaje_aprobacion": 90,
+     "orden_desbloqueo": 4, "tipo_feedback": "detallado",
+     "usa_cronometro": False, "tiempo_default_segundos": 0},
+    # Módulo 5 (Constructor de Soluciones)
+    {"fase_id": 2, "seccion": 5, "operacion": OperacionEnum.MIXTA,
+     "cantidad_requerida": 10, "porcentaje_aprobacion": 90,
+     "orden_desbloqueo": 5, "tipo_feedback": "detallado",
+     "usa_cronometro": False, "tiempo_default_segundos": 0},
 ]
 
 # ============================================================
@@ -326,6 +354,192 @@ async def seed_preguntas_ejemplo(session: AsyncSessionLocal, admin_id: str):
             session.add(alt)
         print(f"  Pregunta de {p_data['operacion'].value} insertada con alternativas.")
 
+# ============================================================
+# INYECCIÓN DILUIDA DE FASE 2
+# ============================================================
+async def seed_preguntas_fase2(session: AsyncSessionLocal, admin_id: str):
+    print("Inyectando pool pedagógico estructurado para la Fase 2...")
+
+    # Módulo 1: Gimnasio Numérico Mental (seccion=1, fase_id=2)
+    # Generar 15 preguntas variadas para cada subnivel
+    for sub in range(1, 5):
+        for i in range(1, 6):
+            if sub == 1:
+                a = random.randint(10, 50)
+                b = random.randint(5, 45)
+                enunciado = f"Resuelve mentalmente: ¿Cuánto es {a} + {b}?"
+                ans = str(a + b)
+            elif sub == 2:
+                a = random.randint(5, 10)
+                b = random.randint(2, 6)
+                c = random.randint(10, 30)
+                enunciado = f"Aplica la jerarquía: ¿Cuánto es {c} + {a} x {b}?"
+                ans = str(c + (a * b))
+            elif sub == 3:
+                a = random.randint(5, 15)
+                b = random.randint(2, 8)
+                c = random.randint(2, 5)
+                enunciado = f"Resuelve con paréntesis: ¿Cuánto es ({a} - {b}) x {c}?"
+                ans = str((a - b) * c)
+            else:
+                a = random.randint(10, 40)
+                b = random.randint(5, 10)
+                c = random.randint(2, 4)
+                enunciado = f"Cálculo rápido integrado: ¿Cuánto es {a} - {b} x {c}?"
+                ans = str(a - (b * c))
+
+            pregunta = Pregunta(
+                fase_id=2,
+                seccion=1,
+                sub_nivel=sub,
+                operacion=OperacionEnum.MIXTA,
+                tipo_pregunta=TipoPreguntaEnum.RESPUESTA_NUMERICA,
+                enunciado=enunciado,
+                respuesta_correcta=ans,
+                datos_numericos={"sub_nivel": sub, "variacion": i},
+                creado_por=admin_id,
+                estado=StatusEnum.ACTIVO
+            )
+            session.add(pregunta)
+
+    # Módulo 2: Tablas en Acción (seccion=2, fase_id=2)
+    # Generar 15 preguntas de pares inversos y números faltantes
+    for sub in range(1, 5):
+        for i in range(1, 6):
+            if sub == 1:
+                n1, n2 = random.randint(10, 40), random.randint(5, 25)
+                tot = n1 + n2
+                enunciado = f"Si sabemos que {n1} + {n2} = {tot}, ¿cuánto da la resta inversa {tot} - {n1}?"
+                ans = str(n2)
+            elif sub == 2:
+                n1, n2 = random.randint(3, 9), random.randint(4, 10)
+                tot = n1 * n2
+                enunciado = f"Si la multiplicación da {n1} x {n2} = {tot}, ¿cuánto da la división espejo {tot} / {n2}?"
+                ans = str(n1)
+            elif sub == 3:
+                n1, tot = random.randint(10, 30), random.randint(35, 60)
+                enunciado = f"Descubre el número faltante en la operación: {n1} + ___ = {tot}"
+                ans = str(tot - n1)
+            else:
+                n1, tot = random.randint(3, 9), random.randint(15, 80)
+                enunciado = f"Resuelve el espacio vacío multiplicativo: {n1} x ___ = {tot - (tot % n1)}"
+                ans = str((tot - (tot % n1)) // n1)
+
+            pregunta = Pregunta(
+                fase_id=2,
+                seccion=2,
+                sub_nivel=sub,
+                operacion=OperacionEnum.MIXTA,
+                tipo_pregunta=TipoPreguntaEnum.RESPUESTA_NUMERICA,
+                enunciado=enunciado,
+                respuesta_correcta=ans,
+                datos_numericos={"sub_nivel": sub, "variacion": i},
+                creado_por=admin_id,
+                estado=StatusEnum.ACTIVO
+            )
+            session.add(pregunta)
+
+    # Módulo 3: Tienda Matemática (seccion=3, fase_id=2)
+    # Generar 20 preguntas con centavos amigables (.00, .25, .50, .75)
+    for sub in range(1, 5):
+        for i in range(1, 6):
+            cents = random.choice([0.0, 0.25, 0.50, 0.75])
+            if sub == 1:
+                val = float(random.randint(1, 10)) + cents
+                enunciado = f"Tienes 1 billete de R$ 10,00 y compras un dulce de R$ {val:.2f}. ¿Cuánto te queda?"
+                ans = f"{10.0 - val:.2f}"
+            elif sub == 2:
+                val = float(random.randint(5, 15)) + cents
+                enunciado = f"Quieres comprar un juguete de R$ {val:.2f} con un billete de R$ 20,00. ¿Cuál es tu vuelto?"
+                ans = f"{20.0 - val:.2f}"
+            elif sub == 3:
+                v1 = float(random.randint(1, 5)) + random.choice([0.0, 0.5])
+                v2 = float(random.randint(1, 5)) + random.choice([0.0, 0.25, 0.5])
+                enunciado = f"En tu carrito llevas un jugo de R$ {v1:.2f} y una galleta de R$ {v2:.2f}. ¿Cuánto pagarás en total?"
+                ans = f"{v1 + v2:.2f}"
+            else:
+                val = float(random.randint(15, 25)) + cents
+                enunciado = f"Tienes R$ 20,00 de presupuesto. Un libro cuesta R$ {val:.2f}. ¿Cuánto dinero te falta para poder comprarlo?"
+                ans = f"{max(0.0, val - 20.0):.2f}"
+
+            pregunta = Pregunta(
+                fase_id=2,
+                seccion=3,
+                sub_nivel=sub,
+                operacion=OperacionEnum.MIXTA,
+                tipo_pregunta=TipoPreguntaEnum.RESPUESTA_NUMERICA,
+                enunciado=enunciado,
+                respuesta_correcta=ans,
+                datos_numericos={"sub_nivel": sub, "variacion": i},
+                creado_por=admin_id,
+                estado=StatusEnum.ACTIVO
+            )
+            session.add(pregunta)
+
+    # Módulo 4: Detectives de Historias (seccion=4, fase_id=2)
+    # Generar 10 preguntas tokenizadas de filtro y comprensión
+    for sub in range(1, 5):
+        for i in range(1, 4):
+            if sub == 1:
+                enunciado = "En la frutería hay 15 manzanas rojas, 8 peras maduras y 3 gatos durmiendo al sol. ¿Cuántas frutas hay en total?"
+                ans = "23"
+            elif sub == 2:
+                enunciado = "Sofía tenía 12 calcomanías. Ayer regaló 4 a su hermano y hoy duplicó las que le quedaban. ¿Con cuántas se quedó?"
+                ans = "16"
+            elif sub == 3:
+                enunciado = "Completa la serie rítmica del detective: 4, 8, 12, 16, ___"
+                ans = "20"
+            else:
+                enunciado = "Un tren lleva 45 pasajeros. En la primera estación bajan 10 y suben 5. ¿Cuántos pasajeros siguen en el tren?"
+                ans = "40"
+
+            pregunta = Pregunta(
+                fase_id=2,
+                seccion=4,
+                sub_nivel=sub,
+                operacion=OperacionEnum.MIXTA,
+                tipo_pregunta=TipoPreguntaEnum.RESPUESTA_NUMERICA,
+                enunciado=enunciado,
+                respuesta_correcta=ans,
+                datos_numericos={"sub_nivel": sub, "variacion": i},
+                creado_por=admin_id,
+                estado=StatusEnum.ACTIVO
+            )
+            session.add(pregunta)
+
+    # Módulo 5: Constructor de Soluciones (seccion=5, fase_id=2)
+    # Generar 10 preguntas encadenadas avanzadas
+    for sub in range(1, 5):
+        for i in range(1, 4):
+            if sub == 1:
+                enunciado = "Carlos compró 3 cajas de bombones. Cada caja contiene 10 bombones. Si decide regalarle 5 bombones a su tía, ¿cuántos le quedan?"
+                ans = "25"
+            elif sub == 2:
+                enunciado = "Una fábrica empaca jugos en packs de 6 unidades. Si un camión lleva 5 packs y el conductor bebe 2 unidades en el viaje, ¿cuántos jugos llegan?"
+                ans = "28"
+            elif sub == 3:
+                enunciado = "Lucas gana R$ 8,00 por hora limpiando jardines. Si trabajó 4 horas y gastó R$ 10,00 en el almuerzo, ¿cuánto dinero limpio ahorró?"
+                ans = "22"
+            else:
+                enunciado = "Un álbum tiene espacio para 100 estampas. Compras 8 sobres con 5 estampas cada uno. ¿Cuántas estampas te faltan para llenar el álbum?"
+                ans = "60"
+
+            pregunta = Pregunta(
+                fase_id=2,
+                seccion=5,
+                sub_nivel=sub,
+                operacion=OperacionEnum.MIXTA,
+                tipo_pregunta=TipoPreguntaEnum.RESPUESTA_NUMERICA,
+                enunciado=enunciado,
+                respuesta_correcta=ans,
+                datos_numericos={"sub_nivel": sub, "variacion": i},
+                creado_por=admin_id,
+                estado=StatusEnum.ACTIVO
+            )
+            session.add(pregunta)
+
+    print("  ¡Pool de preguntas de la Fase 2 inyectado exitosamente!")
+
 async def create_admin_user(session: AsyncSessionLocal) -> str:
     print("Verificando usuario administrador...")
     result = await session.execute(
@@ -374,6 +588,9 @@ async def run_seed():
         
         # 5. Example questions
         await seed_preguntas_ejemplo(session, admin_id)
+
+        # 6. Phase 2 Questions
+        await seed_preguntas_fase2(session, admin_id)
         
         await session.commit()
 

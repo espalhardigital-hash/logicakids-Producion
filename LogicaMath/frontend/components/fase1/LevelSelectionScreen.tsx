@@ -16,7 +16,13 @@ const CATEGORY_NAMES: Record<string, string> = {
   subtraction: 'Restas',
   multiplication: 'Tablas',
   division: 'Divisiones',
-  challenge: 'Desafío Mixto'
+  challenge: 'Desafío Mixto',
+  gym: 'Gimnasio Mental',
+  tables_action: 'Tablas en Acción',
+  store: 'Tienda Matemática',
+  detective: 'Detective de Historias',
+  builder: 'Constructor de Soluciones',
+  challenge_fase2: 'Desafío Mixto F2'
 };
 
 const difficultyOrder: Difficulty[] = ['easy', 'easy_medium', 'medium', 'medium_hard', 'hard'];

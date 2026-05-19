@@ -14,7 +14,8 @@ from ..schemas import (
 from ..db.session import get_db
 from ..models.sql_models import (
     Alumno, Fase, Pregunta, Alternativa, ConfiguracionProgreso,
-    ProgresoMaestria, Intento, PoolAsignadoAlumno, StatusEnum, EstadoProgresoEnum
+    ProgresoMaestria, Intento, PoolAsignadoAlumno, StatusEnum, EstadoProgresoEnum,
+    SesionEvaluacion
 )
 from ..auth import get_current_user
 
@@ -50,7 +51,37 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                 select(ProgresoMaestria)
                 .where(and_(ProgresoMaestria.alumno_id == alumno_id, ProgresoMaestria.fase_id == fase.id))
             )
-            progresos = result.scalars().all()
+            progresos = list(result.scalars().all())
+            
+            # --- AUTO-INICIALIZACIÓN DE MÓDULOS/PROGRESOS ---
+            bloque_activo = next((p for p in progresos if p.estado != EstadoProgresoEnum.APROBADO), None)
+            
+            if not bloque_activo:
+                # Si no hay progresos activos, buscar el siguiente bloque desbloqueable por orden
+                result_configs = await db.execute(
+                    select(ConfiguracionProgreso)
+                    .where(ConfiguracionProgreso.fase_id == fase.id)
+                    .order_by(ConfiguracionProgreso.orden_desbloqueo.asc())
+                )
+                configs = result_configs.scalars().all()
+                
+                aprobados_ops = {(p.seccion, p.operacion) for p in progresos if p.estado == EstadoProgresoEnum.APROBADO}
+                next_config = next((c for c in configs if (c.seccion, c.operacion) not in aprobados_ops), None)
+                
+                if next_config:
+                    bloque_activo = ProgresoMaestria(
+                        alumno_id=alumno_id,
+                        fase_id=fase.id,
+                        seccion=next_config.seccion,
+                        operacion=next_config.operacion,
+                        estado=EstadoProgresoEnum.EN_PROGRESO,
+                        porcentaje_actual=0,
+                        intentos_totales=0,
+                        aciertos_acumulados=0
+                    )
+                    db.add(bloque_activo)
+                    await db.commit()
+                    progresos.append(bloque_activo)
             
             # Construir resumen de fase
             progreso_fase = ProgresoResumenFase(
@@ -58,12 +89,9 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                 fase_nombre=fase.nombre,
                 bloques=[ProgresoMaestriaResponse.model_validate(p) for p in progresos],
                 bloques_aprobados=sum(1 for p in progresos if p.estado == EstadoProgresoEnum.APROBADO),
-                bloques_totales=0, # Pendiente calcular total
-                fase_completada=False # Simplificado
+                bloques_totales=len(progresos),
+                fase_completada=all(p.estado == EstadoProgresoEnum.APROBADO for p in progresos) if progresos else False
             )
-            
-            # Buscar el bloque activo (el primero que no esté aprobado, o el último si todos lo están)
-            bloque_activo = next((p for p in progresos if p.estado != EstadoProgresoEnum.APROBADO), None)
             
             if bloque_activo:
                 # Obtener la configuración de este bloque
@@ -79,23 +107,48 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                 if config:
                     configuracion_bloque = ConfiguracionProgresoResponse.model_validate(config)
                     
-                    # Obtener la siguiente pregunta del pool (simplificado para diseño)
-                    # Aquí iría la lógica real de selección aleatoria del pool de pendientes
-                    result = await db.execute(
-                        select(Pregunta)
-                        .options(selectinload(Pregunta.alternativas))
+                    # --- BUCLE ESPEJO (MIRROR LOOP) ---
+                    # Buscar si hay una sesión activa de evaluación con pregunta espejo pendiente
+                    result_sesion = await db.execute(
+                        select(SesionEvaluacion)
                         .where(and_(
-                            Pregunta.fase_id == fase.id,
-                            Pregunta.seccion == bloque_activo.seccion,
-                            Pregunta.operacion == bloque_activo.operacion,
-                            Pregunta.estado == StatusEnum.ACTIVO
+                            SesionEvaluacion.alumno_id == alumno_id,
+                            SesionEvaluacion.fase_id == fase.id,
+                            SesionEvaluacion.seccion == bloque_activo.seccion,
+                            SesionEvaluacion.operacion == bloque_activo.operacion,
+                            SesionEvaluacion.completada == False
                         ))
-                        .order_by(func.random())
                         .limit(1)
                     )
-                    pregunta_db = result.scalar_one_or_none()
+                    sesion = result_sesion.scalar_one_or_none()
+                    
+                    pregunta_db = None
+                    if sesion and sesion.pregunta_espejo_activa and sesion.pregunta_espejo_id:
+                        # Recuperar la misma pregunta que falló para darle otra oportunidad
+                        result_espejo = await db.execute(
+                            select(Pregunta)
+                            .options(selectinload(Pregunta.alternativas))
+                            .where(Pregunta.id == sesion.pregunta_espejo_id)
+                        )
+                        pregunta_db = result_espejo.scalar_one_or_none()
+                    
+                    if not pregunta_db:
+                        # Si no hay pregunta espejo activa, obtener una del pool de forma aleatoria
+                        result = await db.execute(
+                            select(Pregunta)
+                            .options(selectinload(Pregunta.alternativas))
+                            .where(and_(
+                                Pregunta.fase_id == fase.id,
+                                Pregunta.seccion == bloque_activo.seccion,
+                                Pregunta.operacion == bloque_activo.operacion,
+                                Pregunta.estado == StatusEnum.ACTIVO
+                            ))
+                            .order_by(func.random())
+                            .limit(1)
+                        )
+                        pregunta_db = result.scalar_one_or_none()
+                    
                     if pregunta_db:
-                        # Mapear a schema de alumno (sin revelar respuesta)
                         siguiente_pregunta = PreguntaParaAlumno(
                             id=pregunta_db.id,
                             enunciado=pregunta_db.enunciado,
@@ -148,7 +201,7 @@ async def responder_pregunta(
     if not config:
         raise HTTPException(status_code=500, detail="Configuración no encontrada para este bloque")
 
-    # 3. Evaluar respuesta
+    # 3. Evaluar respuesta con soporte robusto de coma decimal para Real (R$) brasileño
     es_correcta = False
     alternativa_elegida = None
     
@@ -158,12 +211,19 @@ async def responder_pregunta(
             es_correcta = alternativa_elegida.es_correcta
     elif respuesta.respuesta_dada is not None:
         if pregunta.respuesta_correcta is not None and respuesta.respuesta_dada.strip():
-            es_correcta = (respuesta.respuesta_dada.strip().lower() == pregunta.respuesta_correcta.strip().lower())
+            clean_given = respuesta.respuesta_dada.strip().replace(",", ".").lower()
+            clean_correct = pregunta.respuesta_correcta.strip().replace(",", ".").lower()
+            
+            # Tolerancia numérica para float (comparar 3.5 con 3.50)
+            try:
+                es_correcta = float(clean_given) == float(clean_correct)
+            except ValueError:
+                es_correcta = (clean_given == clean_correct)
         else:
             es_correcta = False
     
-    # 4. Obtener/Crear ProgresoMaestria
-    result = await db.execute(
+    # 4. Obtener/Crear ProgresoMaestria y SesionEvaluacion
+    result_progreso = await db.execute(
         select(ProgresoMaestria).where(and_(
             ProgresoMaestria.alumno_id == alumno_id,
             ProgresoMaestria.fase_id == pregunta.fase_id,
@@ -171,7 +231,7 @@ async def responder_pregunta(
             ProgresoMaestria.operacion == pregunta.operacion
         ))
     )
-    progreso = result.scalar_one_or_none()
+    progreso = result_progreso.scalar_one_or_none()
     
     if not progreso:
         progreso = ProgresoMaestria(
@@ -183,10 +243,52 @@ async def responder_pregunta(
         )
         db.add(progreso)
     
-    # Actualizar contadores
+    result_sesion = await db.execute(
+        select(SesionEvaluacion)
+        .where(and_(
+            SesionEvaluacion.alumno_id == alumno_id,
+            SesionEvaluacion.fase_id == pregunta.fase_id,
+            SesionEvaluacion.seccion == pregunta.seccion,
+            SesionEvaluacion.operacion == pregunta.operacion,
+            SesionEvaluacion.completada == False
+        ))
+        .limit(1)
+    )
+    sesion = result_sesion.scalar_one_or_none()
+    if not sesion:
+        sesion = SesionEvaluacion(
+            alumno_id=alumno_id,
+            fase_id=pregunta.fase_id,
+            seccion=pregunta.seccion,
+            operacion=pregunta.operacion,
+            completada=False
+        )
+        db.add(sesion)
+
+    # Actualizar contadores pedagógicos y de sesión
     progreso.intentos_totales += 1
+    sesion.intentos_totales += 1
+    
     if es_correcta:
         progreso.aciertos_acumulados += 1
+        sesion.intentos_correctos += 1
+        sesion.fallas_consecutivas = 0
+        sesion.pregunta_espejo_activa = False
+        sesion.pregunta_espejo_id = None
+    else:
+        sesion.intentos_incorrectos += 1
+        sesion.fallas_consecutivas += 1
+        
+        # --- LÓGICA BUCLE ESPEJO Y AVANCE POR FRUSTRACIÓN ---
+        if sesion.fallas_consecutivas >= 3:
+            # Bypass pedagógico para evitar frustración excesiva (3 fallos seguidos)
+            sesion.fallas_consecutivas = 0
+            sesion.pregunta_espejo_activa = False
+            sesion.pregunta_espejo_id = None
+            # Permitimos que avance sin quedar atrapado
+        else:
+            sesion.pregunta_espejo_activa = True
+            sesion.pregunta_espejo_id = pregunta.id
         
     progreso.porcentaje_actual = int((progreso.aciertos_acumulados / config.cantidad_requerida) * 100) if config.cantidad_requerida > 0 else 0
     
@@ -197,7 +299,8 @@ async def responder_pregunta(
         progreso.estado = EstadoProgresoEnum.APROBADO
         progreso.fecha_aprobacion = datetime.utcnow()
         bloque_completado = True
-        # Lógica de fase completada iría aquí (revisar si todos los bloques requeridos están aprobados)
+        sesion.completada = True
+        sesion.fecha_fin = datetime.utcnow()
         
     # 5. Registrar Intento
     intento = Intento(

@@ -350,7 +350,14 @@ const AppContent: React.FC = () => {
             <LevelSelectionScreen
               user={currentUser}
               category={category}
-              onBack={() => navigate('/welcome')}
+              onBack={() => {
+                const f2Cats = ['gym', 'tables_action', 'store', 'detective', 'builder', 'challenge_fase2'];
+                if (f2Cats.includes(category)) {
+                  navigate('/welcome-fase2');
+                } else {
+                  navigate('/welcome');
+                }
+              }}
               onSelectLevel={(diff) => handleStartGame(currentUser?.username || "Invitado", category, diff)}
               adminConfig={adminConfig}
             />
@@ -363,10 +370,27 @@ const AppContent: React.FC = () => {
               userSettings={currentUser?.settings}
               adminConfig={adminConfig}
               modularConfigs={modularConfigs}
-              faseId={currentUser?.fase_actual_id || 1}
-              seccion={1}
+              faseId={['gym', 'tables_action', 'store', 'detective', 'builder', 'challenge_fase2'].includes(category) ? 2 : 1}
+              seccion={
+                category === 'gym' ? 1 :
+                category === 'tables_action' ? 2 :
+                category === 'store' ? 3 :
+                category === 'detective' ? 4 :
+                category === 'builder' ? 5 : 1
+              }
               onEndGame={handleEndGame}
-              onExit={() => navigate(currentUser ? '/map' : '/welcome')}
+              onExit={() => {
+                if (currentUser) {
+                  navigate('/map');
+                } else {
+                  const f2Cats = ['gym', 'tables_action', 'store', 'detective', 'builder', 'challenge_fase2'];
+                  if (f2Cats.includes(category)) {
+                    navigate('/welcome-fase2');
+                  } else {
+                    navigate('/welcome');
+                  }
+                }
+              }}
             />
           } />
 
@@ -376,7 +400,18 @@ const AppContent: React.FC = () => {
                 stats={gameStats}
                 username={username}
                 onRestart={handleRestart}
-                onHome={() => navigate(currentUser ? '/map' : '/welcome')}
+                onHome={() => {
+                  if (currentUser) {
+                    navigate('/map');
+                  } else {
+                    const f2Cats = ['gym', 'tables_action', 'store', 'detective', 'builder', 'challenge_fase2'];
+                    if (f2Cats.includes(category)) {
+                      navigate('/welcome-fase2');
+                    } else {
+                      navigate('/welcome');
+                    }
+                  }
+                }}
                 onNextLevel={handleNextLevel}
                 hasNextLevel={hasNextLevel}
                 isPass={isPass}
@@ -384,7 +419,7 @@ const AppContent: React.FC = () => {
                 category={category}
               />
             ) : (
-              <Navigate to={currentUser ? '/map' : '/welcome'} replace />
+              <Navigate to={currentUser ? '/map' : (['gym', 'tables_action', 'store', 'detective', 'builder', 'challenge_fase2'].includes(category) ? '/welcome-fase2' : '/welcome')} replace />
             )
           } />
 

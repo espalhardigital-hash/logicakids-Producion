@@ -272,3 +272,34 @@ class Intento(Base):
             f"pregunta={self.pregunta_id} "
             f"correcta={self.es_correcta}>"
         )
+
+
+class SesionEvaluacion(Base):
+    """
+    Rastrea el progreso en tiempo real de una sesión de evaluación/desafío
+    para evitar agregaciones costosas sobre intentos pasados.
+    """
+    __tablename__ = "sesiones_evaluacion"
+
+    id = Column(Integer, primary_key=True, index=True)
+    alumno_id = Column(Integer, ForeignKey("alumnos.id"), nullable=False)
+    fase_id = Column(Integer, ForeignKey("fases.id"), nullable=False)
+    seccion = Column(Integer, nullable=False) # modulo
+    operacion = Column(Enum(OperacionEnum, name="operacion_sesion_eval", native_enum=False), nullable=False)
+    
+    intentos_totales = Column(Integer, default=0, nullable=False)
+    intentos_correctos = Column(Integer, default=0, nullable=False)
+    intentos_incorrectos = Column(Integer, default=0, nullable=False)
+    
+    # Bucle Espejo / Mirror Loop state
+    fallas_consecutivas = Column(Integer, default=0, nullable=False)
+    pregunta_espejo_activa = Column(Boolean, default=False, nullable=False)
+    pregunta_espejo_id = Column(Integer, nullable=True) # ID de la pregunta original que falló
+
+    fecha_inicio = Column(DateTime, default=datetime.utcnow, nullable=False)
+    fecha_fin = Column(DateTime, nullable=True)
+    completada = Column(Boolean, default=False, nullable=False)
+
+    # Relaciones
+    alumno = relationship("Alumno")
+    fase = relationship("Fase")
