@@ -10,9 +10,6 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
-      define: {
-        'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || env.VITE_API_URL || ''),
-      },
       plugins: [react(), tailwindcss()],
       resolve: {
         alias: {

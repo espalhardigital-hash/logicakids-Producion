@@ -1,0 +1,50 @@
+services:
+  # ===== BACKEND API (FastAPI) =====
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_ENDPOINT_URL=${S3_ENDPOINT_URL}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+    networks:
+      - traefik_proxy
+      - internal_services # Permite comunicarse con el contenedor base_postgres_general
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.rule=Host(`${DOMINIO:-logica.espalhar.shop}`) && PathPrefix(`/api`, `/docs`, `/redoc`, `/openapi.json`)"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.entrypoints=websecure"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.${NOMBRE_APP:-matematicas-kids}-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.middlewares=${NOMBRE_APP:-matematicas-kids}-stripprefix"
+      - "traefik.http.services.${NOMBRE_APP:-matematicas-kids}-api.loadbalancer.server.port=8000"
+
+  # ===== FRONTEND (React + Nginx) =====
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-https://logica.espalhar.shop/api}
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-web.rule=Host(`${DOMINIO:-logica.espalhar.shop}`)"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-web.entrypoints=websecure"
+      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-web.tls.certresolver=letsencrypt"
+
+networks:
+  traefik_proxy:
+    external: true
+  internal_services:
+    external: true

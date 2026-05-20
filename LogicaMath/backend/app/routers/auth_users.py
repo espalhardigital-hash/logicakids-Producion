@@ -33,10 +33,6 @@ S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
 S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME")
 S3_REGION = os.environ.get("S3_REGION", "us-east-1")
 
-# Absolute path resolution for local storage fallback
-ROUTER_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_AVATARS_DIR = os.path.join(os.path.dirname(ROUTER_DIR), "static", "avatars")
-
 
 @router.post("/auth/register", response_model=Token)
 async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
@@ -225,9 +221,38 @@ async def admin_create_user(user_data: AdminUserCreate, db: AsyncSession = Depen
         email=user_data.email,
         password_hash=get_password_hash(user_data.password),
         role=user_data.role,
-        status="ACTIVE"
+        status="ACTIVE",
+        unlocked_level=0,
+        settings={
+            "unlockedLevels": {
+                "addition": 0,
+                "subtraction": 0,
+                "multiplication": 0,
+                "division": 0,
+                "challenge": 0
+            },
+            "scores": []
+        }
     )
     db.add(user)
+    await db.flush()
+    
+    from ..models.sql_models import Fase, Alumno
+    # Find Fase 0 (the initial phase)
+    result = await db.execute(select(Fase).where(Fase.orden == 0))
+    fase_cero = result.scalar_one_or_none()
+    
+    if not fase_cero:
+        # Fallback: get the phase with the lowest order
+        result = await db.execute(select(Fase).order_by(Fase.orden.asc()).limit(1))
+        fase_cero = result.scalar_one_or_none()
+        
+    alumno = Alumno(
+        user_id=user.id,
+        nombre=user.username,
+        fase_actual_id=fase_cero.id if fase_cero else None
+    )
+    db.add(alumno)
     await db.commit()
     await db.refresh(user)
     return {
@@ -275,7 +300,7 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
     # LOCAL FALLBACK IF S3 NOT CONFIGURED
     if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
         print("S3 configuration incomplete. Using local storage fallback for avatar upload.")
-        static_dir = STATIC_AVATARS_DIR
+        static_dir = os.path.join("app", "static", "avatars")
         os.makedirs(static_dir, exist_ok=True)
         local_filepath = os.path.join(static_dir, filename)
         try:
@@ -318,7 +343,8 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
 @router.get("/avatars/{filename}")
 async def get_avatar(filename: str):
     # Check if exists locally first
-    local_path = os.path.join(STATIC_AVATARS_DIR, filename)
+    safe_filename = os.path.basename(filename)
+    local_path = os.path.join("app", "static", "avatars", safe_filename)
     if os.path.exists(local_path):
         from fastapi.responses import FileResponse
         return FileResponse(local_path, media_type="image/webp")
@@ -337,7 +363,7 @@ async def get_avatar(filename: str):
             region_name=S3_REGION
         )
         try:
-            response = s3.get_object(Bucket=S3_BUCKET_NAME, Key=filename)
+            response = s3.get_object(Bucket=S3_BUCKET_NAME, Key=safe_filename)
             content = response['Body'].read()
             content_type = response.get('ContentType', 'image/webp')
             return content, content_type

@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # ===== BACKEND API (FastAPI) =====
   backend:
@@ -17,13 +19,14 @@ services:
       - traefik_proxy
       - internal_services # Permite comunicarse con el contenedor base_postgres_general
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.rule=Host(`${DOMINIO:-logica.espalhar.shop}`) && PathPrefix(`/api`, `/docs`, `/redoc`, `/openapi.json`)"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.entrypoints=websecure"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.tls.certresolver=letsencrypt"
-      - "traefik.http.middlewares.${NOMBRE_APP:-matematicas-kids}-stripprefix.stripprefix.prefixes=/api"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-api.middlewares=${NOMBRE_APP:-matematicas-kids}-stripprefix"
-      - "traefik.http.services.${NOMBRE_APP:-matematicas-kids}-api.loadbalancer.server.port=8000"
+      - 'traefik.enable=true'
+      # Configuración del enrutador usando el nuevo dominio por defecto: logica.espalhar.shop
+      - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-api.rule=Host(`${DOMINIO:-logica.espalhar.shop}`) && PathPrefix(`/api`, `/docs`, `/redoc`, `/openapi.json`)'
+      - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-api.entrypoints=websecure'
+      - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-api.tls.certresolver=letsencrypt'
+      - 'traefik.http.middlewares.${NOMBRE_APP:-logica_Kids}-stripprefix.stripprefix.prefixes=/api'
+      - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-api.middlewares=${NOMBRE_APP:-logica_Kids}-stripprefix'
+      - 'traefik.http.services.${NOMBRE_APP:-logica_Kids}-api.loadbalancer.server.port=8000'
 
   # ===== FRONTEND (React + Nginx) =====
   frontend:
@@ -31,17 +34,17 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
+        # Se actualiza la URL de la API apuntando al nuevo subdominio de producción /api
         - VITE_API_URL=${VITE_API_URL:-https://logica.espalhar.shop/api}
     restart: always
-    depends_on:
-      - backend
     networks:
       - traefik_proxy
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-web.rule=Host(`${DOMINIO:-logica.espalhar.shop}`)"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-web.entrypoints=websecure"
-      - "traefik.http.routers.${NOMBRE_APP:-matematicas-kids}-web.tls.certresolver=letsencrypt"
+      - 'traefik.enable=true'
+      # Configuración del enrutador Web para el nuevo dominio por defecto: logica.espalhar.shop
+      - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-web.rule=Host(`${DOMINIO:-logica.espalhar.shop}`)'
+      - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-web.entrypoints=websecure'
+      - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-web.tls.certresolver=letsencrypt'
 
 networks:
   traefik_proxy:

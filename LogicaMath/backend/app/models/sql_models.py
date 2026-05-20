@@ -13,5 +13,5 @@ from .user import User
 from .fase import Fase
 from .alumno import Alumno
 from .pregunta import Pregunta, Alternativa
-from .progreso import ConfiguracionProgreso, PoolAsignadoAlumno, ProgresoMaestria, Intento, SesionEvaluacion
+from .progreso import ConfiguracionProgreso, PoolAsignadoAlumno, ProgresoMaestria, Intento
 from .settings import PlatformSettings

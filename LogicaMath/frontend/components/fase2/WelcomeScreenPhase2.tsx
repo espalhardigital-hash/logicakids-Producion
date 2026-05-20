@@ -52,7 +52,40 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
   };
 
   const handleCategoryClick = (categoryId: GameCategory) => {
-    onSelectCategory(categoryId);
+    // If it's the challenge, proceed
+    if (categoryId === 'challenge_fase2') {
+      onSelectCategory(categoryId);
+      return;
+    }
+    // Show a beautiful mockup/sandbox preview modal for Phase 2 question modules
+    const modMap: Record<string, { label: string; desc: string }> = {
+      gym: {
+        label: 'Gimnasio Numérico Mental',
+        desc: 'Módulo de cálculo veloz: sumas, restas, dobles, mitades y operaciones combinadas con prioridad algebraica (Fase 2).'
+      },
+      tables_action: {
+        label: 'Tablas en Acción',
+        desc: 'Domina las tablas de multiplicar de forma práctica, encontrando factores faltantes y resolviendo operaciones inversas.'
+      },
+      store: {
+        label: 'Tienda Matemática',
+        desc: 'Simula compras reales en R$, calcula vueltos y sumas con decimales redondeados para evitar errores de precisión.'
+      },
+      detective: {
+        label: 'Detective de Problemas',
+        desc: 'Identifica y subraya datos esenciales y distractores narrativos utilizando el subrayador interactivo inteligente.'
+      },
+      builder: {
+        label: 'Constructor de Soluciones',
+        desc: 'Conecta múltiples pasos lógicos en secuencia, donde la salida de cada operación alimenta la siguiente.'
+      }
+    };
+    const details = modMap[categoryId];
+    if (details) {
+      setPreviewModule({ id: categoryId, ...details });
+    } else {
+      onSelectCategory(categoryId);
+    }
   };
 
   // Categories displayed in the main grid including the ultimate challenge of Phase 2

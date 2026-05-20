@@ -3,7 +3,7 @@ import httpx
 import json
 from typing import List, Dict, Any
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GEMINI_MODEL = "gemini-1.5-flash" # Use flash for faster/cheaper analysis
 
 async def analyze_student_performance(

@@ -2,7 +2,7 @@ import asyncio
 import uuid
 from sqlalchemy import select
 from app.db.session import engine, AsyncSessionLocal
-from app.models.sql_models import User
+from app.models.sql_models import User, Alumno, Fase
 from app.auth import get_password_hash
 
 async def create_users():
@@ -60,6 +60,54 @@ async def create_users():
         else:
             test_user.password_hash = get_password_hash(test_pass)
             print(f"⚠️ Usuario de prueba ya existía. Contraseña actualizada: {test_email}")
+
+        # Guardar cambios preliminares
+        await session.flush()
+
+        # Inicializar settings por defecto si están vacías
+        for user in [admin_user, test_user]:
+            if not user.settings:
+                user.settings = {
+                    "unlockedLevels": {
+                        "addition": 0,
+                        "subtraction": 0,
+                        "multiplication": 0,
+                        "division": 0,
+                        "challenge": 0
+                    },
+                    "scores": []
+                }
+                from sqlalchemy.orm.attributes import flag_modified
+                flag_modified(user, "settings")
+
+        # Buscar la fase inicial (Fase 0 o de orden menor)
+        result = await session.execute(select(Fase).where(Fase.orden == 0))
+        fase_cero = result.scalar_one_or_none()
+        if not fase_cero:
+            result = await session.execute(select(Fase).order_by(Fase.orden.asc()).limit(1))
+            fase_cero = result.scalar_one_or_none()
+
+        # Asegurar perfil Alumno para Administrador
+        result = await session.execute(select(Alumno).where(Alumno.user_id == admin_user.id))
+        if not result.scalar_one_or_none():
+            alumno_admin = Alumno(
+                user_id=admin_user.id,
+                nombre=admin_user.username,
+                fase_actual_id=fase_cero.id if fase_cero else None
+            )
+            session.add(alumno_admin)
+            print(f"✅ Alumno creado para administrador: {admin_user.username}")
+
+        # Asegurar perfil Alumno para Usuario de Prueba
+        result = await session.execute(select(Alumno).where(Alumno.user_id == test_user.id))
+        if not result.scalar_one_or_none():
+            alumno_test = Alumno(
+                user_id=test_user.id,
+                nombre=test_user.username,
+                fase_actual_id=fase_cero.id if fase_cero else None
+            )
+            session.add(alumno_test)
+            print(f"✅ Alumno creado para usuario prueba: {test_user.username}")
 
         await session.commit()
     

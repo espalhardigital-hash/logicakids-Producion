@@ -25,9 +25,9 @@ DEFAULT_PEDAGOGY_CONFIG = {
     "timers": {
         "easy": 10,
         "easy_medium": 12,
-        "medium": 14,
-        "medium_hard": 16,
-        "hard": 18,
+        "medium": 18,
+        "medium_hard": 22,
+        "hard": 25,
     },
     "useTimer": True,
     "passingScore": 90,

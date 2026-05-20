@@ -13,7 +13,7 @@ class ConfiguracionProgreso(Base):
     """
     __tablename__ = "configuracion_progreso"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
     fase_id = Column(Integer, ForeignKey("fases.id"), nullable=False)
 
@@ -35,9 +35,9 @@ class ConfiguracionProgreso(Base):
 
     activo = Column(Boolean, default=True, nullable=False)
 
-    fecha_creacion = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    fecha_creacion = Column(DateTime, default=datetime.utcnow, nullable=False)
     ultima_modificacion = Column(
-        DateTime(timezone=True),
+        DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
         nullable=False,
@@ -78,7 +78,7 @@ class PoolAsignadoAlumno(Base):
     """
     __tablename__ = "pool_asignado_alumno"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
     alumno_id = Column(Integer, ForeignKey("alumnos.id"), nullable=False)
     pregunta_id = Column(Integer, ForeignKey("preguntas.id"), nullable=False)
@@ -93,9 +93,9 @@ class PoolAsignadoAlumno(Base):
     # Cuantas veces intento esta pregunta
     numero_intentos = Column(Integer, default=0, nullable=False)
 
-    fecha_asignacion = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    fecha_asignacion = Column(DateTime, default=datetime.utcnow, nullable=False)
     ultima_actualizacion = Column(
-        DateTime(timezone=True),
+        DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
         nullable=False,
@@ -145,7 +145,7 @@ class ProgresoMaestria(Base):
     """
     __tablename__ = "progreso_maestria"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
     alumno_id = Column(Integer, ForeignKey("alumnos.id"), nullable=False)
     fase_id = Column(Integer, ForeignKey("fases.id"), nullable=False)
@@ -164,11 +164,11 @@ class ProgresoMaestria(Base):
     intentos_totales = Column(Integer, default=0, nullable=False)
     porcentaje_actual = Column(Integer, default=0, nullable=False)
 
-    fecha_inicio = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    fecha_inicio = Column(DateTime, default=datetime.utcnow, nullable=False)
     # Cuando aprobo este bloque
-    fecha_aprobacion = Column(DateTime(timezone=True), nullable=True)
+    fecha_aprobacion = Column(DateTime, nullable=True)
     ultima_actualizacion = Column(
-        DateTime(timezone=True),
+        DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
         nullable=False,
@@ -214,7 +214,7 @@ class Intento(Base):
     """
     __tablename__ = "intentos"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
     alumno_id = Column(Integer, ForeignKey("alumnos.id"), nullable=False)
     pregunta_id = Column(Integer, ForeignKey("preguntas.id"), nullable=False)
@@ -235,7 +235,7 @@ class Intento(Base):
     # Cuanto tardo en responder
     tiempo_respuesta_segundos = Column(Float, nullable=True)
 
-    fecha = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    fecha = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relaciones
     alumno = relationship("Alumno", back_populates="intentos")
@@ -272,45 +272,3 @@ class Intento(Base):
             f"pregunta={self.pregunta_id} "
             f"correcta={self.es_correcta}>"
         )
-
-
-class SesionEvaluacion(Base):
-    """
-    Rastrea el progreso en tiempo real de una sesión de evaluación/desafío
-    para evitar agregaciones costosas sobre intentos pasados.
-    """
-    __tablename__ = "sesiones_evaluacion"
-
-    id = Column(Integer, primary_key=True)
-    alumno_id = Column(Integer, ForeignKey("alumnos.id"), nullable=False, index=True)
-    fase_id = Column(Integer, ForeignKey("fases.id"), nullable=False, index=True)
-    seccion = Column(Integer, nullable=False) # modulo
-    operacion = Column(Enum(OperacionEnum, name="operacion_sesion_eval", native_enum=False), nullable=False)
-    
-    # Nuevos campos de producción de LogicaKids Pro
-    modulo_id = Column(Integer, nullable=True, index=True)
-    nivel_id = Column(Integer, nullable=True, index=True)
-    tipo_sesion = Column(String(50), nullable=True) # practica, desafio
-    tipo_desafio = Column(String(50), nullable=True) # desafio_1, desafio_2, desafio_final
-    porcentaje_acierto = Column(Float, nullable=True)
-    tiempo_total_segundos = Column(Integer, nullable=True)
-    maestria_alcanzada = Column(Boolean, default=False, nullable=True)
-    motivo_finalizacion = Column(String(100), nullable=True) # completado, fallo_temprano, abandono
-
-    intentos_totales = Column(Integer, default=0, nullable=False)
-    intentos_correctos = Column(Integer, default=0, nullable=False)
-    intentos_incorrectos = Column(Integer, default=0, nullable=False)
-    
-    # Bucle Espejo / Mirror Loop state
-    fallas_consecutivas = Column(Integer, default=0, nullable=False)
-    pregunta_espejo_activa = Column(Boolean, default=False, nullable=False)
-    pregunta_espejo_id = Column(Integer, ForeignKey("preguntas.id"), nullable=True) # ID de la pregunta original que falló
-
-    fecha_inicio = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True)
-    fecha_fin = Column(DateTime(timezone=True), nullable=True)
-    completada = Column(Boolean, default=False, nullable=False, index=True)
-
-    # Relaciones
-    alumno = relationship("Alumno")
-    fase = relationship("Fase")
-    pregunta_espejo = relationship("Pregunta")

@@ -20,7 +20,7 @@ import uuid
 from dotenv import load_dotenv
 
 from .db.session import get_db
-from .models.sql_models import User, Alumno, Fase
+from .models.sql_models import User, Alumno, Fase, ProgresoMaestria, EstadoProgresoEnum, OperacionEnum
 
 load_dotenv()
 
@@ -132,12 +132,16 @@ async def create_user(db: AsyncSession, username: str, email: str, password: str
     Create a new user with hashed password.
     Also creates the Alumno profile linked to the user,
     with fase_actual_id set to Fase 0 (orden=0).
+    Special logic: for eloisa@gmail.com and joaquin@gmail.com,
+    set addition level to 6, phase to Fase 1, and approve Suma in ProgresoMaestria.
     """
     # Check if user exists
     result = await db.execute(select(User).where(User.email == email))
     existing = result.scalar_one_or_none()
     if existing:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
+    
+    is_special_student = email.lower() in ["eloisa@gmail.com", "joaquin@gmail.com"]
     
     # Create auth user
     new_user = User(
@@ -151,35 +155,72 @@ async def create_user(db: AsyncSession, username: str, email: str, password: str
         settings={}
     )
     
+    # Pre-populate unlockedLevels in settings
+    addition_unlocked = 6 if is_special_student else 0
+    new_user.settings = {
+        "unlockedLevels": {
+            "addition": addition_unlocked,
+            "subtraction": 0,
+            "multiplication": 0,
+            "division": 0,
+            "challenge": 0
+        },
+        "scores": []
+    }
+    
     db.add(new_user)
     await db.flush()  # Flush to get the user ID before creating alumno
     
-    # Find Fase 1 (the initial phase)
-    result = await db.execute(select(Fase).where(Fase.orden == 1))
-    fase_inicial = result.scalar_one_or_none()
+    # Find active target phase (Fase 1 for special students, Fase 0 otherwise)
+    target_order = 1 if is_special_student else 0
+    result = await db.execute(select(Fase).where(Fase.orden == target_order))
+    target_fase = result.scalar_one_or_none()
     
+    if not target_fase:
+        # Fallback to whatever phase exists
+        result = await db.execute(select(Fase).order_by(Fase.orden.asc()).limit(1))
+        target_fase = result.scalar_one_or_none()
+        
     # Create alumno profile linked to user
     alumno = Alumno(
         user_id=new_user.id,
         nombre=username,  # Default name = username
-        fase_actual_id=fase_inicial.id if fase_inicial else 1,
+        fase_actual_id=target_fase.id if target_fase else None,
     )
-    
-    # Pre-populate unlockedLevels in settings if missing (using level 1 as starting level)
-    if not new_user.settings:
-        new_user.settings = {
-            "unlockedLevels": {
-                "addition": 1,
-                "subtraction": 1,
-                "multiplication": 1,
-                "division": 1,
-                "challenge": 1
-            },
-            "scores": []
-        }
-    
     db.add(alumno)
+    await db.flush()
     
+    # If special student, automatically approve SUMA in Fase 1 and start RESTA
+    if is_special_student and target_fase:
+        # Create approved SUMA progress
+        new_prog_suma = ProgresoMaestria(
+            alumno_id=alumno.id,
+            fase_id=target_fase.id,
+            seccion=1,
+            operacion=OperacionEnum.SUMA,
+            estado=EstadoProgresoEnum.APROBADO,
+            aciertos_acumulados=47,  # 95% of 50
+            intentos_totales=50,
+            porcentaje_actual=95,
+            fecha_inicio=datetime.utcnow(),
+            fecha_aprobacion=datetime.utcnow()
+        )
+        db.add(new_prog_suma)
+        
+        # Create EN_PROGRESO RESTA progress
+        new_prog_resta = ProgresoMaestria(
+            alumno_id=alumno.id,
+            fase_id=target_fase.id,
+            seccion=1,
+            operacion=OperacionEnum.RESTA,
+            estado=EstadoProgresoEnum.EN_PROGRESO,
+            aciertos_acumulados=0,
+            intentos_totales=0,
+            porcentaje_actual=0,
+            fecha_inicio=datetime.utcnow()
+        )
+        db.add(new_prog_resta)
+        
     await db.commit()
     await db.refresh(new_user)
     
