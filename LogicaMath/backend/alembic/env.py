@@ -20,8 +20,12 @@ import app.models  # Import all models to register metadata
 # access to the values within the .ini file in use.
 config = context.config
 
-# Dynamically set the sqlalchemy.url from our Pydantic Settings
-db_url = settings.DATABASE_URL
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# Dynamically set the sqlalchemy.url from our Pydantic Settings or dotenv fallback
+db_url = settings.DATABASE_URL or os.getenv("DATABASE_URL")
 if db_url:
     if db_url.startswith("postgresql+asyncpg://"):
         db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")

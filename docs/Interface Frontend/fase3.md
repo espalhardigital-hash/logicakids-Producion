@@ -1,22 +1,32 @@
-# Especificación de Interfaz de Usuario: Fase 3 — Problemas de Texto
+# Especificación de Interfaz de Usuario: Fase 3 — Problemas de Texto y Sistemas Simples
 
-Esta especificación detalla las reglas de diseño visual e interacción para la **Fase 3 de LogicaKids Pro**, enfocada en la lectura comprensiva, identificación de datos y resolución analítica de problemas matemáticos contextualizados.
+Esta especificación detalla las reglas de diseño visual e interacción para la **Fase 3 de LogicaKids Pro**, enfocada en dominar la lectura matemática, el filtrado de distractores y la deducción de valores ocultos (sistemas de ecuaciones camuflados).
 
 ---
 
 ## 1. Propósito Pedagógico
 
-* **Objetivo General**: Capacitar al alumno para leer críticamente enunciados matemáticos, aislar datos relevantes de distractores, elegir la operación matemática correcta y estructurar la resolución en pasos ordenados.
-* **Habilidades Desarrolladas**:
-  1. Comprensión lectora aplicada a las ciencias exactas.
-  2. Pensamiento analítico (clasificación de información: importante vs distractor).
-  3. Secuenciación y planificación de operaciones en múltiples etapas.
+* **Objetivo General**: Dominar la lectura matemática, el filtrado de distractores y la deducción de valores ocultos (sistemas de ecuaciones camuflados). Basado en las preguntas de compras simultáneas (ej. 2024 Q16) y secuencias de eventos (ej. 2024 Q15).
+
+### 1.1. Estructura de Módulos
+
+| Módulo | Nivel 1: Descubrimiento | Nivel 2: Consolidación | Nivel 3: Fluidez (Integración) |
+| :--- | :--- | :--- | :--- |
+| **1. Traducción y Filtro** | Subrayar datos útiles mediante tokens (herramienta interactiva). | Ignorar datos basura en historias largas de 1 solo paso. | Resolver problemas con distractores numéricos explícitos. |
+| **2. Secuencia Temporal** | Problemas de "Tenía, ganó, perdió" en estricto orden cronológico. | Control de eventos invertidos (hallar el valor inicial). | Historias de 3 pasos (ej. Luiz y las figuritas de bafo - 2024 Q15). |
+| **3. Deducción de Precios** | Comparar dos carritos de compra idénticos con 1 diferencia para aislar el valor unitario. | Completar tablas de precios faltantes cruzando datos de clientes. | Sistemas simples: "Si 4 libros y 2 cuadernos cuestan R$ 457..." (2023 Q17). |
+| **4. Reparto y Residuos** | Problemas de división exacta a partir de un inventario macro. | Divisiones con residuo: empaquetar objetos donde sobran elementos. | Ciclos repetitivos (ej. predecir un patrón circular usando el resto de la división). |
+
+### 1.2. Estructura de Evaluación
+*   **Desafío 1 (Estándar):** Evalúa los niveles de descubrimiento y consolidación con opciones múltiples.
+*   **Desafío 2 (Avanzado):** Integra habilidades de todos los módulos con mayor complejidad.
+*   **Desafío Final (Maestría):** Exige la resolución mediante input de texto puro, con un criterio de aprobación estricto del 90%.
 
 ---
 
 ## 2. Pautas de Diseño de la Interfaz Visual (Propuesta de Layout)
 
-Esta fase abandona la velocidad del cálculo mental puro y adopta una interfaz de **investigación y diagnóstico paso a paso**.
+Esta fase adopta una interfaz de **investigación y diagnóstico paso a paso**.
 
 ### 2.1. Sección 1: El Cuaderno del Detective (Izquierda)
 * Un lienzo de texto interactivo que imita una hoja de libreta digital con fondo oscuro translúcido (`bg-slate-900/40 backdrop-blur-md`).
@@ -49,3 +59,9 @@ Esta fase abandona la velocidad del cálculo mental puro y adopta una interfaz d
   - Enunciado claro y adecuado para niños de primaria.
   - Al menos 1 dato irrelevante (distractor) para evaluar la atención selectiva.
   - Explicación de tutoría estructurada por pasos.
+
+### 4.1. Diseño Pedagógico y Progresión (Estándar de Fase)
+* Cada módulo incluye **niveles internos progresivos**.
+* **Práctica inicial sin presión** de tiempo con activación del **Bucle Espejo** ante errores.
+* Evaluación estructurada en: **Desafío 1, Desafío 2 y Desafío Final**.
+* **Desbloqueo estricto**: Se requiere una maestría mínima del **90%** para avanzar.

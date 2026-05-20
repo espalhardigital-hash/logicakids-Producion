@@ -1,0 +1,443 @@
+"""
+Generadores de Preguntas — Fase 2 (Módulos 1, 2 y 3)
+=====================================================
+Generación determinista del lado del servidor usando seed reproducible.
+Los módulos 4 y 5 usan preguntas almacenadas en BD; no necesitan generadores.
+
+Convención de retorno de todos los generadores:
+{
+    "enunciado": str,
+    "respuesta_correcta": str,
+    "datos_numericos": dict,
+    "explicacion_paso_a_paso": dict,
+    "errores_previstos": dict,
+}
+"""
+
+import random
+import math
+from typing import Dict, Any
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HELPERS
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _rnd(seed: int) -> random.Random:
+    """Crea una instancia de Random con seed fija para reproducibilidad."""
+    r = random.Random()
+    r.seed(seed)
+    return r
+
+
+def _centavos_validos() -> list:
+    """Solo centavos pedagógicamente válidos en el sistema monetario brasileño."""
+    return [0, 25, 50, 75]
+
+
+def _fmt_reais(centavos: int) -> str:
+    """Formatea centavos como R$ X,XX."""
+    reais = centavos // 100
+    cents = centavos % 100
+    return f"R$ {reais},{cents:02d}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MÓDULO 1 — Gimnasio Numérico Mental
+# ─────────────────────────────────────────────────────────────────────────────
+
+def generate_modulo1_nivel1(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 1: Escalas y Proporciones.
+    Pregunta el doble, la mitad o el triple de un número.
+    """
+    r = _rnd(seed)
+    operacion = r.choice(["doble", "mitad", "triple"])
+    
+    if operacion == "mitad":
+        # Asegurar que sea par para resultado entero
+        base = r.randint(2, 30) * 2
+        resultado = base // 2
+        enunciado = f"¿Cuánto es la mitad de {base}?"
+        explicacion = f"La mitad de {base} se calcula dividiendo entre 2: {base} ÷ 2 = {resultado}"
+    elif operacion == "doble":
+        base = r.randint(5, 50)
+        resultado = base * 2
+        enunciado = f"¿Cuánto es el doble de {base}?"
+        explicacion = f"El doble de {base} se calcula multiplicando por 2: {base} × 2 = {resultado}"
+    else:  # triple
+        base = r.randint(3, 30)
+        resultado = base * 3
+        enunciado = f"¿Cuánto es el triple de {base}?"
+        explicacion = f"El triple de {base} se calcula multiplicando por 3: {base} × 3 = {resultado}"
+
+    return {
+        "enunciado": enunciado,
+        "respuesta_correcta": str(resultado),
+        "datos_numericos": {"base": base, "operacion": operacion, "resultado": resultado},
+        "explicacion_paso_a_paso": {
+            "pasos": [f"Identificamos el número base: {base}", explicacion],
+            "resultado_final": str(resultado),
+        },
+        "errores_previstos": {
+            "confusion_doble_triple": f"No confundas el doble ({base * 2}) con el triple ({base * 3})",
+            "division_incorrecta": f"La mitad es dividir entre 2, no entre 3",
+        },
+    }
+
+
+def generate_modulo1_nivel2(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 2: Orden de Operaciones (PEMDAS/BODMAS).
+    Expresiones con suma, resta y multiplicación.
+    """
+    r = _rnd(seed)
+    patron = r.choice(["a + b * c", "a * b + c", "a + b - c * d"])
+
+    if patron == "a + b * c":
+        a = r.randint(1, 20)
+        b = r.randint(2, 10)
+        c = r.randint(2, 8)
+        resultado = a + b * c
+        enunciado = f"¿Cuánto es {a} + {b} × {c}?"
+        pasos = [
+            f"Primero resolvemos la multiplicación: {b} × {c} = {b * c}",
+            f"Luego la suma: {a} + {b * c} = {resultado}",
+        ]
+        datos = {"a": a, "b": b, "c": c, "expresion": f"{a} + {b} × {c}"}
+
+    elif patron == "a * b + c":
+        a = r.randint(2, 10)
+        b = r.randint(2, 8)
+        c = r.randint(1, 20)
+        resultado = a * b + c
+        enunciado = f"¿Cuánto es {a} × {b} + {c}?"
+        pasos = [
+            f"Primero resolvemos la multiplicación: {a} × {b} = {a * b}",
+            f"Luego la suma: {a * b} + {c} = {resultado}",
+        ]
+        datos = {"a": a, "b": b, "c": c, "expresion": f"{a} × {b} + {c}"}
+
+    else:  # a + b - c * d
+        c = r.randint(2, 6)
+        d = r.randint(2, 5)
+        a = r.randint(c * d + 1, 60)
+        b = r.randint(1, 15)
+        resultado = a + b - c * d
+        enunciado = f"¿Cuánto es {a} + {b} - {c} × {d}?"
+        pasos = [
+            f"Primero resolvemos la multiplicación: {c} × {d} = {c * d}",
+            f"Ahora: {a} + {b} - {c * d} = {a + b} - {c * d} = {resultado}",
+        ]
+        datos = {"a": a, "b": b, "c": c, "d": d, "expresion": f"{a} + {b} - {c} × {d}"}
+
+    return {
+        "enunciado": enunciado,
+        "respuesta_correcta": str(resultado),
+        "datos_numericos": datos,
+        "explicacion_paso_a_paso": {
+            "pasos": pasos,
+            "resultado_final": str(resultado),
+            "regla": "Siempre resuelve multiplicaciones y divisiones ANTES que sumas y restas.",
+        },
+        "errores_previstos": {
+            "orden_incorrecto": f"No resuelvas de izquierda a derecha ignorando prioridades",
+        },
+    }
+
+
+def generate_modulo1_nivel3(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 3: Problemas de texto que integran escalas y operaciones.
+    Traduce palabras a operaciones matemáticas.
+    """
+    r = _rnd(seed)
+    plantillas = [
+        {
+            "gen": lambda r: (r.randint(3, 20), r.randint(2, 5)),
+            "texto": lambda b, m: f"Ana tiene {b} canicas. Pedro tiene el {m} doble que ella. ¿Cuántas canicas tiene Pedro?",
+            "calc": lambda b, m: b * m,
+            "explicacion": lambda b, m: [f"Pedro tiene {m} veces las canicas de Ana.", f"{b} × {m} = {b * m}"],
+        },
+        {
+            "gen": lambda r: (r.randint(10, 50) * 2, None),
+            "texto": lambda b, _: f"En una fiesta hay {b} globos. Al final de la fiesta se usó la mitad. ¿Cuántos globos quedaron?",
+            "calc": lambda b, _: b // 2,
+            "explicacion": lambda b, _: [f"La mitad de {b} es {b} ÷ 2 = {b // 2}"],
+        },
+        {
+            "gen": lambda r: (r.randint(5, 20), r.randint(2, 8)),
+            "texto": lambda b, c: f"Una caja tiene {b} chocolates. Si compramos el triple de cajas, ¿cuántos chocolates tenemos en total?",
+            "calc": lambda b, c: b * 3,
+            "explicacion": lambda b, c: [f"Triple significa 3 veces.", f"{b} × 3 = {b * 3}"],
+        },
+    ]
+    t = r.choice(plantillas)
+    vals = t["gen"](r)
+    b, m = vals[0], vals[1]
+    resultado = t["calc"](b, m)
+
+    return {
+        "enunciado": t["texto"](b, m),
+        "respuesta_correcta": str(resultado),
+        "datos_numericos": {"base": b, "multiplicador": m},
+        "explicacion_paso_a_paso": {
+            "pasos": t["explicacion"](b, m),
+            "resultado_final": str(resultado),
+        },
+        "errores_previstos": {
+            "no_identifica_operacion": "Lee con atención: 'el doble' = ×2, 'la mitad' = ÷2, 'el triple' = ×3",
+        },
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MÓDULO 2 — Tablas en Acción
+# ─────────────────────────────────────────────────────────────────────────────
+
+def generate_modulo2_nivel1(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 1: Inversa de suma/resta.
+    Dado a + b = c, pregunta c - b = ?
+    """
+    r = _rnd(seed)
+    a = r.randint(5, 40)
+    b = r.randint(3, 30)
+    c = a + b
+    modo = r.choice(["falta_a", "falta_b"])
+
+    if modo == "falta_b":
+        enunciado = f"Si {a} + ___ = {c}, ¿cuánto vale ___?"
+        resultado = b
+        pasos = [f"Tenemos {a} + ___ = {c}", f"Para encontrar el número que falta: {c} - {a} = {resultado}"]
+    else:
+        enunciado = f"Si ___ + {b} = {c}, ¿cuánto vale ___?"
+        resultado = a
+        pasos = [f"Tenemos ___ + {b} = {c}", f"Para encontrar el número que falta: {c} - {b} = {resultado}"]
+
+    return {
+        "enunciado": enunciado,
+        "respuesta_correcta": str(resultado),
+        "datos_numericos": {"a": a, "b": b, "c": c},
+        "explicacion_paso_a_paso": {
+            "pasos": pasos,
+            "resultado_final": str(resultado),
+            "regla": "La suma y la resta son operaciones inversas.",
+        },
+        "errores_previstos": {
+            "suma_en_vez_de_restar": f"No sumes {a} + {c}; debes restar para encontrar el valor desconocido",
+        },
+    }
+
+
+def generate_modulo2_nivel2(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 2: Inversa de multiplicación/división.
+    Dado a × b = c, pregunta c ÷ a = ?
+    """
+    r = _rnd(seed)
+    a = r.randint(2, 12)
+    b = r.randint(2, 12)
+    c = a * b
+    modo = r.choice(["falta_factor_b", "falta_factor_a"])
+
+    if modo == "falta_factor_b":
+        enunciado = f"Si {a} × ___ = {c}, ¿cuánto vale ___?"
+        resultado = b
+        pasos = [f"Tenemos {a} × ___ = {c}", f"Dividimos: {c} ÷ {a} = {resultado}"]
+    else:
+        enunciado = f"Si ___ × {b} = {c}, ¿cuánto vale ___?"
+        resultado = a
+        pasos = [f"Tenemos ___ × {b} = {c}", f"Dividimos: {c} ÷ {b} = {resultado}"]
+
+    return {
+        "enunciado": enunciado,
+        "respuesta_correcta": str(resultado),
+        "datos_numericos": {"a": a, "b": b, "c": c},
+        "explicacion_paso_a_paso": {
+            "pasos": pasos,
+            "resultado_final": str(resultado),
+            "regla": "La multiplicación y la división son operaciones inversas.",
+        },
+        "errores_previstos": {
+            "confusion_factor": f"Para encontrar un factor desconocido, divide el producto entre el factor conocido",
+        },
+    }
+
+
+def generate_modulo2_nivel3(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 3: Número faltante con cualquier operación (mixta).
+    """
+    r = _rnd(seed)
+    tipo = r.choice(["suma_mixta", "resta_mixta", "mult_division"])
+
+    if tipo == "suma_mixta":
+        total = r.randint(15, 80)
+        parte1 = r.randint(5, total - 5)
+        parte2 = total - parte1
+        enunciado = f"{parte1} + [ ] = {total}"
+        resultado = parte2
+        pasos = [f"Necesitamos encontrar qué número sumado a {parte1} da {total}", f"{total} - {parte1} = {resultado}"]
+    elif tipo == "resta_mixta":
+        a = r.randint(20, 80)
+        b = r.randint(5, a - 5)
+        resultado = a - b
+        enunciado = f"{a} - [ ] = {resultado}"
+        pasos = [f"Restamos: {a} - [ ] = {resultado}", f"El número que falta es: {a} - {resultado} = {b}"]
+        resultado = b
+    else:
+        a = r.randint(2, 10)
+        b = r.randint(2, 10)
+        c = a * b
+        enunciado = f"{a} × [ ] = {c}"
+        resultado = b
+        pasos = [f"Multiplicación: {a} × [ ] = {c}", f"Dividimos: {c} ÷ {a} = {resultado}"]
+
+    return {
+        "enunciado": enunciado,
+        "respuesta_correcta": str(resultado),
+        "datos_numericos": {"tipo": tipo},
+        "explicacion_paso_a_paso": {"pasos": pasos, "resultado_final": str(resultado)},
+        "errores_previstos": {"operacion_incorrecta": "Identifica la operación inversa para despejar el número desconocido"},
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MÓDULO 3 — Tienda Matemática
+# ─────────────────────────────────────────────────────────────────────────────
+
+PRODUCTOS = [
+    ("Lápiz",    25),   # R$ 0,25
+    ("Borracha", 50),   # R$ 0,50
+    ("Caderno",  350),  # R$ 3,50
+    ("Caneta",   175),  # R$ 1,75
+    ("Régua",    225),  # R$ 2,25
+    ("Apontador",75),   # R$ 0,75
+    ("Cola",     150),  # R$ 1,50
+    ("Tesoura",  400),  # R$ 4,00
+    ("Estojo",   750),  # R$ 7,50
+    ("Mochila",  2500), # R$ 25,00
+]
+
+
+def generate_modulo3_nivel1(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 1: Reconocimiento de monedas y conversión a R$.
+    Suma de monedas válidas (valores en centavos).
+    """
+    r = _rnd(seed)
+    monedas_opciones = [5, 10, 25, 50, 100]  # centavos
+    num_monedas = r.randint(3, 6)
+    monedas = [r.choice(monedas_opciones) for _ in range(num_monedas)]
+    total = sum(monedas)
+
+    monedas_texto = " + ".join([_fmt_reais(m) for m in monedas])
+    enunciado = f"¿Cuánto suman estas monedas? {monedas_texto}"
+
+    return {
+        "enunciado": enunciado,
+        "respuesta_correcta": _fmt_reais(total),
+        "datos_numericos": {"monedas_centavos": monedas, "total_centavos": total},
+        "explicacion_paso_a_paso": {
+            "pasos": [f"Sumamos cada moneda: {monedas_texto}", f"Total = {_fmt_reais(total)}"],
+            "resultado_final": _fmt_reais(total),
+        },
+        "errores_previstos": {
+            "conversion_decimal": "Trabaja en centavos para evitar errores: suma los números enteros primero",
+        },
+    }
+
+
+def generate_modulo3_nivel2(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 2: Pago exacto — suma de precios de productos.
+    """
+    r = _rnd(seed)
+    num_productos = r.randint(2, 4)
+    seleccionados = r.sample(PRODUCTOS, num_productos)
+    total = sum(p[1] for p in seleccionados)
+
+    lista = ", ".join([f"{p[0]} ({_fmt_reais(p[1])})" for p in seleccionados])
+    enunciado = f"João compró: {lista}. ¿Cuánto pagó en total?"
+
+    pasos = [f"Precio de {p[0]}: {_fmt_reais(p[1])}" for p in seleccionados]
+    pasos.append(f"Total: {' + '.join([_fmt_reais(p[1]) for p in seleccionados])} = {_fmt_reais(total)}")
+
+    return {
+        "enunciado": enunciado,
+        "respuesta_correcta": _fmt_reais(total),
+        "datos_numericos": {"productos": [(p[0], p[1]) for p in seleccionados], "total_centavos": total},
+        "explicacion_paso_a_paso": {"pasos": pasos, "resultado_final": _fmt_reais(total)},
+        "errores_previstos": {
+            "centavos_incorrectos": "Suma por separado los reales y los centavos, luego combínalos",
+        },
+    }
+
+
+def generate_modulo3_nivel3(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 3: Cálculo de troco (cambio/vuelto).
+    """
+    r = _rnd(seed)
+    num_productos = r.randint(1, 3)
+    seleccionados = r.sample(PRODUCTOS, num_productos)
+    total_compra = sum(p[1] for p in seleccionados)
+
+    # Calcular billete justo encima del total (50, 100, 200, 500, 1000 centavos = R$ 0.50, 1, 2, 5, 10)
+    billetes = [100, 200, 500, 1000, 2000, 5000]
+    billete = next((b for b in billetes if b > total_compra), 5000)
+    troco = billete - total_compra
+
+    lista = ", ".join([f"{p[0]} ({_fmt_reais(p[1])})" for p in seleccionados])
+    enunciado = f"María compró: {lista}. Pagó con {_fmt_reais(billete)}. ¿Cuánto recibe de vuelto?"
+
+    return {
+        "enunciado": enunciado,
+        "respuesta_correcta": _fmt_reais(troco),
+        "datos_numericos": {
+            "productos": [(p[0], p[1]) for p in seleccionados],
+            "total_compra_centavos": total_compra,
+            "billete_centavos": billete,
+            "troco_centavos": troco,
+        },
+        "explicacion_paso_a_paso": {
+            "pasos": [
+                f"Total de la compra: {_fmt_reais(total_compra)}",
+                f"Pagó con: {_fmt_reais(billete)}",
+                f"Vuelto = {_fmt_reais(billete)} - {_fmt_reais(total_compra)} = {_fmt_reais(troco)}",
+            ],
+            "resultado_final": _fmt_reais(troco),
+        },
+        "errores_previstos": {
+            "troco_incorrecto": "El vuelto es la diferencia entre lo que pagaste y el total de la compra",
+        },
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DISPATCHER — llama al generador correcto según módulo y nivel
+# ─────────────────────────────────────────────────────────────────────────────
+
+_GENERATORS = {
+    (1, 1): generate_modulo1_nivel1,
+    (1, 2): generate_modulo1_nivel2,
+    (1, 3): generate_modulo1_nivel3,
+    (2, 1): generate_modulo2_nivel1,
+    (2, 2): generate_modulo2_nivel2,
+    (2, 3): generate_modulo2_nivel3,
+    (3, 1): generate_modulo3_nivel1,
+    (3, 2): generate_modulo3_nivel2,
+    (3, 3): generate_modulo3_nivel3,
+}
+
+
+def generate_question(modulo_id: int, nivel_id: int, seed: int) -> Dict[str, Any]:
+    """
+    Punto de entrada unificado para generar preguntas de los módulos 1-3.
+    Lanza ValueError si el módulo/nivel no tiene generador.
+    """
+    key = (modulo_id, nivel_id)
+    if key not in _GENERATORS:
+        raise ValueError(f"No existe generador para módulo={modulo_id}, nivel={nivel_id}")
+    return _GENERATORS[key](seed)

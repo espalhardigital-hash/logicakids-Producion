@@ -1,16 +1,26 @@
-# Especificación de Interfaz de Usuario: Fase 4 — Fracciones, Porcentajes y Gráficos
+# Especificación de Interfaz de Usuario: Fase 4 — Fracciones, Porcentajes y Proporciones
 
-Esta especificación detalla las reglas de diseño visual y de interacción para la **Fase 4 de LogicaKids Pro**, orientada a la manipulación visual de la relación parte-todo, la comprensión de porcentajes y el análisis crítico de información gráfica/estructurada.
+Esta especificación detalla las reglas de diseño visual y de interacción para la **Fase 4 de LogicaKids Pro**, orientada a la visualización de la relación "parte-todo". El examen del Pedro II es sumamente gráfico en este aspecto (ej. áreas sombreadas 2023 Q19, gráficos circulares 2023 Q15, mezclas de pintura 2023 Q18).
 
 ---
 
 ## 1. Propósito Pedagógico
 
-* **Objetivo General**: Desarrollar la capacidad de razonar de manera concreta y abstracta sobre partes de un entero (fracciones), equivalencias de escala (porcentajes) y consolidar la lectura e interpretación de gráficos y tablas de datos.
-* **Habilidades Desarrolladas**:
-  1. Comprensión conceptual y visual de fracciones y denominadores.
-  2. Razonamiento proporcional (porcentajes de cantidades).
-  3. Extracción y síntesis de datos representados visualmente (gráficos de barras y sectores).
+* **Objetivo General**: Visualizar la relación "parte-todo", dominar porcentajes rápidos y aplicar el razonamiento proporcional a mezclas y repartos, alineado con el enfoque gráfico del examen.
+
+### 1.1. Estructura de Módulos
+
+| Módulo | Nivel 1: Descubrimiento | Nivel 2: Consolidación | Nivel 3: Fluidez (Integración) |
+| :--- | :--- | :--- | :--- |
+| **1. La Fracción Visual** | Identificar la fracción sombreada en figuras simétricas simples. | Fracciones equivalentes visuales (cortar la figura en más pedazos). | Analizar rectángulos divididos asimétricamente (2023 Q19). |
+| **2. Fracción de Cantidad** | Calcular 1/2, 1/3 y 1/4 de números enteros (inventarios). | Calcular fracciones compuestas (ej. 3/4 de 120 alumnos). | Resolver historias donde se pide "la fracción del resto". |
+| **3. Porcentajes Rápidos** | Relacionar 50% (mitad), 25% (cuarto) y 10% (décima parte). | Extraer datos directos de gráficos circulares (pie charts - 2023 Q15). | Gráficos de barras comparativos (ej. empresas por región - 2020 Q20). |
+| **4. Razón y Mezclas** | Proporciones simples: "2 tazas de agua por 1 de arroz". | Escalar mezclas totales (ej. 2 de azul y 3 de rojo para 70L - 2023 Q18). | Reparto proporcional en contextos cotidianos. |
+
+### 1.2. Estructura de Evaluación
+*   **Desafío 1 (Estándar):** Evalúa los niveles de descubrimiento y consolidación con opciones múltiples.
+*   **Desafío 2 (Avanzado):** Integra habilidades de todos los módulos con mayor complejidad.
+*   **Desafío Final (Maestría):** Exige la resolución mediante input de texto puro, con un criterio de aprobación estricto del 90%.
 
 ---
 
@@ -51,3 +61,9 @@ Esta fase se enfoca en componentes **altamente visuales, manipulativos y colorid
 
 * **Origen**: Banco de Ejercicios en BD combinados con layouts SVG interactivos del frontend.
 * **Habilitadores Clave**: Uso de SVG responsivos y adaptables para asegurar que las pizzas y gráficos se rendericen nítidos en cualquier pantalla.
+
+### 4.1. Diseño Pedagógico y Progresión (Estándar de Fase)
+* Cada módulo incluye **niveles internos progresivos**.
+* **Práctica inicial sin presión** de tiempo con activación del **Bucle Espejo** ante errores.
+* Evaluación estructurada en: **Desafío 1, Desafío 2 y Desafío Final**.
+* **Desbloqueo estricto**: Se requiere una maestría mínima del **90%** para avanzar.

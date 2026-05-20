@@ -1,49 +1,64 @@
-# Especificación de Interfaz de Usuario: Fase 7 — Coordenadas y Desplazamientos
+# Especificación de Interfaz de Usuario: Fase 7 — Coordenadas y Mapas
 
-Esta especificación detalla las reglas de diseño visual y de interacción para la **Fase 7 de LogicaKids Pro**, orientada a la ubicación de puntos en el plano cartesiano, el uso de coordenadas de pares ordenados $(x, y)$, la navegación mediante direcciones cardinales y la programación lógica de trayectorias.
+Esta especificación detalla las reglas de diseño visual y de interacción para la **Fase 7 de LogicaKids Pro**, enfocada en interpretar mapas, trayectos cardinales y operar con unidades temporales (horas, semanas, duraciones). Presencia constante en la prueba (ej. casa a escuela 2023 Q11, Moovit 2020 Q15).
 
 ---
 
 ## 1. Propósito Pedagógico
 
-* **Objetivo General**: Enseñar al alumno a orientarse y codificar desplazamientos sobre una rejilla bidimensional estructurada, comprendiendo el significado de las coordenadas X e Y, y desarrollando nociones sólidas de lateralidad (izquierda/derecha) y puntos cardinales (Norte, Sur, Este, Oeste).
-* **Habilidades Desarrolladas**:
-  1. Ubicación de puntos en el plano de coordenadas del primer cuadrante.
-  2. Planificación lógica de secuencias de movimiento (rutas sin colisiones).
-  3. Conversión de instrucciones direccionales en desplazamientos geométricos exactos.
+* **Objetivo General**: Interpretar mapas, seguir trayectos cardinales y operar con unidades de tiempo, habilidades de presencia constante en el examen.
+
+### 1.1. Estructura de Módulos
+
+| Módulo | Nivel 1: Descubrimiento | Nivel 2: Consolidación | Nivel 3: Fluidez (Integración) |
+| :--- | :--- | :--- | :--- |
+| **1. Orientación Cardinal** | Identificar Norte, Sur, Este y Oeste. | Seguir comandos de ruta en cuadrículas (Norte 3, Leste 2 - 2023 Q11). | Descubrir qué ruta es imposible o incorrecta. |
+| **2. Plano Cartesiano** | Localizar pares ordenados simples (X, Y). | Entender el par ordenado como vector de desplazamiento. | Movimiento relativo (ej. A hasta B sumando vectores - 2024 Q19). |
+| **3. La Mecánica del Tiempo**| Conversiones: minutos a horas, días a semanas. | Sumas y restas de intervalos de tiempo (ej. ahorrar por semanas - 2023 Q16). | Ecuaciones temporales (ej. clases = 7 aulas + 1 recreo - 2024 Q20). |
+| **4. Horarios y Apps** | Leer tablas de horarios de transporte. | Sumar duración de viaje a hora de salida para hallar la llegada. | Tomar decisiones lógicas comparando dos opciones (Moovit - 2020 Q15). |
+
+### 1.2. Estructura de Evaluación
+*   **Desafío 1 (Estándar):** Evalúa los niveles de descubrimiento y consolidación con opciones múltiples.
+*   **Desafío 2 (Avanzado):** Integra habilidades de todos los módulos con mayor complejidad.
+*   **Desafío Final (Maestría):** Exige la resolución mediante input de texto puro, con un criterio de aprobación estricto del 90%.
 
 ---
 
 ## 2. Pautas de Diseño de la Interfaz Visual (Propuesta de Layout)
 
-Esta fase adopta un diseño lúdico similar a un **juego de exploración espacial o arqueología de mapas**.
+Esta fase adopta la estética de un "Radar Táctico" o "Sistema de Navegación Cartográfico", utilizando cuadrículas brillantes e íconos interactivos de ubicación.
 
-### 2.1. El Radar Cartesiano (El Plano Rejilla)
-* **Visualizador**: Un plano cartesiano iluminado en azul neón (`border-slate-800 bg-slate-950/80`) con los ejes X (horizontal) e Y (vertical) claramente señalizados con números de escala brillantes.
-* **Interactividad**:
-  - **Pintor de Puntos**: Al hacer clic en una intersección de la rejilla, aparece una estrella de luz y se revela el par ordenado (ej. `(3, 5)`).
-  - **El Tesoro Escondido**: El sistema le pide al alumno: *"Desentierra la gema oculta en la coordenada (4, 2)"*. El alumno debe pulsar en la intersección correcta. Si acierta, la gema brilla y sale a la superficie.
+### 2.1. El Radar Cartesiano (Plano de Coordenadas)
+* **Visualizador**: Un plano cartesiano holográfico con ejes X e Y, simulando una pantalla de radar.
+* **Interactividad**: Al colocar un "marcador", unas líneas guía temporales cruzan los ejes para evidenciar el par `(X, Y)`. Se pueden arrastrar objetos al punto exacto solicitado por el problema.
 
-### 2.2. El Panel del Programador de Rutas (Izquierda / Base)
-* **Visualizador**: Un conjunto de bloques de instrucciones lógicas sencillas (ej. `[ Mover Norte 2 ]`, `[ Mover Este 3 ]`, `[ Girar Derecha ]`).
-* **Interactividad**:
-  - El alumno ensambla una secuencia de bloques para guiar a un avatar (un pequeño robot o cohete espacial) desde un punto de partida A hasta un punto de llegada B en la rejilla, sorteando asteroides u obstáculos fijos.
-  - Al hacer clic en "Ejecutar Misión" (`Play`), el avatar se mueve paso a paso sobre el plano con una animación fluida siguiendo los comandos programados.
+### 2.2. El Tablero de Exploración (Mapas y Rutas)
+* **Visualizador**: Una vista cenital de cuadras (grids urbanos).
+* **Interactividad**: Controles direccionales (N, S, E, O) mediante los cuales el niño traza el trayecto dejando una "estela de luz" que se pinta a medida que avanza.
 
-### 2.3. La Rosa de los Vientos
-* Un widget interactivo de brújula en una esquina del mapa que sirve como leyenda de referencia rápida de las direcciones cardinales (N, S, E, O).
+### 2.3. Panel de Cronología y Relojes
+* **Visualizador**: Relojes digitales y analógicos combinados con barras de itinerario.
+* **Interactividad**: Deslizamiento de manecillas o selectores para calcular el tiempo transcurrido (ej. "¿Si el tren salió a las 8:15 y el viaje dura 45 minutos, a qué hora llega?").
 
 ---
 
 ## 3. Estilo Visual y Feedback
 
-* **Estética**: Estilo Sci-Fi retro-futurista, con efectos de barrido de radar sobre la cuadrícula y luces de rastro parpadeantes en los caminos recorridos.
-* **Feedback de Aciertos**: El cohete despega o el robot celebra con un baile de luces intermitentes, encendiendo toda la trayectoria en un verde neón brillante.
-* **Feedback Pedagógico**: Si el niño comete un error de lateralidad o choca con un obstáculo, el avatar regresa a la última posición segura y la rejilla parpadea suavemente en rojo, iluminando las flechas del eje X e Y correspondientes al par de coordenadas para guiarlo paso a paso.
+* **Estética**: Pantallas oscuras con trazados cian, brújulas neón doradas y elementos cartográficos minimalistas.
+* **Feedback Pedagógico**: En errores cartesianos (ej. niño confunde X con Y), el sistema proyecta flechas rojas animadas primero sobre la línea horizontal ("Paso 1: caminar por el piso") y luego la vertical ("Paso 2: subir el edificio"), para corregir el orden de lectura.
 
 ---
 
 ## 4. Reglas Generales de Preguntas
 
-* **Origen**: Banco de Ejercicios en BD que guarda matrices de mapas de laberintos de coordenadas y obstáculos.
-* **Habilitadores Clave**: Uso de animaciones CSS fluidas para los desplazamientos paso a paso del avatar y eventos interactivos en el SVG de la rejilla para clics de precisión.
+---
+
+## 5. Notas de Implementación Técnica
+
+*   **JSONB para Patrones:** Las preguntas de rutas en cuadrícula y plano cartesiano deben ser generadas por el backend y enviadas como una lista de puntos o vectores para que el frontend dibuje el mapa de forma determinista y segura.
+
+### 4.1. Diseño Pedagógico y Progresión (Estándar de Fase)
+* Cada módulo incluye **niveles internos progresivos**.
+* **Práctica inicial sin presión** de tiempo con activación del **Bucle Espejo** ante errores.
+* Evaluación estructurada en: **Desafío 1, Desafío 2 y Desafío Final**.
+* **Desbloqueo estricto**: Se requiere una maestría mínima del **90%** para avanzar.

@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import auth_users, admin, pedagogia, ai
+from .fase2 import router as fase2_router
 from .config import settings
 
 app = FastAPI(title="LogicaKids Pro API", version="3.0.0")
@@ -37,7 +38,7 @@ from .db.base import Base
 from .models.sql_models import (
     User, Fase, Alumno, Pregunta, Alternativa, 
     ConfiguracionProgreso, PoolAsignadoAlumno, ProgresoMaestria, Intento,
-    PlatformSettings
+    PlatformSettings, IntentoPregunta, IntentoPaso
 )
 
 @app.on_event("startup")
@@ -56,6 +57,7 @@ async def startup_event():
                 ("unlocked_level", "ALTER TABLE users ADD COLUMN IF NOT EXISTS unlocked_level INTEGER DEFAULT 0"),
                 ("settings", "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb"),
                 ("last_login", "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ"),
+                ("payload_tokenizado", "ALTER TABLE preguntas ADD COLUMN IF NOT EXISTS payload_tokenizado JSONB"),
             ]
             from sqlalchemy import text
             for col_name, migration in migrations:
@@ -85,3 +87,4 @@ app.include_router(auth_users.router)
 app.include_router(admin.router)
 app.include_router(pedagogia.router)
 app.include_router(ai.router)
+app.include_router(fase2_router.router)

@@ -5,3 +5,4 @@ from .alumno import Alumno
 from .pregunta import Pregunta, Alternativa
 from .progreso import ConfiguracionProgreso, PoolAsignadoAlumno, ProgresoMaestria, Intento
 from .settings import PlatformSettings
+from app.fase2.models import IntentoPregunta, IntentoPaso

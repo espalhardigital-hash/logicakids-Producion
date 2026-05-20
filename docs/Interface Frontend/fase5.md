@@ -1,16 +1,26 @@
-# Especificación de Interfaz de Usuario: Fase 5 — Geometría Plana
+# Especificación de Interfaz de Usuario: Fase 5 — Geometría Plana y Medidas
 
-Esta especificación detalla las reglas de diseño visual y de interacción para la **Fase 5 de LogicaKids Pro**, enfocada en el reconocimiento de figuras geométricas bidimensionales, el cálculo experimental de perímetro y área, y la resolución de puzzles espaciales (Tangram).
+Esta especificación detalla las reglas de diseño visual y de interacción para la **Fase 5 de LogicaKids Pro**, enfocada en dominar la malha quadriculada (cuadrícula), áreas compuestas, perímetros y escalas. Este es un núcleo fuerte del examen (ej. teclado iKeybo 2020 Q11, Tangram 2024 Q14).
 
 ---
 
 ## 1. Propósito Pedagógico
 
-* **Objetivo General**: Fomentar la percepción espacial del alumno en el plano 2D, comprendiendo las propiedades de cuadrados, rectángulos y triángulos, aprendiendo a calcular el contorno (perímetro) y la superficie (área) mediante cuadrículas, y manipulando formas complejas.
-* **Habilidades Desarrolladas**:
-  1. Identificación y clasificación de polígonos por lados y vértices.
-  2. Comprensión concreta y abstracta del concepto de área (conteo de unidades cuadradas).
-  3. Razonamiento espacial y rotación de figuras para armar siluetas geométricas.
+* **Objetivo General**: Dominar la cuadrícula, el cálculo de áreas compuestas, perímetros y la aplicación de escalas, habilidades centrales en el examen.
+
+### 1.1. Estructura de Módulos
+
+| Módulo | Nivel 1: Descubrimiento | Nivel 2: Consolidación | Nivel 3: Fluidez (Integración) |
+| :--- | :--- | :--- | :--- |
+| **1. Perímetro y Borde** | Contar el contorno exterior en mallas cuadradas simples. | Calcular perímetro de polígonos irregulares sumando lados. | Conversión lineal básica (ej. 2,68 dm a cm - 2020 Q11). |
+| **2. Área en Malha** | Contar cuadraditos completos (unidad de área). | Unir medios cuadrados (triángulos) para formar unidades enteras. | Calcular el área de figuras complejas (ej. bandera junina - 2020 Q19). |
+| **3. Figuras Compuestas** | Rompecabezas geométricos: encajar piezas. | Identificar el área proporcional en un Tangram (2024 Q14). | Restar el área interior ("el hueco") de una figura exterior. |
+| **4. Conversión y Pantallas**| Noción de área real vs área dibujada. | La diagonal como medida estándar (ej. pulgadas de TV - 2024 Q13). | Unidades cuadradas cotidianas (cm², m²). |
+
+### 1.2. Estructura de Evaluación
+*   **Desafío 1 (Estándar):** Evalúa los niveles de descubrimiento y consolidación con opciones múltiples.
+*   **Desafío 2 (Avanzado):** Integra habilidades de todos los módulos con mayor complejidad.
+*   **Desafío Final (Maestría):** Exige la resolución mediante input de texto puro, con un criterio de aprobación estricto del 90%.
 
 ---
 
@@ -47,3 +57,16 @@ Esta fase requiere una interfaz interactiva y lúdica de **manipulación directa
 
 * **Origen**: Banco de Ejercicios en BD que almacena posiciones relativas de siluetas y fórmulas de áreas/perímetros.
 * **Habilitadores Clave**: Uso intensivo de la librería de física e interacción HTML5 Drag-and-Drop o `react-rnd`/`framer-motion` para una manipulación fluida y suave de las piezas de Tangram.
+
+---
+
+## 5. Notas de Implementación Técnica
+
+*   **JSONB para Patrones:** Las preguntas de cuadrículas y figuras compuestas deben generarse paramétricamente en el backend y enviarse al frontend como una lista de coordenadas (ej. `[{"x": 1, "y": 2, "tipo": "full"}]`) para que React dibuje el SVG de forma determinista, evitando la carga de imágenes pesadas.
+*   **Restricción de Flotantes:** Para el módulo de Perímetros y Conversiones, el backend debe realizar todos los cálculos internamente usando la unidad más pequeña como entero (ej. milímetros) para evitar errores de precisión de punto flotante (IEEE 754). La conversión a formato decimal con coma solo se realiza en la capa de presentación (UI).
+
+### 4.1. Diseño Pedagógico y Progresión (Estándar de Fase)
+* Cada módulo incluye **niveles internos progresivos**.
+* **Práctica inicial sin presión** de tiempo con activación del **Bucle Espejo** ante errores.
+* Evaluación estructurada en: **Desafío 1, Desafío 2 y Desafío Final**.
+* **Desbloqueo estricto**: Se requiere una maestría mínima del **90%** para avanzar.

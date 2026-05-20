@@ -51,3 +51,9 @@ Esta fase requiere una interfaz **mentalmente estimulante, limpia y rica en micr
 
 * **Origen**: Banco de Preguntas preparadas de lógica y secuencias numéricas/visuales en BD.
 * **Habilitadores Clave**: Uso de gráficos vectoriales (SVG) responsivos para la ruleta, urnas y diagramas de árbol, garantizando una excelente tasa de refresco.
+
+### 4.1. Diseño Pedagógico y Progresión (Estándar de Fase)
+* Cada módulo incluye **niveles internos progresivos**.
+* **Práctica inicial sin presión** de tiempo con activación del **Bucle Espejo** ante errores.
+* Evaluación estructurada en: **Desafío 1, Desafío 2 y Desafío Final**.
+* **Desbloqueo estricto**: Se requiere una maestría mínima del **90%** para avanzar.

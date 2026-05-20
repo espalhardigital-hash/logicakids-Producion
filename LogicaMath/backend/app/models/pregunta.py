@@ -39,6 +39,9 @@ class Pregunta(Base):
     # Datos estructurados para analisis o generacion de variantes
     datos_numericos = Column(JSONB, nullable=True)
 
+    # Payload tokenizado para herramienta subrayadora (Modulo 4)
+    payload_tokenizado = Column(JSONB, nullable=True)
+
     # Explicacion paso a paso para tutoria invisible
     explicacion_paso_a_paso = Column(JSONB, nullable=True)
 

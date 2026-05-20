@@ -1,53 +1,65 @@
 # Especificación de Interfaz de Usuario: Fase 6 — Geometría Espacial
 
-Esta especificación detalla las reglas de diseño visual y de interacción para la **Fase 6 de LogicaKids Pro**, enfocada en el desarrollo de la inteligencia espacial tridimensional (3D), el reconocimiento y disección de cuerpos geométricos (prismas, cilindros, esferas) y el conteo analítico de bloques tridimensionales.
+Esta especificación detalla las reglas de diseño visual y de interacción para la **Fase 6 de LogicaKids Pro**, orientada a desarrollar la visualización 3D y el volumen mediante unidades cúbicas, apoyándose fuertemente en estéticas tipo "Minecraft" (2020 Q18, 2024 Q18).
 
 ---
 
 ## 1. Propósito Pedagógico
 
-* **Objetivo General**: Desarrollar en el alumno la capacidad de visualizar, rotar mentalmente y analizar objetos en tres dimensiones, comprendiendo las propiedades de volumen y capacidad de cuerpos geométricos.
-* **Habilidades Desarrolladas**:
-  1. Rotación y proyección espacial de sólidos (identificación de caras, aristas y vértices).
-  2. Conteo tridimensional analítico (conteo de bloques apilados, incluyendo bloques ocultos a la vista directa).
-  3. Concepto físico y matemático de volumen en prismas rectangulares y cilindros.
+* **Objetivo General**: Desarrollar la visualización 3D y el concepto de volumen a través del conteo de unidades cúbicas, alineado con las preguntas de bloques y estructuras del examen.
+
+### 1.1. Estructura de Módulos
+
+| Módulo | Nivel 1: Descubrimiento | Nivel 2: Consolidación | Nivel 3: Fluidez (Integración) |
+| :--- | :--- | :--- | :--- |
+| **1. Reconocimiento 3D** | Diferenciar prismas, pirámides, cilindros y esferas. | Identificar las caras ocultas de un sólido apoyado en el suelo. | Asociar moldes bidimensionales (planificaciones) con su sólido. |
+| **2. Patrones de Crecimiento**| Progresiones espaciales (sumar capas base a una pirámide). | Contar bloques en estructuras simétricas (árboles Minecraft - 2020 Q18). | Predecir la cantidad de piezas de la etapa 10 de un patrón. |
+| **3. Cubos Unitarios** | Contar cubos en bloques compactos regulares (largo x ancho x alto). | Contar cubos en figuras huecas o rompecabezas 3D. | Volumen de piezas encajadas (tetris 3D / cubo perfecto - 2024 Q18). |
+
+### 1.2. Estructura de Evaluación
+*   **Desafío 1 (Estándar):** Evalúa los niveles de descubrimiento y consolidación con opciones múltiples.
+*   **Desafío 2 (Avanzado):** Integra habilidades de todos los módulos con mayor complejidad.
+*   **Desafío Final (Maestría):** Exige la resolución mediante input de texto puro, con un criterio de aprobación estricto del 90%.
 
 ---
 
 ## 2. Pautas de Diseño de la Interfaz Visual (Propuesta de Layout)
 
-Esta fase requiere una interfaz **interactiva en 3D (o pseudo-3D)** responsiva, limpia y de alto rendimiento.
+Esta fase se apoya fuertemente en representaciones isométricas y visualizadores 3D simulados o interactivos.
 
-### 2.1. El Visualizador de Sólidos Rotativo
-* **Visualizador**: Un contenedor central que aloja un cuerpo geométrico (ej. un cubo, pirámide o cilindro) renderizado con sombreado tridimensional sutil (`Three.js` o SVG con proyección isométrica responsiva).
-* **Interactividad**:
-  - El alumno puede arrastrar el cursor o deslizar el dedo en la pantalla para **rotar el sólido 360 grados** libremente en cualquier eje.
-  - Al pulsar sobre un vértice, una arista o una cara, esta se ilumina con una luz de neón vibrante, sumando +1 a los contadores interactivos de la UI (ej. *Caras: 6, Aristas: 12, Vértices: 8*).
+### 2.1. El Visualizador de Sólidos y Vistas
+* **Visualizador**: Un lienzo central donde se renderiza un sólido geométrico interactivo (estilo Voxel/Minecraft o WebGL).
+* **Interactividad**: El alumno puede arrastrar con el dedo o el ratón para rotar el objeto 360 grados. Cuenta con botones rápidos para cambiar entre "Vista Superior", "Vista Frontal" y "Vista Lateral".
 
-### 2.2. El Rompecabezas de Apilamiento de Bloques
-* **Visualizador**: Una estructura isométrica tridimensional compuesta por cubos apilados al azar (estilo Minecraft/isométrico).
-* **Interactividad**:
-  - La pregunta requiere que el niño cuente cuántos bloques componen la figura.
-  - El niño puede pulsar un botón "Rayos X" o "Girar Cámara" para ver la figura desde la parte trasera o de perfil, permitiendo detectar los bloques de soporte ocultos.
-  - Se pueden "romper" o "desaparecer" bloques individuales al tocarlos para que el alumno cuente de manera manipulativa.
+### 2.2. Constructor de Cubos Unitarios
+* **Visualizador**: Una cuadrícula base isométrica sobre la que reposan bloques.
+* **Interactividad**: El alumno puede tocar partes vacías de la cuadrícula para "apilar" cubos translúcidos de colores neón, para completar prismas y deducir cuántos bloques faltan para rellenar un volumen específico.
 
-### 2.3. Simulador de Llenado (Volumen)
-* **Visualizador**: Un prisma o cilindro hueco con un grifo animado en la parte superior.
-* **Interactividad**:
-  - El alumno vierte agua virtual (representando metros cúbicos o litros) y observa cómo sube el volumen paso a paso.
-  - El sistema muestra de manera visual la multiplicación matemática: `Ancho x Largo x Alto = Volumen total`.
+### 2.3. Animador de Planificaciones (Moldes)
+* **Visualizador**: Un polígono plano 2D que actúa como un molde de cartón.
+* **Interactividad**: Un deslizador interactivo (slider) que el alumno puede arrastrar para "doblar" virtualmente las caras de la figura, observando cómo un plano se cierra hasta formar una figura 3D (ej. una caja).
 
 ---
 
 ## 3. Estilo Visual y Feedback
 
-* **Estética**: Renderizados semi-translúcidos con bordes brillantes tipo cristal (glassmorphism en 3D), luces direccionales de neón que realzan la volumetría y transiciones de cámara cinemáticas tridimensionales muy fluidas.
-* **Feedback de Aciertos**: El sólido 3D se desarma dinámicamente en sus planos de desarrollo (red de caras desplegada en el piso) con un efecto de partículas luminosas.
-* **Feedback Pedagógico**: Si el niño se equivoca al contar bloques, la cámara gira lentamente a una vista superior plana (planta) o explota la figura en capas separadas para mostrar claramente dónde estaban los bloques ocultos.
+* **Estética**: Entornos isométricos limpios, iluminación direccional y sombras proyectadas para enfatizar los vértices, aristas y profundidad geométrica.
+* **Feedback Pedagógico**: En problemas de conteo de volumen (cubos unitarios), un error acciona un "despiece explosivo": el bloque gigante se separa en sus niveles horizontales para que el niño descubra visualmente los bloques ocultos que olvidó contar.
 
 ---
 
 ## 4. Reglas Generales de Preguntas
 
-* **Origen**: Banco de Ejercicios en BD con coordenadas de mallas 3D o matrices de bloques isométricos.
-* **Habilitadores Clave**: Uso de librerías WebGL ligeras como `React Three Fiber` o renders isométricos SVG optimizados en CSS para garantizar que funcione suave a 60 FPS en celulares de gama media y baja.
+* **Origen**: Banco de configuraciones 3D, mapas de matrices de vóxeles e imágenes SVG desde PostgreSQL.
+### 4.1. Diseño Pedagógico y Progresión (Estándar de Fase)
+* Cada módulo incluye **niveles internos progresivos**.
+
+---
+
+## 5. Notas de Implementación Técnica
+
+*   **JSONB para Patrones:** Las preguntas de conteo de bloques y visualización 3D deben generarse paramétricamente en el backend y enviarse al frontend como una lista de coordenadas de vóxeles (ej. `[{"x": 0, "y": 0, "z": 0, "color": "wood"}]`) para que una librería como `three.js` o un motor de renderizado isométrico dibuje la escena de forma determinista.
+
+* **Práctica inicial sin presión** de tiempo con activación del **Bucle Espejo** ante errores.
+* Evaluación estructurada en: **Desafío 1, Desafío 2 y Desafío Final**.
+* **Desbloqueo estricto**: Se requiere una maestría mínima del **90%** para avanzar.
