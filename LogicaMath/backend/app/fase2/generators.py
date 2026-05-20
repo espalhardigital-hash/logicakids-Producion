@@ -415,6 +415,84 @@ def generate_modulo3_nivel3(seed: int) -> Dict[str, Any]:
     }
 
 
+def generate_modulo2_nivel4(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 4: Gran Integración.
+    Combina de forma aleatoria inversa +/- (Nivel 1), inversa * / / (Nivel 2) y número faltante (Nivel 3).
+    """
+    r = _rnd(seed)
+    sub = r.randint(1, 3)
+    if sub == 1:
+        return generate_modulo2_nivel1(seed)
+    elif sub == 2:
+        return generate_modulo2_nivel2(seed)
+    else:
+        return generate_modulo2_nivel3(seed)
+
+
+def generate_modulo3_nivel4(seed: int) -> Dict[str, Any]:
+    """
+    Nivel 4: Comprador Inteligente.
+    Dado un presupuesto (billete) y una lista de compras, calcula si sobra o falta dinero,
+    y devuelve la cantidad exacta de diferencia formateada como R$ X,XX.
+    """
+    r = _rnd(seed)
+    # Seleccionar presupuesto
+    billete = r.choice([500, 1000, 1500, 2000])  # R$ 5.00, R$ 10.00, R$ 15.00, R$ 20.00
+    
+    # Seleccionar productos
+    num_productos = r.randint(1, 3)
+    seleccionados = r.sample(PRODUCTOS, num_productos)
+    total_compra = sum(p[1] for p in seleccionados)
+    
+    # Si la compra es igual al billete, ajustamos un producto
+    if total_compra == billete:
+        seleccionados[0] = (seleccionados[0][0], seleccionados[0][1] + 25)
+        total_compra += 25
+
+    lista = ", ".join([f"{p[0]} ({_fmt_reais(p[1])})" for p in seleccionados])
+    
+    if billete > total_compra:
+        diferencia = billete - total_compra
+        enunciado = f"Tienes {_fmt_reais(billete)}. Compras: {lista}. ¿Cuánto dinero te sobra?"
+        respuesta_correcta = _fmt_reais(diferencia)
+        pasos = [
+            f"Presupuesto: {_fmt_reais(billete)}",
+            f"Total compra: {_fmt_reais(total_compra)}",
+            f"Como el presupuesto es mayor, te sobra dinero.",
+            f"Sobra: {_fmt_reais(billete)} - {_fmt_reais(total_compra)} = {_fmt_reais(diferencia)}",
+        ]
+    else:
+        diferencia = total_compra - billete
+        enunciado = f"Tienes {_fmt_reais(billete)}. Compras: {lista}. ¿Cuánto dinero te falta?"
+        respuesta_correcta = _fmt_reais(diferencia)
+        pasos = [
+            f"Presupuesto: {_fmt_reais(billete)}",
+            f"Total compra: {_fmt_reais(total_compra)}",
+            f"Como la compra supera tu presupuesto, te falta dinero.",
+            f"Falta: {_fmt_reais(total_compra)} - {_fmt_reais(billete)} = {_fmt_reais(diferencia)}",
+        ]
+
+    return {
+        "enunciado": enunciado,
+        "respuesta_correcta": respuesta_correcta,
+        "datos_numericos": {
+            "billete": billete,
+            "total_compra": total_compra,
+            "diferencia": diferencia,
+            "productos": [(p[0], p[1]) for p in seleccionados]
+        },
+        "explicacion_paso_a_paso": {
+            "pasos": pasos,
+            "resultado_final": respuesta_correcta
+        },
+        "errores_previstos": {
+            "resta_invertida": "Resta siempre la cantidad menor de la mayor para saber la diferencia",
+            "confusion_sobra_falta": "Compara tu dinero con el total de la compra para saber si te sobra o te falta"
+        }
+    }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # DISPATCHER — llama al generador correcto según módulo y nivel
 # ─────────────────────────────────────────────────────────────────────────────
@@ -426,9 +504,11 @@ _GENERATORS = {
     (2, 1): generate_modulo2_nivel1,
     (2, 2): generate_modulo2_nivel2,
     (2, 3): generate_modulo2_nivel3,
+    (2, 4): generate_modulo2_nivel4,
     (3, 1): generate_modulo3_nivel1,
     (3, 2): generate_modulo3_nivel2,
     (3, 3): generate_modulo3_nivel3,
+    (3, 4): generate_modulo3_nivel4,
 }
 
 

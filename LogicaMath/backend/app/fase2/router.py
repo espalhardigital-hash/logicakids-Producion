@@ -59,15 +59,20 @@ NIVELES_META = {
     (2, 1): {"nombre": "Inversa +/-",     "descripcion": "Operaciones inversas aditivas"},
     (2, 2): {"nombre": "Inversa ×÷",      "descripcion": "Operaciones inversas multiplicativas"},
     (2, 3): {"nombre": "Número faltante", "descripcion": "Ecuaciones simples"},
+    (2, 4): {"nombre": "Gran Integración", "descripcion": "Prueba de velocidad mental"},
     (3, 1): {"nombre": "Monedas",         "descripcion": "Reconocimiento y suma de monedas"},
     (3, 2): {"nombre": "Pago exacto",     "descripcion": "Suma de precios"},
     (3, 3): {"nombre": "Vuelto",          "descripcion": "Cálculo del troco"},
+    (3, 4): {"nombre": "Comprador Inteligente", "descripcion": "Control de presupuesto"},
     (4, 1): {"nombre": "Datos simples",   "descripcion": "Subrayar cantidades y unidades"},
     (4, 2): {"nombre": "Distractores",    "descripcion": "Ignorar información irrelevante"},
     (4, 3): {"nombre": "Comparación",     "descripcion": "Problemas con múltiples entidades"},
+    (4, 4): {"nombre": "Series y Patrones", "descripcion": "Identificar ritmos numéricos"},
+    (4, 5): {"nombre": "Integrador Completo", "descripcion": "Historias complejas integradas"},
     (5, 1): {"nombre": "Dos pasos",       "descripcion": "Operaciones encadenadas básicas"},
     (5, 2): {"nombre": "Dependencia",     "descripcion": "Paso 2 depende del resultado de Paso 1"},
-    (5, 3): {"nombre": "Planificación",   "descripcion": "Estrategia de resolución compleja"},
+    (5, 3): {"nombre": "Planificación",   "descripcion": "Cadenas mixtas avanzadas"},
+    (5, 4): {"nombre": "Gran Integración", "descripcion": "El Maestro Constructor"},
 }
 
 FASE2_ID = 2  # ID de la Fase 2 en la tabla fases
@@ -124,7 +129,7 @@ async def _get_or_create_progreso(
 def _seccion_operacion(modulo_id: int, nivel_id: int) -> tuple:
     """Mapea (módulo, nivel) → (sección, operación) para ConfiguracionProgreso."""
     operacion_map = {1: "suma", 2: "multiplicacion", 3: "mixta", 4: "mixta", 5: "mixta"}
-    seccion = (modulo_id - 1) * 3 + nivel_id   # Secciones 1-15
+    seccion = modulo_id * 100 + nivel_id
     return seccion, operacion_map.get(modulo_id, "mixta")
 
 
@@ -171,12 +176,14 @@ async def get_fase2_dashboard(
     modulos = []
     todos_dominados = True
 
+    modulo_niveles_map = {1: 3, 2: 4, 3: 4, 4: 5, 5: 4}
     for mod_id in range(1, 6):
         meta = MODULOS_META[mod_id]
         niveles = []
         mod_porcentaje_total = 0
+        num_niveles = modulo_niveles_map.get(mod_id, 3)
 
-        for niv_id in range(1, 4):
+        for niv_id in range(1, num_niveles + 1):
             seccion, operacion = _seccion_operacion(mod_id, niv_id)
             niv_meta = NIVELES_META.get((mod_id, niv_id), {"nombre": f"Nivel {niv_id}", "descripcion": ""})
             config = configs.get((seccion, operacion))
@@ -215,7 +222,7 @@ async def get_fase2_dashboard(
                 usa_cronometro=config.usa_cronometro if config else False,
             ))
 
-        mod_porcentaje = mod_porcentaje_total // 3
+        mod_porcentaje = mod_porcentaje_total // num_niveles
         estado_modulo = (
             "dominado"    if all(n.estado == "dominado" for n in niveles)
             else "bloqueado" if all(n.estado == "bloqueado" for n in niveles)
@@ -587,7 +594,7 @@ async def graduate_fase2(
     """
     alumno = await _get_alumno(db, current_user)
 
-    # Verificar que todos los 15 niveles estén aprobados
+    # Verificar que todos los 20 niveles estén aprobados
     result = await db.execute(
         select(func.count(ProgresoMaestria.id)).where(and_(
             ProgresoMaestria.alumno_id == alumno.id,
@@ -596,10 +603,10 @@ async def graduate_fase2(
         ))
     )
     aprobados = result.scalar()
-    if aprobados < 15:
+    if aprobados < 20:
         raise HTTPException(
             status_code=400,
-            detail=f"Debes dominar los 15 niveles de Fase 2. Llevas {aprobados}/15.",
+            detail=f"Debes dominar los 20 niveles de Fase 2. Llevas {aprobados}/20.",
         )
 
     # Buscar Fase 3

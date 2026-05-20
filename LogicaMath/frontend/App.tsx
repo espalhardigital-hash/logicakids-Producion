@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation, useParams } from 'react-router-dom';
 import { ThemeProvider } from './components/theme/ThemeContext';
 import { ThemeToggle } from './components/theme/ThemeToggle';
 import { GameScreenState, GameStats, GameCategory, ScoreRecord, Difficulty, User, PedagogyConfig } from './types';
 import WelcomeScreen from './components/fase1/WelcomeScreen';
 import WelcomeScreenPhase2 from './components/fase2/WelcomeScreenPhase2';
+import Fase2GameScreen from './components/fase2/Fase2GameScreen';
 import PhaseMapScreen from './components/map/PhaseMapScreen';
 import GameScreen from './components/fase1/GameScreen';
 import ResultsScreen from './components/fase1/ResultsScreen';
@@ -16,6 +17,19 @@ import AdminPanel from './components/admin/AdminPanel';
 import LevelSelectionScreen from './components/fase1/LevelSelectionScreen';
 import { saveScore, saveUser, getCurrentUserFull, getAdminSettings, getModularConfigs } from './services/storageService';
 import * as authService from './services/authService';
+
+const Fase2GameScreenWrapper: React.FC = () => {
+  const { moduloId, nivelId } = useParams<{ moduloId: string; nivelId: string }>();
+  const navigate = useNavigate();
+  return (
+    <Fase2GameScreen
+      moduloId={parseInt(moduloId || '1', 10)}
+      nivelId={parseInt(nivelId || '1', 10)}
+      onComplete={() => navigate('/welcome-fase2')}
+      onBack={() => navigate('/welcome-fase2')}
+    />
+  );
+};
 
 const AppContent: React.FC = () => {
   // Current User Session (null if guest)
@@ -335,15 +349,25 @@ const AppContent: React.FC = () => {
           } />
 
           <Route path="/welcome-fase2" element={
-            <WelcomeScreenPhase2
-              user={currentUser}
-              onSelectCategory={handleSelectCategory}
-              onLogout={handleLogout}
-              onGoAdmin={currentUser?.role === 'ADMIN' ? () => navigate('/admin') : undefined}
-              onGoProfile={currentUser ? () => navigate('/profile') : undefined}
-              onGoStats={handleShowStats}
-              onBackMap={currentUser ? () => navigate('/map') : undefined}
-            />
+            currentUser ? (
+              <WelcomeScreenPhase2
+                studentName={currentUser.username}
+                onModuleSelect={(moduloId, nivelId) => {
+                  navigate(`/fase2/play/${moduloId}/${nivelId || 1}`);
+                }}
+                onBack={() => navigate('/map')}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/fase2/play/:moduloId/:nivelId" element={
+            currentUser ? (
+              <Fase2GameScreenWrapper />
+            ) : (
+              <Navigate to="/login" replace />
+            )
           } />
 
           <Route path="/level-selection/:category" element={

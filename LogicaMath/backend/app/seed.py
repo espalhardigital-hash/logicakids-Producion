@@ -427,9 +427,17 @@ async def run_seed():
         
         await session.commit()
 
+    # Inyectar datos semilla de la Fase 2
+    try:
+        from app.fase2.seed import run_fase2_seed
+        await run_fase2_seed()
+    except Exception as e:
+        print(f"⚠️ Error al inyectar datos de Fase 2: {e}")
+
     print("=" * 60)
     print("¡Datos semilla inyectados con éxito!")
     print("=" * 60)
 
 if __name__ == "__main__":
     asyncio.run(run_seed())
+
