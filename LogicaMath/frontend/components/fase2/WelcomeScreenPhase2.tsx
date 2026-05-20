@@ -87,12 +87,14 @@ interface Props {
   onModuleSelect: (moduloId: number, nivelId?: number) => void;
   onBack: () => void;
   studentName?: string;
+  userRole?: string;
 }
 
 const WelcomeScreenPhase2: React.FC<Props> = ({
   onModuleSelect,
   onBack,
   studentName = 'Estudiante',
+  userRole,
 }) => {
   const [dashboard, setDashboard] = useState<Fase2Dashboard | null>(null);
   const [loading, setLoading]   = useState(true);
@@ -102,16 +104,50 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
     try {
       setLoading(true);
       setError(null);
-      const data = await getFase2Dashboard();
+      let data = await getFase2Dashboard();
+      
+      // -- Si es ADMIN, desbloqueamos todo para pruebas
+      if (userRole === 'ADMIN') {
+        data = {
+          ...data,
+          desafio_mixto_disponible: true,
+          desafio_mixto_estado: 'dominado',
+          modulos: data.modulos.map(m => ({
+            ...m,
+            estado: m.estado === 'bloqueado' ? 'en_progreso' : m.estado,
+            niveles: m.niveles.map(n => ({
+              ...n,
+              estado: n.estado === 'bloqueado' ? 'en_progreso' : n.estado,
+            }))
+          }))
+        };
+      }
+      
       setDashboard(data);
     } catch (e: unknown) {
       // En desarrollo o sin backend, usar datos de muestra
-      setDashboard(MOCK_DASHBOARD(studentName));
+      let mockData = MOCK_DASHBOARD(studentName);
+      if (userRole === 'ADMIN') {
+        mockData = {
+          ...mockData,
+          desafio_mixto_disponible: true,
+          desafio_mixto_estado: 'dominado',
+          modulos: mockData.modulos.map(m => ({
+            ...m,
+            estado: m.estado === 'bloqueado' ? 'en_progreso' : m.estado,
+            niveles: m.niveles.map(n => ({
+              ...n,
+              estado: n.estado === 'bloqueado' ? 'en_progreso' : n.estado,
+            }))
+          }))
+        };
+      }
+      setDashboard(mockData);
       console.warn('[Fase2] Backend no disponible, usando datos de muestra.', e);
     } finally {
       setLoading(false);
     }
-  }, [studentName]);
+  }, [studentName, userRole]);
 
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
@@ -202,6 +238,8 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
               key={modulo.modulo_id}
               modulo={modulo}
               onClick={() => handleModuleClick(modulo)}
+              userRole={userRole}
+              onLevelSelect={(moduloId, nivelId) => onModuleSelect(moduloId, nivelId)}
             />
           ))}
         </div>
@@ -236,9 +274,11 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
 // SUBCOMPONENTE: Tarjeta de módulo
 // ─────────────────────────────────────────────────────────────────────────────
 
-const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void }> = ({
+const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userRole?: string; onLevelSelect: (moduloId: number, nivelId: number) => void }> = ({
   modulo,
   onClick,
+  userRole,
+  onLevelSelect,
 }) => {
   const IconComp = Icons[modulo.icono] || Icons.activity;
   const porcentaje = Math.max(0, Math.min(100, modulo.porcentaje_global));
@@ -247,10 +287,10 @@ const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void }> = (
     <article
       className={`f2-module-card ${modulo.estado}`}
       style={{ ['--card-color' as string]: modulo.color }}
-      onClick={onClick}
+      onClick={userRole === 'ADMIN' ? undefined : onClick}
       role={modulo.estado !== 'bloqueado' ? 'button' : undefined}
       tabIndex={modulo.estado !== 'bloqueado' ? 0 : undefined}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+      onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && userRole !== 'ADMIN') onClick(); }}
       aria-label={`${modulo.nombre} — ${ESTADO_LABELS[modulo.estado]}`}
     >
       {/* Ícono con color de módulo */}
@@ -272,8 +312,28 @@ const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void }> = (
         {ESTADO_LABELS[modulo.estado]}
       </div>
 
+      {/* Admin Level Selector */}
+      {userRole === 'ADMIN' && (
+        <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap', zIndex: 10, position: 'relative' }}>
+          <span style={{ fontSize: '10px', color: '#9CA3AF', width: '100%', textTransform: 'uppercase', fontWeight: 'bold' }}>Admin: Test Levels</span>
+          {modulo.niveles.map((n) => (
+            <button
+              key={n.nivel_id}
+              onClick={(e) => { e.stopPropagation(); onLevelSelect(modulo.modulo_id, n.nivel_id); }}
+              style={{
+                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '4px', padding: '4px 8px', color: '#fff', fontSize: '12px',
+                cursor: 'pointer'
+              }}
+            >
+              L{n.nivel_id}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Barra de progreso */}
-      <div className="f2-module-progress-section">
+      <div className="f2-module-progress-section" onClick={userRole === 'ADMIN' ? onClick : undefined} style={{ cursor: userRole === 'ADMIN' ? 'pointer' : 'inherit' }}>
         <div className="f2-module-progress-label">
           <span>PROGRESO</span>
           <span>{porcentaje}%</span>

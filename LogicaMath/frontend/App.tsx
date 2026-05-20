@@ -352,6 +352,7 @@ const AppContent: React.FC = () => {
             currentUser ? (
               <WelcomeScreenPhase2
                 studentName={currentUser.username}
+                userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId) => {
                   navigate(`/fase2/play/${moduloId}/${nivelId || 1}`);
                 }}
