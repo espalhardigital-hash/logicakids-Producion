@@ -36,7 +36,9 @@ async def main():
         await run_seed()
         print("✅ Database seeding completed successfully.")
     except Exception as e:
+        import traceback
         print(f"❌ Error seeding database: {e}")
+        traceback.print_exc()
         sys.exit(1)
 
     # 4. Create users
@@ -48,7 +50,9 @@ async def main():
         await create_users()
         print("✅ User creation completed successfully.")
     except Exception as e:
+        import traceback
         print(f"❌ Error creating users: {e}")
+        traceback.print_exc()
         sys.exit(1)
 
     print("=============================================")

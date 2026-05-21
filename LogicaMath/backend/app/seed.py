@@ -432,7 +432,10 @@ async def run_seed():
         from app.fase2.seed import run_fase2_seed
         await run_fase2_seed()
     except Exception as e:
-        print(f"⚠️ Error al inyectar datos de Fase 2: {e}")
+        import traceback
+        print("❌ Error al inyectar datos de Fase 2:")
+        traceback.print_exc()
+        raise e
 
     print("=" * 60)
     print("¡Datos semilla inyectados con éxito!")
