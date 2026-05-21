@@ -328,6 +328,104 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
                 );
               })}
             </div>
+
+            {/* Zona de Desafíos */}
+            <div className="f2-challenge-zone" style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '2rem' }}>
+              <div className="f2-challenge-zone-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <Icons.trophy size={22} color="#F59E0B" />
+                <h2 className="f2-challenge-zone-title" style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '0.05em', color: '#f3f4f6', margin: 0 }}>
+                  ZONA DE DESAFÍOS
+                </h2>
+              </div>
+              <p className="f2-challenge-zone-subtitle" style={{ fontSize: '0.9rem', color: '#9ca3af', marginBottom: '1.5rem' }}>
+                Pon a prueba tu velocidad y precisión. Completa todos los niveles de práctica para desbloquear la evaluación.
+              </p>
+              
+              <div className="f2-challenge-zone-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                {(selectedModule.desafios || []).map((desafio) => {
+                  const allLevelsDominated = selectedModule.niveles.every(n => n.estado === 'dominado');
+                  let isDesafioUnlocked = false;
+                  
+                  if (userRole === 'ADMIN') {
+                    isDesafioUnlocked = true;
+                  } else if (allLevelsDominated) {
+                    if (desafio.desafio_id === 11) {
+                      isDesafioUnlocked = true;
+                    } else if (desafio.desafio_id === 12) {
+                      const d11 = selectedModule.desafios.find(d => d.desafio_id === 11);
+                      isDesafioUnlocked = d11?.estado === 'dominado';
+                    } else if (desafio.desafio_id === 13) {
+                      const d12 = selectedModule.desafios.find(d => d.desafio_id === 12);
+                      isDesafioUnlocked = d12?.estado === 'dominado';
+                    }
+                  }
+
+                  const isPassed = desafio.estado === 'dominado';
+                  
+                  return (
+                    <button
+                      key={desafio.desafio_id}
+                      disabled={!isDesafioUnlocked}
+                      onClick={() => onModuleSelect(selectedModule.modulo_id, desafio.desafio_id)}
+                      className={`f2-challenge-card ${desafio.estado} ${isDesafioUnlocked ? 'unlocked' : 'locked'}`}
+                      style={{
+                        ['--challenge-accent' as string]: selectedModule.color,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        padding: '1.25rem',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: isDesafioUnlocked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)',
+                        cursor: isDesafioUnlocked ? 'pointer' : 'not-allowed',
+                        opacity: isDesafioUnlocked ? 1 : 0.5,
+                        textAlign: 'left',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <div className="f2-challenge-card-header" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: '1rem' }}>
+                        <span className={`f2-challenge-difficulty-badge ${desafio.dificultad}`} style={{
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '6px',
+                          background: desafio.dificultad === 'maestria' ? 'rgba(239, 68, 68, 0.2)' : desafio.dificultad === 'avanzada' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                          color: desafio.dificultad === 'maestria' ? '#ef4444' : desafio.dificultad === 'avanzada' ? '#f59e0b' : '#10b981',
+                        }}>
+                          {desafio.dificultad.toUpperCase()}
+                        </span>
+                        <div className="f2-challenge-card-icon">
+                          {isPassed ? (
+                            <Icons.check size={18} color="#10B981" />
+                          ) : !isDesafioUnlocked ? (
+                            <Icons.lock size={14} color="#9CA3AF" />
+                          ) : (
+                            <Icons.shield size={18} color={selectedModule.color} />
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="f2-challenge-card-body" style={{ flexGrow: 1, marginBottom: '1rem' }}>
+                        <h3 className="f2-challenge-card-title" style={{ fontSize: '1.05rem', fontWeight: 600, color: '#f9fafb', margin: '0 0 0.25rem 0' }}>
+                          {desafio.nombre}
+                        </h3>
+                        <div className="f2-challenge-card-meta" style={{ fontSize: '0.8rem', color: '#9ca3af', display: 'flex', gap: '0.75rem' }}>
+                          <span>⏱️ {desafio.tiempo_limite}s</span>
+                          <span>❌ Max {desafio.max_errores} err</span>
+                        </div>
+                      </div>
+
+                      {desafio.estado === 'dominado' && (
+                        <div className="f2-challenge-badge-completed" style={{ fontSize: '0.75rem', fontWeight: 600, color: '#10b981' }}>
+                          ✓ Completado
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
         )}
       </main>
@@ -401,29 +499,38 @@ const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userR
 // ─────────────────────────────────────────────────────────────────────────────
 
 function MOCK_DASHBOARD(nombre: string): Fase2Dashboard {
-  const makeNiveles = (domAll = false) =>
-    [1, 2, 3].map(id => ({
+  const makeNiveles = (moduloId: number, domAll = false) => {
+    const totalLevels = moduloId === 2 || moduloId === 3 ? 4 : 3;
+    return Array.from({ length: totalLevels }, (_, i) => i + 1).map(id => ({
       nivel_id: id,
       nombre: `Nivel ${id}`,
       descripcion: `Descripción del nivel ${id}`,
       estado: (domAll ? 'dominado' : id === 1 ? 'en_progreso' : 'bloqueado') as 'dominado' | 'en_progreso' | 'bloqueado',
       porcentaje: domAll ? 100 : id === 1 ? 45 : 0,
-      aciertos: domAll ? 10 : id === 1 ? 5 : 0,
-      requeridos: 10,
+      aciertos: domAll ? 15 : id === 1 ? 5 : 0,
+      requeridos: 15,
       usa_cronometro: false,
     }));
+  };
+
+  const makeDesafios = (moduloId: number, domAll = false) => {
+    return [
+      { desafio_id: 11, nombre: 'Desafío 1: Estándar', dificultad: 'estandar' as const, estado: (domAll ? 'en_progreso' : 'bloqueado') as any, porcentaje: 0, aciertos: 0, requeridos: 25, tiempo_limite: 25, max_errores: 3 },
+      { desafio_id: 12, nombre: 'Desafío 2: Avanzado', dificultad: 'avanzada' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 25, tiempo_limite: 40, max_errores: 3 },
+      { desafio_id: 13, nombre: 'Desafío Final: Maestría', dificultad: 'maestria' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 10, tiempo_limite: 50, max_errores: 2 },
+    ];
+  };
 
   const modulos = [
     { id: 1, nombre: 'Gimnasio Mental',   desc: 'Cálculo mental ultra veloz, dobles y mitades.', icono: 'activity',    color: '#10B981', estado: 'dominado'    as const, pct: 100 },
     { id: 2, nombre: 'Tablas en Acción',  desc: 'Tablas de multiplicar y operaciones inversas.',  icono: 'hash',        color: '#8B5CF6', estado: 'dominado'    as const, pct: 100 },
-    { id: 3, nombre: 'Tienda Matemática', desc: 'Cálculo de cambio, billetes y precios en R$.', icono: 'shopping-bag', color: '#F59E0B', estado: 'dominado'    as const, pct: 100 },
-    { id: 4, nombre: 'Detective',         desc: 'Aislar distractores con subrayador interactivo.', icono: 'search',    color: '#3B82F6', estado: 'en_progreso'  as const, pct: 60  },
-    { id: 5, nombre: 'Constructor',       desc: 'Problemas de múltiples pasos conectados.',        icono: 'tool',      color: '#EC4899', estado: 'bloqueado'   as const, pct: 0   },
+    { id: 3, nombre: 'Tienda Matemática', desc: 'Cálculo de cambio, billetes y precios en R$.', icono: 'shopping-bag', color: '#F59E0B', estado: 'en_progreso' as const, pct: 40 },
+    { id: 4, nombre: 'Constructor de Soluciones', desc: 'Problemas de múltiples pasos conectados.', icono: 'tool',      color: '#EC4899', estado: 'bloqueado'   as const, pct: 0 },
   ];
 
   return {
     alumno_nombre: nombre,
-    puntos_totales: 25,
+    puntos_totales: 45,
     modulos: modulos.map(m => ({
       modulo_id: m.id,
       nombre: m.nombre,
@@ -432,7 +539,8 @@ function MOCK_DASHBOARD(nombre: string): Fase2Dashboard {
       color: m.color,
       estado: m.estado,
       porcentaje_global: m.pct,
-      niveles: makeNiveles(m.estado === 'dominado'),
+      niveles: makeNiveles(m.id, m.estado === 'dominado'),
+      desafios: makeDesafios(m.id, m.estado === 'dominado'),
     })),
     desafio_mixto_disponible: false,
     desafio_mixto_estado: 'bloqueado',

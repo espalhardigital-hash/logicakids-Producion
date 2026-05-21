@@ -1,8 +1,16 @@
 """
 Schemas Pydantic — Fase 2: Desarrollo Numérico y Razonamiento
 =============================================================
-Schemas exclusivos de los 5 módulos de Fase 2. No modifica ni reemplaza
+Schemas exclusivos de los 4 módulos de Fase 2. No modifica ni reemplaza
 los schemas globales de app.schemas; conviven sin conflicto.
+
+Módulos:
+  1. Gimnasio Numérico Mental (3 niveles)
+  2. Tablas en Acción (4 niveles)
+  3. Tienda Matemática (4 niveles)
+  4. Constructor de Soluciones (3 niveles)
+
+Cada módulo posee 3 desafíos virtuales (nivel_id 11, 12, 13).
 """
 
 from pydantic import BaseModel, Field
@@ -10,15 +18,27 @@ from typing import Optional, List, Dict, Any
 
 
 # ============================================================
-# TOKENS (Módulo 4 — Detective de Historias)
+# ALTERNATIVA (Opción Múltiple — Desafíos 1 y 2)
+# ============================================================
+
+class Fase2AlternativaOut(BaseModel):
+    """Una opción de respuesta para preguntas de opción múltiple."""
+    id: int
+    texto: str
+    orden: Optional[int] = None
+    # No se envía es_correcta al frontend antes de responder
+
+
+# ============================================================
+# TOKENS (Legado Módulo Detective — no se usa en Fase 2 refactorizada)
 # ============================================================
 
 class Fase2Token(BaseModel):
     """Un segmento tokenizado del enunciado de un problema de texto."""
     id: int
     texto: str
-    es_dato_relevante: bool  # True = dato numérico o clave que hay que subrayar
-    categoria: Optional[str] = None  # 'cantidad', 'unidad', 'operacion', 'irrelevante'
+    es_dato_relevante: bool
+    categoria: Optional[str] = None
 
 
 # ============================================================
@@ -32,17 +52,23 @@ class Fase2PreguntaParaAlumno(BaseModel):
     nivel_id: int
     enunciado: str
     enunciado_seed: Optional[str] = None
-    tipo_pregunta: str                  # respuesta_numerica | subrayado_tokens | constructor_soluciones_chained
-    respuesta_correcta: Optional[str] = None   # None para tokens (no se revela al frontend)
+    tipo_pregunta: str                  # respuesta_numerica | multiple_opcion | constructor_soluciones_chained
+    respuesta_correcta: Optional[str] = None   # None para opción múltiple (no se revela)
     tiene_cronometro: bool = False
     tiempo_limite_segundos: Optional[int] = None
-    # Módulo 4
-    payload_tokenizado: Optional[List[Fase2Token]] = None
-    # Módulo 5
-    pasos_encadenados: Optional[List[Dict[str, Any]]] = None  # [{titulo, descripcion, respuesta_correcta}]
-    # Generadas dinámicamente (mód 1-3)
+
+    # Opciones múltiples (Desafíos 1 y 2)
+    alternativas: Optional[List[Fase2AlternativaOut]] = None
+
+    # Constructor de Soluciones (Módulo 4)
+    pasos_encadenados: Optional[List[Dict[str, Any]]] = None
+
+    # Datos estructurados (generadas dinámicamente o desde BD)
     datos_numericos: Optional[Dict[str, Any]] = None
     explicacion_referencia: Optional[Dict[str, Any]] = None
+
+    # Legado: tokens (no se usa en la Fase 2 refactorizada)
+    payload_tokenizado: Optional[List[Fase2Token]] = None
 
 
 # ============================================================
@@ -53,13 +79,14 @@ class Fase2ResponderPregunta(BaseModel):
     """Payload que envía el alumno al responder en Fase 2."""
     modulo_id: int
     nivel_id: int
-    pregunta_id: Optional[int] = None           # Para preguntas de BD (mód 4 y 5)
+    pregunta_id: Optional[int] = None           # Para preguntas de BD
     enunciado_seed: Optional[str] = None        # Seed reproducible para mód 1-3
 
     # Modos de respuesta (mutuamente excluyentes)
-    respuesta_dada: Optional[str] = None                  # Mód 1, 2, 3
-    tokens_seleccionados: Optional[List[int]] = None      # Mód 4 (IDs de tokens)
-    paso_numero: Optional[int] = None                     # Mód 5 (1 o 2)
+    respuesta_dada: Optional[str] = None                  # Entrada numérica o texto
+    alternativa_id: Optional[int] = None                  # ID de la alternativa elegida (opción múltiple)
+    tokens_seleccionados: Optional[List[int]] = None      # Legado
+    paso_numero: Optional[int] = None                     # Módulo 4 Constructor (1 o 2)
 
     tiempo_respuesta_segundos: Optional[float] = None
 
@@ -74,6 +101,9 @@ class Fase2ResultadoRespuesta(BaseModel):
     respuesta_correcta: Optional[str] = None
     explicacion: Optional[Dict[str, Any]] = None
 
+    # Feedback de error pedagógico (Tutor Invisible)
+    feedback_error: Optional[str] = None
+
     # Estado de progreso
     aciertos_acumulados: int
     intentos_totales: int
@@ -81,18 +111,23 @@ class Fase2ResultadoRespuesta(BaseModel):
     bloque_completado: bool = False
     fase_completada: bool = False
 
-    # Bucle Espejo (Mirror Loop)
-    es_espejo: bool = False                      # True si el sistema generó una variante espejo
-    intentos_espejo_actuales: int = 0            # Cuántos intentos espejo han ocurrido
-    intentos_espejo_max: int = 3                 # Máximo de intentos espejo
-    soporte_avanzado: bool = False               # True cuando se agotaron los espejos → mostrar explicación completa
+    # Bucle Espejo (Mirror Loop) — solo para práctica libre
+    es_espejo: bool = False
+    intentos_espejo_actuales: int = 0
+    intentos_espejo_max: int = 3
+    soporte_avanzado: bool = False
 
-    # Para Módulo 4
-    tokens_correctos: Optional[List[int]] = None   # IDs de tokens que SÍ debían marcarse
+    # Early Exit — solo para desafíos
+    early_exit: bool = False
+    errores_sesion: int = 0
+    max_errores_tolerados: int = 0
 
-    # Para Módulo 5
-    paso_aprobado: Optional[int] = None             # Qué paso fue aprobado
-    valor_paso1_congelado: Optional[str] = None     # Valor de paso 1 para inyectar en paso 2
+    # Para Módulo 4 Constructor
+    paso_aprobado: Optional[int] = None
+    valor_paso1_congelado: Optional[str] = None
+
+    # Legado: tokens correctos
+    tokens_correctos: Optional[List[int]] = None
 
 
 # ============================================================
@@ -112,6 +147,23 @@ class Fase2NivelInfo(BaseModel):
 
 
 # ============================================================
+# DESAFÍO (dentro de un módulo)
+# ============================================================
+
+class Fase2DesafioInfo(BaseModel):
+    """Estado de un desafío específico dentro de un módulo."""
+    desafio_id: int       # 11, 12, o 13
+    nombre: str
+    dificultad: str       # estandar | avanzada | maestria
+    estado: str           # bloqueado | en_progreso | dominado
+    porcentaje: int = 0
+    aciertos: int = 0
+    requeridos: int = 0
+    tiempo_limite: int = 0
+    max_errores: int = 0
+
+
+# ============================================================
 # MÓDULO (dashboard de Fase 2)
 # ============================================================
 
@@ -120,11 +172,12 @@ class Fase2ModuloInfo(BaseModel):
     modulo_id: int
     nombre: str
     descripcion: str
-    icono: str                # emoji o código de ícono
-    color: str                # color hex para el ícono/acento
+    icono: str
+    color: str
     estado: str              # bloqueado | en_progreso | dominado
     porcentaje_global: int = 0
     niveles: List[Fase2NivelInfo] = []
+    desafios: List[Fase2DesafioInfo] = []
 
 
 # ============================================================
@@ -141,14 +194,29 @@ class Fase2Dashboard(BaseModel):
 
 
 # ============================================================
-# LECTURA / TEORIA
+# LECTURA / TEORIA (ahora desde BD)
 # ============================================================
 
+class Fase2InteractivoOut(BaseModel):
+    """Un ejercicio interactivo dentro del contenido de teoría."""
+    pregunta: str
+    respuesta: str
+    feedback_acierto: str
+    feedback_error: str
+
+
+class Fase2EjemploOut(BaseModel):
+    """Un ejemplo guiado dentro del contenido de teoría."""
+    enunciado: str
+    respuesta: str
+
+
 class Fase2ContenidoLectura(BaseModel):
-    """Contenido teórico/tutorial de un nivel."""
+    """Contenido teórico/tutorial de un nivel, cargado desde BD."""
     modulo_id: int
     nivel_id: int
     titulo: str
     parrafos: List[str]
     ejemplos: Optional[List[Dict[str, Any]]] = None
     tip_pedagogico: Optional[str] = None
+    interactivos: Optional[List[Dict[str, Any]]] = None

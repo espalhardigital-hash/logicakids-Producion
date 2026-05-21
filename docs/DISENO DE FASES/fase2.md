@@ -1,6 +1,5 @@
 # Documento de Reglas para Generación y Carga de Preguntas — Fase 2 LogicaKids Pro
 
-**Versión:** 3.1 — Actualizada
 **Estado:** Documento base de trabajo
 **Fase:** Fase 2 — Desarrollo Numérico y Razonamiento
 **Proyecto:** LogicaKids Pro
@@ -3582,3 +3581,112 @@ La incorporación de Tutoría Invisible, JSONB, validación server-authoritative
 * y mejora continua del banco de preguntas.
 
 La prioridad del desarrollo debe ser mantener equilibrio entre robustez técnica, claridad pedagógica y experiencia motivacional del alumno.
+
+
+
+***************************************
+****************************************
+Modulo 1
+🏗️ [FASE 2: DESARROLLO NUMÉRICO Y RAZONAMIENTO]
+Propósito: Pasar del cálculo puramente mecánico al pensamiento numérico estructurado y abstracto.
+
+🧠 MÓDULO 1: GIMNASIO NUMÉRICO MENTAL
+Tema: Escalas, relaciones distributivas y jerarquía.
+
+Propósito Pedagógico: Eliminar la dependencia de los dedos y el conteo de uno en uno, instalando en la mente del alumno el concepto de operador de escala (escalar un número) y la prioridad matemática innata (la multiplicación domina sobre la suma).
+
+📋 Estructura de Niveles (Textos Interactivos)
+👑 Nivel 1: Conceptos de doble, triple, mitad y cuádruple
+Texto de Descubrimiento: ¡Hola, atleta de la mente! Bienvenido al Gimnasio Numérico. Hoy vas a entrenar tus músculos lógicos con los Multiplicadores de Tamaño. Cuando doblas, triplicas o cuadruplicas un número, estás usando un rayo de crecimiento matemático. Si lo partes a la mitad, usas un rayo reductor.
+
+El Diccionario del Nivel:
+
+El Doble: Multiplica por 2 (× 2).
+
+El Triple: Multiplica por 3 (× 3).
+
+La Mitad: Divide entre 2 (÷ 2).
+
+El Cuádruple: Multiplica por 4 (× 4).
+
+⚠️ ¡Cuidado con la Trampa del Apuro! El monstruo del desorden quiere que sumes en lugar de multiplicar. Si te piden el triple de 4, la trampa es hacer 4 + 3 = 7. ¡Error! El triple significa tres veces el mismo número: 4 × 3 = 12.
+
+⚡ Interactivo 1: Tengo 6 tazos coleccionables en mi cajón y mi hermano tiene el doble. ¿Cuántos tazos tiene mi hermano? [ Input ] (Respuesta: 12)
+
+🧠 Interactivo 2: Sofía preparó 16 panqués y se comió la mitad con sus amigos. ¿Cuántos panqués quedan? [ Input ] (Respuesta: 8)
+
+🎯 Interactivo 3: En un árbol hay 5 pájaros, pero en el tejado hay el cuádruple. ¿Cuántos pájaros hay en el tejado? [ Input ] (Respuesta: 20)
+
+👑 Nivel 2: Prioridad algebraica: orden de operaciones y uso de paréntesis
+Texto de Descubrimiento: ¡Atención! Los números tienen reglas de oro y jerarquías como los caballeros antiguos. En una fila de operaciones matemáticas, la multiplicación y la división siempre se resuelven antes que la suma y la resta. Pero hay un escudo mágico supremo: Los Paréntesis ( ). Cualquier operación atrapada dentro de un paréntesis se resuelve primero, sin importar qué símbolo sea.
+
+⚠️ ¡Cuidado con la Trampa de Leer de Corrido! Si ves 3 + 2 × 5, la tentación es leer de izquierda a derecha: 3 + 2 = 5, y luego 5 × 5 = 25. ¡Error! La multiplicación exige prioridad: primero calculas 2 × 5 = 10 y luego sumas el 3: 3 + 10 = 13.
+
+⚡ Interactivo 1: Resuelve respetando la prioridad: 5 + 4 × 2 = [ Input ] (Respuesta: 13)
+
+🧠 Interactivo 2: Los paréntesis tienen el poder absoluto. Resuelve: (5 + 4) × 2 = [ Input ] (Respuesta: 18)
+
+🎯 Interactivo 3: Resuelve con calma: 20 - 10 ÷ 2 = [ Input ] (Respuesta: 15)
+
+👑 Nivel 3: Traducción del lenguaje verbal a expresiones numéricas abstractas
+Texto de Descubrimiento: ¡Te has convertido en un traductor de élite! Las historias humanas están llenas de palabras que esconden fórmulas matemáticas abstractas. Tu misión es leer el enunciado, identificar la operación y ordenarla usando paréntesis si es necesario.
+
+⚠️ ¡Cuidado con la Trampa de los Cables Cruzados! Si la historia dice: "A la suma de 3 y 4 multiplícala por 2", no debes escribir 3 + 4 × 2 porque la multiplicación se comería al 4 primero. Tienes que proteger la suma con un paréntesis: (3 + 4) × 2.
+
+⚡ Interactivo 1: Traduce y resuelve: "El triple de la suma de 2 y 3". [ Input ] (Respuesta: 15)
+
+🧠 Interactivo 2: Traduce y resuelve: "A 20 le resto la mitad de 8". [ Input ] (Respuesta: 16)
+
+🎯 Interactivo 3: Traduce y resuelve: "El doble de 10, y al resultado le sumo 5". [ Input ] (Respuesta: 25)
+
+
+****************
+🔄 MÓDULO 2: TABLAS EN ACCIÓN
+Tema: Ecuaciones de un paso y operaciones inversas.
+
+Propósito Pedagógico: Sentar las bases del álgebra abstracta desmitificando el despeje de incógnitas. El alumno aprende que el símbolo de igualdad (=) es una balanza en equilibrio y que para deshacer una acción debe aplicar su operación inversa exacta.
+
+📋 Estructura de Niveles (Textos Interactivos)
+👑 Nivel 1: Operación Inversa - Suma y Resta
+Texto de Descubrimiento: ¡Bienvenido al mundo al revés! Hoy vas a aprender el superpoder del Camino de Regreso. Si una máquina matemática le sumó un número a tu inventario secreto y quieres descubrir cuál era tu número original, solo debes viajar hacia atrás aplicando una Resta. La resta destruye a la suma, y la suma destruye a la resta.
+
+⚠️ ¡Cuidado con la Trampa de la Balanza Desequilibrada! Si ves que un número sumaba al lado de tu incógnita, no lo pases al otro lado sumando también. Romperías el equilibrio. Para cruzar la frontera del igual (=), debe cambiar de bando usando su operación contraria.
+
+⚡ Interactivo 1: Un número misterioso se junta con 5 y el resultado final es 12. ¿Cuál es el número misterioso? [ Input ] (Respuesta: 7)
+
+🧠 Interactivo 2: A un cofre con gemas le roban 4 y quedan 10 gemas dentro. ¿Cuántas gemas tenía el cofre al inicio? [ Input ] (Respuesta: 14)
+
+🎯 Interactivo 3: Resuelve el regreso: Si X - 8 = 2, entonces X vale... [ Input ] (Respuesta: 10)
+
+👑 Nivel 2: Operación Inversa - Multiplicación y División
+Texto de Descubrimiento: ¡Subimos la velocidad! Ahora la máquina misteriosa multiplica y divide en secreto. Si un número fue multiplicado por 3 para crecer, el camino de regreso para rescatar al número original es Dividir entre 3. La multiplicación y la división son espejos perfectos: una arma grupos y la otra los desarma.
+
+⚠️ ¡Cuidado con la Trampa del Espejo Roto! Si te dicen que el triple de un número es 15, no multipliques 15 × 3 = 45. Estarías haciendo crecer el número dos veces. Usa el espejo inverso: divide 15 ÷ 3 = 5.
+
+⚡ Interactivo 1: El doble de mi edad actual da como resultado 20 años. ¿Cuántos años tengo? [ Input ] (Respuesta: 10)
+
+🧠 Interactivo 2: Repartí mis estampas entre 4 amigos en partes iguales y a cada uno le tocaron 5. ¿Cuántas estampas tenía yo al principio? [ Input ] (Respuesta: 20)
+
+🎯 Interactivo 3: Resuelve el espejo: Si 3 × Y = 18, entonces Y vale... [ Input ] (Respuesta: 6)
+
+👑 Nivel 3: El Número Faltante
+Texto de Descubrimiento: ¡Es hora de convertirte en un cazador de espacios vacíos! En este nivel, las ecuaciones se presentan como un reto de casillas en blanco. Verás un espacio desierto [ ] o una incógnita pura mezclada en cualquier posición de la operación. Tu trabajo es mantener la balanza equilibrada despejando el espacio vacío.
+
+⚠️ ¡Cuidado con la Trampa del Espacio Cambiado! Si ves 15 - [ ] = 10, ten cuidado con sumar 15 + 10. Piensa de forma intuitiva: a 15 le tienes que quitar algo para que se convierta en 10. El espacio faltante se calcula restando 15 - 10 = 5.
+
+⚡ Interactivo 1: Completa el espacio faltante: 8 + [ ] = 20 [ Input ] (Respuesta: 12)
+
+🧠 Interactivo 2: Completa el espacio faltante: [ ] ÷ 3 = 6 [ Input ] (Respuesta: 18)
+
+🎯 Interactivo 3: Completa el espacio faltante: 25 - [ ] = 15 [ Input ] (Respuesta: 10)
+
+👑 Nivel 4: Gran Integración
+Texto de Descubrimiento: ¡Felicidades, estratega! Has unificado tus conocimientos de operaciones inversas. En este nivel de máxima velocidad operacional, el servidor barajarará incógnitas aditivas y multiplicativas al azar. Tendrás que cambiar tu chip mental en milisegundos para decidir si regresas sumando, restando, multiplicando o dividiendo.
+
+⚠️ ¡Cuidado con la Trampa del Cruce de Cables! No apliques una resta para deshacer una división, ni uses una división para deshacer una resta. Mira fijamente el símbolo original de la balanza antes de ejecutar el contraataque matemático.
+
+⚡ Interactivo 1: Resuelve la incógnita: X + 14 = 30 [ Input ] (Respuesta: 16)
+
+🧠 Interactivo 2: Resuelve la incógnita: 4 × Z = 32 [ Input ] (Respuesta: 8)
+
+🎯 Interactivo 3: Resuelve la incógnita: Y - 9 = 11 [ Input ] (Respuesta: 20)

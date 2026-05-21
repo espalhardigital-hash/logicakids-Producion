@@ -47,3 +47,30 @@ class IntentoPaso(Base):
 
     def __repr__(self):
         return f"<IntentoPaso id={self.id} intento_pregunta_id={self.intento_pregunta_id} paso={self.paso_numero} correcta={self.es_correcta}>"
+
+
+from sqlalchemy.dialects.postgresql import JSONB
+
+class NivelTeoria(Base):
+    """
+    Almacena el guion de textos de aprendizaje y evocación por nivel.
+    """
+    __tablename__ = "niveles_teoria_pool"
+
+    id = Column(Integer, primary_key=True, index=True)
+    fase_id = Column(Integer, ForeignKey("fases.id"), nullable=False)
+    modulo_id = Column(Integer, nullable=False, index=True)
+    nivel_id = Column(Integer, nullable=False, index=True)
+    titulo = Column(String(255), nullable=False)
+    texto_descubrimiento = Column(Text, nullable=False)
+    diccionario = Column(JSONB, nullable=True)      # Clave-valor (Palabras clave y definiciones)
+    advertencia = Column(Text, nullable=True)        # Trampa o Tip pedagógico
+    ejemplos = Column(JSONB, nullable=True)         # Ejemplos guiados de práctica
+    interactivos = Column(JSONB, nullable=True)     # Preguntas interactivas con feedback
+
+    # Relaciones
+    fase = relationship("Fase")
+
+    def __repr__(self):
+        return f"<NivelTeoria id={self.id} modulo={self.modulo_id} nivel={self.nivel_id} titulo='{self.titulo}'>"
+

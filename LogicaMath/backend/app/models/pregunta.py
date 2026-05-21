@@ -28,6 +28,7 @@ class Pregunta(Base):
     # 3 = Resistencia y combinacion
 
     sub_nivel = Column(Integer, nullable=True)  # Dificultad interna
+    estructura_padre_id = Column(String(255), nullable=True, index=True)
 
     operacion = Column(Enum(OperacionEnum, name="operacion_preguntas", native_enum=False), nullable=False)
     tipo_pregunta = Column(Enum(TipoPreguntaEnum, name="tipo_pregunta_enum", native_enum=False), nullable=False)

@@ -33,12 +33,11 @@ const MODULE_NAMES: Record<number, string> = {
   1: 'Gimnasio Mental',
   2: 'Tablas en Acción',
   3: 'Tienda Matemática',
-  4: 'Detective',
-  5: 'Constructor',
+  4: 'Constructor de Soluciones',
 };
 
 const MODULE_COLORS: Record<number, string> = {
-  1: '#10B981', 2: '#8B5CF6', 3: '#F59E0B', 4: '#3B82F6', 5: '#EC4899',
+  1: '#10B981', 2: '#8B5CF6', 3: '#F59E0B', 4: '#EC4899',
 };
 
 interface Props {
@@ -48,37 +47,22 @@ interface Props {
   onBack: () => void;
 }
 
-// ─── Estado de feedback ───────────────────────────────────────────────────
-
-type FeedbackState = {
+interface FeedbackState {
   visible: boolean;
   esCorrecta: boolean;
-  resultado?: Fase2AnswerResult;
   isError?: boolean;
   errorMessage?: string;
-};
+  resultado?: Fase2AnswerResult;
+}
 
-// ─────────────────────────────────────────────────────────────────────────────
-
-const keypadVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  show: {
-    opacity: 1,
-    scale: 1,
-    transition: { staggerChildren: 0.03, type: "spring", stiffness: 300, damping: 22 }
-  }
-};
-
-const keyVariants = {
-  hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0 }
-};
+// ─── Componente Principal ─────────────────────────────────────────────────
 
 const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBack }) => {
   const [pregunta, setPregunta]   = useState<Fase2Pregunta | null>(null);
   const [loading, setLoading]     = useState(true);
   const [respuesta, setRespuesta] = useState('');
   const [tokensSeleccionados, setTokensSeleccionados] = useState<number[]>([]);
+  const [selectedAltId, setSelectedAltId] = useState<number | null>(null);
   const [paso, setPaso]           = useState<1 | 2>(1);
   const [paso1Valor, setPaso1Valor] = useState<string | null>(null);
   const [feedback, setFeedback]   = useState<FeedbackState>({ visible: false, esCorrecta: false });
@@ -88,9 +72,11 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [timer, setTimer]         = useState<number | null>(null);
   const [showReading, setShowReading] = useState(false);
   const [readingData, setReadingData] = useState<Fase2Lectura | null>(null);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const isChallenge = nivelId >= 11 && nivelId <= 13;
   const moduleName  = MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
   const moduleColor = MODULE_COLORS[moduloId] ?? '#10B981';
 
@@ -100,28 +86,43 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     setLoading(true);
     setRespuesta('');
     setTokensSeleccionados([]);
+    setSelectedAltId(null);
     setPaso(1);
     setPaso1Valor(null);
     try {
       const data = await getFase2Question(moduloId, nivelId);
       setPregunta(data);
       setIsMockMode(false);
-      if (data.tiene_cronometro && data.tiempo_limite_segundos) {
+      
+      if (isChallenge) {
+        const limit = nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50;
+        setTimer(limit);
+      } else if (data.tiene_cronometro && data.tiempo_limite_segundos) {
         setTimer(data.tiempo_limite_segundos);
+      } else {
+        setTimer(null);
       }
     } catch {
       // Pregunta de muestra para desarrollo
       setIsMockMode(true);
-      setPregunta(MOCK_PREGUNTA(moduloId, nivelId));
+      const mockQ = MOCK_PREGUNTA(moduloId, nivelId);
+      setPregunta(mockQ);
+      if (isChallenge) {
+        const limit = nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50;
+        setTimer(limit);
+      } else {
+        setTimer(null);
+      }
     } finally {
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [moduloId, nivelId]);
+  }, [moduloId, nivelId, isChallenge]);
 
   useEffect(() => { loadPregunta(); }, [loadPregunta]);
 
   const handleOpenReading = useCallback(async () => {
+    if (isChallenge) return;
     try {
       const data = await getFase2Reading(moduloId, nivelId);
       setReadingData(data);
@@ -131,9 +132,13 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       setReadingData(fallback);
       setShowReading(true);
     }
-  }, [moduloId, nivelId]);
+  }, [moduloId, nivelId, isChallenge]);
 
   useEffect(() => {
+    if (isChallenge) {
+      setShowReading(false);
+      return;
+    }
     const checkAndShowReading = async () => {
       try {
         const data = await getFase2Reading(moduloId, nivelId);
@@ -146,7 +151,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       }
     };
     checkAndShowReading();
-  }, [moduloId, nivelId]);
+  }, [moduloId, nivelId, isChallenge]);
 
   // ── Temporizador ────────────────────────────────────────────────────────
 
@@ -183,9 +188,10 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       nivel_id:   nivelId,
       pregunta_id: pregunta.id,
       enunciado_seed: pregunta.enunciado_seed,
-      respuesta_dada:          moduloId <= 3 ? respuesta.trim() : undefined,
-      tokens_seleccionados:    moduloId === 4 ? tokensSeleccionados : undefined,
-      paso_numero:             moduloId === 5 ? paso : undefined,
+      respuesta_dada:          pregunta.tipo_pregunta === 'respuesta_numerica' || pregunta.tipo_pregunta === 'constructor_soluciones_chained' ? respuesta.trim() : undefined,
+      alternativa_id:          pregunta.tipo_pregunta === 'multiple_opcion' ? selectedAltId ?? undefined : undefined,
+      tokens_seleccionados:    pregunta.tipo_pregunta === 'subrayado_tokens' ? tokensSeleccionados : undefined,
+      paso_numero:             pregunta.tipo_pregunta === 'constructor_soluciones_chained' ? paso : undefined,
       tiempo_respuesta_segundos: undefined as number | undefined,
     };
 
@@ -199,9 +205,13 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         porcentaje: resultado.porcentaje_actual,
       });
 
+      if (resultado.early_exit) {
+        setFeedback({ visible: true, esCorrecta: false, resultado, isError: false, errorMessage: undefined });
+        return;
+      }
+
       if (resultado.es_correcta) {
-        // Módulo 5: manejar paso a paso
-        if (moduloId === 5 && paso === 1) {
+        if (pregunta.tipo_pregunta === 'constructor_soluciones_chained' && paso === 1) {
           setPaso1Valor(resultado.valor_paso1_congelado ?? respuesta);
           setPaso(2);
           setRespuesta('');
@@ -219,7 +229,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       }
     } catch (error: any) {
       if (isMockMode) {
-        resultado = MOCK_RESULTADO(moduloId, respuesta, tokensSeleccionados, pregunta, paso);
+        resultado = MOCK_RESULTADO(moduloId, respuesta, tokensSeleccionados, pregunta, paso, selectedAltId);
         
         setProgreso({
           aciertos:   resultado.aciertos_acumulados,
@@ -228,8 +238,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         });
 
         if (resultado.es_correcta) {
-          // Módulo 5: manejar paso a paso
-          if (moduloId === 5 && paso === 1) {
+          if (pregunta.tipo_pregunta === 'constructor_soluciones_chained' && paso === 1) {
             setPaso1Valor(resultado.valor_paso1_congelado ?? respuesta);
             setPaso(2);
             setRespuesta('');
@@ -246,7 +255,6 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
           setFeedback({ visible: true, esCorrecta: false, resultado });
         }
       } else {
-        // Real server / connection error: display connection error card
         setFeedback({
           visible: true,
           esCorrecta: false,
@@ -255,7 +263,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         });
       }
     }
-  }, [pregunta, moduloId, nivelId, respuesta, tokensSeleccionados, paso, isMockMode, onComplete]);
+  }, [pregunta, moduloId, nivelId, respuesta, tokensSeleccionados, paso, selectedAltId, isMockMode, onComplete]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSubmit();
@@ -286,6 +294,12 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   };
 
   const handleFeedbackClose = () => {
+    if (feedback.resultado?.early_exit) {
+      setFeedback({ visible: false, esCorrecta: false });
+      onBack();
+      return;
+    }
+
     if (feedback.isError) {
       setFeedback({ visible: false, esCorrecta: false });
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -295,20 +309,19 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     setFeedback({ visible: false, esCorrecta: false });
     if (feedback.resultado?.bloque_completado) {
       onComplete();
-    } else if (feedback.esCorrecta && moduloId === 5 && paso === 2) {
-      loadPregunta(); // Nueva pregunta completa de mód 5
+    } else if (feedback.esCorrecta && pregunta?.tipo_pregunta === 'constructor_soluciones_chained' && paso === 2) {
+      loadPregunta();
     } else if (feedback.esCorrecta) {
       loadPregunta();
     } else {
-      // Error: en mód 1-3 se genera nueva variante automáticamente
-      if (moduloId <= 3) {
+      if (moduloId <= 3 && !isChallenge) {
         loadPregunta();
       } else {
         setRespuesta('');
         setTokensSeleccionados([]);
+        setSelectedAltId(null);
         setTimeout(() => inputRef.current?.focus(), 100);
       }
-    }
   };
 
   // ────────────────────────────────────────────────────────────────────────
@@ -328,7 +341,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   if (!pregunta) return null;
 
-  const maxAciertos = 10; // TODO: obtener de config
+  const maxAciertos = isChallenge ? (nivelId === 13 ? 10 : 25) : 15;
   const barWidth = Math.min(100, (progreso.aciertos / maxAciertos) * 100);
 
   return (
@@ -364,15 +377,32 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             {moduleName}
           </div>
           <div className="f2-game-level-name-wrap">
-            <span className="f2-game-level-name">Nivel {nivelId}</span>
-            <button 
-              className="f2-view-theory-btn" 
-              onClick={handleOpenReading}
-              title="Ver teoría de este nivel"
-            >
-              <BookOpen size={13} style={{ marginRight: '4px' }} />
-              <span>Ver teoría</span>
-            </button>
+            <span className="f2-game-level-name">
+              {isChallenge ? `Desafío ${nivelId === 11 ? '1' : nivelId === 12 ? '2' : 'Final'}` : `Nivel ${nivelId}`}
+            </span>
+            {isChallenge && (
+              <span className={`f2-challenge-difficulty-badge ${nivelId === 11 ? 'estandar' : nivelId === 12 ? 'avanzada' : 'maestria'}`} style={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                padding: '0.25rem 0.5rem',
+                borderRadius: '6px',
+                background: nivelId === 13 ? 'rgba(239, 68, 68, 0.2)' : nivelId === 12 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                color: nivelId === 13 ? '#ef4444' : nivelId === 12 ? '#f59e0b' : '#10b981',
+                marginLeft: '8px'
+              }}>
+                {nivelId === 11 ? 'ESTÁNDAR' : nivelId === 12 ? 'AVANZADA' : 'MAESTRÍA'}
+              </span>
+            )}
+            {!isChallenge && (
+              <button 
+                className="f2-view-theory-btn" 
+                onClick={handleOpenReading}
+                title="Ver teoría de este nivel"
+              >
+                <BookOpen size={13} style={{ marginRight: '4px' }} />
+                <span>Ver teoría</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -394,10 +424,10 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         </div>
 
         {/* Temporizador circular */}
-        {timer !== null && pregunta.tiene_cronometro && pregunta.tiempo_limite_segundos && (
+        {timer !== null && (
           <CircularTimer
             current={timer}
-            total={pregunta.tiempo_limite_segundos}
+            total={isChallenge ? (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50) : (pregunta.tiempo_limite_segundos || 30)}
             color={moduleColor}
           />
         )}
@@ -413,15 +443,15 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             className={`f2-question-card ${shaking ? 'shake-error' : ''}`}
           >
             <div className="f2-question-label">
-              PREGUNTA — MÓDULO {moduloId}, NIVEL {nivelId}
+              {isChallenge ? `DESAFÍO MÓDULO ${moduloId}` : `PREGUNTA — MÓDULO ${moduloId}, NIVEL ${nivelId}`}
             </div>
             
-            <div className={moduloId <= 3 && pregunta.enunciado.length < 50 ? "f2-question-text short" : "f2-question-text"}>
+            <div className={pregunta.enunciado.length < 50 ? "f2-question-text short" : "f2-question-text"}>
               {pregunta.enunciado}
             </div>
 
-            {/* ─ Módulos 1-3: entrada numérica ─ */}
-            {moduloId <= 3 && (
+            {/* ─ Respuesta Numérica o Evocación Pura (Módulos 1-3 y Desafío Final) ─ */}
+            {pregunta.tipo_pregunta === 'respuesta_numerica' && (
               <div className="f2-numeric-input-wrap">
                 <input
                   ref={inputRef}
@@ -445,38 +475,50 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               </div>
             )}
 
-            {/* ─ Módulo 4: tokens subrayables ─ */}
-            {moduloId === 4 && pregunta.payload_tokenizado && (
+            {/* ─ Opción Múltiple (Desafíos 1 y 2) ─ */}
+            {pregunta.tipo_pregunta === 'multiple_opcion' && pregunta.alternativas && (
               <>
-                <div className="f2-tokens-wrap">
-                  {pregunta.payload_tokenizado.map(token => (
-                    <span
-                      key={token.id}
-                      className={`f2-token ${tokensSeleccionados.includes(token.id) ? 'selected' : ''}`}
-                      onClick={() => toggleToken(token)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleToken(token); }}
-                    >
-                      {token.texto}
-                    </span>
-                  ))}
+                <div className="f2-mc-options-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginTop: '1.5rem' }}>
+                  {pregunta.alternativas.map((alt) => {
+                    const isSelected = selectedAltId === alt.id;
+                    return (
+                      <button
+                        key={alt.id}
+                        className={`f2-mc-option-btn ${isSelected ? 'selected' : ''}`}
+                        onClick={() => setSelectedAltId(alt.id)}
+                        disabled={feedback.visible}
+                        style={{
+                          padding: '1rem',
+                          borderRadius: '8px',
+                          border: isSelected ? `2px solid ${moduleColor}` : '1px solid rgba(255,255,255,0.1)',
+                          background: isSelected ? `${moduleColor}22` : 'rgba(255,255,255,0.02)',
+                          color: isSelected ? '#ffffff' : '#9ca3af',
+                          fontWeight: isSelected ? 600 : 400,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          fontSize: '1rem'
+                        }}
+                      >
+                        {alt.texto}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="f2-tokens-actions">
+                <div className="f2-tokens-actions" style={{ marginTop: '1.5rem' }}>
                   <button
                     className="f2-submit-btn"
                     onClick={handleSubmit}
-                    disabled={tokensSeleccionados.length === 0}
-                    style={{ background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})` }}
+                    disabled={selectedAltId === null}
+                    style={{ background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`, width: '100%' }}
                   >
-                    🔍 Validar selección
+                    ✓ Confirmar Respuesta
                   </button>
                 </div>
               </>
             )}
 
-            {/* ─ Módulo 5: pasos encadenados ─ */}
-            {moduloId === 5 && (
+            {/* ─ Constructor de Soluciones (Módulo 4) ─ */}
+            {pregunta.tipo_pregunta === 'constructor_soluciones_chained' && (
               <div className="f2-chained-wrap">
                 {/* Paso 1 */}
                 <div className={`f2-step-panel ${paso === 1 ? 'active' : 'frozen'}`}>
@@ -543,8 +585,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               </div>
             )}
 
-            {/* Estadísticas Inline */}
-            {moduloId <= 3 && (
+            {/* Estadísticas Inline (solo práctica libre) */}
+            {!isChallenge && (
               <div className="f2-inline-stats">
                 <div className="f2-stat-item correct">
                   <span className="f2-stat-label">Correctas</span>
@@ -558,8 +600,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             )}
           </motion.div>
 
-          {/* Teclado Numérico Virtual para Módulos 1-3 */}
-          {moduloId <= 3 && (
+          {/* Teclado Numérico Virtual para Respuesta Numérica y Constructor Chained */}
+          {(pregunta.tipo_pregunta === 'respuesta_numerica' || pregunta.tipo_pregunta === 'constructor_soluciones_chained') && (
             <motion.div 
               variants={keypadVariants}
               initial="hidden"
@@ -625,6 +667,14 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 onClick={() => handleSubmit()}
                 disabled={feedback.visible || !respuesta.trim()}
                 className="f2-keypad-confirm-btn"
+                style={{ background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})` }}
+              >
+                Confirmar <ArrowRight size={18} style={{ marginLeft: '6px' }} />
+              </motion.button>
+            </motion.div>
+          )}
+        </div>
+      </main>
                 style={{ background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})` }}
               >
                 Confirmar <ArrowRight size={18} style={{ marginLeft: '6px' }} />

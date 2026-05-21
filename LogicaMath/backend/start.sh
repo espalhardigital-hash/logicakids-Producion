@@ -7,20 +7,8 @@ echo "============================================="
 echo "Starting LogicaKids Backend Startup Flow..."
 echo "============================================="
 
-# 0. Wait for PostgreSQL database to be ready
-python wait_for_db.py
-
-# 1. Run database migrations using Alembic
-echo "Step 1/3: Running database migrations with Alembic..."
-alembic upgrade head
-
-# 2. Populate the database with default configurations and phase/discipline seeds
-echo "Step 2/3: Seeding database with initial assets..."
-python -m app.seed
-
-# 2.5. Create admin and test users (Amilcar & Prueba)
-echo "Step 2.5/3: Creating admin and test users..."
-python create_users.py
+# Execute the unified migration, seeding, and user creation script
+python run_migrations.py
 
 # 3. Start the FastAPI backend application
 echo "Step 3/3: Starting FastAPI application with Uvicorn..."
