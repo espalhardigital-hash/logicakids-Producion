@@ -1408,7 +1408,225 @@
   background: rgba(59, 130, 246, 0.08);
   color: var(--level-accent, #3B82F6);
 }
+/* =========================================================================
+   FLASHCARD THEORY MODAL STYLES (NEW)
+   ========================================================================= */
 
+.flashcard-mode {
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+  max-width: 650px;
+}
+
+.f2-step-indicator {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 4px 12px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.flashcard-body {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 1rem;
+}
+
+.f2-flashcard-content {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+
+.f2-reading-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.f2-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.f2-nav-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.f2-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.f2-nav-btn.primary {
+  color: white;
+}
+
+/* Examples & Interactives inside Flashcards */
+.f2-example-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.f2-ex-q {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 0.75rem;
+}
+
+.f2-ex-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.f2-ex-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 1rem;
+  color: #cbd5e1;
+}
+
+.f2-ex-step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.f2-interactive-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.f2-interactive-box.correct {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.f2-interactive-box.error {
+  border-color: #ef4444;
+}
+
+.f2-int-q {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 0.75rem;
+}
+
+.input-step {
+  align-items: center;
+}
+
+.f2-int-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.f2-int-input-group.legacy {
+  margin-top: 1rem;
+}
+
+.f2-int-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  width: 80px;
+  text-align: center;
+}
+
+.f2-int-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.f2-int-verify {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.f2-int-verify:hover {
+  opacity: 0.9;
+}
+
+.f2-int-feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.f2-int-feedback.success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+}
+
+.f2-int-feedback.error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+.f2-ready-msg {
+  font-size: 1.25rem;
+  color: #f1f5f9;
+  text-align: center;
+  margin-top: 2rem;
+  font-weight: 500;
+}
 .f2-level-card.dominado .f2-level-circle {
   background: #10B981;
   color: white;

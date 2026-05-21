@@ -33,37 +33,24 @@ Cada fase está compuesta por **Módulos**, y cada módulo debe respetar el sigu
 
 Cada nivel dentro de un módulo sirve para aislar un micro-concepto antes de integrarlo. Debe diseñarse con los siguientes componentes:
 
-### 3.1. Textos y Teoría (Componentes de Entrega Estática)
+### 3.1. Toda la carga teórica de un nivel se almacena de forma pre-renderizada en la base de datos y se presenta al alumno mediante un **Carrusel Interactivo de Flashcards (3 Pasos)**. Esto fragmenta la información para no saturar al estudiante y asegura que la teoría sea activa, no pasiva:
 
-Toda la carga teórica de un nivel se almacena de forma pre-renderizada en la base de datos. Para mantener el interés y asegurar la comprensión sin saturar al alumno, el contenido se divide en componentes visuales e inmersivos pre-diseñados:
+### Paso 1: Introducción y Superpoder
+* **Mensaje de Bienvenida (Declaración de Superpoder):** Tono motivacional, épico y centrado en el alumno. Introduce el tema como una habilidad especial dentro de una temática (misiones, pócimas, monstruos).
+* **Cuerpo Teórico Concreto (Explicación Narrativa Corta):** Párrafos fluidos que conectan la lógica con la imaginación del niño.
 
-* **Mensaje de Bienvenida (Declaración de Superpoder):** Tono motivacional, épico y centrado en el alumno. En lugar de definiciones abstractas, introduce el tema como una habilidad especial dentro de una temática o narrativa atractiva.
-* **Cuerpo Teórico Concreto (Explicación Narrativa Corta):** Un bloque de texto de extensión moderada (un párrafo fluido) que introduce el concepto abstracto mediante analogías del mundo real, deportes o el entorno del juego (misiones, pócimas, monstruos). Debe ser directo pero descriptivo, conectando la lógica con la imaginación del niño. Estos textos están previamente diseñados y guardados de forma estática.
-* **El Diccionario del Nivel (Glosario Visual):** Una lista corta y estructurada que traduce los términos narrativos o conceptuales directamente a su operador matemático explícito, sirviendo como la caja de herramientas que el niño usará en los ejercicios.
+### Paso 2: Modelado y Práctica Guiada (Interactivos)
+* **Ejemplos Guiados:** Antes de pasar a los interactivos, el niño ve ejemplos (mínimo 2) completamente resueltos paso a paso.
+* **Interactivos Pre-evaluativos:** Bloque obligatorio de 3 preguntas de evocación (cuadro de texto `input` vacío). El alumno debe completarlas paso a paso.
+* **Retroalimentación Inmediata:**
+  * **En caso de Acierto:** Se muestra el `feedback_acierto` (ej. "¡Correcto! 8 × 2 = 16").
+  * **En caso de Error:** Se muestra el `feedback_error` (ej. "Piénsalo mejor. 'El doble' es multiplicar por 2").
+  * El alumno no debe poder avanzar al Paso 3 hasta no responder correctamente los interactivos.
 
-> **Ejemplo Guardado en Base de Datos (Módulo 2 - Multiplicadores):**
-> * **Bienvenida/Cuerpo Teórico:** "¡Hola, atleta de la mente! Bienvenido al Gimnasio Numérico. Hoy vas a entrenar tus músculos lógicos con los Multiplicadores de Tamaño. Cuando doblas, triplicas o cuadruplicas un número, estás usando un rayo de crecimiento matemático. Si lo partes a la mitad, usas un rayo reductor."
-> * **El Diccionario del Nivel:**
-> * **El Doble:** Multiplica por 2 ($\times$ 2).
-> * **El Triple:** Multiplica por 3 ($\times$ 3).
-> * **La Mitad:** Divide entre 2 ($\div$ 2).
-> * **El Cuádruple:** Multiplica por 4 ($\times$ 4).
-> 
-> 
-> 
-> 
-
-* **Bloque de Advertencia ("Cuidado con la Trampa"):** Exposición explícita de la debilidad o error más común que cometen los niños en ese concepto. Visualmente se asocia a un antagonista (ej. *El Monstruo de la Prisa*, *El Distractor*).
-
-> **Ejemplo Guardado (Módulo 1 - Jerarquías):** "¡Alerta! El monstruo del desorden quiere que operes siempre de izquierda a derecha. Si ves `4 + 3 × 2`, la trampa es hacer `4 + 3 = 7`. ¡No caigas! Las multiplicaciones tienen escudo de oro y se resuelven primero."
-
-* **Ejemplos Guiados Estáticos:** Antes de pasar a los interactivos, el niño ve ejemplos resueltos previamente diseñados que ilustran la teoría y la advertencia. Este componente cuenta con un desglose visual paso a paso.
-* **Interactivos de Desbloqueo (Flujo de Evocación Efectiva):** Bloque obligatorio de 3 preguntas de evocación pura (cuadro de texto `input` vacío, sin opciones múltiples) extraídas directamente de las relaciones del pool para validar la comprensión teórica antes de abrir la práctica libre.
-Para maximizar la retención, **ambos escenarios (acierto y error) deben disparar una animación sutil seguida de la apertura de un recuadro explicativo** que refuerce el concepto pedagógico:
-* **En caso de Acierto:** El recuadro del `input` ejecuta una animación sutil de destello verde. Acto caído, se abre un recuadro animado en pantalla con el mensaje "¡Correcto!" y el texto de refuerzo pedagógico que consolida el porqué esa respuesta es la correcta.
-* **En caso de Error:** El recuadro del `input` ejecuta una animación sutil de "Piénsalo mejor" (ej. una vibración lateral suave o destello tenue). Acto seguido, se abre el mismo recuadro animado en pantalla mostrando la explicación pedagógica detallada del error común y el camino correcto para resolverlo, permitiendo al alumno aprender de la falla antes de volver a intentar.
-
-
+### Paso 3: Trampa y Consolidación
+* **Bloque de Advertencia ("Tip Pedagógico"):** Exposición explícita de la debilidad o error más común (ej. *El Monstruo del Desorden*).
+* **El Diccionario del Nivel:** Lista estructurada que traduce los términos narrativos a su operador matemático.
+* **Llamado a la Acción:** Botón final "¡Entendido, empezar!" que cierra el carrusel y libera la Batería de Práctica Libre.
 
 ### 3.2. Batería de Práctica Libre
 

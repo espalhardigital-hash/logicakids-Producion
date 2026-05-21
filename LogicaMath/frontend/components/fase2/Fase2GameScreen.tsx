@@ -10,6 +10,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import './Fase2Styles.css';
 import { getFase2Question, submitFase2Answer, getFase2Reading } from './Fase2Service';
+import { Fase2TheoryModal } from './Fase2TheoryModal';
 import type {
   Fase2Pregunta,
   Fase2AnswerResult,
@@ -750,54 +751,11 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       {/* ── Overlay de lectura introductoria ── */}
       <AnimatePresence>
         {showReading && readingData && (
-          <div className="f2-reading-overlay">
-            <motion.div 
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              className="f2-reading-card"
-            >
-              <div className="f2-reading-header">
-                <div className="f2-reading-icon" style={{ backgroundColor: `${moduleColor}22`, color: moduleColor }}>
-                  <BookOpen size={24} />
-                </div>
-                <h2>{readingData.titulo}</h2>
-              </div>
-              
-              <div className="f2-reading-body">
-                {readingData.parrafos.map((p, idx) => (
-                  <p key={idx} className="f2-reading-p">{p}</p>
-                ))}
-                
-                {readingData.ejemplos && readingData.ejemplos.length > 0 && (
-                  <div className="f2-reading-examples">
-                    <h3>Ejemplos:</h3>
-                    {readingData.ejemplos.map((ex, idx) => (
-                      <div key={idx} className="f2-reading-example-item">
-                        <span className="ex-q">{ex.enunciado}</span>
-                        <span className="ex-arrow">→</span>
-                        <span className="ex-a" style={{ color: moduleColor }}>{ex.respuesta}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {readingData.tip_pedagogico && (
-                  <div className="f2-reading-tip" style={{ borderLeftColor: moduleColor }}>
-                    <strong>Tip Pedagógico:</strong> {readingData.tip_pedagogico}
-                  </div>
-                )}
-              </div>
-              
-              <button 
-                className="f2-reading-close-btn"
-                style={{ background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})` }}
-                onClick={() => setShowReading(false)}
-              >
-                ¡Entendido, empezar!
-              </button>
-            </motion.div>
-          </div>
+          <Fase2TheoryModal
+            readingData={readingData}
+            moduleColor={moduleColor}
+            onClose={() => setShowReading(false)}
+          />
         )}
       </AnimatePresence>
     </div>

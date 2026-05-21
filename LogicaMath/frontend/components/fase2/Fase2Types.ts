@@ -144,7 +144,19 @@ export interface Fase2Lectura {
   nivel_id: number;
   titulo: string;
   parrafos: string[];
-  ejemplos?: Array<{ enunciado: string; respuesta: string }>;
+  ejemplos?: Array<{ 
+    enunciado: string; 
+    pasos?: Array<{ orden: number; texto: string }>;
+    respuesta?: string; // Legacy / Fallback
+  }>;
+  interactivos?: Array<{
+    enunciado?: string;
+    pregunta?: string; // Legacy
+    pasos?: Array<{ orden: number; texto: string }>;
+    respuesta: string;
+    feedback_acierto: string;
+    feedback_error: string;
+  }>;
   tip_pedagogico?: string;
 }
 

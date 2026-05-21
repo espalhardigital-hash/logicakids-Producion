@@ -26,8 +26,26 @@ interactivos: JSON de minipreguntas interactivas para teoría.
 3. Paso 2: Plantilla de Seeder (seed.py)
 El archivo seed.py de la fase debe crearse en app/fase{X}/seed.py y estructurarse en 5 secciones deterministas:
 
-Parte A: Textos de Teoría
-Inyectar un registro de NivelTeoria por cada nivel práctico de la fase.
+### Parte A: Textos de Teoría (Formato Flashcards Interactivas en 3 Pasos)
+Estructurar el archivo seed para inyectar en `nivel_teoria` (o su equivalente) un JSON que contenga los 3 componentes del Carrusel de Teoría:
+1.  **Paso 1 (Introducción):** `texto_descubrimiento` (narrativa y superpoder).
+2.  **Paso 2 (Modelado e Interactividad):**
+    *   `ejemplos`: Array de JSON con `enunciado` y `pasos` detallados (mínimo 2).
+    *   `interactivos`: Array de JSON con minipreguntas pre-evaluativas. Debe incluir `enunciado`, `pasos` (donde el último pide input ej. `= ?`), `respuesta` correcta, `feedback_acierto`, y `feedback_error`.
+3.  **Paso 3 (Consolidación):** `advertencia` o `diccionario` (el Tip Pedagógico para evitar errores comunes).
+Es crítico que cualquier error ocurrido durante la inserción en la base de datos (como violaciones de restricciones Not-Null, errores de clave foránea) **no sea silenciado**. Los bloques `try...except` en el seeder deben imprimir el _traceback_ completo y relanzar la excepción para que el contenedor de Docker falle explícitamente y el error sea visible en los logs.
+```python
+import traceback
+
+try:
+    # Lógica de sembrado
+    session.add(registro)
+    await session.commit()
+except Exception as e:
+    print(f"Error crítico durante el sembrado de Fase X: {str(e)}")
+    traceback.print_exc()
+    raise  # Detiene el arranque del contenedor
+```
 
 python
 
@@ -233,16 +251,17 @@ Para asegurar el correcto funcionamiento del ruteo en el Frontend (SPA) sin comp
   }
   ```
 
-7. Checklist de Implementación
- Definir el mapeo de módulos, niveles y desafíos de la Fase X.
- Crear el script de migración SQL o Alembic si hay nuevos modelos relacionales.
- Escribir app/faseX/seed.py inyectando teoría, configuraciones y los pools (práctica y desafíos).
- Escribir app/faseX/router.py con las reglas de Bucle Espejo, Early Exit y Dashboard.
- Implementar optimización de consulta única (`outerjoin` + `alumno_obj`) en la lógica de resolución de Alumno.
- Registrar las rutas en el archivo central de la aplicación (app/main.py).
- Crear las pantallas en el Frontend interactuando con los nuevos endpoints de /faseX.
- Integrar deduplicador de promesas concurrentes en los servicios del Frontend.
- Verificar que el servidor Nginx responde con `404` para extensiones no mapeadas.
- Verificar compilación local del backend (`python -m py_compile` o usando el Python de `venv`).
- Verificar que la compilación de TypeScript en Frontend se ejecute sin errores (`npx tsc --noEmit`).
- Correr pruebas automatizadas / funcionales de flujo completo.
+ 7. Checklist de Implementación
+  Definir el mapeo de módulos, niveles y desafíos de la Fase X.
+  Crear el script de migración SQL o Alembic si hay nuevos modelos relacionales.
+  Escribir app/faseX/seed.py inyectando teoría, configuraciones y los pools (práctica y desafíos).
+  Asegurar la propagación visible de errores en `seed.py` imprimiendo el _traceback_ y relanzando la excepción.
+  Escribir app/faseX/router.py con las reglas de Bucle Espejo, Early Exit y Dashboard.
+  Implementar optimización de consulta única (`outerjoin` + `alumno_obj`) en la lógica de resolución de Alumno.
+  Registrar las rutas en el archivo central de la aplicación (app/main.py).
+  Crear las pantallas en el Frontend interactuando con los nuevos endpoints de /faseX.
+  Integrar deduplicador de promesas concurrentes en los servicios del Frontend.
+  Verificar que el servidor Nginx responde con `404` para extensiones no mapeadas.
+  Verificar compilación local del backend (`python -m py_compile` o usando el Python de `venv`).
+  Verificar que la compilación de TypeScript en Frontend se ejecute sin errores (`npx tsc --noEmit`).
+  Correr pruebas automatizadas / funcionales de flujo completo.

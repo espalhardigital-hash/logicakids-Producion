@@ -59,22 +59,34 @@ async def seed_teoria_niveles(session: AsyncSession):
             ],
             "interactivos": [
                 {
-                    "pregunta": "Tengo 6 tazos coleccionables en mi cajón y mi hermano tiene el doble. ¿Cuántos tazos tiene mi hermano?",
+                    "enunciado": "Hallar el doble de 8.",
+                    "pasos": [
+                        {"orden": 1, "texto": "Traducimos 'el doble' como multiplicar por 2 (× 2)."},
+                        {"orden": 2, "texto": "Realizamos la operación: 8 × 2 = ?"}
+                    ],
+                    "respuesta": "16",
+                    "feedback_acierto": "¡Excelente! 8 × 2 = 16.",
+                    "feedback_error": "Piénsalo mejor. 'El doble' es multiplicar por 2."
+                },
+                {
+                    "enunciado": "Hallar el cuádruple de 3.",
+                    "pasos": [
+                        {"orden": 1, "texto": "Traducimos 'el cuádruple' como multiplicar por 4 (× 4)."},
+                        {"orden": 2, "texto": "Realizamos la operación: 3 × 4 = ?"}
+                    ],
                     "respuesta": "12",
-                    "feedback_acierto": "¡Excelente! El doble de 6 es 6 × 2 = 12. ¡Tu hermano tiene un buen arsenal!",
-                    "feedback_error": "Piénsalo mejor. 'El doble' significa multiplicar por 2. Haz 6 × 2, no sumes 6 + 2."
+                    "feedback_acierto": "¡Correcto! 3 × 4 = 12.",
+                    "feedback_error": "Inténtalo de nuevo. 'El cuádruple' es multiplicar por 4."
                 },
                 {
-                    "pregunta": "Sofía preparó 16 panqués y se comió la mitad con sus amigos. ¿Cuántos panqués quedan?",
-                    "respuesta": "8",
-                    "feedback_acierto": "¡Correcto! La mitad de 16 es 16 ÷ 2 = 8. ¡Delicioso entrenamiento!",
-                    "feedback_error": "Inténtalo de nuevo. 'La mitad' significa partir el número en 2 partes iguales (dividir entre 2). Calcula 16 ÷ 2."
-                },
-                {
-                    "pregunta": "En un árbol hay 5 pájaros, pero en el tejado hay el cuádruple. ¿Cuántos pájaros hay en el tejado?",
-                    "respuesta": "20",
-                    "feedback_acierto": "¡Increíble! El cuádruple de 5 es 5 × 4 = 20. ¡Un gran tejado de aves!",
-                    "feedback_error": "¡Cuidado con la trampa! 'El cuádruple' significa multiplicar por 4. Haz 5 × 4, no sumes 5 + 4."
+                    "enunciado": "Hallar la mitad de 14.",
+                    "pasos": [
+                        {"orden": 1, "texto": "Traducimos 'la mitad' como dividir entre 2 (÷ 2)."},
+                        {"orden": 2, "texto": "Realizamos la operación: 14 ÷ 2 = ?"}
+                    ],
+                    "respuesta": "7",
+                    "feedback_acierto": "¡Increíble! 14 ÷ 2 = 7.",
+                    "feedback_error": "¡Cuidado! 'La mitad' es dividir entre 2."
                 }
             ]
         },
