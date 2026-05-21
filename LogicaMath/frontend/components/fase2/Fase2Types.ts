@@ -144,6 +144,7 @@ export interface Fase2Lectura {
   nivel_id: number;
   titulo: string;
   parrafos: string[];
+  diccionario?: Record<string, string>;
   ejemplos?: Array<{ 
     enunciado: string; 
     pasos?: Array<{ orden: number; texto: string }>;

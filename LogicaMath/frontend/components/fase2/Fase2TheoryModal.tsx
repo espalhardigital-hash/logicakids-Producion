@@ -19,7 +19,7 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [feedback, setFeedback] = useState<Record<number, { isCorrect: boolean; message: string }>>({});
   
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   const handleAnswerChange = (idx: number, val: string) => {
     setAnswers(prev => ({ ...prev, [idx]: val }));
@@ -49,7 +49,7 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
     return true;
   };
 
-  const canGoNext = currentStep !== 1 || allInteractivesCorrect();
+  const canGoNext = currentStep !== 2 || allInteractivesCorrect();
 
   // Animations (Slide)
   const variants = {
@@ -88,7 +88,9 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
           <div className="f2-reading-icon" style={{ backgroundColor: `${moduleColor}22`, color: moduleColor }}>
             <BookOpen size={24} />
           </div>
-          <h2>✨ {readingData.titulo} 🦸🏽‍♂️</h2>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+             ✨ {readingData.titulo} <span style={{ fontSize: '2rem' }}>🧑‍🚀</span>
+          </h2>
           <div className="f2-step-indicator">
             Paso {currentStep + 1} de {totalSteps}
           </div>
@@ -110,6 +112,20 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
                 {readingData.parrafos.map((p, idx) => (
                   <p key={idx} className="f2-reading-p">{p}</p>
                 ))}
+
+                {readingData.diccionario && Object.keys(readingData.diccionario).length > 0 && (
+                  <div className="f2-reading-dictionary">
+                    <h3>📖 EL DICCIONARIO DEL NIVEL:</h3>
+                    <div className="f2-dict-grid">
+                      {Object.entries(readingData.diccionario).map(([termino, definicion], idx) => (
+                        <div key={idx} className="f2-dict-card" style={{ borderColor: `${moduleColor}55` }}>
+                          <div className="f2-dict-term" style={{ color: moduleColor }}>{termino}</div>
+                          <div className="f2-dict-def">{definicion as string}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -124,9 +140,9 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
                 transition={{ duration: 0.3 }}
                 className="f2-flashcard-content"
               >
-                {readingData.ejemplos && readingData.ejemplos.length > 0 && (
+                {readingData.ejemplos && readingData.ejemplos.length > 0 ? (
                   <div className="f2-reading-examples">
-                    <h3>Ejemplos Guiados:</h3>
+                    <h3>EJEMPLOS GUIADOS:</h3>
                     {readingData.ejemplos.map((ex, idx) => (
                       <div key={idx} className="f2-example-box">
                         <div className="f2-ex-q">{ex.enunciado}</div>
@@ -145,9 +161,24 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="f2-reading-p">No hay ejemplos para este nivel. Avanza al siguiente paso.</div>
                 )}
+              </motion.div>
+            )}
 
-                {readingData.interactivos && readingData.interactivos.length > 0 && (
+            {currentStep === 2 && (
+              <motion.div
+                key="step2"
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+                className="f2-flashcard-content"
+              >
+                {readingData.interactivos && readingData.interactivos.length > 0 ? (
                   <div className="f2-reading-interactive">
                     <h3>¡Tu turno! Completa los ejercicios:</h3>
                     {readingData.interactivos.map((int, idx) => {
@@ -230,13 +261,15 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
                       );
                     })}
                   </div>
+                ) : (
+                  <div className="f2-reading-p">Continúa al siguiente paso para comenzar.</div>
                 )}
               </motion.div>
             )}
 
-            {currentStep === 2 && (
+            {currentStep === 3 && (
               <motion.div
-                key="step2"
+                key="step3"
                 custom={direction}
                 variants={variants}
                 initial="enter"

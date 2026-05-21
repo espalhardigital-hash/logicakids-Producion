@@ -399,6 +399,7 @@ async def get_lectura_fase2(
         parrafos=parrafos,
         ejemplos=theory.ejemplos,
         tip_pedagogico=theory.advertencia,
+        diccionario=getattr(theory, 'diccionario', None),
         interactivos=theory.interactivos,
     )
 

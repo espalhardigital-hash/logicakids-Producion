@@ -219,4 +219,5 @@ class Fase2ContenidoLectura(BaseModel):
     parrafos: List[str]
     ejemplos: Optional[List[Dict[str, Any]]] = None
     tip_pedagogico: Optional[str] = None
+    diccionario: Optional[Dict[str, str]] = None
     interactivos: Optional[List[Dict[str, Any]]] = None

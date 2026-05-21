@@ -1688,3 +1688,60 @@
   }
 }
 
+/* =========================================================================
+   DICTIONARY COMPONENT (FLASHCARD STEP 1)
+   ========================================================================= */
+.f2-reading-dictionary {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.f2-reading-dictionary h3 {
+  font-size: 0.9rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  color: var(--f2-text-secondary);
+  margin-top: 0;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+
+.f2-dict-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .f2-dict-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.f2-dict-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.f2-dict-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.f2-dict-term {
+  font-size: 1.15rem;
+  font-weight: 750;
+}
+
+.f2-dict-def {
+  font-size: 1rem;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
