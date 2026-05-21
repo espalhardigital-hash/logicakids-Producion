@@ -681,6 +681,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
             "operacion": OperacionEnum.SUMA,
             "cantidad_requerida": 15,
             "porcentaje_aprobacion": 80,
+            "orden_desbloqueo": l,
             "usa_cronometro": False,
             "tiempo_default_segundos": 0,
             "tipo_feedback": "espejo"
@@ -693,6 +694,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
             "operacion": OperacionEnum.MULTIPLICACION,
             "cantidad_requerida": 15,
             "porcentaje_aprobacion": 80,
+            "orden_desbloqueo": l,
             "usa_cronometro": False,
             "tiempo_default_segundos": 0,
             "tipo_feedback": "espejo"
@@ -705,6 +707,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
             "operacion": OperacionEnum.MIXTA,
             "cantidad_requerida": 15,
             "porcentaje_aprobacion": 80,
+            "orden_desbloqueo": l,
             "usa_cronometro": False,
             "tiempo_default_segundos": 0,
             "tipo_feedback": "espejo"
@@ -717,6 +720,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
             "operacion": OperacionEnum.MIXTA,
             "cantidad_requerida": 15,
             "porcentaje_aprobacion": 80,
+            "orden_desbloqueo": l,
             "usa_cronometro": False,
             "tiempo_default_segundos": 0,
             "tipo_feedback": "detallado"
@@ -732,6 +736,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
             "operacion": OperacionEnum.MIXTA,
             "cantidad_requerida": 25,
             "porcentaje_aprobacion": 90,
+            "orden_desbloqueo": 1,
             "usa_cronometro": True,
             "tiempo_default_segundos": 25,
             "tipo_feedback": "simple"
@@ -741,6 +746,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
             "operacion": OperacionEnum.MIXTA,
             "cantidad_requerida": 25,
             "porcentaje_aprobacion": 90,
+            "orden_desbloqueo": 2,
             "usa_cronometro": True,
             "tiempo_default_segundos": 40,
             "tipo_feedback": "simple"
@@ -750,6 +756,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
             "operacion": OperacionEnum.MIXTA,
             "cantidad_requerida": 10,
             "porcentaje_aprobacion": 90,
+            "orden_desbloqueo": 3,
             "usa_cronometro": True,
             "tiempo_default_segundos": 50,
             "tipo_feedback": "simple"
@@ -771,6 +778,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
                 operacion=c["operacion"],
                 cantidad_requerida=c["cantidad_requerida"],
                 porcentaje_aprobacion=c["porcentaje_aprobacion"],
+                orden_desbloqueo=c["orden_desbloqueo"],
                 usa_cronometro=c["usa_cronometro"],
                 tiempo_default_segundos=c["tiempo_default_segundos"],
                 tipo_feedback=c["tipo_feedback"]
@@ -780,6 +788,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
         else:
             existing.cantidad_requerida = c["cantidad_requerida"]
             existing.porcentaje_aprobacion = c["porcentaje_aprobacion"]
+            existing.orden_desbloqueo = c["orden_desbloqueo"]
             existing.usa_cronometro = c["usa_cronometro"]
             existing.tiempo_default_segundos = c["tiempo_default_segundos"]
             existing.tipo_feedback = c["tipo_feedback"]
