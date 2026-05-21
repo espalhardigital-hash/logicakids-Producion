@@ -99,6 +99,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
   const [dashboard, setDashboard] = useState<Fase2Dashboard | null>(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState<string | null>(null);
+  const [selectedModule, setSelectedModule] = useState<Fase2ModuloInfo | null>(null);
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -111,7 +112,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
         data = {
           ...data,
           desafio_mixto_disponible: true,
-          desafio_mixto_estado: 'dominado',
+          desafio_mixto_estado: 'completado',
           modulos: data.modulos.map(m => ({
             ...m,
             estado: m.estado === 'bloqueado' ? 'en_progreso' : m.estado,
@@ -131,7 +132,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
         mockData = {
           ...mockData,
           desafio_mixto_disponible: true,
-          desafio_mixto_estado: 'dominado',
+          desafio_mixto_estado: 'completado',
           modulos: mockData.modulos.map(m => ({
             ...m,
             estado: m.estado === 'bloqueado' ? 'en_progreso' : m.estado,
@@ -152,10 +153,8 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
   const handleModuleClick = (modulo: Fase2ModuloInfo) => {
-    if (modulo.estado === 'bloqueado') return;
-    // Seleccionar el primer nivel no dominado (o el primero si todos dominados)
-    const nivelActivo = modulo.niveles.find(n => n.estado !== 'dominado') ?? modulo.niveles[0];
-    onModuleSelect(modulo.modulo_id, nivelActivo?.nivel_id ?? 1);
+    if (modulo.estado === 'bloqueado' && userRole !== 'ADMIN') return;
+    setSelectedModule(modulo);
   };
 
   const handleChallengeClick = () => {
@@ -223,7 +222,11 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
           </div>
 
           {/* Botón volver */}
-          <button className="f2-back-btn" onClick={onBack} aria-label="Volver">
+          <button 
+            className="f2-back-btn" 
+            onClick={selectedModule ? () => setSelectedModule(null) : onBack} 
+            aria-label="Volver"
+          >
             <Icons.arrow_left />
           </button>
         </div>
@@ -231,40 +234,102 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
 
       {/* ── Contenido ── */}
       <main className="f2-content">
-        {/* Grid de 5 módulos */}
-        <div className="f2-modules-grid">
-          {dashboard.modulos.map(modulo => (
-            <ModuleCard
-              key={modulo.modulo_id}
-              modulo={modulo}
-              onClick={() => handleModuleClick(modulo)}
-              userRole={userRole}
-              onLevelSelect={(moduloId, nivelId) => onModuleSelect(moduloId, nivelId)}
-            />
-          ))}
-        </div>
+        {!selectedModule ? (
+          <>
+            {/* Grid de 5 módulos */}
+            <div className="f2-modules-grid">
+              {dashboard.modulos.map(modulo => (
+                <ModuleCard
+                  key={modulo.modulo_id}
+                  modulo={modulo}
+                  onClick={() => handleModuleClick(modulo)}
+                  userRole={userRole}
+                />
+              ))}
+            </div>
 
-        {/* Banner Desafío Mixto */}
-        <div
-          className={`f2-challenge-banner ${dashboard.desafio_mixto_disponible ? '' : 'bloqueado'}`}
-        >
-          <div className="f2-challenge-icon">🏆</div>
-          <div className="f2-challenge-text">
-            <div className="f2-challenge-title">Desafío Mixto de la Fase 2</div>
-            <div className="f2-challenge-desc">
-              {dashboard.desafio_mixto_disponible
-                ? '¡Has completado exitosamente todos los módulos! Es momento de resolver el Desafío Mixto y demostrar tu maestría en Razonamiento Matemático.'
-                : 'Domina todos los módulos para desbloquear el Desafío Mixto y demostrar tu maestría.'}
+            {/* Banner Desafío Mixto */}
+            <div
+              className={`f2-challenge-banner ${dashboard.desafio_mixto_disponible ? '' : 'bloqueado'}`}
+            >
+              <div className="f2-challenge-icon">🏆</div>
+              <div className="f2-challenge-text">
+                <div className="f2-challenge-title">Desafío Mixto de la Fase 2</div>
+                <div className="f2-challenge-desc">
+                  {dashboard.desafio_mixto_disponible
+                    ? '¡Has completado exitosamente todos los módulos! Es momento de resolver el Desafío Mixto y demostrar tu maestría en Razonamiento Matemático.'
+                    : 'Domina todos los módulos para desbloquear el Desafío Mixto y demostrar tu maestría.'}
+                </div>
+              </div>
+              <button
+                className="f2-challenge-btn"
+                onClick={handleChallengeClick}
+                disabled={!dashboard.desafio_mixto_disponible}
+              >
+                {dashboard.desafio_mixto_disponible ? 'Iniciar Desafío Mixto' : '🔒 Bloqueado'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="f2-levels-container">
+            {/* Botón Volver al menú */}
+            <div className="f2-levels-back-wrap">
+              <button 
+                onClick={() => setSelectedModule(null)}
+                className="f2-levels-back-btn"
+              >
+                <Icons.arrow_left />
+                <span>Volver al menú</span>
+              </button>
+            </div>
+
+            {/* Título de niveles */}
+            <div className="f2-levels-header">
+              <h1 className="f2-levels-title">
+                Niveles De {selectedModule.nombre}
+              </h1>
+              <p className="f2-levels-subtitle">
+                Supera cada nivel con al menos <span className="highlight">90%</span> para desbloquear el siguiente.
+              </p>
+            </div>
+
+            {/* Grid de Niveles */}
+            <div className="f2-levels-grid">
+              {selectedModule.niveles.map((nivel) => {
+                const isUnlocked = nivel.estado !== 'bloqueado' || userRole === 'ADMIN';
+                const isPassed = nivel.estado === 'dominado';
+                
+                return (
+                  <button
+                    key={nivel.nivel_id}
+                    disabled={!isUnlocked}
+                    onClick={() => onModuleSelect(selectedModule.modulo_id, nivel.nivel_id)}
+                    className={`f2-level-card ${nivel.estado} ${isUnlocked ? 'unlocked' : 'locked'}`}
+                    style={{ ['--level-accent' as string]: selectedModule.color }}
+                  >
+                    <div className="f2-level-circle">
+                      {isPassed ? (
+                        <Icons.check size={24} color="#ffffff" />
+                      ) : !isUnlocked ? (
+                        <Icons.lock size={18} color="#9CA3AF" />
+                      ) : (
+                        nivel.nivel_id
+                      )}
+                    </div>
+                    <span className="f2-level-title">Nivel {nivel.nivel_id}</span>
+                    
+                    {isPassed && (
+                      <span className="f2-level-ping-wrap">
+                        <span className="f2-level-ping-pulse" />
+                        <span className="f2-level-ping-dot" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <button
-            className="f2-challenge-btn"
-            onClick={handleChallengeClick}
-            disabled={!dashboard.desafio_mixto_disponible}
-          >
-            {dashboard.desafio_mixto_disponible ? 'Iniciar Desafío Mixto' : '🔒 Bloqueado'}
-          </button>
-        </div>
+        )}
       </main>
     </div>
   );
@@ -274,23 +339,22 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
 // SUBCOMPONENTE: Tarjeta de módulo
 // ─────────────────────────────────────────────────────────────────────────────
 
-const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userRole?: string; onLevelSelect: (moduloId: number, nivelId: number) => void }> = ({
+const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userRole?: string }> = ({
   modulo,
   onClick,
   userRole,
-  onLevelSelect,
 }) => {
   const IconComp = Icons[modulo.icono] || Icons.activity;
   const porcentaje = Math.max(0, Math.min(100, modulo.porcentaje_global));
 
   return (
     <article
-      className={`f2-module-card ${modulo.estado}`}
+      className={`f2-module-card ${modulo.estado} ${userRole === 'ADMIN' ? 'admin-unlocked' : ''}`}
       style={{ ['--card-color' as string]: modulo.color }}
-      onClick={userRole === 'ADMIN' ? undefined : onClick}
-      role={modulo.estado !== 'bloqueado' ? 'button' : undefined}
-      tabIndex={modulo.estado !== 'bloqueado' ? 0 : undefined}
-      onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && userRole !== 'ADMIN') onClick(); }}
+      onClick={onClick}
+      role={modulo.estado !== 'bloqueado' || userRole === 'ADMIN' ? 'button' : undefined}
+      tabIndex={modulo.estado !== 'bloqueado' || userRole === 'ADMIN' ? 0 : undefined}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
       aria-label={`${modulo.nombre} — ${ESTADO_LABELS[modulo.estado]}`}
     >
       {/* Ícono con color de módulo */}
@@ -312,28 +376,8 @@ const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userR
         {ESTADO_LABELS[modulo.estado]}
       </div>
 
-      {/* Admin Level Selector */}
-      {userRole === 'ADMIN' && (
-        <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap', zIndex: 10, position: 'relative' }}>
-          <span style={{ fontSize: '10px', color: '#9CA3AF', width: '100%', textTransform: 'uppercase', fontWeight: 'bold' }}>Admin: Test Levels</span>
-          {modulo.niveles.map((n) => (
-            <button
-              key={n.nivel_id}
-              onClick={(e) => { e.stopPropagation(); onLevelSelect(modulo.modulo_id, n.nivel_id); }}
-              style={{
-                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: '4px', padding: '4px 8px', color: '#fff', fontSize: '12px',
-                cursor: 'pointer'
-              }}
-            >
-              L{n.nivel_id}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Barra de progreso */}
-      <div className="f2-module-progress-section" onClick={userRole === 'ADMIN' ? onClick : undefined} style={{ cursor: userRole === 'ADMIN' ? 'pointer' : 'inherit' }}>
+      <div className="f2-module-progress-section">
         <div className="f2-module-progress-label">
           <span>PROGRESO</span>
           <span>{porcentaje}%</span>

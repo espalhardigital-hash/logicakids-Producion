@@ -25,6 +25,7 @@ export interface Fase2Pregunta {
   modulo_id: number;
   nivel_id: number;
   enunciado: string;
+  enunciado_seed?: string;
   tipo_pregunta:
     | 'respuesta_numerica'
     | 'subrayado_tokens'

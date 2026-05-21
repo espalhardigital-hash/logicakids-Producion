@@ -31,6 +31,7 @@ class Fase2PreguntaParaAlumno(BaseModel):
     modulo_id: int
     nivel_id: int
     enunciado: str
+    enunciado_seed: Optional[str] = None
     tipo_pregunta: str                  # respuesta_numerica | subrayado_tokens | constructor_soluciones_chained
     respuesta_correcta: Optional[str] = None   # None para tokens (no se revela al frontend)
     tiene_cronometro: bool = False

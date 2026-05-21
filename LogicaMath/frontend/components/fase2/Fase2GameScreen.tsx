@@ -130,19 +130,14 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   useEffect(() => {
     const checkAndShowReading = async () => {
-      const key = `fase2_reading_shown_${moduloId}_${nivelId}`;
-      const alreadyShown = sessionStorage.getItem(key);
-      if (!alreadyShown) {
-        try {
-          const data = await getFase2Reading(moduloId, nivelId);
-          setReadingData(data);
-          setShowReading(true);
-        } catch {
-          const fallback = MOCK_LECTURA(moduloId, nivelId);
-          setReadingData(fallback);
-          setShowReading(true);
-        }
-        sessionStorage.setItem(key, 'true');
+      try {
+        const data = await getFase2Reading(moduloId, nivelId);
+        setReadingData(data);
+        setShowReading(true);
+      } catch {
+        const fallback = MOCK_LECTURA(moduloId, nivelId);
+        setReadingData(fallback);
+        setShowReading(true);
       }
     };
     checkAndShowReading();
@@ -182,6 +177,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       modulo_id:  moduloId,
       nivel_id:   nivelId,
       pregunta_id: pregunta.id,
+      enunciado_seed: pregunta.enunciado_seed,
       respuesta_dada:          moduloId <= 3 ? respuesta.trim() : undefined,
       tokens_seleccionados:    moduloId === 4 ? tokensSeleccionados : undefined,
       paso_numero:             moduloId === 5 ? paso : undefined,

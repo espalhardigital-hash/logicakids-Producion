@@ -290,6 +290,7 @@ async def get_pregunta_fase2(
             modulo_id=modulo_id,
             nivel_id=nivel_id,
             enunciado=data["enunciado"],
+            enunciado_seed=str(seed),
             tipo_pregunta="respuesta_numerica",
             tiene_cronometro=config.usa_cronometro if config else False,
             tiempo_limite_segundos=config.tiempo_default_segundos if config else None,
@@ -393,7 +394,10 @@ async def responder_fase2(
 
     if modulo_id in (1, 2, 3):
         # Generada dinámicamente — recalcular con mismo seed
-        seed = _make_seed(alumno.id, modulo_id, nivel_id)
+        if payload.enunciado_seed:
+            seed = int(payload.enunciado_seed)
+        else:
+            seed = _make_seed(alumno.id, modulo_id, nivel_id)
         data = generate_question(modulo_id, nivel_id, seed)
         respuesta_correcta_str = data["respuesta_correcta"]
         respuesta_normalizada = (payload.respuesta_dada or "").strip().lower().replace(",", ".").replace("r$ ", "")
