@@ -328,6 +328,25 @@ PREGUNTAS_MODULO_5 = [
 async def seed_preguntas_pool(session: AsyncSession):
     print("Sembrando banco de preguntas para Módulo 4 y Módulo 5...")
     
+    # Registrar pregunta comodín de Fase 2 (para Módulos dinámicos 1-3)
+    result = await session.execute(
+        select(Pregunta).where(Pregunta.id == 999999)
+    )
+    existing = result.scalar_one_or_none()
+    if not existing:
+        pregunta_comodin = Pregunta(
+            id=999999,
+            fase_id=FASE2_ID,
+            seccion=200,  # Sección genérica para comodines
+            operacion=OperacionEnum.MIXTA,
+            tipo_pregunta=TipoPreguntaEnum.RESPUESTA_NUMERICA,
+            enunciado="Pregunta dinámica generada en Fase 2",
+            respuesta_correcta="0",
+            estado=StatusEnum.ACTIVO
+        )
+        session.add(pregunta_comodin)
+        print("  Añadida pregunta comodín dinámica de Fase 2 (ID: 999999)")
+
     # 1. Sembrar preguntas del Módulo 4
     for q_data in PREGUNTAS_MODULO_4:
         seccion = 4 * 100 + q_data["nivel"]

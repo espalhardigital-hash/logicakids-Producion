@@ -464,7 +464,7 @@ async def responder_fase2(
 
     intento = Intento(
         alumno_id=alumno.id,
-        pregunta_id=payload.pregunta_id or 0,
+        pregunta_id=payload.pregunta_id or 999999,
         respuesta_dada=payload.respuesta_dada or str(payload.tokens_seleccionados),
         es_correcta=es_correcta,
         fase_id=FASE2_ID,

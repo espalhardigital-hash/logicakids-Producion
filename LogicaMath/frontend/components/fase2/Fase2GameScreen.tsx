@@ -54,6 +54,8 @@ type FeedbackState = {
   visible: boolean;
   esCorrecta: boolean;
   resultado?: Fase2AnswerResult;
+  isError?: boolean;
+  errorMessage?: string;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,6 +82,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [paso, setPaso]           = useState<1 | 2>(1);
   const [paso1Valor, setPaso1Valor] = useState<string | null>(null);
   const [feedback, setFeedback]   = useState<FeedbackState>({ visible: false, esCorrecta: false });
+  const [isMockMode, setIsMockMode] = useState(false);
   const [progreso, setProgreso]   = useState({ aciertos: 0, intentos: 0, porcentaje: 0 });
   const [shaking, setShaking]     = useState(false);
   const [timer, setTimer]         = useState<number | null>(null);
@@ -102,11 +105,13 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     try {
       const data = await getFase2Question(moduloId, nivelId);
       setPregunta(data);
+      setIsMockMode(false);
       if (data.tiene_cronometro && data.tiempo_limite_segundos) {
         setTimer(data.tiempo_limite_segundos);
       }
     } catch {
       // Pregunta de muestra para desarrollo
+      setIsMockMode(true);
       setPregunta(MOCK_PREGUNTA(moduloId, nivelId));
     } finally {
       setLoading(false);
@@ -187,35 +192,70 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     let resultado: Fase2AnswerResult;
     try {
       resultado = await submitFase2Answer(payload);
-    } catch {
-      resultado = MOCK_RESULTADO(moduloId, respuesta, tokensSeleccionados, pregunta, paso);
-    }
+      
+      setProgreso({
+        aciertos:   resultado.aciertos_acumulados,
+        intentos:   resultado.intentos_totales,
+        porcentaje: resultado.porcentaje_actual,
+      });
 
-    setProgreso({
-      aciertos:   resultado.aciertos_acumulados,
-      intentos:   resultado.intentos_totales,
-      porcentaje: resultado.porcentaje_actual,
-    });
-
-    if (resultado.es_correcta) {
-      // Módulo 5: manejar paso a paso
-      if (moduloId === 5 && paso === 1) {
-        setPaso1Valor(resultado.valor_paso1_congelado ?? respuesta);
-        setPaso(2);
-        setRespuesta('');
-        setFeedback({ visible: true, esCorrecta: true, resultado });
-      } else {
-        setFeedback({ visible: true, esCorrecta: true, resultado });
-        if (resultado.bloque_completado) {
-          setTimeout(() => onComplete(), 1800);
+      if (resultado.es_correcta) {
+        // Módulo 5: manejar paso a paso
+        if (moduloId === 5 && paso === 1) {
+          setPaso1Valor(resultado.valor_paso1_congelado ?? respuesta);
+          setPaso(2);
+          setRespuesta('');
+          setFeedback({ visible: true, esCorrecta: true, resultado });
+        } else {
+          setFeedback({ visible: true, esCorrecta: true, resultado });
+          if (resultado.bloque_completado) {
+            setTimeout(() => onComplete(), 1800);
+          }
         }
+      } else {
+        setShaking(true);
+        setTimeout(() => setShaking(false), 450);
+        setFeedback({ visible: true, esCorrecta: false, resultado });
       }
-    } else {
-      setShaking(true);
-      setTimeout(() => setShaking(false), 450);
-      setFeedback({ visible: true, esCorrecta: false, resultado });
+    } catch (error: any) {
+      if (isMockMode) {
+        resultado = MOCK_RESULTADO(moduloId, respuesta, tokensSeleccionados, pregunta, paso);
+        
+        setProgreso({
+          aciertos:   resultado.aciertos_acumulados,
+          intentos:   resultado.intentos_totales,
+          porcentaje: resultado.porcentaje_actual,
+        });
+
+        if (resultado.es_correcta) {
+          // Módulo 5: manejar paso a paso
+          if (moduloId === 5 && paso === 1) {
+            setPaso1Valor(resultado.valor_paso1_congelado ?? respuesta);
+            setPaso(2);
+            setRespuesta('');
+            setFeedback({ visible: true, esCorrecta: true, resultado });
+          } else {
+            setFeedback({ visible: true, esCorrecta: true, resultado });
+            if (resultado.bloque_completado) {
+              setTimeout(() => onComplete(), 1800);
+            }
+          }
+        } else {
+          setShaking(true);
+          setTimeout(() => setShaking(false), 450);
+          setFeedback({ visible: true, esCorrecta: false, resultado });
+        }
+      } else {
+        // Real server / connection error: display connection error card
+        setFeedback({
+          visible: true,
+          esCorrecta: false,
+          isError: true,
+          errorMessage: error instanceof Error ? error.message : 'No se pudo comunicar con el servidor.',
+        });
+      }
     }
-  }, [pregunta, moduloId, nivelId, respuesta, tokensSeleccionados, paso, onComplete]);
+  }, [pregunta, moduloId, nivelId, respuesta, tokensSeleccionados, paso, isMockMode, onComplete]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSubmit();
@@ -246,6 +286,12 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   };
 
   const handleFeedbackClose = () => {
+    if (feedback.isError) {
+      setFeedback({ visible: false, esCorrecta: false });
+      setTimeout(() => inputRef.current?.focus(), 100);
+      return;
+    }
+
     setFeedback({ visible: false, esCorrecta: false });
     if (feedback.resultado?.bloque_completado) {
       onComplete();
@@ -591,40 +637,56 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       {/* ── Overlay de feedback ── */}
       {feedback.visible && (
         <div className="f2-feedback-overlay">
-          <div className={`f2-feedback-card ${feedback.esCorrecta ? 'correct' : 'incorrect'}`}>
-            <div className="f2-feedback-emoji">
-              {feedback.esCorrecta ? '🎉' : '💪'}
-            </div>
-            <div className="f2-feedback-title">
-              {feedback.esCorrecta ? '¡Correcto!' : '¡Casi!'}
-            </div>
-            <div className="f2-feedback-subtitle">
-              {feedback.esCorrecta
-                ? moduloId === 5 && paso === 1
-                  ? 'Paso 1 completado. ¡Ahora resuelve el Paso 2!'
-                  : '¡Excelente trabajo! Sigue así.'
-                : `La respuesta era: ${feedback.resultado?.respuesta_correcta ?? '–'}`}
-            </div>
-
-            {/* Info Bucle Espejo */}
-            {!feedback.esCorrecta && feedback.resultado?.es_espejo && (
-              <div className="f2-feedback-espejo">
-                {feedback.resultado.soporte_avanzado
-                  ? '🧩 ¿Necesitas ayuda? El sistema te mostrará una explicación detallada en la siguiente pregunta.'
-                  : `🔄 Intento ${feedback.resultado.intentos_espejo_actuales}/${feedback.resultado.intentos_espejo_max} — ¡Tú puedes lograrlo!`}
+          {feedback.isError ? (
+            <div className="f2-feedback-card incorrect animate-pop">
+              <div className="f2-feedback-emoji">⚠️</div>
+              <div className="f2-feedback-title">Error de Conexión</div>
+              <div className="f2-feedback-subtitle">
+                {feedback.errorMessage || 'No se pudo comunicar con el servidor.'}
               </div>
-            )}
+              <button
+                className="f2-feedback-btn incorrect"
+                onClick={handleFeedbackClose}
+              >
+                Volver a intentar
+              </button>
+            </div>
+          ) : (
+            <div className={`f2-feedback-card ${feedback.esCorrecta ? 'correct' : 'incorrect'}`}>
+              <div className="f2-feedback-emoji">
+                {feedback.esCorrecta ? '🎉' : '💪'}
+              </div>
+              <div className="f2-feedback-title">
+                {feedback.esCorrecta ? '¡Correcto!' : '¡Casi!'}
+              </div>
+              <div className="f2-feedback-subtitle">
+                {feedback.esCorrecta
+                  ? moduloId === 5 && paso === 1
+                    ? 'Paso 1 completado. ¡Ahora resuelve el Paso 2!'
+                    : '¡Excelente trabajo! Sigue así.'
+                  : `La respuesta era: ${feedback.resultado?.respuesta_correcta ?? '–'}`}
+              </div>
 
-            <button
-              className={`f2-feedback-btn ${feedback.esCorrecta ? 'correct' : 'incorrect'}`}
-              onClick={handleFeedbackClose}
-              style={feedback.esCorrecta ? { background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})` } : undefined}
-            >
-              {feedback.esCorrecta
-                ? feedback.resultado?.bloque_completado ? '🏆 ¡Nivel Dominado!' : 'Siguiente pregunta →'
-                : 'Intentar de nuevo'}
-            </button>
-          </div>
+              {/* Info Bucle Espejo */}
+              {!feedback.esCorrecta && feedback.resultado?.es_espejo && (
+                <div className="f2-feedback-espejo">
+                  {feedback.resultado.soporte_avanzado
+                    ? '🧩 ¿Necesitas ayuda? El sistema te mostrará una explicación detallada en la siguiente pregunta.'
+                    : `🔄 Intento ${feedback.resultado.intentos_espejo_actuales}/${feedback.resultado.intentos_espejo_max} — ¡Tú puedes lograrlo!`}
+                </div>
+              )}
+
+              <button
+                className={`f2-feedback-btn ${feedback.esCorrecta ? 'correct' : 'incorrect'}`}
+                onClick={handleFeedbackClose}
+                style={feedback.esCorrecta ? { background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})` } : undefined}
+              >
+                {feedback.esCorrecta
+                  ? feedback.resultado?.bloque_completado ? '🏆 ¡Nivel Dominado!' : 'Siguiente pregunta →'
+                  : 'Intentar de nuevo'}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
