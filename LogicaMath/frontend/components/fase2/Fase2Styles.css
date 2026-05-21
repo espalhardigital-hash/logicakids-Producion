@@ -599,61 +599,54 @@
 }
 
 .f2-question-text {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: var(--f2-text-primary);
-  line-height: 1.5;
+  font-size: 4rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
   margin-bottom: 24px;
+  text-align: center;
+}
+
+.f2-question-text.short {
+  font-size: 4rem;
 }
 
 /* Modo numérico (mód 1-3) */
 .f2-numeric-input-wrap {
   display: flex;
-  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
 }
 
 .f2-numeric-input {
-  flex-grow: 1;
-  font-size: 1.5rem;
-  font-weight: 600;
+  width: 100%;
+  max-width: 300px;
+  font-size: 2.5rem;
+  font-weight: 700;
   text-align: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid var(--f2-border);
-  border-radius: 14px;
+  background: transparent;
+  border: 2px solid #3B82F6;
+  border-radius: 12px;
   color: var(--f2-text-primary);
   padding: 16px 24px;
   outline: none;
   transition: var(--f2-transition);
+  letter-spacing: 2px;
 }
 
 .f2-numeric-input:focus {
-  border-color: #10B981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
-  background: rgba(16, 185, 129, 0.04);
+  border-color: #60A5FA;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.f2-numeric-input::placeholder {
+  color: rgba(255, 255, 255, 0.1);
 }
 
 .f2-submit-btn {
-  padding: 16px 28px;
-  background: linear-gradient(135deg, #10B981, #059669);
-  color: white;
-  font-size: 1rem;
-  font-weight: 700;
-  border: none;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: var(--f2-transition);
-  white-space: nowrap;
-}
-
-.f2-submit-btn:hover {
-  transform: scale(1.03);
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
-}
-
-.f2-submit-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+  display: none; /* Ocultamos el botón original gigante, ahora usamos el del teclado */
 }
 
 /* Modo Tokens (mód 4) */
