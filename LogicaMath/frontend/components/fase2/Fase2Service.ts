@@ -34,16 +34,33 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+const activeRequests = new Map<string, Promise<any>>();
+
+async function fetchDeduplicated<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
+  const existing = activeRequests.get(key);
+  if (existing) {
+    return existing;
+  }
+  const promise = fetchFn().finally(() => {
+    activeRequests.delete(key);
+  });
+  activeRequests.set(key, promise);
+  return promise;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Obtiene el dashboard de Fase 2 con los 5 módulos y su estado.
  */
 export async function getFase2Dashboard(): Promise<Fase2Dashboard> {
-  const res = await fetch(`${API_URL}/fase2/dashboard`, {
-    headers: getAuthHeaders(),
+  const key = 'dashboard';
+  return fetchDeduplicated(key, async () => {
+    const res = await fetch(`${API_URL}/fase2/dashboard`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Fase2Dashboard>(res);
   });
-  return handleResponse<Fase2Dashboard>(res);
 }
 
 /**
@@ -53,11 +70,14 @@ export async function getFase2Question(
   moduloId: number,
   nivelId: number
 ): Promise<Fase2Pregunta> {
-  const res = await fetch(
-    `${API_URL}/fase2/modulo/${moduloId}/nivel/${nivelId}/pregunta`,
-    { headers: getAuthHeaders() }
-  );
-  return handleResponse<Fase2Pregunta>(res);
+  const key = `question-${moduloId}-${nivelId}`;
+  return fetchDeduplicated(key, async () => {
+    const res = await fetch(
+      `${API_URL}/fase2/modulo/${moduloId}/nivel/${nivelId}/pregunta`,
+      { headers: getAuthHeaders() }
+    );
+    return handleResponse<Fase2Pregunta>(res);
+  });
 }
 
 /**
@@ -81,11 +101,14 @@ export async function getFase2Reading(
   moduloId: number,
   nivelId: number
 ): Promise<Fase2Lectura> {
-  const res = await fetch(
-    `${API_URL}/fase2/lectura/${moduloId}/nivel/${nivelId}`,
-    { headers: getAuthHeaders() }
-  );
-  return handleResponse<Fase2Lectura>(res);
+  const key = `reading-${moduloId}-${nivelId}`;
+  return fetchDeduplicated(key, async () => {
+    const res = await fetch(
+      `${API_URL}/fase2/lectura/${moduloId}/nivel/${nivelId}`,
+      { headers: getAuthHeaders() }
+    );
+    return handleResponse<Fase2Lectura>(res);
+  });
 }
 
 /**

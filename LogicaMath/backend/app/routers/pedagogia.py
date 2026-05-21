@@ -27,8 +27,10 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
         raise HTTPException(status_code=400, detail="El usuario no tiene un perfil de alumno asociado.")
 
     # 1. Obtener Alumno
-    result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
-    alumno = result.scalar_one_or_none()
+    alumno = current_user.get("alumno_obj")
+    if not alumno:
+        result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
+        alumno = result.scalar_one_or_none()
     
     if not alumno:
         raise HTTPException(status_code=404, detail="Perfil de alumno no encontrado.")
@@ -245,8 +247,10 @@ async def graduate_to_fase1(db: AsyncSession = Depends(get_db), current_user: di
         raise HTTPException(status_code=400, detail="El usuario no tiene un perfil de alumno asociado.")
 
     # 1. Obtener Alumno
-    result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
-    alumno = result.scalar_one_or_none()
+    alumno = current_user.get("alumno_obj")
+    if not alumno:
+        result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
+        alumno = result.scalar_one_or_none()
     
     if not alumno:
         raise HTTPException(status_code=404, detail="Perfil de alumno no encontrado")

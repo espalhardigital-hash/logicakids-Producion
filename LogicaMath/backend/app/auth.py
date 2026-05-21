@@ -73,16 +73,18 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
     
-    # Fetch user from database
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
+    # Fetch user and alumno from database using an outerjoin in a single query
+    result = await db.execute(
+        select(User, Alumno)
+        .outerjoin(Alumno, User.id == Alumno.user_id)
+        .where(User.id == user_id)
+    )
+    row = result.first()
     
-    if user is None:
+    if row is None:
         raise credentials_exception
     
-    # Fetch alumno profile if exists
-    result = await db.execute(select(Alumno).where(Alumno.user_id == user_id))
-    alumno = result.scalar_one_or_none()
+    user, alumno = row
     
     # Convert to dict for compatibility
     return {
@@ -100,6 +102,7 @@ async def get_current_user(
         "unlockedLevel": 5 if user.role == "ADMIN" else user.unlocked_level,
         "createdAt": user.created_at.isoformat() if user.created_at else None,
         "lastLogin": user.last_login.isoformat() if user.last_login else None,
+        "alumno_obj": alumno,
     }
 
 

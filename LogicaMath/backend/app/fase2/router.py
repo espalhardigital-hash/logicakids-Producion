@@ -98,6 +98,9 @@ NIVELES_META = {
 # ─────────────────────────────────────────────────────────────────────────────
 
 async def _get_alumno(db: AsyncSession, current_user: dict) -> Alumno:
+    alumno = current_user.get("alumno_obj")
+    if alumno:
+        return alumno
     alumno_id = current_user.get("alumno_id")
     if not alumno_id:
         raise HTTPException(status_code=400, detail="El usuario no tiene perfil de alumno.")

@@ -55,6 +55,20 @@ interface FeedbackState {
   resultado?: Fase2AnswerResult;
 }
 
+const keypadVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: { staggerChildren: 0.05, type: "spring", stiffness: 300, damping: 20 }
+  }
+};
+
+const keyVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0 }
+};
+
 // ─── Componente Principal ─────────────────────────────────────────────────
 
 const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBack }) => {
@@ -322,6 +336,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         setSelectedAltId(null);
         setTimeout(() => inputRef.current?.focus(), 100);
       }
+    }
   };
 
   // ────────────────────────────────────────────────────────────────────────
@@ -667,14 +682,6 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 onClick={() => handleSubmit()}
                 disabled={feedback.visible || !respuesta.trim()}
                 className="f2-keypad-confirm-btn"
-                style={{ background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})` }}
-              >
-                Confirmar <ArrowRight size={18} style={{ marginLeft: '6px' }} />
-              </motion.button>
-            </motion.div>
-          )}
-        </div>
-      </main>
                 style={{ background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})` }}
               >
                 Confirmar <ArrowRight size={18} style={{ marginLeft: '6px' }} />
@@ -1132,12 +1139,17 @@ function MOCK_RESULTADO(
   respuesta: string,
   tokens: number[],
   pregunta: Fase2Pregunta,
-  paso: number
+  paso: number,
+  selectedAltId?: number | null
 ): Fase2AnswerResult {
   let esCorrecta = false;
   let respuestaCorrecta = pregunta.respuesta_correcta ?? '';
 
-  if (moduloId <= 3) {
+  if (pregunta.tipo_pregunta === 'multiple_opcion' && pregunta.alternativas) {
+    const correctAlt = pregunta.alternativas.find(a => (a as any).es_correcta);
+    esCorrecta = correctAlt ? correctAlt.id === selectedAltId : false;
+    respuestaCorrecta = correctAlt ? correctAlt.texto : '';
+  } else if (moduloId <= 3) {
     const normUser = respuesta.trim().toLowerCase().replace(',', '.').replace('r$ ', '');
     const normCorrect = respuestaCorrecta.trim().toLowerCase().replace(',', '.').replace('r$ ', '');
     esCorrecta = normUser === normCorrect;
