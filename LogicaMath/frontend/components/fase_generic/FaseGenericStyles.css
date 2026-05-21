@@ -1,0 +1,559 @@
+/* ==========================================================================
+   FaseGenericStyles.css — Premium UI for Fases 3 to 8
+   ========================================================================== */
+
+:root {
+  --fg-bg: #070b14;
+  --fg-bg-card: rgba(22, 32, 51, 0.4);
+  --fg-bg-glass: rgba(22, 32, 51, 0.7);
+  --fg-border: rgba(255, 255, 255, 0.08);
+  --fg-text-primary: #f8fafc;
+  --fg-text-secondary: #94a3b8;
+  --fg-text-muted: #64748b;
+  --fg-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Container Screen ── */
+.fg-screen {
+  min-height: 100vh;
+  background: var(--fg-bg);
+  color: var(--fg-text-primary);
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  padding: 40px 24px;
+  position: relative;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Ambient glows */
+.fg-screen::before {
+  content: "";
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.fg-screen::after {
+  content: "";
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--phase-color-glow, rgba(168, 85, 247, 0.05)) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Header ── */
+.fg-header {
+  max-width: 1200px;
+  margin: 0 auto 40px auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+.fg-header-greeting {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--fg-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fg-header-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.fg-badge-fase {
+  background: linear-gradient(135deg, var(--phase-color-primary, #6366F1), var(--phase-color-secondary, #4F46E5));
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+}
+
+.fg-header-fasename {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--fg-text-secondary);
+}
+
+.fg-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fg-back-btn {
+  background: var(--fg-bg-card);
+  border: 1px solid var(--fg-border);
+  color: var(--fg-text-primary);
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--fg-transition);
+}
+
+.fg-back-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--phase-color-primary, #3B82F6);
+  transform: translateX(-3px);
+}
+
+/* ── Content Grid ── */
+.fg-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+}
+
+.fg-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+/* ── Module Card ── */
+.fg-module-card {
+  background: var(--fg-bg-card);
+  border: 1px solid var(--fg-border);
+  border-radius: 28px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--fg-transition);
+}
+
+.fg-module-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.fg-module-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--card-accent, #3B82F6);
+  background: rgba(22, 32, 51, 0.6);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 255, 255, 0.02);
+}
+
+.fg-module-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--fg-border);
+  transition: var(--fg-transition);
+}
+
+.fg-module-card:hover .fg-module-icon {
+  transform: scale(1.08) rotate(3deg);
+  border-color: var(--card-accent, #3B82F6);
+}
+
+.fg-module-name {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--fg-text-primary);
+  margin-bottom: 10px;
+}
+
+.fg-module-desc {
+  font-size: 0.92rem;
+  color: var(--fg-text-secondary);
+  line-height: 1.45;
+  margin-bottom: 24px;
+  flex-grow: 1;
+}
+
+/* Progress bar inside cards */
+.fg-module-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--fg-text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.fg-progress-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fg-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+/* ── Levels Selection Sub-view ── */
+.fg-levels-container {
+  animation: fgFadeIn 0.3s ease-out;
+}
+
+@keyframes fgFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fg-levels-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--fg-text-secondary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  transition: var(--fg-transition);
+}
+
+.fg-levels-back-btn:hover {
+  background: var(--fg-bg-card);
+  color: var(--fg-text-primary);
+}
+
+.fg-levels-header {
+  margin-bottom: 32px;
+}
+
+.fg-levels-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #ffffff, var(--module-accent, #3B82F6));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.fg-levels-subtitle {
+  font-size: 1.05rem;
+  color: var(--fg-text-secondary);
+  margin: 0;
+}
+
+.fg-levels-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.fg-level-card {
+  width: 220px;
+  background: var(--fg-bg-card);
+  border: 1px solid var(--fg-border);
+  border-radius: 32px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: var(--fg-transition);
+}
+
+.fg-level-card.unlocked:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--module-accent, #3B82F6);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 25px rgba(255, 255, 255, 0.02);
+}
+
+.fg-level-card.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fg-level-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--fg-border);
+  transition: var(--fg-transition);
+}
+
+.fg-level-card.unlocked:hover .fg-level-circle {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--module-accent, #3B82F6);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+.fg-level-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--fg-text-primary);
+}
+
+.fg-level-desc {
+  font-size: 0.85rem;
+  color: var(--fg-text-secondary);
+  line-height: 1.4;
+}
+
+.fg-level-status {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+/* ── Evaluation Banner ── */
+.fg-evaluation-card {
+  background: linear-gradient(135deg, rgba(22, 32, 51, 0.8), rgba(12, 17, 27, 0.9));
+  border: 1px solid var(--fg-border);
+  border-radius: 32px;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.fg-evaluation-card::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.fg-eval-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--fg-text-primary);
+  margin-bottom: 8px;
+}
+
+.fg-eval-desc {
+  font-size: 0.95rem;
+  color: var(--fg-text-secondary);
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.fg-eval-btn {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 16px 32px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--fg-transition);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+}
+
+.fg-eval-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
+.fg-eval-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--fg-bg-card);
+  border: 1px solid var(--fg-border);
+  box-shadow: none;
+  color: var(--fg-text-muted);
+}
+
+/* ── Interactive Gameplay Screen ── */
+.fg-game-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--fg-bg-glass);
+  border: 1px solid var(--fg-border);
+  border-radius: 32px;
+  padding: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px);
+  position: relative;
+  z-index: 10;
+}
+
+.fg-game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 20px;
+}
+
+.fg-game-progress-wrapper {
+  flex-grow: 1;
+  margin-right: 24px;
+}
+
+.fg-game-question-text {
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.6;
+  margin-bottom: 32px;
+  color: var(--fg-text-primary);
+}
+
+/* Inputs & Buttons */
+.fg-input-field {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid var(--fg-border);
+  border-radius: 16px;
+  padding: 16px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 700;
+  outline: none;
+  box-sizing: border-box;
+  transition: var(--fg-transition);
+  margin-bottom: 24px;
+}
+
+.fg-input-field:focus {
+  border-color: var(--module-accent, #3B82F6);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+}
+
+.fg-options-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+@media(min-width: 600px) {
+  .fg-options-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.fg-option-btn {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid var(--fg-border);
+  border-radius: 20px;
+  padding: 20px;
+  color: var(--fg-text-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--fg-transition);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.fg-option-btn:hover:not(:disabled) {
+  border-color: var(--module-accent, #3B82F6);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.fg-option-btn.selected {
+  border-color: var(--module-accent, #3B82F6);
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+}
+
+/* Submit & Feedback states */
+.fg-submit-btn {
+  width: 100%;
+  background: var(--module-accent, #3B82F6);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 18px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--fg-transition);
+}
+
+.fg-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.fg-feedback-box {
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: fgPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes fgPop {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.fg-feedback-box.correct {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #34D399;
+}
+
+.fg-feedback-box.incorrect {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #F87171;
+}
