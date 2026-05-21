@@ -88,7 +88,7 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
           <div className="f2-reading-icon" style={{ backgroundColor: `${moduleColor}22`, color: moduleColor }}>
             <BookOpen size={24} />
           </div>
-          <h2>{readingData.titulo}</h2>
+          <h2>✨ {readingData.titulo} 🦸🏽‍♂️</h2>
           <div className="f2-step-indicator">
             Paso {currentStep + 1} de {totalSteps}
           </div>
@@ -247,7 +247,7 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
               >
                 {readingData.tip_pedagogico && (
                   <div className="f2-reading-tip highlighted" style={{ borderLeftColor: moduleColor }}>
-                    <strong>Tip Pedagógico:</strong> {readingData.tip_pedagogico}
+                    <strong>👾 Tip Pedagógico:</strong> {readingData.tip_pedagogico}
                   </div>
                 )}
                 <div className="f2-ready-msg">

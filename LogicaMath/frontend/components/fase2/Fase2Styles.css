@@ -1193,7 +1193,7 @@
 }
 
 .f2-reading-header h2 {
-  font-size: 1.4rem;
+  font-size: 1.8rem;
   font-weight: 800;
   color: var(--f2-text-primary);
   margin: 0;
@@ -1207,8 +1207,8 @@
 }
 
 .f2-reading-p {
-  font-size: 0.95rem;
-  line-height: 1.55;
+  font-size: 1.15rem;
+  line-height: 1.6;
   color: var(--f2-text-secondary);
   margin: 0;
 }
@@ -1415,8 +1415,10 @@
 .flashcard-mode {
   display: flex;
   flex-direction: column;
-  min-height: 500px;
-  max-width: 650px;
+  min-height: 650px;
+  max-height: 90vh;
+  width: 90vw;
+  max-width: 800px;
 }
 
 .f2-step-indicator {
@@ -1496,7 +1498,7 @@
 }
 
 .f2-ex-q {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: #f1f5f9;
   margin-bottom: 0.75rem;
@@ -1512,8 +1514,9 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  font-size: 1rem;
+  font-size: 1.15rem;
   color: #cbd5e1;
+  line-height: 1.5;
 }
 
 .f2-ex-step-num {
@@ -1549,7 +1552,7 @@
 }
 
 .f2-int-q {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: #f1f5f9;
   margin-bottom: 0.75rem;
@@ -1621,11 +1624,11 @@
 }
 
 .f2-ready-msg {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   color: #f1f5f9;
   text-align: center;
-  margin-top: 2rem;
-  font-weight: 500;
+  margin-top: 3rem;
+  font-weight: 600;
 }
 .f2-level-card.dominado .f2-level-circle {
   background: #10B981;
