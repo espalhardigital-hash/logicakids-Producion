@@ -162,7 +162,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
 
   const handleChallengeClick = () => {
     if (!dashboard?.desafio_mixto_disponible) return;
-    onModuleSelect(0, 0); // 0,0 = Desafío Mixto
+    onModuleSelect(99, 99); // 99,99 = Desafío Mixto
   };
 
   if (loading) {

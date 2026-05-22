@@ -264,7 +264,7 @@ export default function WelcomeScreenPhaseGeneric({
               <button 
                 className="fg-eval-btn"
                 disabled={isEvalLocked}
-                onClick={() => onModuleSelect(0, 0, faseId)}
+                onClick={() => onModuleSelect(99, 99, faseId)}
               >
                 {!isEvalLocked ? 'Iniciar Desafío' : '🔒 Completar módulos'}
               </button>

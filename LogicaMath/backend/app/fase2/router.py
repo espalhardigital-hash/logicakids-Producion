@@ -424,8 +424,8 @@ async def get_pregunta_fase2(
     seccion, operacion = _seccion_operacion(modulo_id, nivel_id)
     config = await _get_config(db, seccion, operacion)
 
-    # 1. MODO DESAFÍO (modulo_id == 0 o nivel_id en 11, 12, 13)
-    if modulo_id == 0 or nivel_id in (11, 12, 13):
+    # 1. MODO DESAFÍO (modulo_id == 99 o nivel_id en 11, 12, 13)
+    if modulo_id == 99 or nivel_id in (11, 12, 13):
         # Obtener preguntas del desafío que el alumno ya aprobó
         result = await db.execute(
             select(Intento.pregunta_id)
@@ -438,13 +438,13 @@ async def get_pregunta_fase2(
         )
         correct_pregunta_ids = set(result.scalars().all())
 
-        # Si modulo_id == 0, traer preguntas de toda la fase 2
+        # Si modulo_id == 99, traer preguntas de toda la fase 2
         query = select(Pregunta).options(selectinload(Pregunta.alternativas)).where(and_(
             Pregunta.fase_id == FASE2_ID,
             Pregunta.estado == StatusEnum.ACTIVO
         ))
         
-        if modulo_id != 0:
+        if modulo_id != 99:
             query = query.where(Pregunta.seccion == seccion)
 
         result = await db.execute(query)

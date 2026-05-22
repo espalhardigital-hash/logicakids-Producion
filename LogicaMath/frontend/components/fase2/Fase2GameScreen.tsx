@@ -93,7 +93,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const isChallenge = moduloId === 0 || (nivelId >= 11 && nivelId <= 13);
+  // Si el moduloId es 99, es un Desafío Mixto, que no usa teoría
+  const isChallenge = moduloId === 99 || (nivelId >= 11 && nivelId <= 13);
   const moduleName  = MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
   const moduleColor = MODULE_COLORS[moduloId] ?? '#10B981';
 
@@ -139,7 +140,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       const mockQ = MOCK_PREGUNTA(moduloId, nivelId);
       setPregunta(mockQ);
       if (isChallenge) {
-        const limit = moduloId === 0 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
+        const limit = moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
         setTimer(limit);
       } else {
         setTimer(null);

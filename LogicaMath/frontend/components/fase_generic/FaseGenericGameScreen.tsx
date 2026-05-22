@@ -83,9 +83,9 @@ export default function FaseGenericGameScreen() {
     }
   }, []);
 
-  // Generate randomized questions for the final challenge if moduloId === 0
+  // Generate randomized questions for the final challenge if moduloId === 99
   useEffect(() => {
-    if (moduloId === 0 && metadata) {
+    if (moduloId === 99 && metadata) {
       const pool = metadata.modulos.flatMap(m => m.niveles.flatMap(n => n.preguntas));
       const shuffled = [...pool].sort(() => Math.random() - 0.5);
       const selected = shuffled.slice(0, Math.min(15, pool.length));
@@ -95,10 +95,10 @@ export default function FaseGenericGameScreen() {
     }
   }, [faseId, moduloId, nivelId, metadata]);
 
-  // Construct virtual modulo and level if moduloId === 0 (Desafío de Maestría)
-  const modulo = moduloId === 0 
+  // Construct virtual modulo and level if moduloId === 99 (Desafío de Maestría)
+  const modulo = moduloId === 99 
     ? {
-        moduloId: 0,
+        moduloId: 99,
         nombre: 'Desafío de Maestría',
         color: metadata?.colorPrimario || '#6366F1',
         icono: 'target',
@@ -106,7 +106,7 @@ export default function FaseGenericGameScreen() {
       }
     : metadata?.modulos.find(m => m.moduloId === moduloId);
 
-  const nivel = moduloId === 0
+  const nivel = moduloId === 99
     ? {
         nivelId: 1,
         nombre: 'Desafío de Maestría',
@@ -132,7 +132,7 @@ export default function FaseGenericGameScreen() {
     }
   }, [showReading, levelCompleted, currentQuestionIndex, challengeQuestions]);
 
-  if (!metadata || !modulo || !nivel || (moduloId === 0 && challengeQuestions.length === 0)) {
+  if (!metadata || !modulo || !nivel || (moduloId === 99 && challengeQuestions.length === 0)) {
     return (
       <div className="fg-screen">
         <div style={{ textAlign: 'center', padding: '100px 20px' }}>
@@ -147,11 +147,11 @@ export default function FaseGenericGameScreen() {
     );
   }
 
-  const currentQuestion = moduloId === 0 
+  const currentQuestion = moduloId === 99 
     ? challengeQuestions[currentQuestionIndex] 
     : nivel.preguntas[currentQuestionIndex];
 
-  const totalQuestions = moduloId === 0 ? challengeQuestions.length : nivel.preguntas.length;
+  const totalQuestions = moduloId === 99 ? challengeQuestions.length : nivel.preguntas.length;
 
   const currentAciertos = answersLog.filter(a => a.isCorrect).length;
   const currentErrores = answersLog.filter(a => !a.isCorrect).length;
