@@ -323,13 +323,9 @@ export default function FaseGenericGameScreen() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
               <div className="fg-theory-avatar-container">
-                {userAvatar ? (
-                  <img src={getAvatarUrl(userAvatar)} alt="Avatar" className="fg-theory-avatar-img" />
-                ) : (
-                  <div className="fg-theory-avatar-placeholder" style={{ background: `${modulo.color}15`, borderRadius: '14px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Lucide.BookOpen size={24} color={modulo.color} />
-                  </div>
-                )}
+                <div className="fg-theory-avatar-placeholder" style={{ background: `${modulo.color}15`, borderRadius: '14px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Lucide.BookOpen size={24} color={modulo.color} />
+                </div>
               </div>
               <h3 style={{ fontSize: '1.4rem', fontWeight: 900, margin: 0, color: '#f8fafc' }}>
                 {nivel.teoria.titulo}

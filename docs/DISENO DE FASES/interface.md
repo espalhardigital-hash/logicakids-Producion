@@ -31,7 +31,7 @@ Este documento define la guía oficial y estandarizada de diseño UX/UI para la 
 ## 3. Navegación y Cabeceras (Header)
 Para asegurar que un niño nunca se sienta perdido en la navegación y tenga contexto completo de su ubicación:
 - **Botón Atrás / Abortar**: Ubicado SIEMPRE en el extremo **superior izquierdo** (`.f2-back-btn` o `.f2-header-abort-btn`). En las pantallas de juego y de teoría, se utiliza un icono de salida o flecha limpia para retroceder (`ArrowLeft`/`LogOut`). Para evitar saturación visual, se puede omitir el texto descriptivo del botón en dispositivos compactos.
-- **Avatar del Alumno**: En lugar de emojis genéricos, se muestra la foto de perfil o avatar real del usuario cargada dinámicamente (`getAvatarUrl` o `.avatar` desde el estado del usuario) en cabeceras de bienvenida, modales de teoría y diálogos guiados.
+- **Avatar del Alumno**: En lugar de emojis genéricos, se muestra la foto de perfil o avatar real del usuario cargada dinámicamente (`getAvatarUrl` o `.avatar` desde el estado del usuario) en cabeceras de bienvenida, mapa de fases y diálogos guiados de retroalimentación. Se prohíbe explícitamente mostrar la foto del alumno o el emoji del astronauta en las cabeceras de la teoría de los modales para evitar redundancia y ruido cognitivo.
 - **Métricas e Identificación de Nivel**: Las cabeceras de juego y de fase deben mostrar de forma prominente el **Nivel** y el **Nombre del Módulo** activo en el título o en un badge destacado. Las monedas, rachas o estadísticas globales se agrupan en la esquina **superior derecha** de forma compacta.
 
 ---
@@ -60,7 +60,9 @@ Para asegurar que un niño nunca se sienta perdido en la navegación y tenga con
   - **Scrollbar de Seguridad**: Si y solo si el contenido es extremadamente largo o la pantalla es inferior a `700px` de altura, el contenedor del cuerpo del modal (`.flashcard-body`) activará un scrollbar vertical limpio.
 - **Chunking (Paginación Corta)**: El contenido teórico (como ejemplos guiados y ejercicios interactivos) se subdivide en grupos pequeños de máximo 2 elementos por diapositiva para no abrumar al alumno.
 - **Concisión del Texto**: La información textual teórica en diálogos y tarjetas explicativas debe limitarse, idealmente, a un máximo de **dos líneas** por idea/párrafo para facilitar una lectura ágil.
-- **Identidad del Personaje**: Se debe incluir la foto de perfil o avatar del alumno (`userAvatar`) junto a los globos de diálogo o de bienvenida para incentivar la empatía en la lectura.
+- **Limpieza de Cabecera (Sin Avatares)**: Queda prohibida la representación del avatar o emoji de astronauta junto al título del modal en la teoría para simplificar el área superior. Se utiliza en su lugar un icono estático representativo (`Lucide.BookOpen` o destello `✨`).
+- **Identidad del Personaje**: Se puede incluir la foto de perfil o avatar del alumno (`userAvatar`) únicamente junto a globos de diálogo inferiores para incentivar la empatía en la lectura de forma controlada.
+- **Botones del Footer del Modal**: Para evitar superposiciones, amontonamiento o colisiones en pantallas de diversos anchos, el botón principal de cierre (`¡Entendido, empezar!`) debe medir exactamente un **70% de ancho** (`width: 70%`), dejando el **30% de espacio** para el botón `Atrás` y manteniendo un `gap` flexible de `1.25rem` (20px).
 - **Botón Abortar**: Se proporciona un acceso rápido de abortar estudio integrado en la cabecera del modal para facilitar la salida en cualquier momento.
 
 ### D. Interfaz de Práctica Libre y Juego (`GameScreen` / `Fase2GameScreen` / `FaseGenericGameScreen`)
@@ -68,15 +70,18 @@ Para asegurar que un niño nunca se sienta perdido en la navegación y tenga con
   - **Cabecera Compacta y Unificada**: Se implementa una cabecera moderna (`.f2-game-header-modern` / `.fg-game-header-modern`) que contiene el botón de abortar misión a la izquierda, y en la derecha un grupo con un badge consolidado en formato de píldora única (`.f2-header-badge-pill` / `.fg-header-badge-pill`) estructurado con divisores verticales: `[MÓDULO] | NIVEL X | PREGUNTA Y/Z | [TIEMPO]S`.
   - **Barra de Progreso de Ancho Completo**: Situada directamente debajo de la cabecera principal, de extremo a extremo (`.f2-full-width-progress-bar` / `.fg-full-width-progress-bar`). Es una línea delgada que utiliza un degradado brillante del color correspondiente al módulo actual, liberando espacio en el área central.
 - **Caja de Pregunta y Entrada Interactiva (Custom Input Box)**:
-  - **Caja de Pregunta**: El enunciado se muestra en un bloque oscuro `.f2-question-text-box` / `.fg-question-text-box` con tipografía ampliada para alta visibilidad.
+  - **Caja de Pregunta (Tipografía Inteligente y Adaptativa)**: El enunciado se muestra en un bloque oscuro `.f2-question-text-box` / `.fg-question-text-box` con tipografía ampliada y adaptable para alta visibilidad. Para evitar desbordamientos y asegurar que los problemas de texto largo se visualicen correctamente, se implementa la siguiente escala tipográfica estándar:
+    - **Preguntas Estándar/Largas** (enunciado de 25 caracteres o más): Tamaño de letra ajustado a **1.6rem - 1.7rem** con un interlineado cómodo de **1.35 - 1.4**, adecuado para problemas razonados.
+    - **Preguntas Cortas** (enunciado de menos de 25 caracteres): Tamaño de letra de **2.2rem - 2.3rem** para fórmulas y ecuaciones simples destacadas.
   - **Input Personalizado e Invisible**: La clásica caja de texto nativa es reemplazada por un contenedor interactivo personalizado (`.f2-custom-input-box` / `.fg-custom-input-box`) que alberga un input físico oculto (`.f2-hidden-input` / `.fg-hidden-input`). Esto permite que el estudiante haga clic o toque en cualquier zona de la caja para enfocar y teclear (tanto en móvil como en escritorio), visualizando el contenido de forma elegante:
     - **Estado Correcto**: La caja cambia a un borde y fondo verde translúcido, revelando a la derecha un badge circular verde con una marca de verificación (`✓`).
     - **Estado Incorrecto**: La caja cambia a un borde y fondo rojo translúcido, desplegando un badge circular rojo con una cruz (`✗`) y un indicador de respuesta esperada (`Era: X`).
   - **Marcador de Aciertos y Errores**: Se incorporan cajas en la base de la tarjeta (`.f2-scores-container` / `.fg-scores-container` y `.f2-score-box` / `.fg-score-box`) con bordes de color diferenciados (verde para aciertos, rojo para errores) que muestran las estadísticas en tiempo real sin interferir en la dinámica del juego.
-- **Teclado Numérico Virtual en Grid 3x4**:
-  - Organizado con una cuadrícula matemática clásica (`.f2-keypad-grid` / `.fg-keypad-grid`):
-    - Botones del `1` al `9` ordenados en tres filas.
-    - Fila inferior: Botón de borrar (`Delete`) a la izquierda, número `0` al centro, y el botón de confirmación (`confirm-key` / `[->]`) a la derecha.
+- **Teclado Numérico Virtual Unificado en Grid 3x4**:
+  - Todas las fases del juego (incluyendo Fase 1, Fase 2 y Fase Genérica) comparten el mismo diseño premium unificado de teclado numérico táctil basado en Tailwind CSS.
+  - Organizado con una cuadrícula matemática clásica:
+    - Botones del `1` al `9` ordenados en tres filas con soporte para micro-animaciones táctiles mediante `framer-motion` (escalado elástico suave).
+    - Fila inferior: Botón de borrar (`Delete` / `Lucide.Delete`) a la izquierda, número `0` al centro, y el botón de confirmación (`confirm-key` / `[->]` / `Lucide.ArrowRight`) a la derecha.
   - El botón de confirmación se resalta en un color azul vibrante con degradado y brillo neón. Permanece activo durante la fase de retroalimentación para funcionar como botón de avance ("Continuar").
 - **Flujo de Feedback en Línea y Bucle Espejo Progresivo**:
   - Queda prohibido el uso de modales emergentes o ventanas de diálogo intrusivas que interrumpen el ritmo de juego del alumno.

@@ -148,21 +148,6 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
             </div>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>
                ✨ {readingData.titulo}
-               {userAvatar ? (
-                 <img 
-                   src={getAvatarUrl(userAvatar)} 
-                   alt="Usuario" 
-                   style={{
-                     width: '32px',
-                     height: '32px',
-                     borderRadius: '50%',
-                     border: '2px solid rgba(255, 255, 255, 0.2)',
-                     objectFit: 'cover'
-                   }} 
-                 />
-               ) : (
-                 <span style={{ fontSize: '1.8rem' }}>🧑‍🚀</span>
-               )}
             </h2>
           </div>
           
