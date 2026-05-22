@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, CheckCircle, XCircle, ArrowRight, ArrowLeft, LogOut } from 'lucide-react';
 import { Fase2Lectura } from './Fase2Types';
+import { getAvatarUrl } from '../../services/storageService';
 import './Fase2Styles.css';
 
 interface Fase2TheoryModalProps {
@@ -9,13 +10,23 @@ interface Fase2TheoryModalProps {
   moduleColor: string;
   onClose: () => void;
   onAbort?: () => void;
+  userAvatar?: string;
 }
+
+const MODULE_NAMES: Record<number, string> = {
+  1: 'Gimnasio Mental',
+  2: 'Tablas en Acción',
+  3: 'Tienda Matemática',
+  4: 'Constructor de Soluciones',
+  5: 'Desafío Lógico',
+};
 
 export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
   readingData,
   moduleColor,
   onClose,
-  onAbort
+  onAbort,
+  userAvatar
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -121,27 +132,65 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
         className="f2-reading-card flashcard-mode"
       >
         <div className="f2-reading-header">
-          <div className="f2-reading-icon" style={{ backgroundColor: `${moduleColor}22`, color: moduleColor }}>
+          <div className="f2-reading-icon" style={{ backgroundColor: `${moduleColor}22`, color: moduleColor, flexShrink: 0 }}>
             <BookOpen size={24} />
           </div>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-             ✨ {readingData.titulo} <span style={{ fontSize: '2rem' }}>🧑‍🚀</span>
-          </h2>
+          <div style={{ flex: 1 }}>
+            <div style={{
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              color: moduleColor,
+              letterSpacing: '1.2px',
+              marginBottom: '2px'
+            }}>
+              Módulo {readingData.modulo_id}: {MODULE_NAMES[readingData.modulo_id] || 'Cálculo'} • Nivel {readingData.nivel_id}
+            </div>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>
+               ✨ {readingData.titulo}
+               {userAvatar ? (
+                 <img 
+                   src={getAvatarUrl(userAvatar)} 
+                   alt="Usuario" 
+                   style={{
+                     width: '32px',
+                     height: '32px',
+                     borderRadius: '50%',
+                     border: '2px solid rgba(255, 255, 255, 0.2)',
+                     objectFit: 'cover'
+                   }} 
+                 />
+               ) : (
+                 <span style={{ fontSize: '1.8rem' }}>🧑‍🚀</span>
+               )}
+            </h2>
+          </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
             {onAbort && (
               <button 
                 onClick={onAbort}
+                title="Abortar"
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)',
-                  color: '#ef4444', padding: '6px 12px', borderRadius: '16px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#ef4444',
+                  padding: '8px',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  width: '36px',
+                  height: '36px',
+                  transition: 'all 0.2s ease'
                 }}
+                className="f2-abort-btn"
               >
-                <LogOut size={14} /> Abortar
+                <LogOut size={16} />
               </button>
             )}
-            <div className="f2-step-indicator">
+            <div className="f2-step-indicator" style={{ marginTop: 0 }}>
               Paso {currentStep + 1} de {totalSteps}
             </div>
           </div>
@@ -326,11 +375,18 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
                 transition={{ duration: 0.3 }}
                 className="f2-flashcard-content"
               >
-                <div className="f2-reading-tip highlighted" style={{ borderLeftColor: moduleColor }}>
-                  <strong>👾 Tip Pedagógico:</strong> {currentSlide.data}
+                <div className="f2-reading-tip highlighted">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#f59e0b', fontWeight: 800, fontSize: '1.05rem' }}>
+                    <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+                    <span>¡CONSEJO IMPORTANTE!</span>
+                  </div>
+                  <div style={{ fontSize: '1.05rem', color: '#fffbeb', lineHeight: 1.5 }}>
+                    {currentSlide.data}
+                  </div>
                 </div>
                 <div className="f2-ready-msg">
-                  ¡Excelente trabajo! Estás listo para enfrentarte a la batería de práctica libre.
+                  ¡Excelente trabajo!<br />
+                  Estás listo para la práctica libre.
                 </div>
               </motion.div>
             )}

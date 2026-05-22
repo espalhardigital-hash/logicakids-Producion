@@ -1456,15 +1456,16 @@
 }
 
 .f2-reading-tip {
-  border-left: 3px solid #10B981;
-  padding-left: 12px;
-  font-size: 0.85rem;
-  line-height: 1.45;
-  color: var(--f2-text-secondary);
-  background: rgba(255, 255, 255, 0.01);
-  padding-top: 8px;
-  padding-bottom: 8px;
-  border-radius: 0 8px 8px 0;
+  border-left: 4px solid #f59e0b;
+  padding: 16px;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #fff;
+  background: rgba(245, 158, 11, 0.06);
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  box-sizing: border-box;
 }
 
 .f2-reading-close-btn {
@@ -1949,4 +1950,12 @@
   font-size: 1rem;
   color: #e2e8f0;
   line-height: 1.4;
+}
+
+.f2-abort-btn:hover {
+  background: rgba(239, 68, 68, 0.22) !important;
+  transform: scale(1.05);
+}
+.f2-abort-btn:active {
+  transform: scale(0.95);
 }

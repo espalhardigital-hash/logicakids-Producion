@@ -19,6 +19,7 @@ import type {
 } from './Fase2Types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Delete, ArrowRight } from 'lucide-react';
+import { getCurrentUserFull } from '../../services/storageService';
 
 // ── Íconos inline ─────────────────────────────────────────────────────────
 
@@ -87,6 +88,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [timer, setTimer]         = useState<number | null>(null);
   const [showReading, setShowReading] = useState(false);
   const [readingData, setReadingData] = useState<Fase2Lectura | null>(null);
+  const [userAvatar, setUserAvatar] = useState<string | undefined>(undefined);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -94,6 +96,20 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const isChallenge = nivelId >= 11 && nivelId <= 13;
   const moduleName  = MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
   const moduleColor = MODULE_COLORS[moduloId] ?? '#10B981';
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUserFull();
+        if (user?.avatar) {
+          setUserAvatar(user.avatar);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // ── Cargar pregunta ─────────────────────────────────────────────────────
 
@@ -634,6 +650,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             moduleColor={moduleColor}
             onClose={() => setShowReading(false)}
             onAbort={onBack}
+            userAvatar={userAvatar}
           />
         )}
       </AnimatePresence>
