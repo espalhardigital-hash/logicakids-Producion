@@ -574,60 +574,57 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               variants={keypadVariants}
               initial="hidden"
               animate="show"
-              className="f2-keypad-container"
+              className="hidden md:block w-[320px] shrink-0 z-10"
             >
-              <div className="f2-keypad-grid">
+              <div className="grid grid-cols-3 gap-4 p-7 glass-card rounded-[3rem] shadow-2xl dark:shadow-none">
                 {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
                   <motion.button
                     variants={keyVariants}
-                    whileHover={!feedback.visible ? { scale: 1.05 } : {}}
-                    whileTap={!feedback.visible ? { scale: 0.95 } : {}}
+                    whileHover={!feedback.visible ? { scale: 1.08, backgroundColor: 'rgba(59,130,246,0.08)' } : {}}
+                    whileTap={!feedback.visible ? { scale: 0.92 } : {}}
                     key={num}
                     onClick={() => handleKeypadInput(num.toString())}
                     disabled={feedback.visible}
-                    className="f2-keypad-key"
+                    className="aspect-square rounded-[1.5rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-4xl font-black text-slate-950 dark:text-white transition-all disabled:opacity-30 cursor-pointer font-display flex items-center justify-center shadow-sm"
                   >
                     {num}
                   </motion.button>
                 ))}
 
-                {/* Bottom Row: Delete, 0, Confirm */}
                 <motion.button
                   variants={keyVariants}
-                  whileHover={!feedback.visible ? { scale: 1.05 } : {}}
-                  whileTap={!feedback.visible ? { scale: 0.95 } : {}}
+                  whileHover={!feedback.visible ? { scale: 1.08 } : {}}
+                  whileTap={!feedback.visible ? { scale: 0.92 } : {}}
                   onClick={handleBackspace}
                   disabled={feedback.visible}
-                  className="f2-keypad-key delete-key"
+                  className="aspect-square rounded-[1.5rem] bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 transition-colors disabled:opacity-50 flex items-center justify-center cursor-pointer shadow-sm"
                 >
-                  <Delete size={24} />
+                  <Delete size={28} />
                 </motion.button>
 
                 <motion.button
                   variants={keyVariants}
-                  whileHover={!feedback.visible ? { scale: 1.05 } : {}}
-                  whileTap={!feedback.visible ? { scale: 0.95 } : {}}
+                  whileHover={!feedback.visible ? { scale: 1.08 } : {}}
+                  whileTap={!feedback.visible ? { scale: 0.92 } : {}}
                   onClick={() => handleKeypadInput('0')}
                   disabled={feedback.visible}
-                  className="f2-keypad-key"
+                  className="aspect-square rounded-[1.5rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-3xl font-black text-slate-950 dark:text-white transition-colors disabled:opacity-50 cursor-pointer font-display flex items-center justify-center shadow-sm"
                 >
                   0
                 </motion.button>
 
                 <motion.button
                   variants={keyVariants}
-                  whileHover={feedback.visible || respuesta.trim() ? { scale: 1.05 } : {}}
-                  whileTap={feedback.visible || respuesta.trim() ? { scale: 0.95 } : {}}
+                  whileHover={!feedback.visible ? { scale: 1.08 } : {}}
+                  whileTap={!feedback.visible ? { scale: 0.92 } : {}}
                   onClick={() => handleSubmit()}
                   disabled={!feedback.visible && !respuesta.trim()}
-                  className="f2-keypad-key confirm-key"
+                  className="aspect-square rounded-[1.5rem] bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 shadow-lg shadow-blue-200 dark:shadow-none flex items-center justify-center cursor-pointer"
                 >
-                  <ArrowRight size={24} />
+                  <ArrowRight size={32} />
                 </motion.button>
               </div>
-              <div style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', letterSpacing: '2px', marginTop: '12px' }}>
-                TECLADO NUMÉRICO
-              </div>
+              <p className="text-center text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-[0.3em] mt-6 font-display">Teclado Numérico</p>
             </motion.div>
           )}
         </div>
