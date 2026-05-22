@@ -1,0 +1,158 @@
+/* Fase3Styles.css - Estética Cyberpunk para LogicaKids Pro Fase 3 */
+
+.fase3-container {
+  background-color: #020617; /* slate-950 */
+  color: #e2e8f0;
+  min-height: 100vh;
+  font-family: 'Inter', 'Roboto', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Panel Cuaderno del Detective */
+.detective-notebook {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #1e293b;
+  border-left: 4px solid #F97316; /* Neon Orange */
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.detective-notebook h2 {
+  color: #F97316;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.detective-text {
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+
+.token-word {
+  cursor: pointer;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.token-word:hover {
+  background-color: rgba(249, 115, 22, 0.2);
+}
+
+.token-word.selected-valid {
+  background-color: rgba(34, 197, 94, 0.3); /* green neon */
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.token-word.selected-invalid {
+  background-color: rgba(239, 68, 68, 0.3); /* red neon */
+  color: #f87171;
+  text-shadow: 0 0 8px rgba(248, 113, 113, 0.5);
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Constructor de Operaciones (Drag & Drop Secuencial) */
+.operation-builder {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.operation-slots {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.operation-slot {
+  width: 80px;
+  height: 80px;
+  border: 2px dashed #475569;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #94a3b8;
+  background: #0b0f19;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.operation-slot.filled {
+  border-style: solid;
+  border-color: #F97316;
+  background: rgba(249, 115, 22, 0.1);
+  color: #F97316;
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
+}
+
+.operation-slot.active-target {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.1);
+  box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
+}
+
+/* Estantería de Datos */
+.data-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.data-card {
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #e2e8f0;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+}
+
+.data-card:hover {
+  transform: translateY(-2px);
+  border-color: #F97316;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+}
+
+.data-card.operator {
+  background: #334155;
+  color: #38bdf8;
+}
+
+/* Recuadro Bucle Espejo */
+.mirror-loop-alert {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid #ef4444;
+  border-left: 4px solid #ef4444;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.mirror-loop-alert h4 {
+  color: #fca5a5;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+}

@@ -8,6 +8,8 @@ import WelcomeScreenPhase2 from './components/fase2/WelcomeScreenPhase2';
 import Fase2GameScreen from './components/fase2/Fase2GameScreen';
 import WelcomeScreenPhaseGeneric from './components/fase_generic/WelcomeScreenPhaseGeneric';
 import FaseGenericGameScreen from './components/fase_generic/FaseGenericGameScreen';
+import { WelcomeScreenPhase3 } from './components/fase3/WelcomeScreenPhase3';
+import { Fase3GameScreen } from './components/fase3/Fase3GameScreen';
 import PhaseMapScreen from './components/map/PhaseMapScreen';
 import GameScreen from './components/fase1/GameScreen';
 import ResultsScreen from './components/fase1/ResultsScreen';
@@ -31,6 +33,10 @@ const Fase2GameScreenWrapper: React.FC = () => {
       onBack={() => navigate('/welcome-fase2')}
     />
   );
+};
+
+const Fase3GameScreenWrapper: React.FC = () => {
+  return <Fase3GameScreen />;
 };
 
 const AppContent: React.FC = () => {
@@ -324,7 +330,9 @@ const AppContent: React.FC = () => {
                     navigate('/welcome');
                   } else if (phaseIndex === 2) {
                     navigate('/welcome-fase2');
-                  } else if (phaseIndex >= 3 && phaseIndex <= 8) {
+                  } else if (phaseIndex === 3) {
+                    navigate('/welcome-fase3');
+                  } else if (phaseIndex >= 4 && phaseIndex <= 8) {
                     navigate(`/welcome-fase/${phaseIndex}`);
                   } else {
                     alert(`¡La Fase ${phaseIndex} está desbloqueada! Muy pronto implementaremos sus dinámicas de juego.`);
@@ -384,9 +392,21 @@ const AppContent: React.FC = () => {
             )
           } />
 
+          <Route path="/welcome-fase3" element={
+            currentUser ? <WelcomeScreenPhase3 /> : <Navigate to="/login" replace />
+          } />
+
           <Route path="/fase2/play/:moduloId/:nivelId" element={
             currentUser ? (
               <Fase2GameScreenWrapper />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/fase3/play/:moduloId/:nivelId" element={
+            currentUser ? (
+              <Fase3GameScreenWrapper />
             ) : (
               <Navigate to="/login" replace />
             )
