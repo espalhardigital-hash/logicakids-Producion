@@ -23,7 +23,7 @@ from sqlalchemy.orm import selectinload
 from ..db.session import get_db
 from ..auth import get_current_user
 from ..models.sql_models import (
-    Alumno, Pregunta, ConfiguracionProgreso,
+    Alumno, Fase, Pregunta, ConfiguracionProgreso,
     ProgresoMaestria, Intento,
     StatusEnum, EstadoProgresoEnum
 )
@@ -695,9 +695,10 @@ async def responder_fase3(
             porcentaje_actual=progreso.porcentaje_actual,
             bloque_completado=bloque_completado,
             early_exit=False,
-            espejo_activado=espejo,
-            intentos_espejo_restantes=MAX_ESPEJO - intentos_espejo if espejo else 0,
-            soporte_avanzado_activado=(intentos_espejo == MAX_ESPEJO) if espejo else False,
+            es_espejo=espejo,
+            intentos_espejo_actuales=intentos_espejo,
+            intentos_espejo_max=MAX_ESPEJO,
+            soporte_avanzado=(intentos_espejo == MAX_ESPEJO) if espejo else False,
         )
 
 @router.get("/lectura/{modulo_id}/nivel/{nivel_id}", response_model=Fase3ContenidoLectura)
@@ -731,3 +732,46 @@ async def get_lectura_fase3(
         diccionario=getattr(theory, 'diccionario', None),
         interactivos=theory.interactivos,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GRADUACIÓN A FASE 4 (Exige 25 niveles aprobados)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/graduate")
+async def graduate_fase3(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Gradúa al alumno de Fase 3 a Fase 4 si todos los 25 niveles (13 práctica + 12 desafíos) están dominados.
+    """
+    alumno = await _get_alumno(db, current_user)
+
+    result = await db.execute(
+        select(func.count(ProgresoMaestria.id)).where(and_(
+            ProgresoMaestria.alumno_id == alumno.id,
+            ProgresoMaestria.fase_id == FASE3_ID,
+            ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO,
+        ))
+    )
+    aprobados = result.scalar()
+    if aprobados < 25:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Debes dominar los 25 niveles de Fase 3 (13 de práctica y 12 desafíos). Llevas {aprobados}/25.",
+        )
+
+    result = await db.execute(select(Fase).where(Fase.orden == 4))
+    fase4 = result.scalar_one_or_none()
+    if not fase4:
+        raise HTTPException(status_code=500, detail="La Fase 4 aún no ha sido configurada.")
+
+    alumno.fase_actual_id = fase4.id
+    await db.commit()
+
+    return {
+        "message": "¡Felicitaciones! ¡Has dominado la Fase 3 y avanzas a la Fase 4!",
+        "nueva_fase_id": fase4.id,
+        "nueva_fase_nombre": fase4.nombre,
+    }

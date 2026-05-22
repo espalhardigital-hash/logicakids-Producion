@@ -424,8 +424,8 @@ async def get_pregunta_fase2(
     seccion, operacion = _seccion_operacion(modulo_id, nivel_id)
     config = await _get_config(db, seccion, operacion)
 
-    # 1. MODO DESAFÍO (11, 12, 13)
-    if nivel_id in (11, 12, 13):
+    # 1. MODO DESAFÍO (modulo_id == 0 o nivel_id en 11, 12, 13)
+    if modulo_id == 0 or nivel_id in (11, 12, 13):
         # Obtener preguntas del desafío que el alumno ya aprobó
         result = await db.execute(
             select(Intento.pregunta_id)
@@ -438,16 +438,16 @@ async def get_pregunta_fase2(
         )
         correct_pregunta_ids = set(result.scalars().all())
 
-        # Cargar todas las preguntas activas para este desafío
-        result = await db.execute(
-            select(Pregunta)
-            .options(selectinload(Pregunta.alternativas))
-            .where(and_(
-                Pregunta.fase_id == FASE2_ID,
-                Pregunta.seccion == seccion,
-                Pregunta.estado == StatusEnum.ACTIVO
-            ))
-        )
+        # Si modulo_id == 0, traer preguntas de toda la fase 2
+        query = select(Pregunta).options(selectinload(Pregunta.alternativas)).where(and_(
+            Pregunta.fase_id == FASE2_ID,
+            Pregunta.estado == StatusEnum.ACTIVO
+        ))
+        
+        if modulo_id != 0:
+            query = query.where(Pregunta.seccion == seccion)
+
+        result = await db.execute(query)
         preguntas = result.scalars().all()
         if not preguntas:
             raise HTTPException(status_code=404, detail="No hay preguntas en el pool para este desafío.")
@@ -460,7 +460,7 @@ async def get_pregunta_fase2(
         pregunta_elex = random.choice(uncompleted)
 
         alts_out = None
-        if nivel_id in (11, 12):
+        if pregunta_elex.tipo_pregunta.value == "multiple_opcion" or pregunta_elex.alternativas:
             alts_out = [
                 Fase2AlternativaOut(id=alt.id, texto=alt.texto, orden=alt.orden)
                 for alt in pregunta_elex.alternativas
@@ -472,7 +472,7 @@ async def get_pregunta_fase2(
             modulo_id=modulo_id,
             nivel_id=nivel_id,
             enunciado=pregunta_elex.enunciado,
-            tipo_pregunta="multiple_opcion" if nivel_id in (11, 12) else "respuesta_numerica",
+            tipo_pregunta=pregunta_elex.tipo_pregunta.value,
             tiene_cronometro=True,
             tiempo_limite_segundos=config.tiempo_default_segundos if config else (25 if nivel_id == 11 else (40 if nivel_id == 12 else 50)),
             alternativas=alts_out,
@@ -583,15 +583,24 @@ async def get_pregunta_fase2(
             if pregunta_elex.datos_numericos and "pasos" in pregunta_elex.datos_numericos:
                 pasos_encadenados = pregunta_elex.datos_numericos["pasos"]
 
+        alts_out = None
+        if pregunta_elex.tipo_pregunta.value == "multiple_opcion" or pregunta_elex.alternativas:
+            alts_out = [
+                Fase2AlternativaOut(id=alt.id, texto=alt.texto, orden=alt.orden)
+                for alt in pregunta_elex.alternativas
+            ]
+            random.shuffle(alts_out)
+
         return Fase2PreguntaParaAlumno(
             id=pregunta_elex.id,
             modulo_id=modulo_id,
             nivel_id=nivel_id,
             enunciado=pregunta_elex.enunciado,
-            tipo_pregunta="constructor_soluciones_chained" if modulo_id == 4 else "respuesta_numerica",
+            tipo_pregunta=pregunta_elex.tipo_pregunta.value,
             tiene_cronometro=config.usa_cronometro if config else False,
             tiempo_limite_segundos=config.tiempo_default_segundos if config else None,
             pasos_encadenados=pasos_encadenados,
+            alternativas=alts_out,
             datos_numericos=pregunta_elex.datos_numericos,
         )
 
@@ -636,9 +645,11 @@ async def responder_fase2(
     valor_paso1_congelado = None
 
     # 1. VALIDAR LA RESPUESTA
-    if nivel_id in (11, 12):
+    tipo_pregunta = pregunta.tipo_pregunta.value
+
+    if tipo_pregunta == "multiple_opcion":
         if not payload.alternativa_id:
-            raise HTTPException(status_code=400, detail="alternativa_id es requerido para desafíos de opción múltiple.")
+            raise HTTPException(status_code=400, detail="alternativa_id es requerido para preguntas de opción múltiple.")
         
         alternativa_elegida = next((a for a in pregunta.alternativas if a.id == payload.alternativa_id), None)
         if not alternativa_elegida:
@@ -648,7 +659,7 @@ async def responder_fase2(
         correct_alt = next((a for a in pregunta.alternativas if a.es_correcta), None)
         respuesta_correcta_str = correct_alt.texto if correct_alt else pregunta.respuesta_correcta
 
-    elif modulo_id == 4 and nivel_id in (1, 2, 3):
+    elif tipo_pregunta == "constructor_soluciones_chained":
         pasos = (pregunta.datos_numericos or {}).get("pasos", [])
         paso_idx = (payload.paso_numero or 1) - 1
         if paso_idx < 0 or paso_idx >= len(pasos):

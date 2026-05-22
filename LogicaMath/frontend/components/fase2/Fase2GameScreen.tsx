@@ -93,7 +93,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const isChallenge = nivelId >= 11 && nivelId <= 13;
+  const isChallenge = moduloId === 0 || (nivelId >= 11 && nivelId <= 13);
   const moduleName  = MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
   const moduleColor = MODULE_COLORS[moduloId] ?? '#10B981';
 
@@ -139,7 +139,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       const mockQ = MOCK_PREGUNTA(moduloId, nivelId);
       setPregunta(mockQ);
       if (isChallenge) {
-        const limit = nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50;
+        const limit = moduloId === 0 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
         setTimer(limit);
       } else {
         setTimer(null);
@@ -802,6 +802,52 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     transition: 'all 0.3s ease'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: paso === 2 ? moduleColor : 'rgba(255, 255, 255, 0.4)', letterSpacing: '1px' }}>
+                        {paso === 2 ? '🟢 PASO 2: EN PROGRESO' : '🔒 PASO 2: BLOQUEADO'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.95rem', color: paso === 2 ? '#ffffff' : 'rgba(255, 255, 255, 0.4)', marginBottom: paso === 2 ? '16px' : '0' }}>
+                      {pregunta.pasos_encadenados?.[1]?.descripcion ?? 'Resuelve el segundo paso.'}
+                    </div>
+
+                    {paso === 2 && (
+                      <div className="f2-numeric-input-wrap" style={{ marginTop: '12px' }}>
+                        <div 
+                          className={`f2-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`}
+                          onClick={() => inputRef.current?.focus()}
+                        >
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={respuesta}
+                            onChange={e => {
+                              if (!feedback.visible) {
+                                const val = e.target.value;
+                                if (/^[0-9,\-]*$/.test(val)) {
+                                  setRespuesta(val);
+                                }
+                              }
+                            }}
+                            onKeyDown={handleKeyDown}
+                            className="f2-hidden-input"
+                            autoFocus
+                            autoComplete="off"
+                            inputMode="none"
+                          />
+                          <span className="f2-input-value-text">
+                            {feedback.visible 
+                              ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) 
+                              : (respuesta || '?')}
+                          </span>
+                          {feedback.visible && (
+                            <div className="f2-input-status-elements">
+                              {feedback.esCorrecta ? (
+                                <div className="f2-status-badge correct">
+                                  <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                </div>
+                              ) : (
                       <span style={{ fontSize: '0.75rem', fontWeight: 800, color: paso === 2 ? moduleColor : 'var(--f2-text-muted)', letterSpacing: '1px' }}>
                         {paso === 2 ? '🔴 PASO 2: EN PROGRESO' : '🔒 PASO 2: BLOQUEADO'}
                       </span>
@@ -880,6 +926,20 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ─ Subrayado de Tokens (Fallback para Módulo 4 en Mock Mode) ─ */}
+            {pregunta.tipo_pregunta === 'subrayado_tokens' && (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                <div className="f2-question-text-box">
+                  <div className={pregunta.enunciado.length < 25 ? "f2-question-text short" : "f2-question-text"}>
+                    {pregunta.enunciado}
+                  </div>
+                </div>
+                <div style={{ padding: '20px', textAlign: 'center', color: '#9CA3AF' }}>
+                  [Componente de Subrayado de Tokens no implementado en el UI actual]
+                </div>
               </div>
             )}
           </motion.div>
