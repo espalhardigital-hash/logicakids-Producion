@@ -226,10 +226,16 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     setFeedback({ visible: false, esCorrecta: false });
     if (feedback.resultado?.bloque_completado) {
       onComplete();
-    } else if (feedback.esCorrecta && pregunta?.tipo_pregunta === 'constructor_soluciones_chained' && paso === 2) {
-      loadPregunta();
     } else if (feedback.esCorrecta) {
-      loadPregunta();
+      if (pregunta?.tipo_pregunta === 'constructor_soluciones_chained') {
+        if (feedback.resultado?.paso_aprobado === 2 || feedback.resultado?.paso_approved === 2) {
+          loadPregunta();
+        } else {
+          setTimeout(() => inputRef.current?.focus(), 100);
+        }
+      } else {
+        loadPregunta();
+      }
     } else {
       if (moduloId <= 3 && !isChallenge) {
         loadPregunta();
@@ -565,7 +571,317 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               </div>
             )}
 
-            {/* Other modes (Multiple Choice, Chained) keep original rendering below... */}
+            {/* ─ Opción Múltiple (Desafíos 1 y 2 - Niveles 11 y 12) ─ */}
+            {pregunta.tipo_pregunta === 'multiple_opcion' && pregunta.alternativas && (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                <div className="f2-question-text-box">
+                  <div className={pregunta.enunciado.length < 25 ? "f2-question-text short" : "f2-question-text"}>
+                    {pregunta.enunciado}
+                  </div>
+                </div>
+
+                <div className="f2-mc-options-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '24px' }}>
+                  {pregunta.alternativas.map((alt) => {
+                    const isSelected = selectedAltId === alt.id;
+                    
+                    let borderColor = 'rgba(255, 255, 255, 0.08)';
+                    let background = 'rgba(255, 255, 255, 0.02)';
+                    let textColor = 'var(--f2-text-secondary)';
+                    
+                    if (isSelected) {
+                      borderColor = moduleColor;
+                      background = `${moduleColor}15`;
+                      textColor = '#ffffff';
+                    }
+                    
+                    if (feedback.visible) {
+                      if (isSelected) {
+                        if (feedback.esCorrecta) {
+                          borderColor = 'var(--f2-correct)';
+                          background = 'rgba(16, 185, 129, 0.1)';
+                          textColor = 'var(--f2-correct)';
+                        } else {
+                          borderColor = 'var(--f2-error)';
+                          background = 'rgba(239, 68, 68, 0.1)';
+                          textColor = 'var(--f2-error)';
+                        }
+                      }
+                      
+                      // Check if this alternative has the correct text from feedback
+                      const isCorrectText = alt.texto === feedback.resultado?.respuesta_correcta;
+                      if (!feedback.esCorrecta && isCorrectText) {
+                        borderColor = 'var(--f2-correct)';
+                        background = 'rgba(16, 185, 129, 0.1)';
+                        textColor = 'var(--f2-correct)';
+                      }
+                    }
+                    
+                    return (
+                      <motion.button
+                        key={alt.id}
+                        whileHover={!feedback.visible ? { scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.05)' } : {}}
+                        whileTap={!feedback.visible ? { scale: 0.98 } : {}}
+                        disabled={feedback.visible}
+                        onClick={() => setSelectedAltId(alt.id)}
+                        className={`f2-mc-option-btn ${isSelected ? 'selected' : ''}`}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '16px 20px',
+                          borderRadius: '16px',
+                          border: `1px solid ${borderColor}`,
+                          background: background,
+                          color: textColor,
+                          fontWeight: isSelected ? 700 : 500,
+                          fontSize: '1rem',
+                          cursor: feedback.visible ? 'default' : 'pointer',
+                          transition: 'border-color 0.2s, background-color 0.2s, color 0.2s',
+                          textAlign: 'left',
+                          position: 'relative'
+                        }}
+                      >
+                        <div style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          border: `2px solid ${isSelected ? (feedback.visible ? (feedback.esCorrecta ? 'var(--f2-correct)' : 'var(--f2-error)') : moduleColor) : 'rgba(255,255,255,0.2)'}`,
+                          marginRight: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          background: isSelected ? (feedback.visible ? (feedback.esCorrecta ? 'var(--f2-correct)' : 'var(--f2-error)') : moduleColor) : 'transparent',
+                        }}>
+                          {isSelected && (
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffffff' }} />
+                          )}
+                        </div>
+                        <span style={{ flexGrow: 1 }}>{alt.texto}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ marginTop: '24px' }}>
+                  <motion.button
+                    whileHover={!feedback.visible && selectedAltId !== null ? { scale: 1.02 } : {}}
+                    whileTap={!feedback.visible && selectedAltId !== null ? { scale: 0.98 } : {}}
+                    className="f2-submit-btn"
+                    onClick={handleSubmit}
+                    disabled={selectedAltId === null && !feedback.visible}
+                    style={{
+                      display: 'block', // Overriding display:none from f2-submit-btn in css
+                      width: '100%',
+                      padding: '16px',
+                      borderRadius: '16px',
+                      background: selectedAltId === null && !feedback.visible
+                        ? 'rgba(255, 255, 255, 0.03)' 
+                        : feedback.visible
+                          ? feedback.esCorrecta
+                            ? 'linear-gradient(135deg, var(--f2-correct)cc, var(--f2-correct))'
+                            : 'linear-gradient(135deg, var(--f2-error)cc, var(--f2-error))'
+                          : `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`,
+                      color: selectedAltId === null && !feedback.visible ? 'rgba(255, 255, 255, 0.2)' : 'white',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: '1rem',
+                      cursor: selectedAltId === null && !feedback.visible ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: selectedAltId !== null && !feedback.visible 
+                        ? `0 8px 24px ${moduleColor}30` 
+                        : 'none'
+                    }}
+                  >
+                    {feedback.visible 
+                      ? (feedback.esCorrecta ? 'Siguiente Pregunta →' : 'Intentar de nuevo ↺') 
+                      : 'Confirmar Respuesta'}
+                  </motion.button>
+                </div>
+              </div>
+            )}
+
+            {/* ─ Constructor de Soluciones Chained (Módulo 4) ─ */}
+            {pregunta.tipo_pregunta === 'constructor_soluciones_chained' && (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between', gap: '20px' }}>
+                <div className="f2-question-text-box">
+                  <div className={pregunta.enunciado.length < 25 ? "f2-question-text short" : "f2-question-text"}>
+                    {pregunta.enunciado}
+                  </div>
+                </div>
+
+                <div className="f2-chained-steps-container" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Paso 1 */}
+                  <div className={`f2-step-card ${paso === 1 ? 'active' : 'completed'}`} style={{
+                    background: paso === 1 ? 'rgba(255, 255, 255, 0.03)' : 'rgba(16, 185, 129, 0.05)',
+                    border: paso === 1 ? `1px solid ${moduleColor}40` : '1px solid rgba(16, 185, 129, 0.3)',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    position: 'relative',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: paso === 1 ? moduleColor : '#10B981', letterSpacing: '1px' }}>
+                        {paso === 1 ? '🟢 PASO 1: EN PROGRESO' : '✅ PASO 1: COMPLETADO'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.95rem', color: paso === 1 ? '#ffffff' : 'rgba(255, 255, 255, 0.6)', marginBottom: paso === 1 ? '16px' : '0' }}>
+                      {pregunta.pasos_encadenados?.[0]?.descripcion ?? 'Resuelve el primer paso.'}
+                    </div>
+
+                    {paso === 1 && (
+                      <div className="f2-numeric-input-wrap" style={{ marginTop: '12px' }}>
+                        <div 
+                          className={`f2-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`}
+                          onClick={() => inputRef.current?.focus()}
+                        >
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={respuesta}
+                            onChange={e => {
+                              if (!feedback.visible) {
+                                const val = e.target.value;
+                                if (/^[0-9,\-]*$/.test(val)) {
+                                  setRespuesta(val);
+                                }
+                              }
+                            }}
+                            onKeyDown={handleKeyDown}
+                            className="f2-hidden-input"
+                            autoFocus
+                            autoComplete="off"
+                            inputMode="none"
+                          />
+                          <span className="f2-input-value-text">
+                            {feedback.visible 
+                              ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) 
+                              : (respuesta || '?')}
+                          </span>
+                          {feedback.visible && (
+                            <div className="f2-input-status-elements">
+                              {feedback.esCorrecta ? (
+                                <div className="f2-status-badge correct">
+                                  <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                </div>
+                              ) : (
+                                <>
+                                  <span className="f2-era-pill">
+                                    Era: {feedback.resultado?.respuesta_correcta}
+                                  </span>
+                                  <div className="f2-status-badge incorrect">
+                                    <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                      <line x1="18" y1="6" x2="6" y2="18" />
+                                      <line x1="6" y1="6" x2="18" y2="18" />
+                                    </svg>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {paso === 2 && paso1Valor !== null && (
+                      <div style={{ marginTop: '8px', fontSize: '1.25rem', fontWeight: 800, color: '#10B981' }}>
+                        Respuesta: {paso1Valor}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Paso 2 */}
+                  <div className={`f2-step-card ${paso === 2 ? 'active' : 'locked'}`} style={{
+                    background: paso === 2 ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.01)',
+                    border: paso === 2 ? `1px solid ${moduleColor}40` : '1px solid rgba(255, 255, 255, 0.03)',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    opacity: paso === 2 ? 1 : 0.4,
+                    position: 'relative',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: paso === 2 ? moduleColor : 'var(--f2-text-muted)', letterSpacing: '1px' }}>
+                        {paso === 2 ? '🔴 PASO 2: EN PROGRESO' : '🔒 PASO 2: BLOQUEADO'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.95rem', color: paso === 2 ? '#ffffff' : 'var(--f2-text-secondary)' }}>
+                      {pregunta.pasos_encadenados?.[1]?.descripcion ?? 'Usa el resultado anterior para el paso 2.'}
+                    </div>
+
+                    {paso === 2 && (
+                      <div className="f2-numeric-input-wrap" style={{ marginTop: '12px' }}>
+                        <div 
+                          className={`f2-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`}
+                          onClick={() => inputRef.current?.focus()}
+                        >
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={respuesta}
+                            onChange={e => {
+                              if (!feedback.visible) {
+                                const val = e.target.value;
+                                if (/^[0-9,\-]*$/.test(val)) {
+                                  setRespuesta(val);
+                                }
+                              }
+                            }}
+                            onKeyDown={handleKeyDown}
+                            className="f2-hidden-input"
+                            autoFocus
+                            autoComplete="off"
+                            inputMode="none"
+                          />
+                          <span className="f2-input-value-text">
+                            {feedback.visible 
+                              ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) 
+                              : (respuesta || '?')}
+                          </span>
+                          {feedback.visible && (
+                            <div className="f2-input-status-elements">
+                              {feedback.esCorrecta ? (
+                                <div className="f2-status-badge correct">
+                                  <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                </div>
+                              ) : (
+                                <>
+                                  <span className="f2-era-pill">
+                                    Era: {feedback.resultado?.respuesta_correcta}
+                                  </span>
+                                  <div className="f2-status-badge incorrect">
+                                    <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                      <line x1="18" y1="6" x2="6" y2="18" />
+                                      <line x1="6" y1="6" x2="18" y2="18" />
+                                    </svg>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {!isChallenge && (
+                  <div className="f2-scores-container">
+                    <div className="f2-score-box correct">
+                      <span className="f2-score-label">CORRECTAS</span>
+                      <span className="f2-score-value">{progreso.aciertos}</span>
+                    </div>
+                    <div className="f2-score-box incorrect">
+                      <span className="f2-score-label">ERRORES</span>
+                      <span className="f2-score-value">{progreso.intentos - progreso.aciertos}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
 
           {/* Teclado Numérico Virtual (3x4 Layout) */}
