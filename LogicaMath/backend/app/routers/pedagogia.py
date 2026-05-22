@@ -81,9 +81,21 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                 if config:
                     configuracion_bloque = ConfiguracionProgresoResponse.model_validate(config)
                     
-                    # Obtener la siguiente pregunta del pool (simplificado para diseño)
-                    # Aquí iría la lógica real de selección aleatoria del pool de pendientes
-                    result = await db.execute(
+                    # 1. Obtener los IDs de preguntas que el alumno ya respondió correctamente en este bloque
+                    result_solved = await db.execute(
+                        select(Intento.pregunta_id)
+                        .where(and_(
+                            Intento.alumno_id == alumno_id,
+                            Intento.fase_id == fase.id,
+                            Intento.seccion == bloque_activo.seccion,
+                            Intento.operacion == bloque_activo.operacion,
+                            Intento.es_correcta == True
+                        ))
+                    )
+                    solved_ids = result_solved.scalars().all()
+
+                    # 2. Intentar buscar una pregunta no resuelta
+                    query = (
                         select(Pregunta)
                         .options(selectinload(Pregunta.alternativas))
                         .where(and_(
@@ -92,10 +104,31 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                             Pregunta.operacion == bloque_activo.operacion,
                             Pregunta.estado == StatusEnum.ACTIVO
                         ))
-                        .order_by(func.random())
-                        .limit(1)
+                    )
+                    if solved_ids:
+                        query = query.where(~Pregunta.id.in_(solved_ids))
+
+                    result = await db.execute(
+                        query.order_by(func.random()).limit(1)
                     )
                     pregunta_db = result.scalar_one_or_none()
+
+                    # 3. Si no hay preguntas no resueltas (o resolvió todas), traer de todo el pool
+                    if not pregunta_db and solved_ids:
+                        result = await db.execute(
+                            select(Pregunta)
+                            .options(selectinload(Pregunta.alternativas))
+                            .where(and_(
+                                Pregunta.fase_id == fase.id,
+                                Pregunta.seccion == bloque_activo.seccion,
+                                Pregunta.operacion == bloque_activo.operacion,
+                                Pregunta.estado == StatusEnum.ACTIVO
+                            ))
+                            .order_by(func.random())
+                            .limit(1)
+                        )
+                        pregunta_db = result.scalar_one_or_none()
+
                     if pregunta_db:
                         # Mapear a schema de alumno (sin revelar respuesta)
                         siguiente_pregunta = PreguntaParaAlumno(

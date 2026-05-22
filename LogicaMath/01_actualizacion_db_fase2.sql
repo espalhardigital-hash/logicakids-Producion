@@ -10,11 +10,24 @@ BEGIN
         FROM information_schema.columns 
         WHERE table_name='preguntas' AND column_name='payload_tokenizado'
     ) THEN 
-        ALTER TABLE preguntas ADD COLUMN payload_tokenizado JSON;
+        ALTER TABLE preguntas ADD COLUMN payload_tokenizado JSONB;
     END IF; 
 END $$;
 
--- 2. Crear tabla intento_preguntas (Rastreo multi-paso de Fase 2)
+-- 2. Agregar columna estructura_padre_id y su índice a la tabla preguntas (si no existe)
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name='preguntas' AND column_name='estructura_padre_id'
+    ) THEN 
+        ALTER TABLE preguntas ADD COLUMN estructura_padre_id VARCHAR(255);
+        CREATE INDEX IF NOT EXISTS idx_preguntas_estructura_padre_id ON preguntas(estructura_padre_id);
+    END IF; 
+END $$;
+
+-- 3. Crear tabla intento_preguntas (Rastreo multi-paso de Fase 2)
 CREATE TABLE IF NOT EXISTS intento_preguntas (
     id SERIAL PRIMARY KEY,
     alumno_id INTEGER NOT NULL REFERENCES alumnos(id),
@@ -26,7 +39,7 @@ CREATE TABLE IF NOT EXISTS intento_preguntas (
 );
 CREATE INDEX IF NOT EXISTS ix_intento_preguntas_id ON intento_preguntas(id);
 
--- 3. Crear tabla intento_pasos (Rastreo granular por pasos de Fase 2)
+-- 4. Crear tabla intento_pasos (Rastreo granular por pasos de Fase 2)
 CREATE TABLE IF NOT EXISTS intento_pasos (
     id SERIAL PRIMARY KEY,
     intento_pregunta_id INTEGER NOT NULL REFERENCES intento_preguntas(id) ON DELETE CASCADE,
@@ -40,6 +53,23 @@ CREATE TABLE IF NOT EXISTS intento_pasos (
 );
 CREATE INDEX IF NOT EXISTS ix_intento_pasos_id ON intento_pasos(id);
 
--- 4. Opcional: Actualizar la versión de Alembic (para que el sistema sepa que esta migración ya se aplicó)
+-- 5. Crear tabla niveles_teoria_pool (Contenido teórico de Fase 2)
+CREATE TABLE IF NOT EXISTS niveles_teoria_pool (
+    id SERIAL PRIMARY KEY,
+    fase_id INTEGER NOT NULL REFERENCES fases(id),
+    modulo_id INTEGER NOT NULL,
+    nivel_id INTEGER NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    texto_descubrimiento TEXT NOT NULL,
+    diccionario JSONB,
+    advertencia TEXT,
+    ejemplos JSONB,
+    interactivos JSONB
+);
+CREATE INDEX IF NOT EXISTS idx_niveles_teoria_pool_modulo ON niveles_teoria_pool(modulo_id);
+CREATE INDEX IF NOT EXISTS idx_niveles_teoria_pool_nivel ON niveles_teoria_pool(nivel_id);
+
+-- 6. Opcional: Actualizar la versión de Alembic (para que el sistema sepa que esta migración ya se aplicó)
 -- Descomentar y ejecutar si se está utilizando alembic para el control de versiones en producción.
--- UPDATE alembic_version SET version_num = 'a1b2c3d4e5f6' WHERE version_num = '777e2bd6bd57';
+-- UPDATE alembic_version SET version_num = 'a1b2c3d4e5f8' WHERE version_num = '777e2bd6bd57';
+

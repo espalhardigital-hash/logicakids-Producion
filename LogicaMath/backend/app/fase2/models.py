@@ -33,7 +33,7 @@ class IntentoPaso(Base):
     __tablename__ = "intento_pasos"
 
     id = Column(Integer, primary_key=True, index=True)
-    intento_pregunta_id = Column(Integer, ForeignKey("intento_preguntas.id"), nullable=False)
+    intento_pregunta_id = Column(Integer, ForeignKey("intento_preguntas.id", ondelete="CASCADE"), nullable=False)
     paso_numero = Column(Integer, nullable=False)
     respuesta_dada = Column(String(255), nullable=True)
     es_correcta = Column(Boolean, nullable=False)

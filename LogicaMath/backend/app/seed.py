@@ -129,112 +129,315 @@ CONFIGURACION_DATA = [
 # ============================================================
 # DATOS: PREGUNTAS DE EJEMPLO
 # ============================================================
-PREGUNTAS_EJEMPLO = [
-    {
-        "enunciado": "¿Cuánto es 45 + 38?",
-        "respuesta_correcta": "83",
-        "operacion": OperacionEnum.SUMA,
-        "datos_numericos": {"a": 45, "b": 38, "operacion_esperada": "suma"},
-        "explicacion_paso_a_paso": {
-            "titulo": "Sumemos paso a paso",
-            "pasos": [
-                {"orden": 1, "texto": "Sumamos las unidades", "calculo": "5 + 8 = 13. Escribimos 3 y nos llevamos 1."},
-                {"orden": 2, "texto": "Sumamos las decenas", "calculo": "4 + 3 + 1 = 8."},
-                {"orden": 3, "texto": "El resultado final es 83."},
-            ]
-        },
-        "alternativas": [
-            {"texto": "83", "es_correcta": True, "orden": 1},
-            {"texto": "73", "es_correcta": False, "orden": 2,
-             "tipo_error": TipoErrorEnum.CALCULO,
-             "feedback_error": "Olvidaste sumar el 1 que te llevabas de las unidades."},
-            {"texto": "813", "es_correcta": False, "orden": 3,
-             "tipo_error": TipoErrorEnum.VALOR_POSICIONAL,
-             "feedback_error": "Escribiste las columnas lado a lado sin considerar la posición decimal."},
-            {"texto": "82", "es_correcta": False, "orden": 4,
-             "tipo_error": TipoErrorEnum.ATENCION,
-             "feedback_error": "Revisa bien la suma: 5 + 8 = 13."},
-        ]
-    },
-    {
-        "enunciado": "¿Cuánto es 85 - 29?",
-        "respuesta_correcta": "56",
-        "operacion": OperacionEnum.RESTA,
-        "datos_numericos": {"a": 85, "b": 29, "operacion_esperada": "resta"},
-        "explicacion_paso_a_paso": {
-            "titulo": "Restemos paso a paso",
-            "pasos": [
-                {"orden": 1, "texto": "Unidades: 5 es menor que 9, pedimos prestado 1 a las decenas", "calculo": "15 - 9 = 6."},
-                {"orden": 2, "texto": "Decenas: El 8 queda en 7", "calculo": "7 - 2 = 5."},
-                {"orden": 3, "texto": "El resultado final es 56."},
-            ]
-        },
-        "alternativas": [
-            {"texto": "56", "es_correcta": True, "orden": 1},
-            {"texto": "66", "es_correcta": False, "orden": 2,
-             "tipo_error": TipoErrorEnum.CALCULO,
-             "feedback_error": "Olvidaste restar la decena prestada."},
-            {"texto": "64", "es_correcta": False, "orden": 3,
-             "tipo_error": TipoErrorEnum.CALCULO,
-             "feedback_error": "Revisa bien la resta de las unidades (15 - 9 = 6)."},
-            {"texto": "54", "es_correcta": False, "orden": 4,
-             "tipo_error": TipoErrorEnum.ATENCION,
-             "feedback_error": "Revisa los cálculos de las unidades y decenas de forma detallada."},
-        ]
-    },
-    {
-        "enunciado": "¿Cuánto es 7 x 8?",
-        "respuesta_correcta": "56",
-        "operacion": OperacionEnum.MULTIPLICACION,
-        "datos_numericos": {"a": 7, "b": 8, "operacion_esperada": "multiplicacion"},
-        "explicacion_paso_a_paso": {
-            "titulo": "Multiplicación de fábrica",
-            "pasos": [
-                {"orden": 1, "texto": "Consulta la tabla del 7 o del 8", "calculo": "7 veces 8 es igual a 56."},
-            ]
-        },
-        "alternativas": [
-            {"texto": "56", "es_correcta": True, "orden": 1},
-            {"texto": "49", "es_correcta": False, "orden": 2,
-             "tipo_error": TipoErrorEnum.TABUADA,
-             "feedback_error": "Ese es el resultado de 7 x 7."},
-            {"texto": "63", "es_correcta": False, "orden": 3,
-             "tipo_error": TipoErrorEnum.TABUADA,
-             "feedback_error": "Ese es el resultado de 7 x 9."},
-            {"texto": "54", "es_correcta": False, "orden": 4,
-             "tipo_error": TipoErrorEnum.ATENCION,
-             "feedback_error": "¡Cuidado! Revisa las tablas de multiplicar."},
-        ]
-    },
-    {
-        "enunciado": "¿Cuánto es 72 / 9?",
-        "respuesta_correcta": "8",
-        "operacion": OperacionEnum.DIVISION,
-        "datos_numericos": {"a": 72, "b": 9, "operacion_esperada": "division"},
-        "explicacion_paso_a_paso": {
-            "titulo": "División de fábrica",
-            "pasos": [
-                {"orden": 1, "texto": "¿Qué número multiplicado por 9 da 72?", "calculo": "8 x 9 = 72. Por lo tanto, 72 / 9 = 8."},
-            ]
-        },
-        "alternativas": [
-            {"texto": "8", "es_correcta": True, "orden": 1},
-            {"texto": "7", "es_correcta": False, "orden": 2,
-             "tipo_error": TipoErrorEnum.DIVISION,
-             "feedback_error": "Cerca, pero 7 x 9 = 63."},
-            {"texto": "9", "es_correcta": False, "orden": 3,
-             "tipo_error": TipoErrorEnum.DIVISION,
-             "feedback_error": "Incorrecto, 9 x 9 = 81."},
-            {"texto": "6", "es_correcta": False, "orden": 4,
-             "tipo_error": TipoErrorEnum.ATENCION,
-             "feedback_error": "Revisa la división con cuidado."},
-        ]
-    },
-]
+def generar_preguntas_fase1(admin_id: str) -> list:
+    import random
+    rng = random.Random(12345)
+    preguntas = []
 
-# ============================================================
-# FUNCIONES DE INSERCION
-# ============================================================
+    # 1. SUMA (100 preguntas)
+    for i in range(100):
+        if i < 50:
+            a = rng.randint(10, 99)
+            b = rng.randint(10, 99)
+        else:
+            a = rng.randint(100, 500)
+            b = rng.randint(10, 99)
+        
+        ans = a + b
+        ans_str = str(ans)
+        
+        has_carry = (a % 10 + b % 10) >= 10 or ((a // 10 % 10) + (b // 10 % 10)) >= 10
+        
+        alt_set = {ans}
+        if has_carry:
+            d1 = ans - 10
+        else:
+            d1 = ans + 10
+        if d1 > 0 and d1 != ans:
+            alt_set.add(d1)
+            
+        d2 = ans + 1 if rng.choice([True, False]) else ans - 1
+        if d2 != ans:
+            alt_set.add(d2)
+            
+        d3 = ans - 2 if rng.choice([True, False]) else ans + 2
+        if d3 != ans:
+            alt_set.add(d3)
+            
+        while len(alt_set) < 4:
+            dummy = ans + rng.randint(-15, 15)
+            if dummy > 0:
+                alt_set.add(dummy)
+                
+        alts_list = sorted(list(alt_set))
+        alternativas = []
+        for idx, val in enumerate(alts_list):
+            val_str = str(val)
+            is_correct = (val == ans)
+            
+            tipo_error = None
+            feedback_error = None
+            if not is_correct:
+                if val == ans - 10 and has_carry:
+                    tipo_error = TipoErrorEnum.CALCULO
+                    feedback_error = "Olvidaste sumar el 1 que te llevabas de las unidades o decenas."
+                elif abs(val - ans) == 1:
+                    tipo_error = TipoErrorEnum.ATENCION
+                    feedback_error = "Revisa bien la suma de las unidades."
+                else:
+                    tipo_error = TipoErrorEnum.ATENCION
+                    feedback_error = "Revisa detalladamente la suma de las columnas."
+            
+            alternativas.append({
+                "texto": val_str,
+                "es_correcta": is_correct,
+                "orden": idx + 1,
+                "tipo_error": tipo_error,
+                "feedback_error": feedback_error
+            })
+            
+        preguntas.append({
+            "enunciado": f"¿Cuánto es {a} + {b}?",
+            "respuesta_correcta": ans_str,
+            "operacion": OperacionEnum.SUMA,
+            "datos_numericos": {"a": a, "b": b, "operacion_esperada": "suma"},
+            "explicacion_paso_a_paso": {
+                "titulo": "Sumemos paso a paso",
+                "pasos": [
+                    {"orden": 1, "texto": "Sumamos las unidades", "calculo": f"{a%10} + {b%10} = {a%10 + b%10}."},
+                    {"orden": 2, "texto": "Sumamos las decenas y centenas con sus acarreos correspondientes.", "calculo": ""},
+                    {"orden": 3, "texto": f"El resultado final es {ans}."}
+                ]
+            },
+            "alternativas": alternativas
+        })
+
+    # 2. RESTA (100 preguntas)
+    for i in range(100):
+        if i < 50:
+            a = rng.randint(20, 99)
+            b = rng.randint(10, a - 1)
+        else:
+            a = rng.randint(100, 500)
+            b = rng.randint(10, a - 1)
+            
+        ans = a - b
+        ans_str = str(ans)
+        
+        has_borrow = (a % 10) < (b % 10)
+        
+        alt_set = {ans}
+        if has_borrow:
+            d1 = ans + 10
+        else:
+            d1 = ans - 10
+        if d1 > 0 and d1 != ans:
+            alt_set.add(d1)
+            
+        if has_borrow:
+            d2 = ans + 2 * (b%10 - a%10)
+            if d2 != ans:
+                alt_set.add(d2)
+                
+        d3 = ans + 1 if rng.choice([True, False]) else ans - 1
+        if d3 > 0 and d3 != ans:
+            alt_set.add(d3)
+            
+        while len(alt_set) < 4:
+            dummy = ans + rng.randint(-15, 15)
+            if dummy > 0:
+                alt_set.add(dummy)
+                
+        alts_list = sorted(list(alt_set))
+        alternativas = []
+        for idx, val in enumerate(alts_list):
+            val_str = str(val)
+            is_correct = (val == ans)
+            
+            tipo_error = None
+            feedback_error = None
+            if not is_correct:
+                if val == ans + 10 and has_borrow:
+                    tipo_error = TipoErrorEnum.CALCULO
+                    feedback_error = "Olvidaste restar la decena que le prestaste a las unidades."
+                elif has_borrow and val == ans + 2 * (b%10 - a%10):
+                    tipo_error = TipoErrorEnum.CALCULO
+                    feedback_error = "Recuerda pedir prestado a las decenas cuando el dígito superior es menor que el inferior."
+                elif abs(val - ans) == 1:
+                    tipo_error = TipoErrorEnum.ATENCION
+                    feedback_error = "Revisa bien las unidades de la resta."
+                else:
+                    tipo_error = TipoErrorEnum.ATENCION
+                    feedback_error = "Revisa los cálculos de las unidades y decenas detalladamente."
+                    
+            alternativas.append({
+                "texto": val_str,
+                "es_correcta": is_correct,
+                "orden": idx + 1,
+                "tipo_error": tipo_error,
+                "feedback_error": feedback_error
+            })
+            
+        preguntas.append({
+            "enunciado": f"¿Cuánto es {a} - {b}?",
+            "respuesta_correcta": ans_str,
+            "operacion": OperacionEnum.RESTA,
+            "datos_numericos": {"a": a, "b": b, "operacion_esperada": "resta"},
+            "explicacion_paso_a_paso": {
+                "titulo": "Restemos paso a paso",
+                "pasos": [
+                    {"orden": 1, "texto": "Revisamos las unidades", "calculo": "Si las unidades del minuendo son menores, pedimos una decena prestada."},
+                    {"orden": 2, "texto": "Restamos las decenas y centenas considerando el préstamo si aplica.", "calculo": ""},
+                    {"orden": 3, "texto": f"El resultado final es {ans}."}
+                ]
+            },
+            "alternativas": alternativas
+        })
+
+    # 3. MULTIPLICACION (100 preguntas)
+    mult_pairs = []
+    for a in range(2, 13):
+        for b in range(2, 13):
+            mult_pairs.append((a, b))
+    rng.shuffle(mult_pairs)
+    mult_pairs = mult_pairs[:100]
+    
+    for a, b in mult_pairs:
+        ans = a * b
+        ans_str = str(ans)
+        
+        alt_set = {ans}
+        d1 = a * (b - 1)
+        if d1 > 0 and d1 != ans:
+            alt_set.add(d1)
+        d2 = a * (b + 1)
+        if d2 != ans:
+            alt_set.add(d2)
+        d3 = a + b
+        if d3 != ans:
+            alt_set.add(d3)
+            
+        while len(alt_set) < 4:
+            dummy = ans + rng.randint(-10, 10)
+            if dummy > 0:
+                alt_set.add(dummy)
+                
+        alts_list = sorted(list(alt_set))
+        alternativas = []
+        for idx, val in enumerate(alts_list):
+            val_str = str(val)
+            is_correct = (val == ans)
+            
+            tipo_error = None
+            feedback_error = None
+            if not is_correct:
+                if val == a * (b - 1):
+                    tipo_error = TipoErrorEnum.TABUADA
+                    feedback_error = f"Ese es el resultado de {a} x {b - 1}."
+                elif val == a * (b + 1):
+                    tipo_error = TipoErrorEnum.TABUADA
+                    feedback_error = f"Ese es el resultado de {a} x {b + 1}."
+                elif val == a + b:
+                    tipo_error = TipoErrorEnum.ATENCION
+                    feedback_error = "¡Cuidado! Sumaste los números en lugar de multiplicarlos."
+                else:
+                    tipo_error = TipoErrorEnum.ATENCION
+                    feedback_error = "¡Cuidado! Revisa las tablas de multiplicar."
+                    
+            alternativas.append({
+                "texto": val_str,
+                "es_correcta": is_correct,
+                "orden": idx + 1,
+                "tipo_error": tipo_error,
+                "feedback_error": feedback_error
+            })
+            
+        preguntas.append({
+            "enunciado": f"¿Cuánto es {a} x {b}?",
+            "respuesta_correcta": ans_str,
+            "operacion": OperacionEnum.MULTIPLICACION,
+            "datos_numericos": {"a": a, "b": b, "operacion_esperada": "multiplicacion"},
+            "explicacion_paso_a_paso": {
+                "titulo": "Multiplicación paso a paso",
+                "pasos": [
+                    {"orden": 1, "texto": "Consultamos la tabla de multiplicar", "calculo": f"{a} veces {b} es igual a {ans}."}
+                ]
+            },
+            "alternativas": alternativas
+        })
+
+    # 4. DIVISION (100 preguntas)
+    div_pairs = []
+    for b in range(2, 13):
+        for q in range(2, 13):
+            div_pairs.append((b, q))
+    rng.shuffle(div_pairs)
+    div_pairs = div_pairs[:100]
+    
+    for b, q in div_pairs:
+        a = b * q
+        ans = q
+        ans_str = str(ans)
+        
+        alt_set = {ans}
+        d1 = q - 1
+        if d1 > 0:
+            alt_set.add(d1)
+        d2 = q + 1
+        alt_set.add(d2)
+        d3 = b
+        if d3 != ans:
+            alt_set.add(d3)
+            
+        while len(alt_set) < 4:
+            dummy = ans + rng.randint(-3, 3)
+            if dummy > 0:
+                alt_set.add(dummy)
+                
+        alts_list = sorted(list(alt_set))
+        alternativas = []
+        for idx, val in enumerate(alts_list):
+            val_str = str(val)
+            is_correct = (val == ans)
+            
+            tipo_error = None
+            feedback_error = None
+            if not is_correct:
+                if val == q - 1:
+                    tipo_error = TipoErrorEnum.DIVISION
+                    feedback_error = f"Cerca, pero {q - 1} x {b} = {(q - 1) * b}."
+                elif val == q + 1:
+                    tipo_error = TipoErrorEnum.DIVISION
+                    feedback_error = f"Cerca, pero {q + 1} x {b} = {(q + 1) * b}."
+                else:
+                    tipo_error = TipoErrorEnum.ATENCION
+                    feedback_error = "Revisa la división con cuidado."
+                    
+            alternativas.append({
+                "texto": val_str,
+                "es_correcta": is_correct,
+                "orden": idx + 1,
+                "tipo_error": tipo_error,
+                "feedback_error": feedback_error
+            })
+            
+        preguntas.append({
+            "enunciado": f"¿Cuánto es {a} / {b}?",
+            "respuesta_correcta": ans_str,
+            "operacion": OperacionEnum.DIVISION,
+            "datos_numericos": {"a": a, "b": b, "operacion_esperada": "division"},
+            "explicacion_paso_a_paso": {
+                "titulo": "División paso a paso",
+                "pasos": [
+                    {"orden": 1, "texto": "Buscamos qué número multiplicado por el divisor da el dividendo", "calculo": f"¿Qué número x {b} = {a}? Es {q} porque {q} x {b} = {a}."}
+                ]
+            },
+            "alternativas": alternativas
+        })
+
+    return preguntas
+
+
 async def seed_pedagogy_settings(session: AsyncSessionLocal):
     print("Inyectando configuraciones pedagógicas (adminConfig)...")
     result = await session.execute(
@@ -293,16 +496,23 @@ async def seed_configuracion_progreso(session: AsyncSessionLocal):
             session.add(config)
             print(f"  Regla de progreso F{c['fase_id']}-S{c['seccion']}-{c['operacion'].value} creada.")
 
+
 async def seed_preguntas_ejemplo(session: AsyncSessionLocal, admin_id: str):
-    print("Inyectando preguntas de ejemplo...")
-    for p_data in PREGUNTAS_EJEMPLO:
+    print("Generando e inyectando pool de preguntas de la Fase 1...")
+    preguntas_pool = generar_preguntas_fase1(admin_id)
+    
+    # Llevar cuenta de cuántas se insertan
+    insertadas = 0
+    omitidas = 0
+    
+    for p_data in preguntas_pool:
         result = await session.execute(
             select(Pregunta).where(Pregunta.enunciado == p_data["enunciado"])
         )
         existing = result.scalar_one_or_none()
 
         if existing:
-            print(f"  Pregunta '{p_data['enunciado'][:40]}...' ya existe. Saltando.")
+            omitidas += 1
             continue
 
         pregunta = Pregunta(
@@ -330,7 +540,9 @@ async def seed_preguntas_ejemplo(session: AsyncSessionLocal, admin_id: str):
                 feedback_error=alt_data.get("feedback_error")
             )
             session.add(alt)
-        print(f"  Pregunta de {p_data['operacion'].value} insertada con alternativas.")
+        insertadas += 1
+        
+    print(f"  Finalizado: {insertadas} preguntas nuevas inyectadas, {omitidas} ya existían.")
 
 async def create_admin_user(session: AsyncSessionLocal) -> str:
     print("Verificando usuario administrador...")
