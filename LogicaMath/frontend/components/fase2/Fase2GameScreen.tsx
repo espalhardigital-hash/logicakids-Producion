@@ -210,8 +210,48 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   // ── Envío de respuesta ──────────────────────────────────────────────────
 
+  const handleFeedbackClose = useCallback(() => {
+    if (feedback.resultado?.early_exit) {
+      setFeedback({ visible: false, esCorrecta: false });
+      onBack();
+      return;
+    }
+
+    if (feedback.isError) {
+      setFeedback({ visible: false, esCorrecta: false });
+      setTimeout(() => inputRef.current?.focus(), 100);
+      return;
+    }
+
+    setFeedback({ visible: false, esCorrecta: false });
+    if (feedback.resultado?.bloque_completado) {
+      onComplete();
+    } else if (feedback.esCorrecta && pregunta?.tipo_pregunta === 'constructor_soluciones_chained' && paso === 2) {
+      loadPregunta();
+    } else if (feedback.esCorrecta) {
+      loadPregunta();
+    } else {
+      if (moduloId <= 3 && !isChallenge) {
+        loadPregunta();
+      } else {
+        setRespuesta('');
+        setTokensSeleccionados([]);
+        setSelectedAltId(null);
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
+    }
+  }, [feedback, onBack, onComplete, pregunta, paso, loadPregunta, moduloId, isChallenge]);
+
+  // ── Envío de respuesta ──────────────────────────────────────────────────
+
   const handleSubmit = useCallback(async () => {
     if (!pregunta) return;
+
+    if (feedback.visible) {
+      handleFeedbackClose();
+      return;
+    }
+
     stopTimer();
 
     const payload = {
@@ -305,7 +345,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         });
       }
     }
-  }, [pregunta, moduloId, nivelId, respuesta, tokensSeleccionados, paso, selectedAltId, isMockMode, onComplete]);
+  }, [pregunta, moduloId, nivelId, respuesta, tokensSeleccionados, paso, selectedAltId, isMockMode, onComplete, feedback, handleFeedbackClose]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSubmit();
@@ -333,38 +373,6 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     if (feedback.visible) return;
     setRespuesta(prev => prev.slice(0, -1));
     setTimeout(() => inputRef.current?.focus(), 50);
-  };
-
-  const handleFeedbackClose = () => {
-    if (feedback.resultado?.early_exit) {
-      setFeedback({ visible: false, esCorrecta: false });
-      onBack();
-      return;
-    }
-
-    if (feedback.isError) {
-      setFeedback({ visible: false, esCorrecta: false });
-      setTimeout(() => inputRef.current?.focus(), 100);
-      return;
-    }
-
-    setFeedback({ visible: false, esCorrecta: false });
-    if (feedback.resultado?.bloque_completado) {
-      onComplete();
-    } else if (feedback.esCorrecta && pregunta?.tipo_pregunta === 'constructor_soluciones_chained' && paso === 2) {
-      loadPregunta();
-    } else if (feedback.esCorrecta) {
-      loadPregunta();
-    } else {
-      if (moduloId <= 3 && !isChallenge) {
-        loadPregunta();
-      } else {
-        setRespuesta('');
-        setTokensSeleccionados([]);
-        setSelectedAltId(null);
-        setTimeout(() => inputRef.current?.focus(), 100);
-      }
-    }
   };
 
   // ────────────────────────────────────────────────────────────────────────
@@ -409,71 +417,57 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         )}
       </AnimatePresence>
 
-      {/* ── Header ── */}
-      <header className="f2-game-header">
-        <button className="f2-back-btn" onClick={onBack} aria-label="Volver">
+      {/* ── Header Rediseñado ── */}
+      <header className="f2-game-header-modern">
+        <button className="f2-header-abort-btn" onClick={onBack} title="Abortar misión">
           <IconArrowLeft />
         </button>
 
-        <div className="f2-game-header-info">
-          <div className="f2-game-module-name" style={{ color: moduleColor }}>
-            {moduleName}
-          </div>
-          <div className="f2-game-level-name-wrap">
-            <span className="f2-game-level-name">
-              {isChallenge ? `Desafío ${nivelId === 11 ? '1' : nivelId === 12 ? '2' : 'Final'}` : `Nivel ${nivelId}`}
+        <div className="f2-header-right-group">
+          {!isChallenge && (
+            <button 
+              className="f2-view-theory-btn-modern" 
+              onClick={handleOpenReading}
+              title="Ver teoría de este nivel"
+            >
+              <BookOpen size={14} style={{ marginRight: '4px' }} />
+              <span>Teoría</span>
+            </button>
+          )}
+
+          <div className="f2-header-badge-pill">
+            <span className="f2-badge-module" style={{ color: moduleColor }}>
+              {moduleName.toUpperCase()}
             </span>
-            {isChallenge && (
-              <span className={`f2-challenge-difficulty-badge ${nivelId === 11 ? 'estandar' : nivelId === 12 ? 'avanzada' : 'maestria'}`} style={{
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                padding: '0.25rem 0.5rem',
-                borderRadius: '6px',
-                background: nivelId === 13 ? 'rgba(239, 68, 68, 0.2)' : nivelId === 12 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                color: nivelId === 13 ? '#ef4444' : nivelId === 12 ? '#f59e0b' : '#10b981',
-                marginLeft: '8px'
-              }}>
-                {nivelId === 11 ? 'ESTÁNDAR' : nivelId === 12 ? 'AVANZADA' : 'MAESTRÍA'}
-              </span>
-            )}
-            {!isChallenge && (
-              <button 
-                className="f2-view-theory-btn" 
-                onClick={handleOpenReading}
-                title="Ver teoría de este nivel"
-              >
-                <BookOpen size={13} style={{ marginRight: '4px' }} />
-                <span>Ver teoría</span>
-              </button>
+            <span className="f2-badge-divider">|</span>
+            <span className="f2-badge-level">
+              NIVEL {nivelId}
+            </span>
+            <span className="f2-badge-divider">|</span>
+            <span className="f2-badge-challenge">
+              {isChallenge ? 'DESAFÍO' : 'PREGUNTA'} {progreso.aciertos}/{maxAciertos}
+            </span>
+            {timer !== null && (
+              <>
+                <span className="f2-badge-divider">|</span>
+                <span className="f2-badge-timer" style={{ color: timer <= 5 ? '#EF4444' : '#ffffff' }}>
+                  {timer}S
+                </span>
+              </>
             )}
           </div>
         </div>
 
-        {/* Barra de progreso */}
-        <div className="f2-game-progress-wrap">
-          <div className="f2-game-progress-info">
-            <span>Progreso</span>
-            <span style={{ color: moduleColor }}>{progreso.aciertos}/{maxAciertos}</span>
-          </div>
-          <div className="f2-game-progress-track">
-            <div
-              className="f2-game-progress-fill"
-              style={{
-                width: `${barWidth}%`,
-                background: `linear-gradient(90deg, ${moduleColor}99, ${moduleColor})`,
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Temporizador circular */}
-        {timer !== null && (
-          <CircularTimer
-            current={timer}
-            total={isChallenge ? (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50) : (pregunta.tiempo_limite_segundos || 30)}
-            color={moduleColor}
+        {/* Barra de progreso de ancho completo */}
+        <div className="f2-full-width-progress-bar">
+          <div
+            className="f2-full-width-progress-fill"
+            style={{
+              width: `${barWidth}%`,
+              background: `linear-gradient(90deg, ${moduleColor}80, ${moduleColor})`,
+            }}
           />
-        )}
+        </div>
       </header>
 
       <main className="f2-game-body">
@@ -493,64 +487,81 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             {/* ─ Respuesta Numérica o Evocación Pura (Módulos 1-3 y Desafío Final) ─ */}
             {pregunta.tipo_pregunta === 'respuesta_numerica' && (
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
-                <div className={pregunta.enunciado.length < 50 ? "f2-question-text short" : "f2-question-text"}>
-                  {pregunta.enunciado}
+                <div className="f2-question-text-box">
+                  <div className={pregunta.enunciado.length < 25 ? "f2-question-text short" : "f2-question-text"}>
+                    {pregunta.enunciado}
+                  </div>
                 </div>
                 
                 <div className="f2-numeric-input-wrap">
-                  <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
+                  <div 
+                    className={`f2-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`}
+                    onClick={() => inputRef.current?.focus()}
+                  >
+                    {/* Hidden input to capture physical keyboard keys */}
                     <input
                       ref={inputRef}
                       type="text"
-                      className="f2-numeric-input"
-                      placeholder="?"
                       value={respuesta}
-                      onChange={e => setRespuesta(e.target.value)}
+                      onChange={e => {
+                        if (!feedback.visible) {
+                          const val = e.target.value;
+                          if (/^[0-9,\-]*$/.test(val)) {
+                            setRespuesta(val);
+                          }
+                        }
+                      }}
                       onKeyDown={handleKeyDown}
+                      className="f2-hidden-input"
                       autoFocus
                       autoComplete="off"
-                      readOnly // Use the keypad ideally, but keep editable via hardware keyboard if needed. We'll leave it writable.
+                      inputMode="none"
                     />
-                    <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '8px solid rgba(255,255,255,0.2)' }}></div>
-                      <div style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid rgba(255,255,255,0.2)' }}></div>
-                    </div>
+                    
+                    <span className="f2-input-value-text">
+                      {feedback.visible 
+                        ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) 
+                        : (respuesta || '?')}
+                    </span>
+                    
+                    {feedback.visible && (
+                      <div className="f2-input-status-elements">
+                        {feedback.esCorrecta ? (
+                          <div className="f2-status-badge correct">
+                            <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="f2-era-pill">
+                              Era: {feedback.resultado?.respuesta_correcta}
+                            </span>
+                            <div className="f2-status-badge incorrect">
+                              <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                              </svg>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {!isChallenge && (
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
-                    <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#10B981', letterSpacing: '1px', marginBottom: '8px' }}>CORRECTAS</div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>{progreso.aciertos}</div>
+                  <div className="f2-scores-container">
+                    <div className="f2-score-box correct">
+                      <span className="f2-score-label">CORRECTAS</span>
+                      <span className="f2-score-value">{progreso.aciertos}</span>
                     </div>
-                    <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#ef4444', letterSpacing: '1px', marginBottom: '8px' }}>ERRORES</div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>{progreso.intentos - progreso.aciertos}</div>
+                    <div className="f2-score-box incorrect">
+                      <span className="f2-score-label">ERRORES</span>
+                      <span className="f2-score-value">{progreso.intentos - progreso.aciertos}</span>
                     </div>
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* Inline Feedback Box para Errores */}
-            {feedback.visible && !feedback.esCorrecta && (
-              <div style={{ marginTop: '24px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', padding: '20px', textAlign: 'left' }}>
-                <div style={{ color: '#ef4444', fontWeight: 800, marginBottom: '8px', fontSize: '1.1rem' }}>¡Casi!</div>
-                <div style={{ color: 'white', marginBottom: '16px' }}>
-                  La respuesta correcta era: <strong style={{ color: '#10B981' }}>{feedback.resultado?.respuesta_correcta}</strong>
-                </div>
-                {feedback.resultado?.es_espejo && (
-                  <div style={{ fontSize: '0.9rem', color: '#f87171', marginBottom: '16px', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px' }}>
-                    💡 <strong>Tip:</strong> Intenta resolverlo paso a paso. Recuerda el orden de las operaciones y lee bien el enunciado.
-                  </div>
-                )}
-                <button 
-                  onClick={handleFeedbackClose}
-                  style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 600, cursor: 'pointer' }}
-                >
-                  Siguiente intento →
-                </button>
               </div>
             )}
 
@@ -563,11 +574,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               variants={keypadVariants}
               initial="hidden"
               animate="show"
-              className="f2-keypad-container hidden md:block"
+              className="f2-keypad-container"
             >
-              <div style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', letterSpacing: '2px', marginBottom: '8px' }}>
-                TECLADO NUMÉRICO
-              </div>
               <div className="f2-keypad-grid">
                 {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
                   <motion.button
@@ -608,14 +616,17 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
                 <motion.button
                   variants={keyVariants}
-                  whileHover={!feedback.visible && respuesta.trim() ? { scale: 1.05 } : {}}
-                  whileTap={!feedback.visible && respuesta.trim() ? { scale: 0.95 } : {}}
+                  whileHover={feedback.visible || respuesta.trim() ? { scale: 1.05 } : {}}
+                  whileTap={feedback.visible || respuesta.trim() ? { scale: 0.95 } : {}}
                   onClick={() => handleSubmit()}
-                  disabled={feedback.visible || !respuesta.trim()}
+                  disabled={!feedback.visible && !respuesta.trim()}
                   className="f2-keypad-key confirm-key"
                 >
                   <ArrowRight size={24} />
                 </motion.button>
+              </div>
+              <div style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', letterSpacing: '2px', marginTop: '12px' }}>
+                TECLADO NUMÉRICO
               </div>
             </motion.div>
           )}

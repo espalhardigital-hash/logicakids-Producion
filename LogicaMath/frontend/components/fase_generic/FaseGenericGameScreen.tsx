@@ -1,8 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as Lucide from 'lucide-react';
-import { getFaseMetadata, FaseNivel } from './faseMetadata';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getFaseMetadata, FasePregunta } from './faseMetadata';
+import { getAvatarUrl } from '../../services/storageService';
 import './FaseGenericStyles.css';
+
+// Framer motion variants
+const keypadVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: { staggerChildren: 0.05, type: "spring", stiffness: 300, damping: 20 }
+  }
+};
+
+const keyVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0 }
+};
+
+// SVG Icon Arrow Left
+const IconArrowLeft: React.FC = () => (
+  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+  </svg>
+);
 
 export default function FaseGenericGameScreen() {
   const { faseId: paramFaseId, moduloId: paramModuloId, nivelId: paramNivelId } = useParams<{
@@ -18,8 +42,6 @@ export default function FaseGenericGameScreen() {
   const nivelId = Number(paramNivelId || '1');
 
   const metadata = getFaseMetadata(faseId);
-  const modulo = metadata?.modulos.find(m => m.moduloId === moduloId);
-  const nivel = modulo?.niveles.find(n => n.nivelId === nivelId);
 
   // States
   const [showReading, setShowReading] = useState(true);
@@ -29,8 +51,13 @@ export default function FaseGenericGameScreen() {
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; message: string } | null>(null);
   const [answersLog, setAnswersLog] = useState<{ questionId: number; isCorrect: boolean }[]>([]);
   const [levelCompleted, setLevelCompleted] = useState(false);
+  const [shaking, setShaking] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<string | undefined>(undefined);
+  const [challengeQuestions, setChallengeQuestions] = useState<FasePregunta[]>([]);
 
-  // Reset states on level load
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Reset states on level/fase load
   useEffect(() => {
     setShowReading(true);
     setCurrentQuestionIndex(0);
@@ -41,27 +68,139 @@ export default function FaseGenericGameScreen() {
     setLevelCompleted(false);
   }, [faseId, moduloId, nivelId]);
 
-  if (!metadata || !modulo || !nivel) {
+  // Load avatar and user details
+  useEffect(() => {
+    try {
+      const userStr = sessionStorage.getItem('lk_user') || localStorage.getItem('lk_user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if (u?.avatar) {
+          setUserAvatar(u.avatar);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  // Generate randomized questions for the final challenge if moduloId === 0
+  useEffect(() => {
+    if (moduloId === 0 && metadata) {
+      const pool = metadata.modulos.flatMap(m => m.niveles.flatMap(n => n.preguntas));
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      const selected = shuffled.slice(0, Math.min(15, pool.length));
+      setChallengeQuestions(selected);
+    } else {
+      setChallengeQuestions([]);
+    }
+  }, [faseId, moduloId, nivelId, metadata]);
+
+  // Construct virtual modulo and level if moduloId === 0 (Desafío de Maestría)
+  const modulo = moduloId === 0 
+    ? {
+        moduloId: 0,
+        nombre: 'Desafío de Maestría',
+        color: metadata?.colorPrimario || '#6366F1',
+        icono: 'target',
+        descripcion: 'Evaluación general de la fase'
+      }
+    : metadata?.modulos.find(m => m.moduloId === moduloId);
+
+  const nivel = moduloId === 0
+    ? {
+        nivelId: 1,
+        nombre: 'Desafío de Maestría',
+        descripcion: 'Demuestra tu dominio en toda la fase.',
+        teoria: {
+          titulo: 'Desafío Final de Maestría',
+          parrafos: [
+            'Este desafío pondrá a prueba todo lo que has aprendido en los distintos módulos de esta fase.',
+            'Para completarlo con éxito y obtener tu insignia, debes responder correctamente al menos el 90% de las preguntas.',
+            '¡Mucho éxito, tú puedes lograrlo!'
+          ],
+          tip_pedagogico: 'Tómate tu tiempo para leer cada pregunta detenidamente antes de responder.'
+        },
+        preguntas: challengeQuestions
+      }
+    : modulo?.niveles.find(n => n.nivelId === nivelId);
+
+  // Focus hidden input for numeric question
+  useEffect(() => {
+    const isNumeric = currentQuestion?.tipo === 'numerico';
+    if (!showReading && !levelCompleted && isNumeric) {
+      setTimeout(() => inputRef.current?.focus(), 150);
+    }
+  }, [showReading, levelCompleted, currentQuestionIndex, challengeQuestions]);
+
+  if (!metadata || !modulo || !nivel || (moduloId === 0 && challengeQuestions.length === 0)) {
     return (
       <div className="fg-screen">
         <div style={{ textAlign: 'center', padding: '100px 20px' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '16px' }}>Nivel no encontrado</h2>
-          <button onClick={() => navigate(`/welcome-fase/${faseId}`)} className="fg-eval-btn">Volver</button>
+          <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '16px', color: '#f8fafc' }}>
+            {!metadata ? 'Fase no encontrada' : 'Cargando Desafío...'}
+          </h2>
+          <button onClick={() => navigate(`/welcome-fase/${faseId}`)} className="fg-submit-btn" style={{ maxWidth: '200px', margin: '20px auto' }}>
+            Volver
+          </button>
         </div>
       </div>
     );
   }
 
-  const currentQuestion = nivel.preguntas[currentQuestionIndex];
-  const progressPercent = Math.round((currentQuestionIndex / nivel.preguntas.length) * 100);
+  const currentQuestion = moduloId === 0 
+    ? challengeQuestions[currentQuestionIndex] 
+    : nivel.preguntas[currentQuestionIndex];
+
+  const totalQuestions = moduloId === 0 ? challengeQuestions.length : nivel.preguntas.length;
+
+  const currentAciertos = answersLog.filter(a => a.isCorrect).length;
+  const currentErrores = answersLog.filter(a => !a.isCorrect).length;
+  const barWidth = Math.min(100, Math.max(0, Math.round((currentQuestionIndex / totalQuestions) * 100)));
 
   const handleOptionSelect = (option: string) => {
     if (feedback) return;
     setSelectedOption(option);
   };
 
-  const handleSubmit = () => {
+  const handleKeypadInput = (num: string) => {
     if (feedback) return;
+    setNumericAnswer(prev => {
+      if (prev.length >= 8) return prev;
+      return prev + num;
+    });
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const handleBackspace = () => {
+    if (feedback) return;
+    setNumericAnswer(prev => prev.slice(0, -1));
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const handleNext = () => {
+    setFeedback(null);
+    setSelectedOption(null);
+    setNumericAnswer('');
+
+    if (currentQuestionIndex + 1 < totalQuestions) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      // Completed all questions in the level
+      const correctCount = answersLog.filter(a => a.isCorrect).length;
+      const successRate = correctCount / totalQuestions;
+
+      if (successRate >= 0.9 || userRoleIsAdmin()) {
+        saveProgress(moduloId, nivelId);
+      }
+      setLevelCompleted(true);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (feedback) {
+      handleNext();
+      return;
+    }
 
     let userAnswer = '';
     if (currentQuestion.tipo === 'opcion_multiple') {
@@ -72,7 +211,7 @@ export default function FaseGenericGameScreen() {
       userAnswer = numericAnswer.trim();
     }
 
-    const isCorrect = userAnswer.toLowerCase() === currentQuestion.respuesta_correcta.toLowerCase();
+    const isCorrect = userAnswer.toLowerCase().trim() === currentQuestion.respuesta_correcta.toLowerCase().trim();
     
     setFeedback({
       isCorrect,
@@ -80,25 +219,25 @@ export default function FaseGenericGameScreen() {
     });
 
     setAnswersLog(prev => [...prev, { questionId: currentQuestion.id, isCorrect }]);
+
+    if (isCorrect) {
+      // Auto-advance correct answers after 1.2 seconds
+      setTimeout(() => {
+        handleNext();
+      }, 1200);
+    } else {
+      // Shake card
+      setShaking(true);
+      setTimeout(() => setShaking(false), 450);
+    }
   };
 
-  const handleNext = () => {
-    setFeedback(null);
-    setSelectedOption(null);
-    setNumericAnswer('');
-
-    if (currentQuestionIndex + 1 < nivel.preguntas.length) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
-      // Completed all questions in the level
-      const correctCount = answersLog.filter(a => a.isCorrect).length;
-      const successRate = correctCount / nivel.preguntas.length;
-
-      if (successRate >= 0.9 || userRoleIsAdmin()) {
-        // Unlock progress
-        saveProgress(moduloId, nivelId);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      const hasInput = currentQuestion.tipo === 'opcion_multiple' ? selectedOption !== null : numericAnswer.trim() !== '';
+      if (feedback || hasInput) {
+        handleSubmit();
       }
-      setLevelCompleted(true);
     }
   };
 
@@ -134,6 +273,26 @@ export default function FaseGenericGameScreen() {
         ['--module-accent' as any]: modulo.color,
       }}
     >
+      {/* Ambient glows of feedback */}
+      <AnimatePresence>
+        {feedback && feedback.isCorrect && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fg-ambient-glow correct"
+          />
+        )}
+        {feedback && !feedback.isCorrect && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fg-ambient-glow incorrect"
+          />
+        )}
+      </AnimatePresence>
+
       {/* ── Theory Modal ── */}
       {showReading && (
         <div 
@@ -158,24 +317,21 @@ export default function FaseGenericGameScreen() {
               width: '100%',
               padding: '36px',
               boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
-              maxHeight: '90vh',
+              maxHeight: '95vh',
               overflowY: 'auto'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-              <div 
-                style={{
-                  background: `${modulo.color}15`,
-                  borderRadius: '14px',
-                  padding: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Lucide.BookOpen size={24} color={modulo.color} />
+              <div className="fg-theory-avatar-container">
+                {userAvatar ? (
+                  <img src={getAvatarUrl(userAvatar)} alt="Avatar" className="fg-theory-avatar-img" />
+                ) : (
+                  <div className="fg-theory-avatar-placeholder" style={{ background: `${modulo.color}15`, borderRadius: '14px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Lucide.BookOpen size={24} color={modulo.color} />
+                  </div>
+                )}
               </div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 900, margin: 0 }}>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: 900, margin: 0, color: '#f8fafc' }}>
                 {nivel.teoria.titulo}
               </h3>
             </div>
@@ -185,7 +341,7 @@ export default function FaseGenericGameScreen() {
                 <p 
                   key={index}
                   style={{
-                    fontSize: '1rem',
+                    fontSize: '1.05rem',
                     lineHeight: '1.6',
                     color: '#94a3b8',
                     margin: 0
@@ -223,18 +379,27 @@ export default function FaseGenericGameScreen() {
 
               {nivel.teoria.tip_pedagogico && (
                 <div 
+                  className="fg-theory-tip-box"
                   style={{
-                    borderLeft: `4px solid #10B981`,
-                    background: 'rgba(16, 185, 129, 0.03)',
-                    padding: '12px 16px',
-                    borderRadius: '0 12px 12px 0',
-                    fontSize: '0.9rem',
-                    color: '#a7f3d0',
-                    fontWeight: 600,
-                    lineHeight: 1.4
+                    borderLeft: `4px solid ${modulo.color}`,
+                    background: `${modulo.color}10`,
+                    padding: '16px',
+                    borderRadius: '0 16px 16px 0',
+                    fontSize: '0.95rem',
+                    color: '#f8fafc',
+                    fontWeight: 650,
+                    lineHeight: 1.5,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    marginTop: '12px'
                   }}
                 >
-                  💡 Tip: {nivel.teoria.tip_pedagogico}
+                  <Lucide.Sparkles size={20} color={modulo.color} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <span style={{ color: modulo.color, fontWeight: 900, textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>TIP DE APRENDIZAJE</span>
+                    {nivel.teoria.tip_pedagogico}
+                  </div>
                 </div>
               )}
             </div>
@@ -242,6 +407,7 @@ export default function FaseGenericGameScreen() {
             <button 
               className="fg-submit-btn"
               onClick={() => setShowReading(false)}
+              style={{ background: modulo.color }}
             >
               ¡Entendido, a Jugar!
             </button>
@@ -249,32 +415,56 @@ export default function FaseGenericGameScreen() {
         </div>
       )}
 
-      {/* ── Game Layout ── */}
-      <div className="fg-game-container">
-        {/* Game Header */}
-        <div className="fg-game-header">
-          <div className="fg-game-progress-wrapper">
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 800, color: '#64748b', marginBottom: '8px' }}>
-              <span>PROGRESO</span>
-              <span>Pregunta {currentQuestionIndex + 1} de {nivel.preguntas.length}</span>
-            </div>
-            <div className="fg-progress-track">
-              <div className="fg-progress-fill" style={{ width: `${progressPercent}%`, background: modulo.color }} />
-            </div>
-          </div>
+      {/* ── Header Unificado ── */}
+      <header className="fg-game-header-modern">
+        <button className="fg-header-abort-btn" onClick={() => navigate(`/welcome-fase/${faseId}`)} title="Abortar misión">
+          <IconArrowLeft />
+        </button>
 
-          <button 
-            onClick={() => navigate(`/welcome-fase/${faseId}`)}
-            className="fg-back-btn" 
-            aria-label="Volver"
-          >
-            <Lucide.X size={20} />
-          </button>
+        <div className="fg-header-right-group">
+          {moduloId !== 0 && (
+            <button 
+              className="fg-view-theory-btn-modern" 
+              onClick={() => setShowReading(true)}
+              title="Ver teoría"
+            >
+              <Lucide.BookOpen size={14} style={{ marginRight: '4px' }} />
+              <span>Teoría</span>
+            </button>
+          )}
+
+          <div className="fg-header-badge-pill">
+            <span className="fg-badge-module" style={{ color: modulo.color }}>
+              {modulo.nombre.toUpperCase()}
+            </span>
+            <span className="fg-badge-divider">|</span>
+            <span className="fg-badge-level">
+              NIVEL {nivelId}
+            </span>
+            <span className="fg-badge-divider">|</span>
+            <span className="fg-badge-challenge">
+              PREGUNTA {currentQuestionIndex + 1}/{totalQuestions}
+            </span>
+          </div>
         </div>
 
-        {/* Level Complete / Feedback Screen */}
+        {/* Full-width horizontal progress bar */}
+        <div className="fg-full-width-progress-bar">
+          <div
+            className="fg-full-width-progress-fill"
+            style={{
+              width: `${barWidth}%`,
+              background: `linear-gradient(90deg, ${modulo.color}80, ${modulo.color})`,
+            }}
+          />
+        </div>
+      </header>
+
+      {/* ── Game Layout ── */}
+      <main className="fg-game-body">
         {levelCompleted ? (
-          <div style={{ textAlign: 'center', padding: '24px 0' }}>
+          /* Level Completed View */
+          <div style={{ textAlign: 'center', padding: '40px 20px', maxWidth: '500px', margin: '60px auto 0 auto' }}>
             <div 
               style={{
                 width: '96px',
@@ -292,87 +482,253 @@ export default function FaseGenericGameScreen() {
               <Lucide.Trophy size={48} color="#10B981" />
             </div>
             
-            <h3 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '12px', color: '#ffffff' }}>
               ¡Desafío Terminado!
             </h3>
             
             <p style={{ color: '#94a3b8', fontSize: '1.05rem', marginBottom: '32px' }}>
-              Has contestado correctamente {answersLog.filter(a => a.isCorrect).length} de {nivel.preguntas.length} preguntas.
+              Has contestado correctamente {answersLog.filter(a => a.isCorrect).length} de {totalQuestions} preguntas.
             </p>
 
             <button 
               className="fg-submit-btn"
               onClick={() => navigate(`/welcome-fase/${faseId}`)}
+              style={{ background: modulo.color }}
             >
               Volver al Menú
             </button>
           </div>
         ) : (
           /* Active Question View */
-          <div>
-            <div className="fg-game-question-text">
-              {currentQuestion.enunciado}
-            </div>
+          <div className="fg-game-layout-wrap">
+            {/* Tarjeta de Pregunta (Left Column) */}
+            <motion.div 
+              animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}}
+              transition={{ duration: 0.4 }}
+              className={`fg-question-card ${shaking ? 'shake-error' : ''}`}
+              style={{ 
+                boxShadow: feedback 
+                  ? (feedback.isCorrect ? '0 0 0 4px rgba(16, 185, 129, 0.5)' : '0 0 0 4px rgba(239, 68, 68, 0.5)')
+                  : 'none',
+                transition: 'box-shadow 0.3s ease'
+              }}
+            >
+              {currentQuestion.tipo === 'opcion_multiple' ? (
+                /* Multiple Choice Layout */
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                  <div className="fg-question-text-box">
+                    <div className={currentQuestion.enunciado.length < 25 ? "fg-question-text short" : "fg-question-text"}>
+                      {currentQuestion.enunciado}
+                    </div>
+                  </div>
 
-            {/* Answer Input Area */}
-            {currentQuestion.tipo === 'opcion_multiple' ? (
-              <div className="fg-options-grid">
-                {currentQuestion.opciones?.map((option, idx) => (
-                  <button
-                    key={idx}
-                    className={`fg-option-btn ${selectedOption === option ? 'selected' : ''}`}
-                    onClick={() => handleOptionSelect(option)}
-                    disabled={!!feedback}
-                  >
-                    <span>{option}</span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <input
-                type="number"
-                className="fg-input-field"
-                placeholder="Escribe tu respuesta aquí..."
-                value={numericAnswer}
-                onChange={(e) => setNumericAnswer(e.target.value)}
-                disabled={!!feedback}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && numericAnswer.trim() && !feedback) {
-                    handleSubmit();
-                  }
-                }}
-              />
-            )}
+                  <div className="fg-options-grid">
+                    {currentQuestion.opciones?.map((option, idx) => {
+                      const isSelected = selectedOption === option;
+                      let optionClass = "fg-option-btn";
+                      if (isSelected) optionClass += " selected";
+                      if (feedback) {
+                        if (option === currentQuestion.respuesta_correcta) {
+                          optionClass += " correct-highlight";
+                        } else if (isSelected) {
+                          optionClass += " incorrect-highlight";
+                        }
+                      }
 
-            {/* Feedback message */}
-            {feedback && (
-              <div className={`fg-feedback-box ${feedback.isCorrect ? 'correct' : 'incorrect'}`}>
-                {feedback.isCorrect ? (
-                  <Lucide.Check size={20} />
-                ) : (
-                  <Lucide.AlertCircle size={20} />
-                )}
-                <span>{feedback.message}</span>
-              </div>
-            )}
+                      return (
+                        <button
+                          key={idx}
+                          className={optionClass}
+                          onClick={() => handleOptionSelect(option)}
+                          disabled={!!feedback}
+                        >
+                          <span className="fg-option-indicator">{String.fromCharCode(65 + idx)}</span>
+                          <span className="fg-option-text">{option}</span>
+                          {feedback && option === currentQuestion.respuesta_correcta && (
+                            <Lucide.Check size={18} color="#10B981" style={{ marginLeft: 'auto' }} />
+                          )}
+                          {feedback && isSelected && option !== currentQuestion.respuesta_correcta && (
+                            <Lucide.X size={18} color="#EF4444" style={{ marginLeft: 'auto' }} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-            {/* Submit / Next Button */}
-            {feedback ? (
-              <button className="fg-submit-btn" onClick={handleNext}>
-                Continuar
-              </button>
-            ) : (
-              <button 
-                className="fg-submit-btn" 
-                onClick={handleSubmit}
-                disabled={currentQuestion.tipo === 'opcion_multiple' ? !selectedOption : !numericAnswer.trim()}
+                  <div className="fg-scores-container">
+                    <div className="fg-score-box correct">
+                      <span className="fg-score-label">CORRECTAS</span>
+                      <span className="fg-score-value">{currentAciertos}</span>
+                    </div>
+                    <div className="fg-score-box incorrect">
+                      <span className="fg-score-label">ERRORES</span>
+                      <span className="fg-score-value">{currentErrores}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Numeric Layout */
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                  <div className="fg-question-text-box">
+                    <div className={currentQuestion.enunciado.length < 25 ? "fg-question-text short" : "fg-question-text"}>
+                      {currentQuestion.enunciado}
+                    </div>
+                  </div>
+
+                  <div className="fg-numeric-input-wrap">
+                    <div 
+                      className={`fg-custom-input-box ${feedback ? (feedback.isCorrect ? 'correct' : 'incorrect') : 'focused'}`}
+                      onClick={() => inputRef.current?.focus()}
+                    >
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        value={numericAnswer}
+                        onChange={e => {
+                          if (!feedback) {
+                            const val = e.target.value;
+                            if (/^[0-9,\-]*$/.test(val)) {
+                              setNumericAnswer(val);
+                            }
+                          }
+                        }}
+                        onKeyDown={handleKeyDown}
+                        className="fg-hidden-input"
+                        autoFocus
+                        autoComplete="off"
+                        inputMode="none"
+                      />
+
+                      <span className="fg-input-value-text">
+                        {feedback 
+                          ? (feedback.isCorrect ? (currentQuestion.respuesta_correcta || numericAnswer) : (numericAnswer || '?')) 
+                          : (numericAnswer || '?')}
+                      </span>
+
+                      {feedback && (
+                        <div className="fg-input-status-elements">
+                          {feedback.isCorrect ? (
+                            <div className="fg-status-badge correct">
+                              <svg className="fg-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="fg-era-pill">
+                                Era: {currentQuestion.respuesta_correcta}
+                              </span>
+                              <div className="fg-status-badge incorrect">
+                                <svg className="fg-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="18" y1="6" x2="6" y2="18" />
+                                  <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="fg-scores-container">
+                    <div className="fg-score-box correct">
+                      <span className="fg-score-label">CORRECTAS</span>
+                      <span className="fg-score-value">{currentAciertos}</span>
+                    </div>
+                    <div className="fg-score-box incorrect">
+                      <span className="fg-score-label">ERRORES</span>
+                      <span className="fg-score-value">{currentErrores}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Virtual Numeric Keypad (Right Column - only for numeric questions) */}
+            {currentQuestion.tipo === 'numerico' && (
+              <motion.div 
+                variants={keypadVariants}
+                initial="hidden"
+                animate="show"
+                className="fg-keypad-container"
               >
-                Comprobar Respuesta
-              </button>
+                <div className="fg-keypad-grid">
+                  {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
+                    <motion.button
+                      variants={keyVariants}
+                      whileHover={!feedback ? { scale: 1.05 } : {}}
+                      whileTap={!feedback ? { scale: 0.95 } : {}}
+                      key={num}
+                      onClick={() => handleKeypadInput(num.toString())}
+                      disabled={!!feedback}
+                      className="fg-keypad-key"
+                    >
+                      {num}
+                    </motion.button>
+                  ))}
+
+                  {/* Bottom Row: Delete, 0, Confirm */}
+                  <motion.button
+                    variants={keyVariants}
+                    whileHover={!feedback ? { scale: 1.05 } : {}}
+                    whileTap={!feedback ? { scale: 0.95 } : {}}
+                    onClick={handleBackspace}
+                    disabled={!!feedback}
+                    className="fg-keypad-key delete-key"
+                  >
+                    <Lucide.Delete size={24} />
+                  </motion.button>
+
+                  <motion.button
+                    variants={keyVariants}
+                    whileHover={!feedback ? { scale: 1.05 } : {}}
+                    whileTap={!feedback ? { scale: 0.95 } : {}}
+                    onClick={() => handleKeypadInput('0')}
+                    disabled={!!feedback}
+                    className="fg-keypad-key"
+                  >
+                    0
+                  </motion.button>
+
+                  <motion.button
+                    variants={keyVariants}
+                    whileHover={feedback || numericAnswer.trim() ? { scale: 1.05 } : {}}
+                    whileTap={feedback || numericAnswer.trim() ? { scale: 0.95 } : {}}
+                    onClick={() => handleSubmit()}
+                    disabled={!feedback && !numericAnswer.trim()}
+                    className="fg-keypad-key confirm-key"
+                  >
+                    <Lucide.ArrowRight size={24} />
+                  </motion.button>
+                </div>
+                <div style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', letterSpacing: '2px', marginTop: '12px' }}>
+                  TECLADO NUMÉRICO
+                </div>
+              </motion.div>
+            )}
+
+            {/* Confirm Button for Multiple Choice Questions (displayed under/centered) */}
+            {currentQuestion.tipo === 'opcion_multiple' && (
+              <div className="fg-mc-confirm-wrapper">
+                <button 
+                  className="fg-mc-confirm-btn"
+                  onClick={() => handleSubmit()}
+                  disabled={!feedback && !selectedOption}
+                  style={{
+                    background: feedback 
+                      ? (feedback.isCorrect ? '#10B981' : '#EF4444') 
+                      : (selectedOption ? modulo.color : 'rgba(255,255,255,0.05)'),
+                    boxShadow: selectedOption && !feedback ? `0 0 20px ${modulo.color}40` : 'none'
+                  }}
+                >
+                  {feedback ? 'Continuar' : 'Comprobar Respuesta'}
+                </button>
+              </div>
             )}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
