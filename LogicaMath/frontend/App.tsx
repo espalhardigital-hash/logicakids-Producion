@@ -356,6 +356,7 @@ const AppContent: React.FC = () => {
             currentUser ? (
               <WelcomeScreenPhase2
                 studentName={currentUser.username}
+                userAvatar={currentUser.avatar}
                 userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId) => {
                   navigate(`/fase2/play/${moduloId}/${nivelId || 1}`);
@@ -371,6 +372,7 @@ const AppContent: React.FC = () => {
             currentUser ? (
               <WelcomeScreenPhaseGeneric
                 studentName={currentUser.username}
+                userAvatar={currentUser.avatar}
                 userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId, faseId) => {
                   navigate(`/fase/${faseId}/play/${moduloId}/${nivelId || 1}`);

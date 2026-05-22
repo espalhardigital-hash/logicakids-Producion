@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import * as Lucide from 'lucide-react';
 import { getFaseMetadata, FaseModulo, FaseNivel } from './faseMetadata';
+import { getAvatarUrl } from '../../services/storageService';
 import './FaseGenericStyles.css';
 
 // ── Icons Helper ───────────────────────────────────────────────
@@ -40,6 +41,7 @@ function DynamicIcon({ name, size = 24, color = '#fff' }: { name: string; size?:
 
 interface WelcomeScreenPhaseGenericProps {
   studentName?: string;
+  userAvatar?: string;
   userRole?: string;
   onModuleSelect: (moduloId: number, nivelId: number, faseId: number) => void;
   onBack: () => void;
@@ -47,6 +49,7 @@ interface WelcomeScreenPhaseGenericProps {
 
 export default function WelcomeScreenPhaseGeneric({
   studentName = 'Estudiante',
+  userAvatar,
   userRole,
   onModuleSelect,
   onBack,
@@ -125,6 +128,8 @@ export default function WelcomeScreenPhaseGeneric({
     }
   };
 
+  const isEvalLocked = metadata ? (userRole !== 'ADMIN' && metadata.modulos.some(m => getModuleProgress(m) < 100)) : true;
+
   return (
     <div 
       className="fg-screen"
@@ -136,13 +141,36 @@ export default function WelcomeScreenPhaseGeneric({
     >
       {/* ── Header ── */}
       <header className="fg-header">
-        <div>
-          <div className="fg-header-greeting">
-            ¡Hola, {studentName}! <span>👋</span>
-          </div>
-          <div className="fg-header-subtitle">
-            <span className="fg-badge-fase">FASE {faseId}</span>
-            <span className="fg-header-fasename">{metadata.nombre}</span>
+        <div className="fg-header-left-side">
+          {/* Botón volver en la esquina izquierda */}
+          <button 
+            className="fg-back-btn" 
+            onClick={handleBackClick} 
+            aria-label="Volver"
+          >
+            <Lucide.ArrowLeft size={20} />
+          </button>
+
+          {/* Avatar y Saludo */}
+          <div className="fg-header-profile">
+            <div className="fg-avatar-container">
+              {userAvatar ? (
+                <img src={getAvatarUrl(userAvatar)} alt={studentName} className="fg-avatar-img" />
+              ) : (
+                <div className="fg-avatar-placeholder">
+                  <Lucide.Shield color={metadata.colorPrimario} size={24} />
+                </div>
+              )}
+            </div>
+            <div className="fg-header-user-info">
+              <div className="fg-header-greeting">
+                ¡Hola, {studentName}! <span>👋</span>
+              </div>
+              <div className="fg-header-subtitle">
+                <span className="fg-badge-fase">FASE {faseId}</span>
+                <span className="fg-header-fasename">{metadata.nombre}</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -164,10 +192,6 @@ export default function WelcomeScreenPhaseGeneric({
               {Object.values(completedLevels).filter(Boolean).length * 10} pts
             </span>
           </div>
-
-          <button onClick={handleBackClick} className="fg-back-btn" aria-label="Volver">
-            <Lucide.ArrowLeft size={20} />
-          </button>
         </div>
       </header>
 
@@ -186,48 +210,50 @@ export default function WelcomeScreenPhaseGeneric({
                     key={modulo.moduloId}
                     className={`fg-module-card ${unlocked ? 'unlocked' : 'locked'}`}
                     style={{ ['--card-accent' as any]: modulo.color }}
-                    onClick={() => handleModuleClick(modulo)}
+                    onClick={() => unlocked && handleModuleClick(modulo)}
+                    role={unlocked ? 'button' : undefined}
+                    tabIndex={unlocked ? 0 : undefined}
+                    onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && unlocked) handleModuleClick(modulo); }}
                   >
                     <div 
                       className="fg-module-icon"
                       style={{ background: unlocked ? `${modulo.color}15` : 'rgba(255,255,255,0.02)' }}
                     >
-                      <DynamicIcon name={modulo.icono} color={unlocked ? modulo.color : '#64748b'} />
+                      {unlocked ? (
+                        <DynamicIcon name={modulo.icono} color={modulo.color} />
+                      ) : (
+                        <Lucide.Lock size={24} color="#64748b" />
+                      )}
                     </div>
 
                     <h3 className="fg-module-name">{modulo.nombre}</h3>
                     <p className="fg-module-desc">{modulo.descripcion}</p>
 
                     {/* Progress Bar */}
-                    {unlocked ? (
-                      <div className="fg-module-progress">
-                        <div className="fg-module-progress-label">
-                          <span>PROGRESO</span>
-                          <span>{progress}%</span>
-                        </div>
-                        <div className="fg-progress-track">
-                          <div 
-                            className="fg-progress-fill" 
-                            style={{ 
-                              width: `${progress}%`,
-                              background: `linear-gradient(90deg, ${modulo.color}b3, ${modulo.color})` 
-                            }} 
-                          />
-                        </div>
+                    <div className="fg-module-progress">
+                      <div className="fg-module-progress-label">
+                        <span>PROGRESO</span>
+                        <span>{progress}%</span>
                       </div>
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '0.85rem', fontWeight: 700 }}>
-                        <Lucide.Lock size={14} />
-                        <span>MÓDULO BLOQUEADO</span>
+                      <div className="fg-progress-track">
+                        <div 
+                          className="fg-progress-fill" 
+                          style={{ 
+                            width: `${progress}%`,
+                            background: unlocked
+                              ? `linear-gradient(90deg, ${modulo.color}b3, ${modulo.color})`
+                              : 'rgba(255, 255, 255, 0.1)'
+                          }} 
+                        />
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               })}
             </div>
 
             {/* General Evaluation Banner */}
-            <div className="fg-evaluation-card">
+            <div className={`fg-evaluation-card ${isEvalLocked ? 'bloqueado' : ''}`}>
               <div>
                 <h3 className="fg-eval-title">Desafío Final de Maestría</h3>
                 <p className="fg-eval-desc">
@@ -237,10 +263,10 @@ export default function WelcomeScreenPhaseGeneric({
               </div>
               <button 
                 className="fg-eval-btn"
-                disabled={userRole !== 'ADMIN' && metadata.modulos.some(m => getModuleProgress(m) < 100)}
+                disabled={isEvalLocked}
                 onClick={() => onModuleSelect(0, 0, faseId)}
               >
-                {userRole === 'ADMIN' || !metadata.modulos.some(m => getModuleProgress(m) < 100) ? 'Iniciar Desafío' : '🔒 Completar módulos'}
+                {!isEvalLocked ? 'Iniciar Desafío' : '🔒 Completar módulos'}
               </button>
             </div>
           </>

@@ -12,6 +12,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import './Fase2Styles.css';
 import { getFase2Dashboard } from './Fase2Service';
 import type { Fase2Dashboard, Fase2ModuloInfo } from './Fase2Types';
+import { getAvatarUrl } from '../../services/storageService';
 
 // ── Íconos SVG inline para no depender de dependencias externas ───────────
 
@@ -87,6 +88,7 @@ interface Props {
   onModuleSelect: (moduloId: number, nivelId?: number) => void;
   onBack: () => void;
   studentName?: string;
+  userAvatar?: string;
   userRole?: string;
 }
 
@@ -94,6 +96,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
   onModuleSelect,
   onBack,
   studentName = 'Estudiante',
+  userAvatar,
   userRole,
 }) => {
   const [dashboard, setDashboard] = useState<Fase2Dashboard | null>(null);
@@ -196,22 +199,40 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
     <div className="f2-screen">
       {/* ── Header ── */}
       <header className="f2-header">
-        <div className="f2-header-left">
-          <div className="f2-header-greeting">
-            ¡Hola, {nombre}! <span>👋</span>
-          </div>
-          <div className="f2-header-subtitle">
-            <span className="f2-badge-fase">FASE 2</span>
-            <span className="f2-header-fasename">Desarrollo Numérico y Razonamiento</span>
+        <div className="f2-header-left-side">
+          {/* Botón volver en la esquina izquierda */}
+          <button 
+            className="f2-back-btn" 
+            onClick={selectedModule ? () => setSelectedModule(null) : onBack} 
+            aria-label="Volver"
+          >
+            <Icons.arrow_left />
+          </button>
+
+          {/* Avatar y Saludo */}
+          <div className="f2-header-profile">
+            <div className="f2-avatar-container">
+              {userAvatar ? (
+                <img src={getAvatarUrl(userAvatar)} alt={nombre} className="f2-avatar-img" />
+              ) : (
+                <div className="f2-avatar-placeholder">
+                  <Icons.shield color="#8B5CF6" size={24} />
+                </div>
+              )}
+            </div>
+            <div className="f2-header-user-info">
+              <div className="f2-header-greeting">
+                ¡Hola, {nombre}! <span>👋</span>
+              </div>
+              <div className="f2-header-subtitle">
+                <span className="f2-badge-fase">FASE 2</span>
+                <span className="f2-header-fasename">Desarrollo Numérico y Razonamiento</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="f2-header-right">
-          {/* Avatar placeholder */}
-          <button className="f2-avatar-btn" aria-label="Mi perfil">
-            <Icons.shield color="#8B5CF6" />
-          </button>
-
           {/* Puntaje */}
           <div className="f2-score-badge">
             <span className="f2-score-label">Mi Progreso</span>
@@ -220,15 +241,6 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
               {dashboard.puntos_totales}
             </div>
           </div>
-
-          {/* Botón volver */}
-          <button 
-            className="f2-back-btn" 
-            onClick={selectedModule ? () => setSelectedModule(null) : onBack} 
-            aria-label="Volver"
-          >
-            <Icons.arrow_left />
-          </button>
         </div>
       </header>
 
@@ -330,18 +342,18 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
             </div>
 
             {/* Zona de Desafíos */}
-            <div className="f2-challenge-zone" style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '2rem' }}>
-              <div className="f2-challenge-zone-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <div className="f2-challenge-zone">
+              <div className="f2-challenge-zone-title-wrapper">
                 <Icons.trophy size={22} color="#F59E0B" />
-                <h2 className="f2-challenge-zone-title" style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '0.05em', color: '#f3f4f6', margin: 0 }}>
+                <h2 className="f2-challenge-zone-title">
                   ZONA DE DESAFÍOS
                 </h2>
               </div>
-              <p className="f2-challenge-zone-subtitle" style={{ fontSize: '0.9rem', color: '#9ca3af', marginBottom: '1.5rem' }}>
+              <p className="f2-challenge-zone-subtitle">
                 Pon a prueba tu velocidad y precisión. Completa todos los niveles de práctica para desbloquear la evaluación.
               </p>
               
-              <div className="f2-challenge-zone-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+              <div className="f2-challenge-zone-list">
                 {(selectedModule.desafios || []).map((desafio) => {
                   const allLevelsDominated = selectedModule.niveles.every(n => n.estado === 'dominado');
                   let isDesafioUnlocked = false;
@@ -361,66 +373,50 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
                   }
 
                   const isPassed = desafio.estado === 'dominado';
+                  const bgGradient = isDesafioUnlocked
+                    ? `linear-gradient(135deg, ${selectedModule.color}cc 0%, ${selectedModule.color} 100%)`
+                    : undefined;
                   
                   return (
-                    <button
+                    <div
                       key={desafio.desafio_id}
-                      disabled={!isDesafioUnlocked}
-                      onClick={() => onModuleSelect(selectedModule.modulo_id, desafio.desafio_id)}
-                      className={`f2-challenge-card ${desafio.estado} ${isDesafioUnlocked ? 'unlocked' : 'locked'}`}
+                      className={`f2-challenge-bar ${desafio.estado} ${isDesafioUnlocked ? 'unlocked' : 'locked'}`}
                       style={{
-                        ['--challenge-accent' as string]: selectedModule.color,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        padding: '1.25rem',
-                        borderRadius: '12px',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        background: isDesafioUnlocked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)',
-                        cursor: isDesafioUnlocked ? 'pointer' : 'not-allowed',
-                        opacity: isDesafioUnlocked ? 1 : 0.5,
-                        textAlign: 'left',
-                        transition: 'all 0.2s ease',
+                        ['--challenge-color' as any]: selectedModule.color,
+                        background: bgGradient,
                       }}
                     >
-                      <div className="f2-challenge-card-header" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: '1rem' }}>
-                        <span className={`f2-challenge-difficulty-badge ${desafio.dificultad}`} style={{
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '6px',
-                          background: desafio.dificultad === 'maestria' ? 'rgba(239, 68, 68, 0.2)' : desafio.dificultad === 'avanzada' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                          color: desafio.dificultad === 'maestria' ? '#ef4444' : desafio.dificultad === 'avanzada' ? '#f59e0b' : '#10b981',
-                        }}>
-                          {desafio.dificultad.toUpperCase()}
-                        </span>
-                        <div className="f2-challenge-card-icon">
-                          {isPassed ? (
-                            <Icons.check size={18} color="#10B981" />
-                          ) : !isDesafioUnlocked ? (
-                            <Icons.lock size={14} color="#9CA3AF" />
-                          ) : (
-                            <Icons.shield size={18} color={selectedModule.color} />
-                          )}
-                        </div>
+                      {/* Left: Icon */}
+                      <div className="f2-challenge-bar-icon">
+                        {isPassed ? '✅' : desafio.dificultad === 'maestria' ? '🏆' : desafio.dificultad === 'avanzada' ? '⚡' : '🎯'}
                       </div>
-                      
-                      <div className="f2-challenge-card-body" style={{ flexGrow: 1, marginBottom: '1rem' }}>
-                        <h3 className="f2-challenge-card-title" style={{ fontSize: '1.05rem', fontWeight: 600, color: '#f9fafb', margin: '0 0 0.25rem 0' }}>
-                          {desafio.nombre}
-                        </h3>
-                        <div className="f2-challenge-card-meta" style={{ fontSize: '0.8rem', color: '#9ca3af', display: 'flex', gap: '0.75rem' }}>
-                          <span>⏱️ {desafio.tiempo_limite}s</span>
-                          <span>❌ Max {desafio.max_errores} err</span>
+
+                      {/* Middle: Content info */}
+                      <div className="f2-challenge-bar-text">
+                        <div className="f2-challenge-bar-title-row">
+                          <h3 className="f2-challenge-bar-title">
+                            {desafio.nombre}
+                          </h3>
+                          <span className={`f2-challenge-bar-badge ${desafio.dificultad}`}>
+                            {desafio.dificultad}
+                          </span>
+                        </div>
+                        <div className="f2-challenge-bar-meta">
+                          <span>⏱️ Límite: {desafio.tiempo_limite}s</span>
+                          <span>❌ Errores máx: {desafio.max_errores}</span>
+                          {isPassed && <span style={{ color: '#a7f3d0', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>✓ Dominado</span>}
                         </div>
                       </div>
 
-                      {desafio.estado === 'dominado' && (
-                        <div className="f2-challenge-badge-completed" style={{ fontSize: '0.75rem', fontWeight: 600, color: '#10b981' }}>
-                          ✓ Completado
-                        </div>
-                      )}
-                    </button>
+                      {/* Right: Button */}
+                      <button
+                        className="f2-challenge-bar-btn"
+                        disabled={!isDesafioUnlocked}
+                        onClick={() => onModuleSelect(selectedModule.modulo_id, desafio.desafio_id)}
+                      >
+                        {isPassed ? 'Iniciar de nuevo' : isDesafioUnlocked ? 'Iniciar Desafío' : '🔒 Bloqueado'}
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -444,35 +440,33 @@ const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userR
 }) => {
   const IconComp = Icons[modulo.icono] || Icons.activity;
   const porcentaje = Math.max(0, Math.min(100, modulo.porcentaje_global));
+  const isLocked = modulo.estado === 'bloqueado' && userRole !== 'ADMIN';
 
   return (
     <article
       className={`f2-module-card ${modulo.estado} ${userRole === 'ADMIN' ? 'admin-unlocked' : ''}`}
       style={{ ['--card-color' as string]: modulo.color }}
       onClick={onClick}
-      role={modulo.estado !== 'bloqueado' || userRole === 'ADMIN' ? 'button' : undefined}
-      tabIndex={modulo.estado !== 'bloqueado' || userRole === 'ADMIN' ? 0 : undefined}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+      role={!isLocked ? 'button' : undefined}
+      tabIndex={!isLocked ? 0 : undefined}
+      onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && !isLocked) onClick(); }}
       aria-label={`${modulo.nombre} — ${ESTADO_LABELS[modulo.estado]}`}
     >
       {/* Ícono con color de módulo */}
       <div
         className="f2-module-icon"
-        style={{ background: `${modulo.color}22` }}
+        style={{ background: isLocked ? 'rgba(255, 255, 255, 0.02)' : `${modulo.color}22` }}
       >
-        <IconComp size={26} color={modulo.color} />
+        {isLocked ? (
+          <Icons.lock size={26} color="#6b7280" />
+        ) : (
+          <IconComp size={26} color={modulo.color} />
+        )}
       </div>
 
       {/* Nombre y descripción */}
       <div className="f2-module-name">{modulo.nombre}</div>
       <div className="f2-module-desc">{modulo.descripcion}</div>
-
-      {/* Badge de estado */}
-      <div className={`f2-module-status-badge ${modulo.estado}`}>
-        {modulo.estado === 'dominado'    && <Icons.check size={12} color="#10B981" />}
-        {modulo.estado === 'bloqueado'   && <Icons.lock  size={12} color="#6b7280" />}
-        {ESTADO_LABELS[modulo.estado]}
-      </div>
 
       {/* Barra de progreso */}
       <div className="f2-module-progress-section">
