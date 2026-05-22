@@ -1,65 +1,72 @@
-# Guía General de Interfaz y Diseño UX/UI (LogicaKids)
+# Guía de Estándares de Diseño y UX/UI (LogicaKids)
 
-Este documento centraliza las instrucciones y convenciones de diseño para asegurar que todos los niveles, módulos y ventanas de la plataforma LogicaKids compartan el mismo lenguaje visual y ofrezcan una experiencia coherente, especialmente optimizada para niños (~10 años).
+Este documento define la guía oficial y estandarizada de diseño UX/UI para la plataforma **LogicaKids**, asegurando que todos los niveles, módulos, desafíos y modales de teoría compartan la misma identidad visual, optimizada para niños de alrededor de 10 años.
 
 ---
 
 ## 1. Principios Core de Diseño
-- **Público Objetivo**: Niños. La interfaz no debe sentirse como un software empresarial o administrativo.
-- **Estética "Gamificada"**: Uso del modo oscuro (Dark Mode) profundo, contrastado con colores vibrantes, elementos brillantes (neón/pastel) y "glassmorphism" (transparencias sutiles).
-- **Tipografía**: Fuentes sin serifa, limpias y amigables (ej. Inter, Poppins). Los textos deben ser grandes, legibles y concisos.
-- **Interacciones Vivas**: 
-  - Todo elemento clicable debe tener un efecto *hover* (ej. escalar a `1.05`, levantar ligeramente).
-  - Al hacer clic (*active*) debe sentirse un rebote físico (`scale 0.95`).
-  - Transiciones suaves (`0.3s ease`).
-
-## 2. Paleta de Colores y Estados
-- **Fondo Global**: Azul/Gris muy oscuro (Ej. `#0B1120` o `#0F172A`).
-- **Paneles y Tarjetas**: Fondos translúcidos (`rgba(255, 255, 255, 0.03)`) con bordes muy sutiles (`rgba(255, 255, 255, 0.05)`).
-- **Identidad de Fases y Módulos**: 
-  - Cada **Fase** tiene un color principal que la representa (Ej. Fase 2 es Verde, Fase 3 es Naranja). Este color debe bañar los elementos principales de la fase, como los iconos globales y el **banner del desafío final**.
-  - Cada **Módulo** interno de la fase puede tener variaciones tonales o un color de acento único para diferenciar las tarjetas.
-- **Feedback Universal**: 
-  - Acierto / Completado: Verde brillante (`#10B981`).
-  - Error / Peligro: Rojo vibrante (`#EF4444`).
-  - Bloqueado / Inactivo: Escala de grises con baja opacidad (`opacity: 0.5`).
-
-## 3. Elementos Estructurales Comunes
-- **Header (Cabecera)**:
-  - **Navegación**: Los botones de retroceso ("Atrás" o "Abortar Misión") deben ir SIEMPRE en la **esquina superior izquierda**.
-  - **Información del Usuario**: Avatar o nombre en la esquina superior derecha o centro-izquierda.
-  - **Métricas**: Monedas, rachas o gemas agrupadas a la derecha.
-- **Botones Primarios**:
-  - Deben parecer "presionables". Uso de gradientes sutiles y sombras de colores (`box-shadow: 0 4px 15px rgba(color, 0.3)`).
-  - Bordes redondeados (`12px` a `16px`).
-- **Feedback (Bucle Espejo)**:
-  - En escenarios de práctica, el feedback debe ser **Inline** (en línea), sin ventanas emergentes que bloqueen la pantalla, para mantener el estado de "flow" del alumno.
+- **Estética Gamificada ("Space/Tech Dark Mode")**: Uso de fondos oscuros profundos con contrastes brillantes (neon-like) que hacen que el contenido resalte como un videojuego espacial.
+- **Tipografía**: Fuentes sin serifa limpias, redondas y amigables. Se utiliza `Outfit` para títulos e indicadores destacados, e `Inter` para textos generales y descripciones.
+- **Micro-interacciones Reactivas**:
+  - **Hover (Ratón encima)**: Los elementos interactivos deben escalarse sutilmente (`scale(1.03)` o `scale(1.05)`) y ganar un resplandor o sombra de neón correspondiente a su color temático.
+  - **Active (Clic/Tap)**: Efecto físico de presión táctil (`transform: scale(0.97)` o `scale(0.95)`).
+  - **Transiciones**: Transiciones suaves y lineales (`transition: all 0.2s ease` o `transition: var(--f2-transition)`).
 
 ---
 
-## 4. Análisis y Propuestas de Mejora (Dashboard Fase 2)
-*(Análisis basado en la captura de pantalla provista del Dashboard de inicio de la Fase 2)*
+## 2. Paleta de Colores y Estructura de Fases
+- **Fondo General**: Azul/Gris oscuro profundo (`#080e1c` o `#0b0f19`).
+- **Tarjetas y Contenedores**: Paneles de tipo "vidrio" o *glassmorphism* (`rgba(255, 255, 255, 0.03)`) con bordes translúcidos (`rgba(255, 255, 255, 0.08)`) y esquinas redondeadas generosas (`border-radius: 16px` a `28px`).
+- **Identidad de Color por Fase**:
+  - Cada Fase tiene asignado un color característico que domina el tema visual de esa pantalla:
+    - **Fase 2**: Verde brillante (`#10B981`)
+    - **Fase 3**: Naranja neón (`#F97316`)
+    - *Y así sucesivamente para las fases subsiguientes.*
+  - El fondo de los banners del **Desafío Mixto** o **Desafío de Maestría** debe coincidir obligatoriamente con el color de la fase actual, usando gradientes y reflejos para dar profundidad.
+- **Identidad de Color por Módulo**:
+  - Dentro de una fase, cada módulo tiene su propio color de acento para la barra de progreso, iconos y detalles de texto, facilitando la diferenciación del contenido y reduciendo la monotonía.
 
-### Análisis Visual Actual
-La interfaz actual es muy limpia y elegante. Cuenta con un header con saludo, 4 tarjetas de módulos verticales (con icono, título, descripción y botón de estado) y un gran banner verde inferior para el Desafío Mixto. 
+---
 
-### Oportunidades de Mejora (Propuestas)
+## 3. Navegación y Cabeceras (Header)
+Para asegurar que un niño nunca se sienta perdido en la navegación:
+- **Botón Atrás / Abortar**: Ubicado SIEMPRE en el extremo **superior izquierdo** (`.f2-back-btn`).
+- **Avatar del Alumno**: Integrado en el extremo izquierdo al lado del saludo (`¡Hola, [Nombre]! 👋`), cargando dinámicamente la imagen de perfil real elegida por el alumno desde el servicio de almacenamiento local (`getAvatarUrl`).
+- **Métricas y Estadísticas**: Las monedas, racha de días u otros indicadores globales del alumno se agrupan en la esquina **superior derecha** de forma compacta.
 
-1. **Posicionamiento del Botón Atrás (Header)**
-   - **Problema**: La flecha de regreso `[←]` se encuentra en el extremo derecho.
-   - **Solución**: Mover el botón de retroceso a la esquina superior izquierda (antes del saludo "¡Hola, amilcar_admin!"). Esto obedece a los estándares universales de navegación y evita que los usuarios lo busquen.
+---
 
-2. **Diseño de las Tarjetas de Módulo (Cards)**
-   - **Proporción y Layout (Grid 2x2)**: Las tarjetas ya no deben ser rectángulos verticales y altos (1x4 columnas). Deben ser más **cuadradas y proporcionadas**, organizadas en una cuadrícula de 2 columnas por 2 filas (2x2). Esto distribuye mejor el texto y reduce la altura excesiva.
-   - **Iconografía**: Los iconos actuales son funcionales pero un poco "serios". **Mejora**: Usar iconos más grandes, amigables o ilustraciones 3D/emojis que conecten mejor con la temática de "Gimnasio", "Tienda", etc.
-   - **Carga Cognitiva (Textos)**: Las descripciones son muy pequeñas y grises. Al usar el formato cuadrado, el texto tiene más espacio horizontal para respirar. Aún así, **Mejora**: Reducir la descripción a 1 o 2 líneas máximas y usar un interlineado cómodo.
-   - **Eliminación del Botón de Estado**: El botón de texto "EN PROGRESO" ocupa espacio innecesario y confunde. **Mejora**: Eliminar ese falso botón y dejar que toda la tarjeta sea el elemento clicable.
-   - **Barra de Progreso**: La barra inferior es muy delgada (`2px-4px`). **Mejora**: Hacerla más gruesa (`6px-8px`) y colorida (usando el color del módulo), integrándola limpiamente en la parte inferior de la tarjeta cuadrada.
+## 4. Estructura de Componentes Clave
 
-3. **Banner del Desafío Mixto**
-   - El contenedor inferior resalta perfectamente y capta la atención como el objetivo final.
-   - **Regla de Color Dinámico**: El fondo de este gran recuadro (banner) **debe tener siempre el color representativo de la fase actual** (por ejemplo, verde para la Fase 2, naranja para la Fase 3, etc.).
-   - **Mejora**: Al botón blanco "Iniciar Desafío Mixto" se le podría agregar un icono (ej. `[Iniciar Desafío Mixto →]`) y una sutil sombra paralela (o usar el color de la fase en su texto) para que se vea más tridimensional e invite al clic.
+### A. Dashboard / Hub de Fase (`WelcomeScreenPhase2` / `WelcomeScreenPhaseGeneric`)
+- **Cuadrícula de Módulos (Grid 2x2)**: Las tarjetas de módulos se presentan en una cuadrícula adaptativa de **2 columnas** en resoluciones de tableta/escritorio (`repeat(2, 1fr)`) y **1 columna** en dispositivos móviles. Esto las hace más cuadradas y reduce el exceso de scroll vertical.
+- **Reducción de Ruido Cognitivo**: Se eliminan etiquetas redundantes como "EN PROGRESO" o "BLOQUEADO".
+- **Tarjetas Clicables**: Toda la tarjeta actúa como botón interactivo. Si el módulo está bloqueado, se muestra un candado simple y grande sobre el icono principal y la opacidad general de la tarjeta se reduce (`opacity: 0.5`).
+- **Barras de Progreso Prominentes**: Tienen un grosor de **8px** (en lugar de `4px`) y usan un gradiente con brillo del color acento de su respectivo módulo.
 
-4. **Avatar del Usuario**
-   - **Mejora**: El saludo "¡Hola, amilcar_admin! 👋" podría estar acompañado por la foto de perfil o el avatar configurado por el usuario (como se hizo en la ventana de teoría), dándole un toque más personalizado.
+### B. Zona de Selección de Niveles y Desafíos
+- **Diseño en Barras Horizontales**: Reemplaza el antiguo formato de grid por una lista vertical de barras horizontales premium de color de acento dinámico.
+- **Indicadores Claras de Nivel**: Cada barra muestra un icono distintivo a la izquierda según el tipo de nivel:
+    - ✅ Nivel Dominado (estándar superado)
+    - 🎯 Nivel Estándar activo
+    - ⚡ Nivel Avanzado
+    - 🏆 Nivel de Maestría
+- **Animaciones en la Lista**: Al pasar el cursor, la barra correspondiente se desplaza ligeramente, su borde brilla con el color de acento y el botón de acción se expande sutilmente.
+
+### C. Modal de Introducción de Nivel y Teoría (`Fase2TheoryModal`)
+- **Eliminación Absoluta de Scrollbars**: Para garantizar una lectura cómoda sin desplazamientos en la tarjeta modal:
+  - **Altura Dinámica**: El modal (`.flashcard-mode`) utiliza `height: auto` con una altura de seguridad de `max-height: 95vh`.
+  - **Flujo de Contenido**: El contenido utiliza posicionamiento relativo (`position: relative`) con `height: auto`, permitiendo que el texto expanda naturalmente el tamaño del modal.
+  - **Scrollbar de Seguridad**: Si y solo si el contenido es extremadamente largo o la pantalla es inferior a `700px` de altura, el contenedor del cuerpo del modal (`.flashcard-body`) activará un scrollbar vertical limpio.
+- **Chunking (Paginación Corta)**: El contenido teórico (como ejemplos guiados y ejercicios interactivos) se subdivide en grupos pequeños de máximo 2 elementos por diapositiva para no abrumar al alumno.
+- **Botón Abortar**: Se proporciona un acceso rápido de abortar estudio integrado en la cabecera del modal para facilitar la salida en cualquier momento.
+
+### D. Interfaz de Práctica Libre y Juego (`GameScreen` / `FaseGenericGameScreen`)
+- **Distribución de Pantalla ("Calculadora")**:
+  - **Panel Izquierdo**: Enunciado de la pregunta en fuentes grandes, caja de respuesta clásica, barra de progreso general del nivel y contadores de respuestas correctas e incorrectas.
+  - **Panel Derecho**: Teclado numérico integrado tipo cuadrícula `3x4` con botones grandes de fácil pulsación táctil. Integra las funciones de borrar (`Delete`) y confirmación (`Verificar`) en la base del teclado.
+  - **Cabecera**: Contiene el botón superior izquierdo `[← Abortar Misión]` y el temporizador en la esquina opuesta.
+- **Sistema de Feedback en Línea (Inline Feedback)**:
+  - Se prohíben las ventanas emergentes (*overlays*) tras responder, las cuales interrumpen el flujo y aburren al niño.
+  - **Acierto**: Un destello verde rápido rodea la zona del juego y pasa automáticamente a la siguiente pregunta de forma fluida.
+  - **Error**: El recuadro del enunciado se tiñe de rojo y despliega en la parte inferior de la pregunta la respuesta correcta y el soporte del *Bucle Espejo* (explicación paso a paso de por qué esa es la respuesta), con un botón inferior "Volver a intentar" para reintentar la operación.
