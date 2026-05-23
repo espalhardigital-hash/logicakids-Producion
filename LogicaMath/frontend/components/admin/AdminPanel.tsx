@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut } from 'lucide-react';
 import GeneralTab from './GeneralTab';
 import PedagogyTab from './PedagogyTab';
+import PerformanceTab from './PerformanceTab';
 
 interface Props {
   onBack: () => void;
@@ -126,10 +127,8 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
               </motion.div>
             )}
             {activeTab === 'performance' && (
-              <motion.div key="performance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="flex flex-col items-center justify-center min-h-[50vh]">
-                <Activity size={64} className="text-slate-600 mb-6 animate-pulse" />
-                <h2 className="text-3xl font-black text-white">Rendimiento Estudiantil</h2>
-                <p className="text-slate-400 mt-2 font-medium">Panel analítico avanzado en construcción.</p>
+              <motion.div key="performance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                <PerformanceTab />
               </motion.div>
             )}
           </AnimatePresence>

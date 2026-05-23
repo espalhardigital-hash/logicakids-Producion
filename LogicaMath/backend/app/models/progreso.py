@@ -163,6 +163,7 @@ class ProgresoMaestria(Base):
     aciertos_acumulados = Column(Integer, default=0, nullable=False)
     intentos_totales = Column(Integer, default=0, nullable=False)
     porcentaje_actual = Column(Integer, default=0, nullable=False)
+    aprobado_por_admin = Column(Boolean, default=False, nullable=False)
 
     fecha_inicio = Column(DateTime, default=datetime.utcnow, nullable=False)
     # Cuando aprobo este bloque

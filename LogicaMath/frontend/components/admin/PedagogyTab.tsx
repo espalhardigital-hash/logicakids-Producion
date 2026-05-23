@@ -12,115 +12,194 @@ import {
 import { PedagogyConfig, ConfiguracionProgreso } from '../../types';
 
 // ==========================================
-// STATIC MAP OF 10 PEDAGOGICAL FASES (Fase 0 to 9)
+// INTERFACES
 // ==========================================
-interface StaticModule {
-  seccion: number;
-  operacion: string;
+interface StaticSubLevel {
+  id: number;
   name: string;
 }
 
+interface StaticChallenge {
+  id: number;
+  name: string;
+  defaultTime: number;
+  defaultQty: number;
+}
+
+interface StaticModule {
+  seccion: number; // For Fase 1, it's 1. For Fase 2/3, it's the modulo index
+  modulo_id?: number;
+  operacion: string;
+  name: string;
+  levels?: StaticSubLevel[];
+  challenges?: StaticChallenge[];
+}
+
 interface StaticPhase {
-  id: number; // DB fase_id mapping (Fase 0 = 1, Fase 1 = 2, etc.)
+  id: number; // DB fase_id (Fase 1 = 1, Fase 2 = 2, Fase 3 = 3)
   name: string;
   description: string;
   modules: StaticModule[];
 }
 
+// ==========================================
+// STATIC MAP OF PEDAGOGICAL FASES
+// ==========================================
 const STATIC_PHASES: StaticPhase[] = [
   {
-    id: 2, // Fase 1
-    name: "Fase 1: Operaciones Básicas",
-    description: "Aprendizaje por dominio con banco de preguntas fijas dividida en tres disciplinas de complejidad creciente.",
+    id: 1, // Fase 1 (Aritmética Básica)
+    name: "Fase 1: Aritmética Básica",
+    description: "Sumas, restas, multiplicaciones y divisiones. ¡Calentamiento mental!",
     modules: [
-      { seccion: 1, operacion: "suma", name: "Sección 1: Suma Directa" },
-      { seccion: 1, operacion: "resta", name: "Sección 1: Resta Directa" },
-      { seccion: 1, operacion: "multiplicacion", name: "Sección 1: Multiplicación Directa" },
-      { seccion: 1, operacion: "division", name: "Sección 1: División Directa" },
-      { seccion: 2, operacion: "suma", name: "Sección 2: Suma Inferencia" },
-      { seccion: 2, operacion: "resta", name: "Sección 2: Resta Inferencia" },
-      { seccion: 2, operacion: "multiplicacion", name: "Sección 2: Multiplicación Inferencia" },
-      { seccion: 2, operacion: "division", name: "Sección 2: División Inferencia" },
-      { seccion: 3, operacion: "mixta", name: "Sección 3: Combinación Mixta" }
+      { seccion: 1, operacion: "suma", name: "Suma Directa" },
+      { seccion: 1, operacion: "resta", name: "Resta Directa" },
+      { seccion: 1, operacion: "multiplicacion", name: "Multiplicación Directa" },
+      { seccion: 1, operacion: "division", name: "División Directa" }
     ]
   },
   {
-    id: 3, // Fase 2
+    id: 2, // Fase 2 (Desarrollo Numérico)
     name: "Fase 2: Desarrollo Numérico",
     description: "Cálculo mental rápido, sistema monetario real y problemas matemáticos iniciales.",
     modules: [
-      { seccion: 1, operacion: "mixta", name: "Cálculo Mental Rápido" },
-      { seccion: 2, operacion: "mixta", name: "Sistema Monetario" },
-      { seccion: 3, operacion: "mixta", name: "Lectura y Planteo" }
+      {
+        seccion: 1,
+        modulo_id: 1,
+        operacion: "suma",
+        name: "Módulo 1: Gimnasio Numérico Mental",
+        levels: [
+          { id: 1, name: "Multiplicadores de Tamaño" },
+          { id: 2, name: "Jerarquía Lógica" },
+          { id: 3, name: "Traducción Lógica" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 25, defaultQty: 25 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 40, defaultQty: 25 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 50, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 2,
+        modulo_id: 2,
+        operacion: "multiplicacion",
+        name: "Módulo 2: Tablas en Acción",
+        levels: [
+          { id: 1, name: "Suma e Inversa" },
+          { id: 2, name: "Multiplicación e Inversa" },
+          { id: 3, name: "El Número Faltante" },
+          { id: 4, name: "Gran Integración" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 25, defaultQty: 25 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 40, defaultQty: 25 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 50, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 3,
+        modulo_id: 3,
+        operacion: "mixta",
+        name: "Módulo 3: Tienda Matemática",
+        levels: [
+          { id: 1, name: "Reconozco el Dinero" },
+          { id: 2, name: "Pago y Cambio" },
+          { id: 3, name: "Carrito de Compras" },
+          { id: 4, name: "Comprador Inteligente" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 25, defaultQty: 25 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 40, defaultQty: 25 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 50, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 4,
+        modulo_id: 4,
+        operacion: "mixta",
+        name: "Módulo 4: Constructor de Soluciones",
+        levels: [
+          { id: 1, name: "Dos Pasos Guiados" },
+          { id: 2, name: "Encadenamiento" },
+          { id: 3, name: "Error de Arrastre" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 25, defaultQty: 25 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 40, defaultQty: 25 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 50, defaultQty: 10 }
+        ]
+      }
     ]
   },
   {
-    id: 4, // Fase 3
+    id: 3, // Fase 3 (Problemas de Texto)
     name: "Fase 3: Problemas de Texto",
     description: "Selección de datos, elección reflexiva de operación y resolución de problemas de texto complejos.",
     modules: [
-      { seccion: 1, operacion: "mixta", name: "Selección de Datos" },
-      { seccion: 2, operacion: "mixta", name: "Elección de Operación" },
-      { seccion: 3, operacion: "mixta", name: "Problemas Multietapa" }
-    ]
-  },
-  {
-    id: 5, // Fase 4
-    name: "Fase 4: Fracciones y Gráficos",
-    description: "Identificación de fracciones visuales, porcentajes básicos e interpretación de gráficos.",
-    modules: [
-      { seccion: 1, operacion: "mixta", name: "Fracciones Visuales" },
-      { seccion: 2, operacion: "mixta", name: "Porcentajes Básicos" },
-      { seccion: 3, operacion: "mixta", name: "Lectura de Tablas y Gráficos" }
-    ]
-  },
-  {
-    id: 6, // Fase 5
-    name: "Fase 5: Geometría Plana",
-    description: "Figuras geométricas en 2D, cálculo de área y perímetro, y Tangram interactivo por tiempo total.",
-    modules: [
-      { seccion: 1, operacion: "mixta", name: "Figuras en 2D" },
-      { seccion: 2, operacion: "mixta", name: "Cálculo de Área y Perímetro" },
-      { seccion: 3, operacion: "mixta", name: "Tangram Interactivo" }
-    ]
-  },
-  {
-    id: 7, // Fase 6
-    name: "Fase 6: Geometría Espacial",
-    description: "Reconocimiento de cuerpos tridimensionales, conteo de bloques y cálculo de volúmenes de prismas.",
-    modules: [
-      { seccion: 1, operacion: "mixta", name: "Cuerpos 3D" },
-      { seccion: 2, operacion: "mixta", name: "Conteo de Bloques" },
-      { seccion: 3, operacion: "mixta", name: "Volumen de Prismas" }
-    ]
-  },
-  {
-    id: 8, // Fase 7
-    name: "Fase 7: Coordenadas",
-    description: "Navegación en el plano cartesiano, pares ordenados y movimientos dirigidos en cuadrícula.",
-    modules: [
-      { seccion: 1, operacion: "mixta", name: "Plano Cartesiano" },
-      { seccion: 2, operacion: "mixta", name: "Ubicación de Pares Ordenados" },
-      { seccion: 3, operacion: "mixta", name: "Desplazamientos en Grid" }
-    ]
-  },
-  {
-    id: 9, // Fase 8
-    name: "Fase 8: Probabilidad y Lógica",
-    description: "Casos favorables y posibles, razonamiento lógico deductivo, combinatoria y secuencias.",
-    modules: [
-      { seccion: 1, operacion: "mixta", name: "Probabilidad Básica" },
-      { seccion: 2, operacion: "mixta", name: "Combinatoria y Conteo" },
-      { seccion: 3, operacion: "mixta", name: "Secuencias Lógicas" }
-    ]
-  },
-  {
-    id: 10, // Fase 9
-    name: "Fase 9: Simulados Pedro II",
-    description: "Simulacros cortos de entrenamiento y exámenes oficiales completos con tiempo global.",
-    modules: [
-      { seccion: 1, operacion: "mixta", name: "Simulados Cortos" },
-      { seccion: 2, operacion: "mixta", name: "Exámenes Completos Pedro II" }
+      {
+        seccion: 1,
+        modulo_id: 1,
+        operacion: "mixta",
+        name: "Módulo 1: El Escáner de la Verdad",
+        levels: [
+          { id: 1, name: "El Lápiz Mágico" },
+          { id: 2, name: "El Escudo Anti-Basura" },
+          { id: 3, name: "El Laberinto Numérico" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 2,
+        modulo_id: 2,
+        operacion: "mixta",
+        name: "Módulo 2: La Máquina del Tiempo",
+        levels: [
+          { id: 1, name: "El Reloj hacia Adelante" },
+          { id: 2, name: "El Reloj en Reversa" },
+          { id: 3, name: "El Tiempo Multiplicado" },
+          { id: 4, name: "El Laberinto del Tiempo" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 3,
+        modulo_id: 3,
+        operacion: "mixta",
+        name: "Módulo 3: El Ojo del Comerciante",
+        levels: [
+          { id: 1, name: "El Enigma de los Carritos" },
+          { id: 2, name: "Cruce de Datos" },
+          { id: 3, name: "El Código Oculto" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 4,
+        modulo_id: 4,
+        operacion: "mixta",
+        name: "Módulo 4: El Maestro del Empaque",
+        levels: [
+          { id: 1, name: "El Reparto Perfecto" },
+          { id: 2, name: "Las Piezas Sobrantes" },
+          { id: 3, name: "El Ciclo Infinito" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      }
     ]
   }
 ];
@@ -199,9 +278,13 @@ const SliderWithTooltip: React.FC<{
 // ==========================================
 const PedagogyTab: React.FC = () => {
   // Navigation
-  const [selectedPhaseId, setSelectedPhaseId] = useState<number>(2); // Fase 1 by default
+  const [selectedPhaseId, setSelectedPhaseId] = useState<number>(1); // Fase 1 by default (DB id = 1)
   const [selectedModule, setSelectedModule] = useState<StaticModule | null>(null); // null means Phase selected
-  const [expandedPhases, setExpandedPhases] = useState<Record<number, boolean>>({ 2: true });
+  const [expandedPhases, setExpandedPhases] = useState<Record<number, boolean>>({ 1: true });
+
+  // Sub-navigation inside Module for Fase 2/3
+  const [selectedSubLevelId, setSelectedSubLevelId] = useState<number | null>(null);
+  const [isSelectedChallenge, setIsSelectedChallenge] = useState<boolean>(false);
 
   // Main config states
   const [loading, setLoading] = useState(true);
@@ -253,11 +336,20 @@ const PedagogyTab: React.FC = () => {
   const selectPhase = (phaseId: number) => {
     setSelectedPhaseId(phaseId);
     setSelectedModule(null);
+    setSelectedSubLevelId(null);
+    setIsSelectedChallenge(false);
   };
 
   const selectModule = (phaseId: number, mod: StaticModule) => {
     setSelectedPhaseId(phaseId);
     setSelectedModule(mod);
+    if (phaseId > 1 && mod.levels && mod.levels.length > 0) {
+      setSelectedSubLevelId(mod.levels[0].id);
+      setIsSelectedChallenge(false);
+    } else {
+      setSelectedSubLevelId(null);
+      setIsSelectedChallenge(false);
+    }
   };
 
   // Resolve custom records (active draft)
@@ -269,11 +361,28 @@ const PedagogyTab: React.FC = () => {
     c => c.fase_id === selectedPhaseId && c.seccion === 0 && c.operacion === 'mixta' && c.activo !== false
   );
 
+  // Mapped DB keys for selected sub-item
+  const getSelectedSubItemKeys = () => {
+    if (!selectedModule) return { seccion: 0, operacion: '' };
+    if (selectedPhaseId === 1 || selectedSubLevelId === null) {
+      return { seccion: selectedModule.seccion, operacion: selectedModule.operacion };
+    }
+    const modId = selectedModule.modulo_id || 1;
+    let oper = selectedModule.operacion;
+    if (isSelectedChallenge) {
+      return { seccion: modId * 1000 + selectedSubLevelId, operacion: 'mixta' };
+    } else {
+      return { seccion: modId * 100 + selectedSubLevelId, operacion: oper };
+    }
+  };
+
+  const { seccion: activeSeccion, operacion: activeOperacion } = getSelectedSubItemKeys();
+
   // 2. Module Specific Record
   const activeModuleRecord = selectedModule ? draftModularConfigs.find(
     c => c.fase_id === selectedPhaseId && 
-         c.seccion === selectedModule.seccion && 
-         c.operacion === selectedModule.operacion && 
+         c.seccion === activeSeccion && 
+         c.operacion === activeOperacion && 
          c.activo !== false
   ) : null;
 
@@ -301,7 +410,6 @@ const PedagogyTab: React.FC = () => {
 
   const getInheritedTimerForLevel = (levelKey: 'easy' | 'easy_medium' | 'medium' | 'medium_hard' | 'hard'): number => {
     if (activePhaseDefaultRecord && activePhaseDefaultRecord.tiempo_default_segundos !== null) {
-      // If the phase default record has a single timer override
       return activePhaseDefaultRecord.tiempo_default_segundos;
     }
     return draftGlobalConfig.timers[levelKey] || 12;
@@ -328,7 +436,6 @@ const PedagogyTab: React.FC = () => {
         updated[idx] = { ...updated[idx], [field]: val, activo: true };
         return updated;
       } else {
-        // Create new draft phase default
         const newRecord: ConfiguracionProgreso = {
           fase_id: selectedPhaseId,
           seccion: 0,
@@ -352,22 +459,21 @@ const PedagogyTab: React.FC = () => {
     setDraftModularConfigs(prev => {
       const idx = prev.findIndex(
         c => c.fase_id === selectedPhaseId && 
-             c.seccion === selectedModule.seccion && 
-             c.operacion === selectedModule.operacion
+             c.seccion === activeSeccion && 
+             c.operacion === activeOperacion
       );
       if (idx !== -1) {
         const updated = [...prev];
         updated[idx] = { ...updated[idx], [field]: val, activo: true };
         return updated;
       } else {
-        // Create new draft module override based on inherited values
         const newRecord: ConfiguracionProgreso = {
           fase_id: selectedPhaseId,
-          seccion: selectedModule.seccion,
-          operacion: selectedModule.operacion,
+          seccion: activeSeccion,
+          operacion: activeOperacion,
           cantidad_requerida: field === 'cantidad_requerida' ? val : getInheritedQuestionsCount(),
           porcentaje_aprobacion: field === 'porcentaje_aprobacion' ? val : getInheritedPassingScore(),
-          orden_desbloqueo: selectedModule.seccion,
+          orden_desbloqueo: isSelectedChallenge ? (selectedSubLevelId || 11) : (selectedSubLevelId || 1),
           tipo_feedback: field === 'tipo_feedback' ? val : getInheritedFeedbackType(),
           usa_cronometro: field === 'usa_cronometro' ? val : getInheritedUseTimer(),
           tiempo_default_segundos: field === 'tiempo_default_segundos' ? val : getInheritedTimerForLevel('medium'),
@@ -387,7 +493,6 @@ const PedagogyTab: React.FC = () => {
         updated[idx] = { ...updated[idx], activo: enable };
         return updated;
       } else if (enable) {
-        // Create new draft with defaults
         const newRecord: ConfiguracionProgreso = {
           fase_id: selectedPhaseId,
           seccion: 0,
@@ -411,25 +516,35 @@ const PedagogyTab: React.FC = () => {
     setDraftModularConfigs(prev => {
       const idx = prev.findIndex(
         c => c.fase_id === selectedPhaseId && 
-             c.seccion === selectedModule.seccion && 
-             c.operacion === selectedModule.operacion
+             c.seccion === activeSeccion && 
+             c.operacion === activeOperacion
       );
       if (idx !== -1) {
         const updated = [...prev];
         updated[idx] = { ...updated[idx], activo: enable };
         return updated;
       } else if (enable) {
-        // Create new module specific draft inheriting from phase
+        // Fallback for default values if challenge is selected
+        let defaultTime = getInheritedTimerForLevel('medium');
+        let defaultQty = getInheritedQuestionsCount();
+        if (selectedPhaseId > 1 && isSelectedChallenge && selectedSubLevelId) {
+          const chDef = selectedModule.challenges?.find(c => c.id === selectedSubLevelId);
+          if (chDef) {
+            defaultTime = chDef.defaultTime;
+            defaultQty = chDef.defaultQty;
+          }
+        }
+        
         const newRecord: ConfiguracionProgreso = {
           fase_id: selectedPhaseId,
-          seccion: selectedModule.seccion,
-          operacion: selectedModule.operacion,
-          cantidad_requerida: getInheritedQuestionsCount(),
-          porcentaje_aprobacion: getInheritedPassingScore(),
-          orden_desbloqueo: selectedModule.seccion,
-          tipo_feedback: getInheritedFeedbackType(),
-          usa_cronometro: getInheritedUseTimer(),
-          tiempo_default_segundos: getInheritedTimerForLevel('medium'),
+          seccion: activeSeccion,
+          operacion: activeOperacion,
+          cantidad_requerida: defaultQty,
+          porcentaje_aprobacion: isSelectedChallenge ? 90 : getInheritedPassingScore(),
+          orden_desbloqueo: isSelectedChallenge ? (selectedSubLevelId || 11) : (selectedSubLevelId || 1),
+          tipo_feedback: isSelectedChallenge ? 'simple' : getInheritedFeedbackType(),
+          usa_cronometro: isSelectedChallenge ? true : getInheritedUseTimer(),
+          tiempo_default_segundos: defaultTime,
           activo: true
         };
         return [...prev, newRecord];
@@ -445,19 +560,27 @@ const PedagogyTab: React.FC = () => {
     return globalChanged || modularChanged;
   };
 
-  // Check if a specific phase or module node has pending draft changes (color tree indicator)
+  // Check if a specific phase or module node has pending draft changes
   const isPhaseModified = (phaseId: number): boolean => {
-    // 1. Check phase default changes
     const originalPhaseRecord = dbModularConfigs.find(c => c.fase_id === phaseId && c.seccion === 0 && c.operacion === 'mixta');
     const draftPhaseRecord = draftModularConfigs.find(c => c.fase_id === phaseId && c.seccion === 0 && c.operacion === 'mixta');
     if (JSON.stringify(originalPhaseRecord) !== JSON.stringify(draftPhaseRecord)) return true;
 
-    // 2. Check modules changes in this phase
     const phaseModules = STATIC_PHASES.find(p => p.id === phaseId)?.modules || [];
     for (const mod of phaseModules) {
-      const origMod = dbModularConfigs.find(c => c.fase_id === phaseId && c.seccion === mod.seccion && c.operacion === mod.operacion);
-      const draftMod = draftModularConfigs.find(c => c.fase_id === phaseId && c.seccion === mod.seccion && c.operacion === mod.operacion);
-      if (JSON.stringify(origMod) !== JSON.stringify(draftMod)) return true;
+      if (phaseId === 1) {
+        if (isModuleModified(phaseId, mod.seccion, mod.operacion)) return true;
+      } else {
+        const modId = mod.modulo_id || 1;
+        const levelIds = mod.levels?.map(l => l.id) || [];
+        const challengeIds = mod.challenges?.map(c => c.id) || [];
+        for (const lid of levelIds) {
+          if (isModuleModified(phaseId, modId * 100 + lid, mod.operacion)) return true;
+        }
+        for (const cid of challengeIds) {
+          if (isModuleModified(phaseId, modId * 1000 + cid, 'mixta')) return true;
+        }
+      }
     }
     return false;
   };
@@ -482,7 +605,6 @@ const PedagogyTab: React.FC = () => {
       }
 
       // 2. Save Modular configurations
-      // Find new, modified, or toggled modular configs
       for (const draft of draftModularConfigs) {
         const original = dbModularConfigs.find(
           c => c.fase_id === draft.fase_id && 
@@ -491,17 +613,14 @@ const PedagogyTab: React.FC = () => {
         );
 
         if (!original) {
-          // New override record
           await createModularConfig(draft);
         } else if (JSON.stringify(original) !== JSON.stringify(draft)) {
-          // Modified override record
           if (original.id) {
             await saveModularConfig(original.id, draft);
           }
         }
       }
 
-      // Sync and reload database state
       const reloadedData = await getModularConfigs();
       if (reloadedData) {
         setDbModularConfigs(reloadedData);
@@ -544,7 +663,7 @@ const PedagogyTab: React.FC = () => {
             </div>
             Gestión Pedagógica Avanzada
           </h2>
-          <p className="text-slate-400 text-xs mt-1">Configuración jerárquica con sistema de herencia para las 9 fases del Viaje Matemático.</p>
+          <p className="text-slate-400 text-xs mt-1">Configuración jerárquica con sistema de herencia para las fases del Viaje Matemático.</p>
         </div>
 
         <button
@@ -590,7 +709,7 @@ const PedagogyTab: React.FC = () => {
         <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
           <div className="flex justify-between items-center px-2">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Viaje del Alumno</h3>
-            <span className="text-[10px] bg-slate-800 text-slate-400 border border-white/5 px-2 py-0.5 rounded-full font-bold">10 Fases</span>
+            <span className="text-[10px] bg-slate-800 text-slate-400 border border-white/5 px-2 py-0.5 rounded-full font-bold">{STATIC_PHASES.length} Fases</span>
           </div>
 
           <div className="flex flex-col gap-2.5 max-h-[65vh] overflow-y-auto pr-1 custom-scrollbar">
@@ -659,17 +778,43 @@ const PedagogyTab: React.FC = () => {
                       >
                         {phase.modules.map((mod, mIdx) => {
                           const isModSelected = selectedPhaseId === phase.id && 
-                                                selectedModule?.seccion === mod.seccion && 
-                                                selectedModule?.operacion === mod.operacion;
+                                                selectedModule?.name === mod.name;
                           
                           // Check if it has override record in draft
-                          const hasOverride = draftModularConfigs.some(
-                            c => c.fase_id === phase.id && 
-                                 c.seccion === mod.seccion && 
-                                 c.operacion === mod.operacion && 
-                                 c.activo !== false
-                          );
-                          const isModModified = isModuleModified(phase.id, mod.seccion, mod.operacion);
+                          const checkModuleHasOverride = () => {
+                            if (phase.id === 1) {
+                              return draftModularConfigs.some(
+                                c => c.fase_id === phase.id && 
+                                     c.seccion === mod.seccion && 
+                                     c.operacion === mod.operacion && 
+                                     c.activo !== false
+                              );
+                            }
+                            const modId = mod.modulo_id || 1;
+                            return draftModularConfigs.some(
+                              c => c.fase_id === phase.id && 
+                                   (Math.floor(c.seccion / 100) === modId || Math.floor(c.seccion / 1000) === modId) &&
+                                   c.activo !== false
+                            );
+                          };
+                          const hasOverride = checkModuleHasOverride();
+
+                          const checkModuleIsModified = () => {
+                            if (phase.id === 1) {
+                              return isModuleModified(phase.id, mod.seccion, mod.operacion);
+                            }
+                            const modId = mod.modulo_id || 1;
+                            const levelIds = mod.levels?.map(l => l.id) || [];
+                            const challengeIds = mod.challenges?.map(c => c.id) || [];
+                            for (const lid of levelIds) {
+                              if (isModuleModified(phase.id, modId * 100 + lid, mod.operacion)) return true;
+                            }
+                            for (const cid of challengeIds) {
+                              if (isModuleModified(phase.id, modId * 1000 + cid, 'mixta')) return true;
+                            }
+                            return false;
+                          };
+                          const isModModified = checkModuleIsModified();
 
                           return (
                             <button
@@ -975,7 +1120,7 @@ const PedagogyTab: React.FC = () => {
             {/* VIEW C: MODULE SPECIFIC SETTINGS */}
             {selectedPhaseId > 0 && selectedModule && (
               <motion.div
-                key={`module-${selectedPhaseId}-${selectedModule.seccion}-${selectedModule.operacion}`}
+                key={`module-${selectedPhaseId}-${selectedModule.name}`}
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -15 }}
@@ -986,8 +1131,15 @@ const PedagogyTab: React.FC = () => {
                     <div className="inline-flex items-center gap-2 text-[10px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
                       Configuración de Módulo
                     </div>
-                    <h3 className="text-xl font-black text-white mt-3">{selectedModule.name}</h3>
-                    <p className="text-slate-400 text-xs mt-1">Configuración personalizada aplicable a esta disciplina en la Fase {selectedPhaseId - 1}.</p>
+                    <h3 className="text-xl font-black text-white mt-3">
+                      {selectedModule.name}
+                      {selectedPhaseId > 1 && selectedSubLevelId && (
+                        <span className="text-blue-400 ml-2 text-sm font-black">
+                          ({isSelectedChallenge ? 'Desafío' : 'Nivel'} {selectedSubLevelId})
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-slate-400 text-xs mt-1">Configuración personalizada aplicable a esta disciplina en la Fase {selectedPhaseId}.</p>
                   </div>
 
                   {/* Override parent default toggle */}
@@ -1018,13 +1170,50 @@ const PedagogyTab: React.FC = () => {
                         className="absolute inset-0 bg-slate-950/60 backdrop-blur-md z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-white/5 shadow-inner"
                       >
                         <ShieldAlert className="text-amber-400 mb-2" size={28} />
-                        <h4 className="text-xs font-black text-white">Heredando de la Fase {selectedPhaseId - 1}</h4>
+                        <h4 className="text-xs font-black text-white">Heredando de la Fase {selectedPhaseId}</h4>
                         <p className="text-[11px] text-slate-400 max-w-sm mt-1">
-                          Este módulo está usando los valores por defecto de la Fase superior. Activa el toggle <strong>"Sobrescribir Padre"</strong> superior para definir límites exclusivos.
+                          Este nivel/desafío está usando los valores por defecto de la Fase superior. Activa el toggle <strong>"Sobrescribir Padre"</strong> superior para definir límites exclusivos.
                         </p>
                       </motion.div>
                     )}
                   </AnimatePresence>
+
+                  {/* Sub-item Selector for Fase 2 & 3 */}
+                  {selectedPhaseId > 1 && (
+                    <div className="flex flex-col gap-2 bg-slate-900/40 p-4 rounded-2xl border border-white/5 mb-6">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Selecciona Nivel o Desafío a Configurar</label>
+                      <div className="flex flex-wrap gap-2">
+                        {/* Levels */}
+                        {selectedModule.levels?.map((lvl) => (
+                          <button
+                            key={`lvl-${lvl.id}`}
+                            onClick={() => { setSelectedSubLevelId(lvl.id); setIsSelectedChallenge(false); }}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                              !isSelectedChallenge && selectedSubLevelId === lvl.id
+                                ? 'bg-blue-600 border-blue-500 text-white font-black'
+                                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            Nivel {lvl.id}: {lvl.name}
+                          </button>
+                        ))}
+                        {/* Challenges */}
+                        {selectedModule.challenges?.map((ch) => (
+                          <button
+                            key={`ch-${ch.id}`}
+                            onClick={() => { setSelectedSubLevelId(ch.id); setIsSelectedChallenge(true); }}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                              isSelectedChallenge && selectedSubLevelId === ch.id
+                                ? 'bg-amber-600 border-amber-500 text-white font-black'
+                                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {ch.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Controls */}
@@ -1072,41 +1261,43 @@ const PedagogyTab: React.FC = () => {
                     {/* Feedback and Timers */}
                     <div className="flex flex-col gap-5 bg-slate-950/20 border border-white/5 p-5 rounded-3xl">
                       {/* Feedback choice */}
-                      <div className="space-y-3">
-                        <label className="text-xs text-slate-300 font-bold flex items-center gap-1.5">
-                          <HelpCircle size={14} className="text-purple-400" /> Tipo de Feedback Pedagógico
-                        </label>
-                        <div className="grid grid-cols-2 gap-3">
-                          <button
-                            onClick={() => handleUpdateModuleField('tipo_feedback', 'simple')}
-                            disabled={!activeModuleRecord}
-                            className={`px-3 py-2.5 rounded-xl border text-[10px] font-black transition-all ${
-                              (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'simple'
-                                ? 'bg-purple-500/20 border-purple-500/40 text-white'
-                                : 'bg-white/5 border-white/10 text-slate-400'
-                            }`}
-                          >
-                            Simple (✔/✘)
-                          </button>
-                          <button
-                            onClick={() => handleUpdateModuleField('tipo_feedback', 'detallado')}
-                            disabled={!activeModuleRecord}
-                            className={`px-3 py-2.5 rounded-xl border text-[10px] font-black transition-all ${
-                              (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'detallado'
-                                ? 'bg-purple-500/20 border-purple-500/40 text-white animate-pulse'
-                                : 'bg-white/5 border-white/10 text-slate-400'
-                            }`}
-                          >
-                            Tutoría IA
-                          </button>
+                      {!isSelectedChallenge && (
+                        <div className="space-y-3">
+                          <label className="text-xs text-slate-300 font-bold flex items-center gap-1.5">
+                            <HelpCircle size={14} className="text-purple-400" /> Tipo de Feedback Pedagógico
+                          </label>
+                          <div className="grid grid-cols-2 gap-3">
+                            <button
+                              onClick={() => handleUpdateModuleField('tipo_feedback', 'simple')}
+                              disabled={!activeModuleRecord}
+                              className={`px-3 py-2.5 rounded-xl border text-[10px] font-black transition-all ${
+                                (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'simple'
+                                  ? 'bg-purple-500/20 border-purple-500/40 text-white'
+                                  : 'bg-white/5 border-white/10 text-slate-400'
+                              }`}
+                            >
+                              Simple (✔/✘)
+                            </button>
+                            <button
+                              onClick={() => handleUpdateModuleField('tipo_feedback', 'detallado')}
+                              disabled={!activeModuleRecord}
+                              className={`px-3 py-2.5 rounded-xl border text-[10px] font-black transition-all ${
+                                (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'detallado'
+                                  ? 'bg-purple-500/20 border-purple-500/40 text-white'
+                                  : 'bg-white/5 border-white/10 text-slate-400'
+                              }`}
+                            >
+                              Tutoría IA / Espejo
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Timer settings */}
                       <div className="pt-3 border-t border-white/5 space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <label className="text-xs text-slate-300 font-bold">Usar Cronómetro de Módulo</label>
+                            <label className="text-xs text-slate-300 font-bold">Usar Cronómetro</label>
                             <p className="text-[9px] text-slate-500">Cronómetro específico local.</p>
                           </div>
                           <button 

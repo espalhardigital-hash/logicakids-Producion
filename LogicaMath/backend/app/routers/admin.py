@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from typing import List
+from sqlalchemy import select, and_, or_, delete
+from sqlalchemy.orm import selectinload
+from typing import List, Optional
+from pydantic import BaseModel
 
 from ..schemas import (
     FaseCreate, FaseUpdate, FaseResponse,
@@ -9,7 +11,10 @@ from ..schemas import (
     ConfiguracionProgresoCreate, ConfiguracionProgresoUpdate, ConfiguracionProgresoResponse
 )
 from ..db.session import get_db
-from ..models.sql_models import Fase, Pregunta, Alternativa, ConfiguracionProgreso, StatusEnum, PlatformSettings
+from ..models.sql_models import (
+    Fase, Pregunta, Alternativa, ConfiguracionProgreso, StatusEnum, PlatformSettings,
+    Alumno, ProgresoMaestria, User, NivelTeoria, EstadoProgresoEnum
+)
 from ..auth import get_admin_user
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -146,10 +151,20 @@ async def update_configuracion(config_id: int, config_data: ConfiguracionProgres
 from sqlalchemy.orm import selectinload
 
 @router.get("/preguntas", response_model=List[PreguntaResponse])
-async def get_preguntas(fase_id: int = None, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+async def get_preguntas(
+    fase_id: Optional[int] = None,
+    seccion: Optional[int] = None,
+    operacion: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+    admin_user: dict = Depends(get_admin_user)
+):
     query = select(Pregunta).options(selectinload(Pregunta.alternativas))
     if fase_id is not None:
         query = query.where(Pregunta.fase_id == fase_id)
+    if seccion is not None:
+        query = query.where(Pregunta.seccion == seccion)
+    if operacion is not None:
+        query = query.where(Pregunta.operacion == operacion)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -172,6 +187,8 @@ async def create_pregunta(pregunta_data: PreguntaCreate, db: AsyncSession = Depe
     result = await db.execute(select(Pregunta).options(selectinload(Pregunta.alternativas)).where(Pregunta.id == new_pregunta.id))
     return result.scalar_one()
 
+from datetime import datetime
+
 @router.patch("/preguntas/{pregunta_id}", response_model=PreguntaResponse)
 async def update_pregunta(pregunta_id: int, pregunta_data: PreguntaUpdate, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
     result = await db.execute(select(Pregunta).options(selectinload(Pregunta.alternativas)).where(Pregunta.id == pregunta_id))
@@ -188,3 +205,190 @@ async def update_pregunta(pregunta_id: int, pregunta_data: PreguntaUpdate, db: A
     await db.commit()
     await db.refresh(pregunta)
     return pregunta
+
+# ============================================================
+# ADMINISTRACION ADICIONAL (PREGUNTAS, TEORIA, ALUMNOS)
+# ============================================================
+
+class NivelTeoriaSave(BaseModel):
+    fase_id: int
+    modulo_id: int
+    nivel_id: int
+    titulo: str
+    texto_descubrimiento: str
+    diccionario: Optional[dict] = None
+    advertencia: Optional[str] = None
+    ejemplos: Optional[list] = None
+    interactivos: Optional[list] = None
+
+class ProgressOverridePayload(BaseModel):
+    fase_id: int
+    seccion: int
+    operacion: str
+    action: str # "approve", "unlock", "lock"
+
+@router.delete("/preguntas/{pregunta_id}")
+async def delete_pregunta(pregunta_id: int, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    result = await db.execute(select(Pregunta).where(Pregunta.id == pregunta_id))
+    pregunta = result.scalar_one_or_none()
+    if not pregunta:
+        raise HTTPException(status_code=404, detail="Pregunta no encontrada")
+    
+    await db.delete(pregunta)
+    await db.commit()
+    return {"status": "ok", "message": "Pregunta eliminada exitosamente"}
+
+@router.get("/teoria")
+async def get_teoria(fase_id: int, modulo_id: int, nivel_id: int, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    result = await db.execute(
+        select(NivelTeoria).where(and_(
+            NivelTeoria.fase_id == fase_id,
+            NivelTeoria.modulo_id == modulo_id,
+            NivelTeoria.nivel_id == nivel_id
+        ))
+    )
+    return result.scalar_one_or_none()
+
+@router.put("/teoria")
+async def save_teoria(payload: NivelTeoriaSave, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    result = await db.execute(
+        select(NivelTeoria).where(and_(
+            NivelTeoria.fase_id == payload.fase_id,
+            NivelTeoria.modulo_id == payload.modulo_id,
+            NivelTeoria.nivel_id == payload.nivel_id
+        ))
+    )
+    theory = result.scalar_one_or_none()
+    if theory:
+        theory.titulo = payload.titulo
+        theory.texto_descubrimiento = payload.texto_descubrimiento
+        theory.diccionario = payload.diccionario
+        theory.advertencia = payload.advertencia
+        theory.ejemplos = payload.ejemplos
+        theory.interactivos = payload.interactivos
+    else:
+        theory = NivelTeoria(**payload.model_dump())
+        db.add(theory)
+    
+    await db.commit()
+    return {"status": "ok", "message": "Teoría guardada exitosamente"}
+
+@router.get("/alumnos/search")
+async def search_alumnos(query: str = "", db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    q = select(User).options(selectinload(User.alumno)).where(User.role != "ADMIN")
+    if query:
+        filter_str = f"%{query}%"
+        q = q.where(or_(User.username.ilike(filter_str), User.email.ilike(filter_str)))
+    
+    result = await db.execute(q)
+    users = result.scalars().all()
+    
+    out = []
+    for u in users:
+        if u.alumno:
+            out.append({
+                "id": u.id,
+                "username": u.username,
+                "email": u.email,
+                "alumno_id": u.alumno.id,
+                "alumno_nombre": u.alumno.nombre,
+                "fase_actual_id": u.alumno.fase_actual_id,
+                "estado": u.alumno.estado.value if hasattr(u.alumno.estado, "value") else u.alumno.estado,
+            })
+    return out
+
+@router.get("/alumnos/{alumno_id}/progress")
+async def get_alumno_progress(alumno_id: int, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    result = await db.execute(
+        select(ProgresoMaestria).where(ProgresoMaestria.alumno_id == alumno_id)
+    )
+    progresos = result.scalars().all()
+    
+    return [
+        {
+            "id": p.id,
+            "fase_id": p.fase_id,
+            "seccion": p.seccion,
+            "operacion": p.operacion.value if hasattr(p.operacion, "value") else p.operacion,
+            "estado": p.estado.value if hasattr(p.estado, "value") else p.estado,
+            "aciertos_acumulados": p.aciertos_acumulados,
+            "intentos_totales": p.intentos_totales,
+            "porcentaje_actual": p.porcentaje_actual,
+            "aprobado_por_admin": getattr(p, "aprobado_por_admin", False),
+        } for p in progresos
+    ]
+
+@router.post("/alumnos/{alumno_id}/progress/override")
+async def override_alumno_progress(alumno_id: int, payload: ProgressOverridePayload, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    result = await db.execute(
+        select(ProgresoMaestria).where(and_(
+            ProgresoMaestria.alumno_id == alumno_id,
+            ProgresoMaestria.fase_id == payload.fase_id,
+            ProgresoMaestria.seccion == payload.seccion,
+            ProgresoMaestria.operacion == payload.operacion
+        ))
+    )
+    progreso = result.scalar_one_or_none()
+    
+    cant_req = 15
+    result_config = await db.execute(
+        select(ConfiguracionProgreso).where(and_(
+            ConfiguracionProgreso.fase_id == payload.fase_id,
+            ConfiguracionProgreso.seccion == payload.seccion,
+            ConfiguracionProgreso.operacion == payload.operacion
+        ))
+    )
+    config = result_config.scalar_one_or_none()
+    if config:
+        cant_req = config.cantidad_requerida
+        
+    if payload.action == "approve":
+        if not progreso:
+            progreso = ProgresoMaestria(
+                alumno_id=alumno_id,
+                fase_id=payload.fase_id,
+                seccion=payload.seccion,
+                operacion=payload.operacion,
+                estado=EstadoProgresoEnum.APROBADO,
+                aciertos_acumulados=cant_req,
+                intentos_totales=cant_req,
+                porcentaje_actual=90,
+                aprobado_por_admin=True,
+                fecha_aprobacion=datetime.utcnow()
+            )
+            db.add(progreso)
+        else:
+            progreso.estado = EstadoProgresoEnum.APROBADO
+            progreso.aciertos_acumulados = cant_req
+            progreso.porcentaje_actual = 90
+            progreso.aprobado_por_admin = True
+            progreso.fecha_aprobacion = datetime.utcnow()
+            
+    elif payload.action == "unlock":
+        if not progreso:
+            progreso = ProgresoMaestria(
+                alumno_id=alumno_id,
+                fase_id=payload.fase_id,
+                seccion=payload.seccion,
+                operacion=payload.operacion,
+                estado=EstadoProgresoEnum.EN_PROGRESO,
+                aciertos_acumulados=0,
+                intentos_totales=0,
+                porcentaje_actual=0,
+                aprobado_por_admin=False
+            )
+            db.add(progreso)
+        else:
+            progreso.estado = EstadoProgresoEnum.EN_PROGRESO
+            progreso.aprobado_por_admin = False
+            
+    elif payload.action == "lock":
+        if progreso:
+            progreso.estado = EstadoProgresoEnum.BLOQUEADO
+            progreso.porcentaje_actual = 0
+            progreso.aciertos_acumulados = 0
+            progreso.aprobado_por_admin = False
+            progreso.fecha_aprobacion = None
+            
+    await db.commit()
+    return {"status": "ok", "message": "Progreso actualizado exitosamente"}

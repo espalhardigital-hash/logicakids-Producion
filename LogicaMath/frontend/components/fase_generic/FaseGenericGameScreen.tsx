@@ -122,7 +122,7 @@ export default function FaseGenericGameScreen() {
         },
         preguntas: challengeQuestions
       }
-    : modulo?.niveles.find(n => n.nivelId === nivelId);
+    : (modulo && 'niveles' in modulo ? (modulo as any).niveles.find((n: any) => n.nivelId === nivelId) : undefined);
 
   // Focus hidden input for numeric question
   useEffect(() => {

@@ -61,6 +61,7 @@ async def startup_event():
                 ("payload_tokenizado", "ALTER TABLE preguntas ADD COLUMN IF NOT EXISTS payload_tokenizado JSONB"),
                 ("estructura_padre_id", "ALTER TABLE preguntas ADD COLUMN IF NOT EXISTS estructura_padre_id VARCHAR(255)"),
                 ("idx_preguntas_estructura_padre_id", "CREATE INDEX IF NOT EXISTS idx_preguntas_estructura_padre_id ON preguntas(estructura_padre_id)"),
+                ("aprobado_por_admin", "ALTER TABLE progreso_maestria ADD COLUMN IF NOT EXISTS aprobado_por_admin BOOLEAN DEFAULT FALSE"),
             ]
             from sqlalchemy import text
             for col_name, migration in migrations:

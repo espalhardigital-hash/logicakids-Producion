@@ -314,6 +314,15 @@ async def get_fase2_dashboard(
                 else:
                     estado = "en_progreso" if _is_desafio_unlocked(progresos, mod_id, des_id, all_practice_approved) else "bloqueado"
 
+            tiempo_limite = d_conf["tiempo_limite"]
+            usa_crono = True
+            if config:
+                usa_crono = config.usa_cronometro
+                if config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0:
+                    tiempo_limite = config.tiempo_default_segundos
+            if not usa_crono:
+                tiempo_limite = 0
+
             mod_porcentaje_total += porcentaje
             desafios.append(Fase2DesafioInfo(
                 desafio_id=des_id,
@@ -323,7 +332,7 @@ async def get_fase2_dashboard(
                 porcentaje=porcentaje,
                 aciertos=aciertos,
                 requeridos=requeridos,
-                tiempo_limite=d_conf["tiempo_limite"],
+                tiempo_limite=tiempo_limite,
                 max_errores=d_conf["max_errores"],
             ))
 
@@ -469,14 +478,19 @@ async def get_pregunta_fase2(
             ]
             random.shuffle(alts_out)
 
+        tiene_crono = config.usa_cronometro if config else True
+        tiempo_lim = config.tiempo_default_segundos if (config and config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
+        if not tiene_crono:
+            tiempo_lim = None
+
         return Fase2PreguntaParaAlumno(
             id=pregunta_elex.id,
             modulo_id=modulo_id,
             nivel_id=nivel_id,
             enunciado=pregunta_elex.enunciado,
             tipo_pregunta=pregunta_elex.tipo_pregunta.value,
-            tiene_cronometro=True,
-            tiempo_limite_segundos=config.tiempo_default_segundos if config else (25 if nivel_id == 11 else (40 if nivel_id == 12 else 50)),
+            tiene_cronometro=tiene_crono,
+            tiempo_limite_segundos=tiempo_lim,
             alternativas=alts_out,
             datos_numericos=pregunta_elex.datos_numericos,
         )

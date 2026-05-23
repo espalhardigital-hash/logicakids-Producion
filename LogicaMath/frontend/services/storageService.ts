@@ -394,3 +394,69 @@ export const getAIAnalysis = async (category: string): Promise<string> => {
     return "No se pudo obtener el análisis de IA en este momento.";
   }
 };
+
+// --- ALUMNOS & RENDIMIENTO ---
+
+export interface AlumnoSearchInfo {
+  id: string;
+  username: string;
+  email: string;
+  alumno_id: number;
+  alumno_nombre: string;
+  fase_actual_id: number;
+  estado: string;
+}
+
+export interface ProgresoOverrideResponse {
+  status: string;
+  message: string;
+}
+
+export const searchAlumnos = async (query: string = ""): Promise<AlumnoSearchInfo[]> => {
+  return await apiRequest<AlumnoSearchInfo[]>(`/admin/alumnos/search?query=${encodeURIComponent(query)}`);
+};
+
+export const getAlumnoProgress = async (alumnoId: number): Promise<any[]> => {
+  return await apiRequest<any[]>(`/admin/alumnos/${alumnoId}/progress`);
+};
+
+export const overrideAlumnoProgress = async (alumnoId: number, data: {
+  fase_id: number;
+  seccion: number;
+  operacion: string;
+  action: 'approve' | 'unlock' | 'lock';
+}): Promise<ProgresoOverrideResponse> => {
+  return await apiRequest<ProgresoOverrideResponse>(`/admin/alumnos/${alumnoId}/progress/override`, 'POST', data);
+};
+
+// --- PREGUNTAS CRUD ---
+
+export const getPreguntasByLevel = async (faseId: number, seccion: number, operacion: string): Promise<any[]> => {
+  return await apiRequest<any[]>(`/admin/preguntas?fase_id=${faseId}&seccion=${seccion}&operacion=${encodeURIComponent(operacion)}`);
+};
+
+export const deletePregunta = async (preguntaId: number): Promise<void> => {
+  await apiRequest(`/admin/preguntas/${preguntaId}`, 'DELETE');
+};
+
+export const createPregunta = async (data: any): Promise<any> => {
+  return await apiRequest('/admin/preguntas', 'POST', data);
+};
+
+export const updatePregunta = async (preguntaId: number, data: any): Promise<any> => {
+  return await apiRequest(`/admin/preguntas/${preguntaId}`, 'PATCH', data);
+};
+
+// --- TEORIA CRUD ---
+
+export const getNivelTeoria = async (faseId: number, moduloId: number, nivelId: number): Promise<any | null> => {
+  try {
+    return await apiRequest<any | null>(`/admin/teoria?fase_id=${faseId}&modulo_id=${moduloId}&nivel_id=${nivelId}`);
+  } catch {
+    return null;
+  }
+};
+
+export const saveNivelTeoria = async (data: any): Promise<void> => {
+  await apiRequest('/admin/teoria', 'PUT', data);
+};
