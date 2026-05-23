@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DetectiveNotebook } from './DetectiveNotebook';
 import { OperationBuilder } from './OperationBuilder';
-import api from '../../services/api';
+import { getFase3Question, submitFase3Answer } from './Fase3Service';
 import './Fase3Styles.css';
 
 interface TokenData {
@@ -37,8 +37,7 @@ export const Fase3GameScreen: React.FC = () => {
     setMirrorLoopAlert({ active: false, msg: '' });
     setAvailableNumbers([]);
     try {
-      const response = await api.get(`/fase3/modulo/${moduloId}/nivel/${nivelId}/pregunta`);
-      const q = response.data;
+      const q = await getFase3Question(Number(moduloId), Number(nivelId));
       setPreguntaId(q.id);
       setEnunciadoText(q.enunciado);
       
@@ -73,7 +72,7 @@ export const Fase3GameScreen: React.FC = () => {
     if (!preguntaId) return;
 
     try {
-      const resp = await api.post('/fase3/responder', {
+      const respData = await submitFase3Answer({
         modulo_id: Number(moduloId),
         nivel_id: Number(nivelId),
         pregunta_id: preguntaId,
@@ -81,7 +80,7 @@ export const Fase3GameScreen: React.FC = () => {
         tiempo_respuesta_segundos: 15 // Mock temporal
       });
 
-      const { es_correcta, espejo_activado, bloque_completado, early_exit } = resp.data;
+      const { es_correcta, espejo_activado, bloque_completado, early_exit } = respData as any;
 
       if (es_correcta) {
         if (bloque_completado) {

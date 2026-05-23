@@ -849,52 +849,6 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                                   </svg>
                                 </div>
                               ) : (
-                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: paso === 2 ? moduleColor : 'var(--f2-text-muted)', letterSpacing: '1px' }}>
-                        {paso === 2 ? '🔴 PASO 2: EN PROGRESO' : '🔒 PASO 2: BLOQUEADO'}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.95rem', color: paso === 2 ? '#ffffff' : 'var(--f2-text-secondary)' }}>
-                      {pregunta.pasos_encadenados?.[1]?.descripcion ?? 'Usa el resultado anterior para el paso 2.'}
-                    </div>
-
-                    {paso === 2 && (
-                      <div className="f2-numeric-input-wrap" style={{ marginTop: '12px' }}>
-                        <div 
-                          className={`f2-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`}
-                          onClick={() => inputRef.current?.focus()}
-                        >
-                          <input
-                            ref={inputRef}
-                            type="text"
-                            value={respuesta}
-                            onChange={e => {
-                              if (!feedback.visible) {
-                                const val = e.target.value;
-                                if (/^[0-9,\-]*$/.test(val)) {
-                                  setRespuesta(val);
-                                }
-                              }
-                            }}
-                            onKeyDown={handleKeyDown}
-                            className="f2-hidden-input"
-                            autoFocus
-                            autoComplete="off"
-                            inputMode="none"
-                          />
-                          <span className="f2-input-value-text">
-                            {feedback.visible 
-                              ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) 
-                              : (respuesta || '?')}
-                          </span>
-                          {feedback.visible && (
-                            <div className="f2-input-status-elements">
-                              {feedback.esCorrecta ? (
-                                <div className="f2-status-badge correct">
-                                  <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="20 6 9 17 4 12" />
-                                  </svg>
-                                </div>
-                              ) : (
                                 <>
                                   <span className="f2-era-pill">
                                     Era: {feedback.resultado?.respuesta_correcta}
