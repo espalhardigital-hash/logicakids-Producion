@@ -426,8 +426,9 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
       {/* ── Header Rediseñado ── */}
       <header className="f2-game-header-modern">
-        <button className="f2-header-abort-btn" onClick={onBack} title="Abortar misión">
+        <button className="f2-header-abort-btn" onClick={onBack} title="Salir del nivel">
           <IconArrowLeft />
+          <span>SALIR DEL NIVEL</span>
         </button>
 
         <div className="f2-header-right-group">

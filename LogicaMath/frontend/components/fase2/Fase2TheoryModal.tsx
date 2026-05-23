@@ -155,7 +155,7 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
             {onAbort && (
               <button 
                 onClick={onAbort}
-                title="Abortar"
+                title="Salir del nivel"
                 style={{
                   display: 'flex',
                   alignItems: 'center',

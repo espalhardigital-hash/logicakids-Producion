@@ -419,7 +419,7 @@ const GameScreen: React.FC<Props> = ({
           className="flex items-center space-x-2 glass-button px-5 py-2.5 rounded-2xl transition-all cursor-pointer font-sans"
         >
           <LogOut size={18} />
-          <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">Abortar Misión</span>
+          <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">Salir del Nivel</span>
         </motion.button>
 
         <div className="flex flex-col items-end text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">

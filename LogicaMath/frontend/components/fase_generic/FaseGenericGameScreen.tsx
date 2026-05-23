@@ -413,10 +413,10 @@ export default function FaseGenericGameScreen() {
 
       {/* ── Header Unificado ── */}
       <header className="fg-game-header-modern">
-        <button className="fg-header-abort-btn" onClick={() => navigate(`/welcome-fase/${faseId}`)} title="Abortar misión">
-          <IconArrowLeft />
+        <button className="fg-header-abort-btn" onClick={() => navigate(`/welcome-fase/${faseId}`)} title="Salir del nivel">
+          <Lucide.LogOut size={18} />
+          <span>SALIR DEL NIVEL</span>
         </button>
-
         <div className="fg-header-right-group">
           {moduloId !== 0 && (
             <button 
