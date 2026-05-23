@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Trash2, Edit, Save, FileText, Loader2, X, 
   Settings, ToggleRight, ToggleLeft, Shield, BookOpen,
-  Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Award
+  Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Award, AlertTriangle, Check
 } from 'lucide-react';
 import { 
   getPreguntasByLevel, deletePregunta, createPregunta, updatePregunta,
@@ -32,6 +32,25 @@ const ContentTab: React.FC = () => {
   const [expandGlosario, setExpandGlosario] = useState(true);
   const [expandEjemplos, setExpandEjemplos] = useState(true);
 
+  // Toast & Confirm Dialog State
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    show: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
+
   // Question Pagination & Filter State
   const [questionsPerPage, setQuestionsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -41,6 +60,24 @@ const ContentTab: React.FC = () => {
   const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [savingQuestion, setSavingQuestion] = useState(false);
+
+  // Auto-clear Toast after 3 seconds
+  useEffect(() => {
+    if (toast.show) {
+      const timer = setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.show]);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ show: true, message, type });
+  };
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmDialog({ show: true, title, message, onConfirm });
+  };
 
   // Fetch Questions and Theory
   const loadContentManagerData = async (faseId: number, moduloId: number, levelId: number) => {
@@ -115,10 +152,10 @@ const ContentTab: React.FC = () => {
     setSavingTheory(true);
     try {
       await saveNivelTeoria(theory);
-      alert("¡Teoría guardada exitosamente!");
+      showToast("¡Teoría guardada exitosamente!", "success");
     } catch (e) {
       console.error(e);
-      alert("Error al guardar la teoría.");
+      showToast("Error al guardar la teoría.", "error");
     } finally {
       setSavingTheory(false);
     }
@@ -126,14 +163,20 @@ const ContentTab: React.FC = () => {
 
   // Delete Question
   const handleDeleteQuestion = async (qId: number) => {
-    if (!window.confirm("¿Estás seguro de que deseas eliminar esta pregunta?")) return;
-    try {
-      await deletePregunta(qId);
-      setQuestions(prev => prev.filter(q => q.id !== qId));
-    } catch (e) {
-      console.error(e);
-      alert("Error al eliminar la pregunta.");
-    }
+    showConfirm(
+      "Eliminar Pregunta",
+      "¿Estás seguro de que deseas eliminar esta pregunta? Esta acción no se puede deshacer.",
+      async () => {
+        try {
+          await deletePregunta(qId);
+          setQuestions(prev => prev.filter(q => q.id !== qId));
+          showToast("Pregunta eliminada exitosamente.", "success");
+        } catch (e) {
+          console.error(e);
+          showToast("Error al eliminar la pregunta.", "error");
+        }
+      }
+    );
   };
 
   // Save Question Form
@@ -159,16 +202,18 @@ const ContentTab: React.FC = () => {
         // Update
         const updated = await updatePregunta(editingQuestion.id, payload);
         setQuestions(prev => prev.map(q => q.id === editingQuestion.id ? updated : q));
+        showToast("Pregunta actualizada exitosamente.", "success");
       } else {
         // Create
         const created = await createPregunta(payload);
         setQuestions(prev => [...prev, created]);
+        showToast("Pregunta creada exitosamente.", "success");
       }
       setShowQuestionModal(false);
       setEditingQuestion(null);
     } catch (err) {
       console.error(err);
-      alert("Error al guardar la pregunta.");
+      showToast("Error al guardar la pregunta.", "error");
     } finally {
       setSavingQuestion(false);
     }
@@ -237,8 +282,15 @@ const ContentTab: React.FC = () => {
   };
 
   const handleDeleteInteractive = (idx: number) => {
-    const newInteractives = (theory?.interactivos || []).filter((_: any, i: number) => i !== idx);
-    setTheory((prev: any) => ({ ...prev, interactivos: newInteractives }));
+    showConfirm(
+      "Eliminar Ejercicio Interactivo",
+      "¿Estás seguro de que deseas eliminar este ejercicio interactivo de la teoría?",
+      () => {
+        const newInteractives = (theory?.interactivos || []).filter((_: any, i: number) => i !== idx);
+        setTheory((prev: any) => ({ ...prev, interactivos: newInteractives }));
+        showToast("Ejercicio removido de la teoría.", "success");
+      }
+    );
   };
 
   const handleUpdateInteractive = (idx: number, field: string, value: any) => {
@@ -1256,6 +1308,85 @@ const ContentTab: React.FC = () => {
 
               </form>
 
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Toast Notification */}
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-2xl border backdrop-blur-xl shadow-2xl ${
+              toast.type === 'success'
+                ? 'bg-emerald-950/85 border-emerald-500/40 text-emerald-200 shadow-emerald-950/20 shadow-[0_0_25px_rgba(16,185,129,0.15)]'
+                : 'bg-rose-950/85 border-rose-500/40 text-rose-200 shadow-rose-955/20 shadow-[0_0_25px_rgba(244,63,94,0.15)]'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <div className="p-1 bg-emerald-500/20 rounded-lg border border-emerald-500/30">
+                <Check className="text-emerald-400" size={18} />
+              </div>
+            ) : (
+              <div className="p-1 bg-rose-500/20 rounded-lg border border-rose-500/30">
+                <X className="text-rose-400" size={18} />
+              </div>
+            )}
+            <span className="font-extrabold text-sm tracking-wide">{toast.message}</span>
+            <button 
+              onClick={() => setToast(prev => ({ ...prev, show: false }))}
+              className="ml-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X size={14} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Confirm Dialog Modal */}
+      <AnimatePresence>
+        {confirmDialog.show && (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-slate-900 border border-white/10 w-full max-w-md rounded-[2rem] p-6 shadow-2xl flex flex-col gap-6 text-white select-none shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+            >
+              <div className="flex items-center gap-3 text-rose-400 font-black border-b border-white/5 pb-3">
+                <div className="p-2 bg-rose-500/20 rounded-xl border border-rose-500/30">
+                  <AlertTriangle size={20} />
+                </div>
+                <h4 className="text-lg">{confirmDialog.title}</h4>
+              </div>
+              
+              <p className="text-sm font-bold text-slate-300 leading-relaxed">
+                {confirmDialog.message}
+              </p>
+              
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+                  className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-black transition-all border border-white/5 text-slate-300 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    confirmDialog.onConfirm();
+                    setConfirmDialog(prev => ({ ...prev, show: false }));
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black shadow-lg shadow-rose-900/20 active:scale-95 transition-all cursor-pointer"
+                >
+                  Sí, eliminar
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
