@@ -87,6 +87,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [shaking, setShaking]     = useState(false);
   const [timer, setTimer]         = useState<number | null>(null);
   const [showReading, setShowReading] = useState(false);
+  const [isInitialReading, setIsInitialReading] = useState(true);
   const [readingData, setReadingData] = useState<Fase2Lectura | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | undefined>(undefined);
 
@@ -155,6 +156,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   const handleOpenReading = useCallback(async () => {
     if (isChallenge) return;
+    setIsInitialReading(false);
     try {
       const data = await getFase2Reading(moduloId, nivelId);
       setReadingData(data);
@@ -172,6 +174,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       return;
     }
     const checkAndShowReading = async () => {
+      setIsInitialReading(true);
       try {
         const data = await getFase2Reading(moduloId, nivelId);
         setReadingData(data);
@@ -426,9 +429,9 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
       {/* ── Header Rediseñado ── */}
       <header className="f2-game-header-modern">
-        <button className="f2-header-abort-btn" onClick={onBack} title="Salir del nivel">
-          <IconArrowLeft />
-          <span>SALIR DEL NIVEL</span>
+        <button className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-red-500/20 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm text-red-400 font-sans" onClick={onBack} title="Salir del nivel">
+          <IconArrowLeft size={18} />
+          <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">SALIR DEL NIVEL</span>
         </button>
 
         <div className="f2-header-right-group">
@@ -1075,7 +1078,14 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             readingData={readingData}
             moduleColor={moduleColor}
             onClose={() => setShowReading(false)}
-            onAbort={onBack}
+            onAbort={() => {
+              if (isInitialReading) {
+                onBack();
+              } else {
+                setShowReading(false);
+              }
+            }}
+            isInitialReading={isInitialReading}
             userAvatar={userAvatar}
           />
         )}

@@ -11,6 +11,7 @@ Este documento define la guía oficial y estandarizada de diseño UX/UI para la 
   - **Hover (Ratón encima)**: Los elementos interactivos deben escalarse sutilmente (`scale(1.03)` o `scale(1.05)`) y ganar un resplandor o sombra de neón correspondiente a su color temático.
   - **Active (Clic/Tap)**: Efecto físico de presión táctil (`transform: scale(0.97)` o `scale(0.95)`).
   - **Transiciones**: Transiciones suaves y lineales (`transition: all 0.2s ease` o `transition: var(--f2-transition)`).
+- **Escalado Desktop-First (Paneles de Gestión)**: En interfaces administrativas o de configuración (como Gestión Pedagógica), se prioriza el uso del espacio horizontal y tipografía más grande. Se utilizan utilidades `lg:` de Tailwind o escalado de la raíz (`rem`) para incrementar márgenes (`padding/gap`) y tamaños de texto, permitiendo que la interfaz "respire" cómodamente en pantallas grandes.
 
 ---
 
@@ -30,7 +31,7 @@ Este documento define la guía oficial y estandarizada de diseño UX/UI para la 
 
 ## 3. Navegación y Cabeceras (Header)
 Para asegurar que un niño nunca se sienta perdido en la navegación y tenga contexto completo de su ubicación:
-- **Botón Atrás / Abortar**: Ubicado SIEMPRE en el extremo **superior izquierdo** (`.f2-back-btn` o `.f2-header-abort-btn`). En las pantallas de juego y de teoría, se utiliza un icono de salida o flecha limpia para retroceder (`ArrowLeft`/`LogOut`). Para evitar saturación visual, se puede omitir el texto descriptivo del botón en dispositivos compactos.
+- **Botón Salir del Nivel**: Ubicado SIEMPRE en el extremo **superior izquierdo** (`.f2-back-btn` o `.f2-header-abort-btn`). Se reemplaza el término agresivo "Abortar Misión" por "Salir del Nivel" para no generar frustración. El botón utiliza un diseño horizontal de píldora (icono a la izquierda, texto a la derecha). En dispositivos muy compactos (móviles), el texto se oculta automáticamente para mantener el layout.
 - **Avatar del Alumno**: En lugar de emojis genéricos, se muestra la foto de perfil o avatar real del usuario cargada dinámicamente (`getAvatarUrl` o `.avatar` desde el estado del usuario) en cabeceras de bienvenida, mapa de fases y diálogos guiados de retroalimentación. Se prohíbe explícitamente mostrar la foto del alumno o el emoji del astronauta en las cabeceras de la teoría de los modales para evitar redundancia y ruido cognitivo.
 - **Métricas e Identificación de Nivel**: Las cabeceras de juego y de fase deben mostrar de forma prominente el **Nivel** y el **Nombre del Módulo** activo en el título o en un badge destacado. Las monedas, rachas o estadísticas globales se agrupan en la esquina **superior derecha** de forma compacta.
 
@@ -63,7 +64,9 @@ Para asegurar que un niño nunca se sienta perdido en la navegación y tenga con
 - **Limpieza de Cabecera (Sin Avatares)**: Queda prohibida la representación del avatar o emoji de astronauta junto al título del modal en la teoría para simplificar el área superior. Se utiliza en su lugar un icono estático representativo (`Lucide.BookOpen` o destello `✨`).
 - **Identidad del Personaje**: Se puede incluir la foto de perfil o avatar del alumno (`userAvatar`) únicamente junto a globos de diálogo inferiores para incentivar la empatía en la lectura de forma controlada.
 - **Botones del Footer del Modal**: Para evitar superposiciones, amontonamiento o colisiones en pantallas de diversos anchos, el botón principal de cierre (`¡Entendido, empezar!`) debe medir exactamente un **70% de ancho** (`width: 70%`), dejando el **30% de espacio** para el botón `Atrás` y manteniendo un `gap` flexible de `1.25rem` (20px).
-- **Botón Abortar**: Se proporciona un acceso rápido de abortar estudio integrado en la cabecera del modal para facilitar la salida en cualquier momento.
+- **Botón Salir/Cerrar Dinámico (Esquina Superior)**: 
+  - Si el modal se abre automáticamente al inicio del nivel (Lectura Inicial), el botón superior actúa como "Salir del Nivel" devolviendo al usuario al menú.
+  - Si el alumno abre el modal manualmente haciendo clic en el botón "Teoría" durante una pregunta, el botón superior simplemente cierra el modal y devuelve al estudiante a la pregunta actual sin perder el progreso.
 
 ### D. Interfaz de Práctica Libre y Juego (`GameScreen` / `Fase2GameScreen` / `FaseGenericGameScreen`)
 - **Distribución de Pantalla y Cabecera de Juego**:

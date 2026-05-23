@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Trash2, Edit, Save, FileText, Loader2, X, 
   Settings, ToggleRight, ToggleLeft, Shield, BookOpen,
-  Search, ChevronLeft, ChevronRight
+  Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Award
 } from 'lucide-react';
 import { 
   getPreguntasByLevel, deletePregunta, createPregunta, updatePregunta,
@@ -26,6 +26,11 @@ const ContentTab: React.FC = () => {
   const [theory, setTheory] = useState<any | null>(null);
   const [loadingTheory, setLoadingTheory] = useState(false);
   const [savingTheory, setSavingTheory] = useState(false);
+
+  // Collapse sections states
+  const [expandTheoryCore, setExpandTheoryCore] = useState(true);
+  const [expandGlosario, setExpandGlosario] = useState(true);
+  const [expandEjemplos, setExpandEjemplos] = useState(true);
 
   // Question Pagination & Filter State
   const [questionsPerPage, setQuestionsPerPage] = useState<number>(10);
@@ -60,17 +65,28 @@ const ContentTab: React.FC = () => {
       
       // 2. Get Theory
       const theoryRes = await getNivelTeoria(faseId, moduloId, levelId);
-      setTheory(theoryRes || {
-        fase_id: faseId,
-        modulo_id: moduloId,
-        nivel_id: levelId,
-        titulo: "",
-        texto_descubrimiento: "",
-        advertencia: "",
-        diccionario: {},
-        ejemplos: [],
-        interactivos: []
-      });
+      
+      if (theoryRes) {
+        // Safe fallbacks to ensure dictionary, examples, and interactives exist
+        setTheory({
+          ...theoryRes,
+          diccionario: theoryRes.diccionario || {},
+          ejemplos: theoryRes.ejemplos || [],
+          interactivos: theoryRes.interactivos || []
+        });
+      } else {
+        setTheory({
+          fase_id: faseId,
+          modulo_id: moduloId,
+          nivel_id: levelId,
+          titulo: "",
+          texto_descubrimiento: "",
+          advertencia: "",
+          diccionario: {},
+          ejemplos: [],
+          interactivos: []
+        });
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -205,6 +221,71 @@ const ContentTab: React.FC = () => {
   const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
   const paginatedQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
 
+  // Interactive Exercises editing helpers
+  const handleAddInteractive = () => {
+    const newInteractives = [...(theory?.interactivos || [])];
+    newInteractives.push({
+      enunciado: "Nuevo Ejercicio",
+      pasos: [
+        { orden: 1, texto: "Paso 1 del ejercicio" }
+      ],
+      respuesta: "",
+      feedback_acierto: "¡Excelente!",
+      feedback_error: "Inténtalo de nuevo."
+    });
+    setTheory((prev: any) => ({ ...prev, interactivos: newInteractives }));
+  };
+
+  const handleDeleteInteractive = (idx: number) => {
+    const newInteractives = (theory?.interactivos || []).filter((_: any, i: number) => i !== idx);
+    setTheory((prev: any) => ({ ...prev, interactivos: newInteractives }));
+  };
+
+  const handleUpdateInteractive = (idx: number, field: string, value: any) => {
+    const newInteractives = [...(theory?.interactivos || [])];
+    newInteractives[idx] = {
+      ...newInteractives[idx],
+      [field]: value
+    };
+    setTheory((prev: any) => ({ ...prev, interactivos: newInteractives }));
+  };
+
+  const handleAddInteractiveStep = (intIdx: number) => {
+    const newInteractives = [...(theory?.interactivos || [])];
+    const steps = [...(newInteractives[intIdx].pasos || [])];
+    steps.push({ orden: steps.length + 1, texto: "Siguiente paso" });
+    newInteractives[intIdx] = {
+      ...newInteractives[intIdx],
+      pasos: steps
+    };
+    setTheory((prev: any) => ({ ...prev, interactivos: newInteractives }));
+  };
+
+  const handleUpdateInteractiveStepText = (intIdx: number, stepIdx: number, value: string) => {
+    const newInteractives = [...(theory?.interactivos || [])];
+    const steps = [...newInteractives[intIdx].pasos];
+    steps[stepIdx] = {
+      ...steps[stepIdx],
+      texto: value
+    };
+    newInteractives[intIdx] = {
+      ...newInteractives[intIdx],
+      pasos: steps
+    };
+    setTheory((prev: any) => ({ ...prev, interactivos: newInteractives }));
+  };
+
+  const handleDeleteInteractiveStep = (intIdx: number, stepIdx: number) => {
+    const newInteractives = [...(theory?.interactivos || [])];
+    const steps = newInteractives[intIdx].pasos.filter((_: any, i: number) => i !== stepIdx)
+      .map((s: any, idx: number) => ({ ...s, orden: idx + 1 }));
+    newInteractives[intIdx] = {
+      ...newInteractives[intIdx],
+      pasos: steps
+    };
+    setTheory((prev: any) => ({ ...prev, interactivos: newInteractives }));
+  };
+
   return (
     <div className="w-full flex flex-col gap-6 text-white select-none">
       
@@ -327,7 +408,7 @@ const ContentTab: React.FC = () => {
         </div>
 
         {/* Right Column: Dynamic Tabs Content */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 flex flex-col gap-6">
           <AnimatePresence mode="wait">
             
             {/* TAB A: THEORY / CONCEPTS EDITOR */}
@@ -340,268 +421,475 @@ const ContentTab: React.FC = () => {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col gap-6"
               >
-                <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-5">
-                  <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                    <h4 className="text-base font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                      <FileText size={16} className="text-purple-400" /> Contenido Teórico (Flashcards)
-                    </h4>
-                    <button
-                      onClick={handleSaveTheory}
-                      disabled={loadingTheory || savingTheory}
-                      className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-sm font-black flex items-center gap-1.5 shadow-md shadow-purple-900/10 active:scale-95 transition-all cursor-pointer"
-                    >
-                      {savingTheory ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                      Guardar Teoría
-                    </button>
+                {/* Global theory save action panel */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/40 border border-white/5 p-4 rounded-2xl">
+                  <span className="text-sm font-black text-slate-300">
+                    Estás editando la teoría de: <span className="text-purple-400">{PHASE_MAPS.find(p => p.id === mgrFaseId)?.name.split(':')[0]} / {PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules.find(m => m.id === mgrModuloId)?.levels.find(l => l.id === mgrLevelId)?.name}</span>
+                  </span>
+                  <button
+                    onClick={handleSaveTheory}
+                    disabled={loadingTheory || savingTheory}
+                    className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-sm font-black flex items-center gap-1.5 shadow-md shadow-purple-900/10 active:scale-95 transition-all cursor-pointer self-end sm:self-center"
+                  >
+                    {savingTheory ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                    Guardar Cambios de Teoría
+                  </button>
+                </div>
+
+                {loadingTheory ? (
+                  <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.2rem] p-10 flex justify-center shadow-2xl">
+                    <Loader2 className="animate-spin text-purple-400" size={32} />
                   </div>
-
-                  {loadingTheory ? (
-                    <div className="flex justify-center py-10">
-                      <Loader2 className="animate-spin text-purple-400" size={24} />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-5">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Left fields */}
-                        <div className="flex flex-col gap-4">
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400 uppercase">Título de Teoría</label>
-                            <input
-                              type="text"
-                              value={theory?.titulo || ""}
-                              onChange={(e) => setTheory((prev: any) => ({ ...prev, titulo: e.target.value }))}
-                              className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-500/50"
-                            />
-                          </div>
-                          
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400 uppercase">Texto Descubrimiento</label>
-                            <textarea
-                              rows={3}
-                              value={theory?.texto_descubrimiento || ""}
-                              onChange={(e) => setTheory((prev: any) => ({ ...prev, texto_descubrimiento: e.target.value }))}
-                              className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Right fields */}
-                        <div className="flex flex-col gap-4">
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400 uppercase">Tip Pedagógico / Advertencia</label>
-                            <textarea
-                              rows={6}
-                              value={theory?.advertencia || ""}
-                              onChange={(e) => setTheory((prev: any) => ({ ...prev, advertencia: e.target.value }))}
-                              className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
-                            />
-                          </div>
-                        </div>
+                ) : (
+                  <div className="flex flex-col gap-6">
+                    
+                    {/* SECTION 1: CORE THEORY FIELDS (Collapsible) */}
+                    <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
+                      <div 
+                        onClick={() => setExpandTheoryCore(!expandTheoryCore)}
+                        className="flex justify-between items-center cursor-pointer select-none group"
+                      >
+                        <h4 className="text-base font-black text-slate-300 group-hover:text-purple-400 transition-colors flex items-center gap-2">
+                          <FileText size={18} className="text-purple-400" />
+                          1. Información de Teoría Principal
+                        </h4>
+                        {expandTheoryCore ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
                       </div>
 
-                      {/* DICCIONARIO / GLOSARIO */}
-                      <div className="border-t border-white/5 pt-4 mt-2 flex flex-col gap-3">
-                        <div className="flex justify-between items-center">
-                          <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Glosario / Diccionario del Nivel</label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newDict = { ...(theory?.diccionario || {}) };
-                              let suffix = 1;
-                              while (newDict[`Nuevo Término ${suffix}`]) suffix++;
-                              newDict[`Nuevo Término ${suffix}`] = "Definición del término.";
-                              setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
-                            }}
-                            className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                      <AnimatePresence initial={false}>
+                        {expandTheoryCore && (
+                          <motion.div
+                            key="theory-core-body"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="overflow-hidden"
                           >
-                            <Plus size={12} /> Agregar Término
-                          </button>
-                        </div>
+                            <div className="pt-4 border-t border-white/5 flex flex-col gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Left fields */}
+                                <div className="flex flex-col gap-4">
+                                  <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-slate-400 uppercase">Título de Teoría</label>
+                                    <input
+                                      type="text"
+                                      value={theory?.titulo || ""}
+                                      onChange={(e) => setTheory((prev: any) => ({ ...prev, titulo: e.target.value }))}
+                                      className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-500/50"
+                                    />
+                                  </div>
+                                  
+                                  <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-slate-400 uppercase">Texto Descubrimiento</label>
+                                    <textarea
+                                      rows={4}
+                                      value={theory?.texto_descubrimiento || ""}
+                                      onChange={(e) => setTheory((prev: any) => ({ ...prev, texto_descubrimiento: e.target.value }))}
+                                      className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
+                                    />
+                                  </div>
+                                </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {Object.entries(theory?.diccionario || {}).map(([term, def]: [string, any], dIdx) => (
-                            <div key={dIdx} className="flex gap-2 bg-slate-950/20 border border-white/5 p-2 rounded-xl items-start">
-                              <div className="flex-1 flex flex-col gap-1.5">
-                                <input
-                                  type="text"
-                                  placeholder="Término"
-                                  value={term}
-                                  onChange={(e) => {
-                                    const newKey = e.target.value;
-                                    if (!newKey) return;
-                                    const newDict: Record<string, any> = {};
-                                    for (const [k, v] of Object.entries(theory.diccionario)) {
-                                      if (k === term) {
-                                        newDict[newKey] = v;
-                                      } else {
-                                        newDict[k] = v;
-                                      }
-                                    }
-                                    setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
-                                  }}
-                                  className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs font-black text-purple-300 focus:outline-none focus:border-purple-500/50"
-                                />
-                                <textarea
-                                  rows={2}
-                                  placeholder="Definición"
-                                  value={def}
-                                  onChange={(e) => {
-                                    const newDict = { ...(theory.diccionario || {}) };
-                                    newDict[term] = e.target.value;
-                                    setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
-                                  }}
-                                  className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50 resize-none"
-                                />
+                                {/* Right fields */}
+                                <div className="flex flex-col gap-4">
+                                  <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-slate-400 uppercase">Tip Pedagógico / Advertencia</label>
+                                    <textarea
+                                      rows={7}
+                                      value={theory?.advertencia || ""}
+                                      onChange={(e) => setTheory((prev: any) => ({ ...prev, advertencia: e.target.value }))}
+                                      className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
+                                    />
+                                  </div>
+                                </div>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newDict = { ...(theory.diccionario || {}) };
-                                  delete newDict[term];
-                                  setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
-                                }}
-                                className="p-2 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
-                              >
-                                <Trash2 size={12} />
-                              </button>
                             </div>
-                          ))}
-                          {Object.keys(theory?.diccionario || {}).length === 0 && (
-                            <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay términos definidos en el glosario de este nivel.</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* SECTION 2: GLOSSARY / DICTIONARY (Collapsible) */}
+                    <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
+                      <div 
+                        onClick={() => setExpandGlosario(!expandGlosario)}
+                        className="flex justify-between items-center cursor-pointer select-none group"
+                      >
+                        <h4 className="text-base font-black text-slate-300 group-hover:text-purple-400 transition-colors flex items-center gap-2">
+                          <Settings size={18} className="text-purple-400" />
+                          2. Glosario / Vocabulario del Nivel
+                        </h4>
+                        <div className="flex items-center gap-3">
+                          {expandGlosario && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const newDict = { ...(theory?.diccionario || {}) };
+                                let suffix = 1;
+                                while (newDict[`Nuevo Término ${suffix}`]) suffix++;
+                                newDict[`Nuevo Término ${suffix}`] = "Definición del término.";
+                                setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
+                              }}
+                              className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                            >
+                              <Plus size={12} /> Agregar Término
+                            </button>
                           )}
+                          {expandGlosario ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
                         </div>
                       </div>
 
-                      {/* EJEMPLOS */}
-                      <div className="border-t border-white/5 pt-4 mt-2 flex flex-col gap-3">
-                        <div className="flex justify-between items-center">
-                          <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Ejemplos del Nivel</label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newExamples = [...(theory?.ejemplos || [])];
-                              newExamples.push({
-                                enunciado: "Nuevo Ejemplo",
-                                pasos: [
-                                  { orden: 1, texto: "Paso 1 del ejemplo" }
-                                ]
-                              });
-                              setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
-                            }}
-                            className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                      <AnimatePresence initial={false}>
+                        {expandGlosario && (
+                          <motion.div
+                            key="theory-glosario-body"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="overflow-hidden"
                           >
-                            <Plus size={12} /> Agregar Ejemplo
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {(theory?.ejemplos || []).map((ex: any, eIdx: number) => (
-                            <div key={eIdx} className="bg-slate-950/20 border border-white/5 p-4 rounded-2xl flex flex-col gap-3 relative">
-                              <div className="flex justify-between items-center">
-                                <span className="text-xs font-black text-purple-400">Ejemplo #{eIdx + 1}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const newExamples = (theory.ejemplos || []).filter((_: any, i: number) => i !== eIdx);
-                                    setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
-                                  }}
-                                  className="p-1.5 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
+                            <div className="pt-4 border-t border-white/5 flex flex-col gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {Object.entries(theory?.diccionario || {}).map(([term, def]: [string, any], dIdx) => (
+                                  <div key={dIdx} className="flex gap-2 bg-slate-950/20 border border-white/5 p-3 rounded-xl items-start">
+                                    <div className="flex-1 flex flex-col gap-1.5">
+                                      <input
+                                        type="text"
+                                        placeholder="Término"
+                                        value={term}
+                                        onChange={(e) => {
+                                          const newKey = e.target.value;
+                                          if (!newKey) return;
+                                          const newDict: Record<string, any> = {};
+                                          for (const [k, v] of Object.entries(theory.diccionario)) {
+                                            if (k === term) {
+                                              newDict[newKey] = v;
+                                            } else {
+                                              newDict[k] = v;
+                                            }
+                                          }
+                                          setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
+                                        }}
+                                        className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs font-black text-purple-300 focus:outline-none focus:border-purple-500/50"
+                                      />
+                                      <textarea
+                                        rows={2}
+                                        placeholder="Definición"
+                                        value={def}
+                                        onChange={(e) => {
+                                          const newDict = { ...(theory.diccionario || {}) };
+                                          newDict[term] = e.target.value;
+                                          setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
+                                        }}
+                                        className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50 resize-none"
+                                      />
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newDict = { ...(theory.diccionario || {}) };
+                                        delete newDict[term];
+                                        setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
+                                      }}
+                                      className="p-2 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                ))}
+                                {Object.keys(theory?.diccionario || {}).length === 0 && (
+                                  <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay términos definidos en el glosario de este nivel.</p>
+                                )}
                               </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
 
-                              <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">Enunciado del Ejemplo</label>
-                                <input
-                                  type="text"
-                                  value={ex.enunciado || ""}
-                                  onChange={(e) => {
-                                    const newExamples = [...theory.ejemplos];
-                                    newExamples[eIdx] = { ...ex, enunciado: e.target.value };
-                                    setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
-                                  }}
-                                  className="bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50"
-                                />
-                              </div>
+                    {/* SECTION 3: EXAMPLES & INTERACTIVE EXERCISES (Collapsible) */}
+                    <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
+                      <div 
+                        onClick={() => setExpandEjemplos(!expandEjemplos)}
+                        className="flex justify-between items-center cursor-pointer select-none group"
+                      >
+                        <h4 className="text-base font-black text-slate-300 group-hover:text-purple-400 transition-colors flex items-center gap-2">
+                          <Award size={18} className="text-purple-400" />
+                          3. Secuencia Didáctica (Ejemplos y Ejercicios)
+                        </h4>
+                        {expandEjemplos ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                      </div>
 
-                              <div className="flex flex-col gap-2 bg-slate-950/40 p-3 rounded-xl border border-white/5">
-                                <div className="flex justify-between items-center">
-                                  <label className="text-[10px] font-bold text-slate-400 uppercase">Pasos del Ejemplo</label>
+                      <AnimatePresence initial={false}>
+                        {expandEjemplos && (
+                          <motion.div
+                            key="theory-ejemplos-body"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pt-4 border-t border-white/5 flex flex-col gap-6">
+                              
+                              {/* SUB-SECTION 3A: EXAMPLES (Guided explanation) */}
+                              <div className="flex flex-col gap-4 bg-slate-900/20 border border-white/5 p-4 rounded-3xl">
+                                <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                                  <h5 className="text-sm font-black text-slate-400 uppercase tracking-widest">
+                                    3A. Ejemplos del Nivel (Explicativos / Guiados)
+                                  </h5>
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      const newExamples = [...theory.ejemplos];
-                                      const steps = [...(ex.pasos || [])];
-                                      steps.push({ orden: steps.length + 1, texto: "Siguiente paso" });
-                                      newExamples[eIdx] = { ...ex, pasos: steps };
+                                      const newExamples = [...(theory?.ejemplos || [])];
+                                      newExamples.push({
+                                        enunciado: "Nuevo Ejemplo",
+                                        pasos: [
+                                          { orden: 1, texto: "Paso 1 del ejemplo" }
+                                        ]
+                                      });
                                       setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
                                     }}
-                                    className="px-2 py-0.5 bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-400 rounded text-[9px] font-bold flex items-center gap-0.5 border border-purple-500/20 cursor-pointer"
+                                    className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
                                   >
-                                    <Plus size={8} /> Añadir Paso
+                                    <Plus size={10} /> Agregar Ejemplo
                                   </button>
                                 </div>
 
-                                <div className="flex flex-col gap-2">
-                                  {(ex.pasos || []).map((step: any, sIdx: number) => (
-                                    <div key={sIdx} className="flex gap-2 items-center">
-                                      <span className="text-xs font-bold text-slate-500">{step.orden}</span>
-                                      <input
-                                        type="text"
-                                        value={step.texto || ""}
-                                        onChange={(e) => {
-                                          const newExamples = [...theory.ejemplos];
-                                          const steps = [...ex.pasos];
-                                          steps[sIdx] = { ...step, texto: e.target.value };
-                                          newExamples[eIdx] = { ...ex, pasos: steps };
-                                          setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
-                                        }}
-                                        className="flex-1 bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
-                                      />
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          const newExamples = [...theory.ejemplos];
-                                          const steps = ex.pasos.filter((_: any, i: number) => i !== sIdx)
-                                            .map((s: any, idx: number) => ({ ...s, orden: idx + 1 }));
-                                          newExamples[eIdx] = { ...ex, pasos: steps };
-                                          setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
-                                        }}
-                                        className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
-                                      >
-                                        <X size={10} />
-                                      </button>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {(theory?.ejemplos || []).map((ex: any, eIdx: number) => (
+                                    <div key={eIdx} className="bg-slate-950/20 border border-white/5 p-4 rounded-2xl flex flex-col gap-3 relative">
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-xs font-black text-purple-400">Ejemplo #{eIdx + 1}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newExamples = (theory.ejemplos || []).filter((_: any, i: number) => i !== eIdx);
+                                            setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                          }}
+                                          className="p-1.5 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                        >
+                                          <Trash2 size={12} />
+                                        </button>
+                                      </div>
+
+                                      <div className="flex flex-col gap-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Enunciado del Ejemplo</label>
+                                        <input
+                                          type="text"
+                                          value={ex.enunciado || ""}
+                                          onChange={(e) => {
+                                            const newExamples = [...theory.ejemplos];
+                                            newExamples[eIdx] = { ...ex, enunciado: e.target.value };
+                                            setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                          }}
+                                          className="bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                        />
+                                      </div>
+
+                                      <div className="flex flex-col gap-2 bg-slate-950/40 p-3 rounded-xl border border-white/5">
+                                        <div className="flex justify-between items-center">
+                                          <label className="text-[10px] font-bold text-slate-400 uppercase">Pasos del Ejemplo</label>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const newExamples = [...theory.ejemplos];
+                                              const steps = [...(ex.pasos || [])];
+                                              steps.push({ orden: steps.length + 1, texto: "Siguiente paso" });
+                                              newExamples[eIdx] = { ...ex, pasos: steps };
+                                              setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                            }}
+                                            className="px-2 py-0.5 bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-400 rounded text-[9px] font-bold flex items-center gap-0.5 border border-purple-500/20 cursor-pointer"
+                                          >
+                                            <Plus size={8} /> Añadir Paso
+                                          </button>
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                          {(ex.pasos || []).map((step: any, sIdx: number) => (
+                                            <div key={sIdx} className="flex gap-2 items-center">
+                                              <span className="text-xs font-bold text-slate-500">{step.orden}</span>
+                                              <input
+                                                type="text"
+                                                value={step.texto || ""}
+                                                onChange={(e) => {
+                                                  const newExamples = [...theory.ejemplos];
+                                                  const steps = [...ex.pasos];
+                                                  steps[sIdx] = { ...step, texto: e.target.value };
+                                                  newExamples[eIdx] = { ...ex, pasos: steps };
+                                                  setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                                }}
+                                                className="flex-1 bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                              />
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  const newExamples = [...theory.ejemplos];
+                                                  const steps = ex.pasos.filter((_: any, i: number) => i !== sIdx)
+                                                    .map((s: any, idx: number) => ({ ...s, orden: idx + 1 }));
+                                                  newExamples[eIdx] = { ...ex, pasos: steps };
+                                                  setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                                }}
+                                                className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
+                                              >
+                                                <X size={10} />
+                                              </button>
+                                            </div>
+                                          ))}
+                                          {(ex.pasos || []).length === 0 && (
+                                            <div className="flex flex-col gap-1">
+                                              <span className="text-[9px] text-slate-500 italic">No hay pasos, se usará la respuesta legacy directa:</span>
+                                              <input
+                                                type="text"
+                                                placeholder="Respuesta directa (ej: 18)"
+                                                value={ex.respuesta || ""}
+                                                onChange={(e) => {
+                                                  const newExamples = [...theory.ejemplos];
+                                                  newExamples[eIdx] = { ...ex, respuesta: e.target.value };
+                                                  setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                                }}
+                                                className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                                              />
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
                                     </div>
                                   ))}
-                                  {(ex.pasos || []).length === 0 && (
-                                    <div className="flex flex-col gap-1">
-                                      <span className="text-[9px] text-slate-500 italic">No hay pasos, se usará la respuesta legacy directa:</span>
-                                      <input
-                                        type="text"
-                                        placeholder="Respuesta directa (ej: 18)"
-                                        value={ex.respuesta || ""}
-                                        onChange={(e) => {
-                                          const newExamples = [...theory.ejemplos];
-                                          newExamples[eIdx] = { ...ex, respuesta: e.target.value };
-                                          setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
-                                        }}
-                                        className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
-                                      />
-                                    </div>
+                                  {(theory?.ejemplos || []).length === 0 && (
+                                    <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay ejemplos resueltos en este nivel.</p>
                                   )}
                                 </div>
                               </div>
+
+                              {/* SUB-SECTION 3B: INTERACTIVES (Exercise sequence student must answer) */}
+                              <div className="flex flex-col gap-4 bg-slate-900/20 border border-white/5 p-4 rounded-3xl">
+                                <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                                  <h5 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    3B. Ejercicios Interactivos del Alumno (Secuencia de Evocación)
+                                  </h5>
+                                  <button
+                                    type="button"
+                                    onClick={handleAddInteractive}
+                                    className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                  >
+                                    <Plus size={10} /> Agregar Ejercicio
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {(theory?.interactivos || []).map((ex: any, iIdx: number) => (
+                                    <div key={iIdx} className="bg-slate-950/20 border border-white/5 p-4 rounded-2xl flex flex-col gap-3 relative">
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-xs font-black text-purple-400">Ejercicio Interactivo #{iIdx + 1}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteInteractive(iIdx)}
+                                          className="p-1.5 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                        >
+                                          <Trash2 size={12} />
+                                        </button>
+                                      </div>
+
+                                      <div className="flex flex-col gap-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Enunciado del Ejercicio</label>
+                                        <input
+                                          type="text"
+                                          value={ex.enunciado || ""}
+                                          onChange={(e) => handleUpdateInteractive(iIdx, "enunciado", e.target.value)}
+                                          className="bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                        />
+                                      </div>
+
+                                      {/* Correct response value */}
+                                      <div className="flex flex-col gap-1.5">
+                                        <label className="text-[10px] font-bold text-green-400 uppercase">Respuesta Correcta Esperada</label>
+                                        <input
+                                          type="text"
+                                          placeholder="Ej: 16"
+                                          value={ex.respuesta || ""}
+                                          onChange={(e) => handleUpdateInteractive(iIdx, "respuesta", e.target.value)}
+                                          className="bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                        />
+                                      </div>
+
+                                      {/* Steps */}
+                                      <div className="flex flex-col gap-2 bg-slate-950/40 p-3 rounded-xl border border-white/5">
+                                        <div className="flex justify-between items-center">
+                                          <label className="text-[10px] font-bold text-slate-400 uppercase">Pasos Resolutivos</label>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleAddInteractiveStep(iIdx)}
+                                            className="px-2 py-0.5 bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-400 rounded text-[9px] font-bold flex items-center gap-0.5 border border-purple-500/20 cursor-pointer"
+                                          >
+                                            <Plus size={8} /> Añadir Paso
+                                          </button>
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                          {(ex.pasos || []).map((step: any, sIdx: number) => (
+                                            <div key={sIdx} className="flex gap-2 items-center">
+                                              <span className="text-xs font-bold text-slate-500">{step.orden}</span>
+                                              <input
+                                                type="text"
+                                                value={step.texto || ""}
+                                                onChange={(e) => handleUpdateInteractiveStepText(iIdx, sIdx, e.target.value)}
+                                                className="flex-1 bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                              />
+                                              <button
+                                                type="button"
+                                                onClick={() => handleDeleteInteractiveStep(iIdx, sIdx)}
+                                                className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
+                                              >
+                                                <X size={10} />
+                                              </button>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      {/* Acierto & Error Feedback */}
+                                      <div className="flex flex-col gap-2 bg-slate-950/40 p-3 rounded-xl border border-white/5">
+                                        <div className="flex flex-col gap-1">
+                                          <label className="text-[10px] font-bold text-slate-400 uppercase">Feedback al Acertar</label>
+                                          <input
+                                            type="text"
+                                            placeholder="Ej: ¡Excelente! 8 x 2 = 16"
+                                            value={ex.feedback_acierto || ""}
+                                            onChange={(e) => handleUpdateInteractive(iIdx, "feedback_acierto", e.target.value)}
+                                            className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                          />
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                          <label className="text-[10px] font-bold text-slate-400 uppercase">Feedback al Fallar</label>
+                                          <input
+                                            type="text"
+                                            placeholder="Ej: 'El doble' es multiplicar por 2"
+                                            value={ex.feedback_error || ""}
+                                            onChange={(e) => handleUpdateInteractive(iIdx, "feedback_error", e.target.value)}
+                                            className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {(theory?.interactivos || []).length === 0 && (
+                                    <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay ejercicios interactivos definidos en la teoría de este nivel.</p>
+                                  )}
+                                </div>
+                              </div>
+
                             </div>
-                          ))}
-                          {(theory?.ejemplos || []).length === 0 && (
-                            <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay ejemplos resueltos en este nivel.</p>
-                          )}
-                        </div>
-                      </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                  )}
-                </div>
+
+                  </div>
+                )}
               </motion.div>
             )}
 

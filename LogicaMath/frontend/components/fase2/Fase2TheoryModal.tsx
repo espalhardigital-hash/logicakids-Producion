@@ -11,6 +11,7 @@ interface Fase2TheoryModalProps {
   onClose: () => void;
   onAbort?: () => void;
   userAvatar?: string;
+  isInitialReading?: boolean;
 }
 
 const MODULE_NAMES: Record<number, string> = {
@@ -26,7 +27,8 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
   moduleColor,
   onClose,
   onAbort,
-  userAvatar
+  userAvatar,
+  isInitialReading = true
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -155,7 +157,7 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
             {onAbort && (
               <button 
                 onClick={onAbort}
-                title="Salir del nivel"
+                title={isInitialReading ? "Salir del nivel" : "Cerrar Teoría"}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
