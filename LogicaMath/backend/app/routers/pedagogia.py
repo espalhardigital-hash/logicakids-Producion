@@ -214,7 +214,9 @@ async def responder_pregunta(
             fase_id=pregunta.fase_id,
             seccion=pregunta.seccion,
             operacion=pregunta.operacion,
-            estado=EstadoProgresoEnum.EN_PROGRESO
+            estado=EstadoProgresoEnum.EN_PROGRESO,
+            aciertos_acumulados=0,
+            intentos_totales=0
         )
         db.add(progreso)
     

@@ -943,6 +943,25 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 </div>
               </div>
             )}
+            
+            {/* ─ FALLBACK BLOCK (Catch-All para tipos desconocidos o errores) ─ */}
+            {pregunta.tipo_pregunta !== 'respuesta_numerica' && 
+             pregunta.tipo_pregunta !== 'multiple_opcion' && 
+             pregunta.tipo_pregunta !== 'constructor_soluciones_chained' && 
+             pregunta.tipo_pregunta !== 'subrayado_tokens' && (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', alignItems: 'center', color: '#ff4b4b', padding: '20px', background: 'rgba(255,0,0,0.1)', borderRadius: '16px' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '10px' }}>Error de Renderizado</h3>
+                <p style={{ textAlign: 'center', marginBottom: '10px' }}>
+                  El componente visual no reconoce el tipo de pregunta enviado por el servidor.
+                </p>
+                <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '8px', width: '100%', overflowX: 'auto', fontSize: '0.8rem', color: '#fff' }}>
+                  <strong>Tipo recibido:</strong> {pregunta.tipo_pregunta}<br/>
+                  <strong>Enunciado:</strong> {pregunta.enunciado || 'N/A'}<br/>
+                  <strong>Módulo:</strong> {moduloId}<br/>
+                  <strong>Pasos:</strong> {pregunta.pasos_encadenados ? pregunta.pasos_encadenados.length : 'N/A'}
+                </div>
+              </div>
+            )}
           </motion.div>
 
           {/* Teclado Numérico Virtual (3x4 Layout) */}

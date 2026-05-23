@@ -29,17 +29,6 @@ interface StaticPhase {
 
 const STATIC_PHASES: StaticPhase[] = [
   {
-    id: 1, // Fase 0
-    name: "Fase 0: Operaciones Elementales",
-    description: "Cálculo mental libre y dinámico con generación algorítmica. Superación de 5 niveles por operación.",
-    modules: [
-      { seccion: 1, operacion: "suma", name: "Suma" },
-      { seccion: 1, operacion: "resta", name: "Resta" },
-      { seccion: 1, operacion: "multiplicacion", name: "Multiplicación" },
-      { seccion: 1, operacion: "division", name: "División" }
-    ]
-  },
-  {
     id: 2, // Fase 1
     name: "Fase 1: Operaciones Básicas",
     description: "Aprendizaje por dominio con banco de preguntas fijas dividida en tres disciplinas de complejidad creciente.",
@@ -210,9 +199,9 @@ const SliderWithTooltip: React.FC<{
 // ==========================================
 const PedagogyTab: React.FC = () => {
   // Navigation
-  const [selectedPhaseId, setSelectedPhaseId] = useState<number>(1); // Fase 0 by default
+  const [selectedPhaseId, setSelectedPhaseId] = useState<number>(2); // Fase 1 by default
   const [selectedModule, setSelectedModule] = useState<StaticModule | null>(null); // null means Phase selected
-  const [expandedPhases, setExpandedPhases] = useState<Record<number, boolean>>({ 1: true });
+  const [expandedPhases, setExpandedPhases] = useState<Record<number, boolean>>({ 2: true });
 
   // Main config states
   const [loading, setLoading] = useState(true);

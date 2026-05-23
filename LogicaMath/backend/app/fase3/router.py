@@ -143,6 +143,8 @@ async def _get_or_create_progreso(
             seccion=seccion,
             operacion=operacion,
             estado=EstadoProgresoEnum.EN_PROGRESO,
+            aciertos_acumulados=0,
+            intentos_totales=0
         )
         db.add(progreso)
         await db.flush()
