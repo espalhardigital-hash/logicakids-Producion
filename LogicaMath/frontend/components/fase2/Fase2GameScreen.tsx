@@ -884,7 +884,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               </div>
             )}
 
-            {/* ─ Subrayado de Tokens (Fallback para Módulo 4 en Mock Mode) ─ */}
+            {/* ─ Constructor de Soluciones / Subrayado de Tokens (Módulo 4 - Niveles 3 y 4) ─ */}
             {pregunta.tipo_pregunta === 'subrayado_tokens' && (
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
                 <div className="f2-question-text-box">
@@ -892,9 +892,76 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     {pregunta.enunciado}
                   </div>
                 </div>
-                <div style={{ padding: '20px', textAlign: 'center', color: '#9CA3AF' }}>
-                  [Componente de Subrayado de Tokens no implementado en el UI actual]
+                
+                <div className="f2-numeric-input-wrap">
+                  <div 
+                    className={`f2-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`}
+                    onClick={() => inputRef.current?.focus()}
+                  >
+                    {/* Hidden input to capture physical keyboard keys */}
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={respuesta}
+                      onChange={e => {
+                        if (!feedback.visible) {
+                          const val = e.target.value;
+                          if (/^[0-9,\-]*$/.test(val)) {
+                            setRespuesta(val);
+                          }
+                        }
+                      }}
+                      onKeyDown={handleKeyDown}
+                      className="f2-hidden-input"
+                      autoFocus
+                      autoComplete="off"
+                      inputMode="none"
+                    />
+                    
+                    <span className="f2-input-value-text">
+                      {feedback.visible 
+                        ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) 
+                        : (respuesta || '?')}
+                    </span>
+                    
+                    {feedback.visible && (
+                      <div className="f2-input-status-elements">
+                        {feedback.esCorrecta ? (
+                          <div className="f2-status-badge correct">
+                            <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="f2-era-pill">
+                              Era: {feedback.resultado?.respuesta_correcta}
+                            </span>
+                            <div className="f2-status-badge incorrect">
+                              <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                              </svg>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {!isChallenge && (
+                  <div className="f2-scores-container">
+                    <div className="f2-score-box correct">
+                      <span className="f2-score-label">CORRECTAS</span>
+                      <span className="f2-score-value">{progreso.aciertos}</span>
+                    </div>
+                    <div className="f2-score-box incorrect">
+                      <span className="f2-score-label">ERRORES</span>
+                      <span className="f2-score-value">{progreso.intentos - progreso.aciertos}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
@@ -919,7 +986,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
           </motion.div>
 
           {/* Teclado Numérico Virtual (3x4 Layout) */}
-          {(pregunta.tipo_pregunta === 'respuesta_numerica' || pregunta.tipo_pregunta === 'constructor_soluciones_chained') && (
+          {(pregunta.tipo_pregunta === 'respuesta_numerica' || pregunta.tipo_pregunta === 'constructor_soluciones_chained' || pregunta.tipo_pregunta === 'subrayado_tokens') && (
             <motion.div 
               variants={keypadVariants}
               initial="hidden"
