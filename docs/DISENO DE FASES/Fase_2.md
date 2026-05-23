@@ -503,3 +503,13 @@ El backend FastAPI utiliza este mapeo para identificar la causa cognitiva del fa
 *   **Error de Secuencia Cronológica Rotura:**
     *   *Detonante:* El alumno altera el orden de los eventos del tiempo de la historia al operar (ej. duplica la cantidad inicial antes de restar la pérdida).
     *   *Feedback del Tutor:* "¡El reloj de la historia se rompió! Sigue el orden de la historia: primero resta las pérdidas y luego aplica el multiplicador final al remanente."
+
+---
+
+# PARTE 5: INTEGRACIÓN ARQUITECTÓNICA Y UX/UI
+
+La Fase 2 se ejecuta bajo los nuevos estándares definidos en el documento consolidado `docs/Desig_UX.md`:
+
+1. **Server-Authoritative Estricto:** Toda la validación de respuestas, control de temporizadores en los desafíos, gestión de puntajes y reglas de avance (como el *Early Exit*) se procesan asíncronamente en el backend. El frontend (`Fase2GameScreen.tsx`) es puramente reactivo, eliminando cualquier rastro de lógicas locales offline.
+2. **Interactividad Modular:** Las respuestas numéricas (Módulos 1 al 3 y Desafío Final) se capturan mediante la sinergia de una **Caja de Entrada Personalizada** con input oculto y el **Teclado Numérico Virtual**, garantizando una experiencia fluida tanto en PC como en tablets.
+3. **Mecánica de Feedback Ágil:** Las explicaciones del "Tutor Invisible" (Parte 4) se entregan mediante resplandores de pantalla inmersivos (*ambient-glow* verde/rojo) y cambios sutiles en la tarjeta de pregunta, evitando modales invasivos o interrupciones en el flujo de los retos matemáticos.

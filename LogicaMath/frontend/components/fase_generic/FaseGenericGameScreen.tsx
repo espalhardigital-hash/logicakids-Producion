@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import * as Lucide from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getFaseMetadata, FasePregunta } from './faseMetadata';
@@ -29,11 +29,10 @@ const IconArrowLeft: React.FC = () => (
 );
 
 export default function FaseGenericGameScreen() {
-  const { faseId: paramFaseId, moduloId: paramModuloId, nivelId: paramNivelId } = useParams<{
-    faseId: string;
-    moduloId: string;
-    nivelId: string;
-  }>();
+  const location = useLocation();
+  const paramFaseId = location.state?.faseId;
+  const paramModuloId = location.state?.moduloId;
+  const paramNivelId = location.state?.nivelId;
 
   const navigate = useNavigate();
 

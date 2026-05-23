@@ -113,21 +113,8 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                     )
                     pregunta_db = result.scalar_one_or_none()
 
-                    # 3. Si no hay preguntas no resueltas (o resolvió todas), traer de todo el pool
-                    if not pregunta_db and solved_ids:
-                        result = await db.execute(
-                            select(Pregunta)
-                            .options(selectinload(Pregunta.alternativas))
-                            .where(and_(
-                                Pregunta.fase_id == fase.id,
-                                Pregunta.seccion == bloque_activo.seccion,
-                                Pregunta.operacion == bloque_activo.operacion,
-                                Pregunta.estado == StatusEnum.ACTIVO
-                            ))
-                            .order_by(func.random())
-                            .limit(1)
-                        )
-                        pregunta_db = result.scalar_one_or_none()
+                    # 3. Si no hay preguntas no resueltas (o resolvió todas), no devolver una pregunta repetida
+                    # Dejamos pregunta_db como None. El frontend puede hacer fallback o mostrar un mensaje.
 
                     if pregunta_db:
                         # Mapear a schema de alumno (sin revelar respuesta)
@@ -222,7 +209,20 @@ async def responder_pregunta(
     
     # Actualizar contadores
     progreso.intentos_totales += 1
+    
+    ya_resuelta = False
     if es_correcta:
+        result_previo = await db.execute(
+            select(Intento.id).where(and_(
+                Intento.alumno_id == alumno_id,
+                Intento.pregunta_id == pregunta.id,
+                Intento.es_correcta == True
+            ))
+        )
+        if result_previo.scalar_one_or_none():
+            ya_resuelta = True
+
+    if es_correcta and not ya_resuelta:
         progreso.aciertos_acumulados += 1
         
     progreso.porcentaje_actual = int((progreso.aciertos_acumulados / config.cantidad_requerida) * 100) if config.cantidad_requerida > 0 else 0
@@ -231,10 +231,22 @@ async def responder_pregunta(
     fase_completada = False
     
     if progreso.porcentaje_actual >= config.porcentaje_aprobacion and progreso.aciertos_acumulados >= config.cantidad_requerida:
-        progreso.estado = EstadoProgresoEnum.APROBADO
-        progreso.fecha_aprobacion = datetime.utcnow()
+        if progreso.estado != EstadoProgresoEnum.APROBADO:
+            progreso.estado = EstadoProgresoEnum.APROBADO
+            progreso.fecha_aprobacion = datetime.utcnow()
         bloque_completado = True
-        # Lógica de fase completada iría aquí (revisar si todos los bloques requeridos están aprobados)
+        
+        # Lógica de fase completada
+        result_configs = await db.execute(select(ConfiguracionProgreso).where(and_(ConfiguracionProgreso.fase_id == pregunta.fase_id, ConfiguracionProgreso.seccion > 0, ConfiguracionProgreso.activo == True)))
+        configs_fase = result_configs.scalars().all()
+        if configs_fase:
+            result_progresos = await db.execute(select(ProgresoMaestria).where(and_(ProgresoMaestria.alumno_id == alumno_id, ProgresoMaestria.fase_id == pregunta.fase_id, ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO)))
+            progresos_aprobados = result_progresos.scalars().all()
+            
+            aprobados_set = {(p.seccion, p.operacion) for p in progresos_aprobados}
+            aprobados_set.add((progreso.seccion, progreso.operacion))
+            
+            fase_completada = all((c.seccion, c.operacion) in aprobados_set for c in configs_fase)
         
     # 5. Registrar Intento
     intento = Intento(

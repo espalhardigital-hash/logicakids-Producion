@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import * as Lucide from 'lucide-react';
 import { getFaseMetadata, FaseModulo, FaseNivel } from './faseMetadata';
 import { getAvatarUrl } from '../../services/storageService';
@@ -54,7 +54,8 @@ export default function WelcomeScreenPhaseGeneric({
   onModuleSelect,
   onBack,
 }: WelcomeScreenPhaseGenericProps) {
-  const { faseId: paramFaseId } = useParams<{ faseId: string }>();
+  const location = useLocation();
+  const paramFaseId = location.state?.faseId;
   const faseId = Number(paramFaseId || '4');
 
   const [selectedModule, setSelectedModule] = useState<FaseModulo | null>(null);

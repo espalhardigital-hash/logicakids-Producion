@@ -43,7 +43,7 @@ export const WelcomeScreenPhase3: React.FC = () => {
         </div>
         
         <button 
-          onClick={() => navigate('/fase3/play/1/1')}
+          onClick={() => navigate('/fase3/play', { state: { moduloId: 1, nivelId: 1 } })}
           className="px-8 py-4 bg-orange-500 hover:bg-orange-400 text-white text-xl font-bold rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-all transform hover:scale-105"
         >
           INICIAR MISIÓN

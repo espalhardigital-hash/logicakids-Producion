@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { DetectiveNotebook } from './DetectiveNotebook';
 import { OperationBuilder } from './OperationBuilder';
 import { getFase3Question, submitFase3Answer } from './Fase3Service';
@@ -14,7 +14,9 @@ interface TokenData {
 }
 
 export const Fase3GameScreen: React.FC = () => {
-  const { moduloId, nivelId } = useParams<{ moduloId: string; nivelId: string }>();
+  const location = useLocation();
+  const moduloId = location.state?.moduloId || '1';
+  const nivelId = location.state?.nivelId || '1';
   const navigate = useNavigate();
 
   const [preguntaId, setPreguntaId] = useState<number | null>(null);

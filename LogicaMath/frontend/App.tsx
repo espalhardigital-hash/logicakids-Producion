@@ -23,12 +23,21 @@ import { saveScore, saveUser, getCurrentUserFull, getAdminSettings, getModularCo
 import * as authService from './services/authService';
 
 const Fase2GameScreenWrapper: React.FC = () => {
-  const { moduloId, nivelId } = useParams<{ moduloId: string; nivelId: string }>();
+  const location = useLocation();
+  const moduloId = location.state?.moduloId || 1;
+  const nivelId = location.state?.nivelId || 1;
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!location.state?.moduloId) {
+      navigate('/welcome-fase2', { replace: true });
+    }
+  }, [location.state, navigate]);
+
   return (
     <Fase2GameScreen
-      moduloId={parseInt(moduloId || '1', 10)}
-      nivelId={parseInt(nivelId || '1', 10)}
+      moduloId={parseInt(moduloId as string, 10)}
+      nivelId={parseInt(nivelId as string, 10)}
       onComplete={() => navigate('/welcome-fase2')}
       onBack={() => navigate('/welcome-fase2')}
     />
@@ -56,24 +65,13 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Sync category and difficulty from URL if they exist (to preserve state on refresh)
+  // Restore state from navigation state to prevent URL manipulation
   useEffect(() => {
-    const playMatch = location.pathname.match(/\/play\/([^/]+)\/([^/]+)/);
-    if (playMatch) {
-      setCategory(playMatch[1] as GameCategory);
-      setDifficulty(playMatch[2] as Difficulty);
-    } else {
-      const levelMatch = location.pathname.match(/\/level-selection\/([^/]+)/);
-      if (levelMatch) {
-        setCategory(levelMatch[1] as GameCategory);
-      } else {
-        const resultsMatch = location.pathname.match(/\/results\/([^/]+)/);
-        if (resultsMatch) {
-          setCategory(resultsMatch[1] as GameCategory);
-        }
-      }
+    if (location.state) {
+      if (location.state.category) setCategory(location.state.category as GameCategory);
+      if (location.state.difficulty) setDifficulty(location.state.difficulty as Difficulty);
     }
-  }, [location.pathname]);
+  }, [location.state]);
 
   // 2. Modifica la función 'loadAdminConfig' y renombrala a 'loadPedagogyAndAdminConfigs'
   const loadPedagogyAndAdminConfigs = async (user: User | null) => {
@@ -202,7 +200,7 @@ const AppContent: React.FC = () => {
       handleStartGame(currentUser?.username || "Invitado", 'challenge', 'hard');
     } else {
       setCategory(selectedCategory);
-      navigate(`/level-selection/${selectedCategory}`);
+      navigate(`/level-selection`, { state: { category: selectedCategory } });
     }
   };
 
@@ -210,7 +208,7 @@ const AppContent: React.FC = () => {
     setUsername(name);
     setCategory(selectedCategory);
     setDifficulty(selectedDifficulty);
-    navigate(`/play/${selectedCategory}/${selectedDifficulty}`);
+    navigate(`/play`, { state: { category: selectedCategory, difficulty: selectedDifficulty } });
   };
 
   const handleShowStats = () => {
@@ -271,11 +269,11 @@ const AppContent: React.FC = () => {
     }
 
     setGameStats(stats);
-    navigate(`/results/${category}`);
+    navigate(`/results`, { state: { category: category, stats } });
   };
 
   const handleRestart = () => {
-    navigate(`/play/${category}/${difficulty}`);
+    navigate(`/play`, { state: { category, difficulty } });
   };
 
   const handleNextLevel = () => {
@@ -283,7 +281,7 @@ const AppContent: React.FC = () => {
     if (currentIndex !== -1 && currentIndex < difficultyOrder.length - 1) {
       const nextDiff = difficultyOrder[currentIndex + 1];
       setDifficulty(nextDiff);
-      navigate(`/play/${category}/${nextDiff}`);
+      navigate(`/play`, { state: { category, difficulty: nextDiff } });
     }
   };
 
@@ -333,7 +331,7 @@ const AppContent: React.FC = () => {
                   } else if (phaseIndex === 3) {
                     navigate('/welcome-fase3');
                   } else if (phaseIndex >= 4 && phaseIndex <= 8) {
-                    navigate(`/welcome-fase/${phaseIndex}`);
+                    navigate(`/welcome-fase`, { state: { faseId: phaseIndex } });
                   } else {
                     alert(`¡La Fase ${phaseIndex} está desbloqueada! Muy pronto implementaremos sus dinámicas de juego.`);
                   }
@@ -367,7 +365,7 @@ const AppContent: React.FC = () => {
                 userAvatar={currentUser.avatar}
                 userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId) => {
-                  navigate(`/fase2/play/${moduloId}/${nivelId || 1}`);
+                  navigate('/fase2/play', { state: { moduloId, nivelId: nivelId || 1 } });
                 }}
                 onBack={() => navigate('/map')}
               />
@@ -376,14 +374,14 @@ const AppContent: React.FC = () => {
             )
           } />
 
-          <Route path="/welcome-fase/:faseId" element={
+          <Route path="/welcome-fase" element={
             currentUser ? (
               <WelcomeScreenPhaseGeneric
                 studentName={currentUser.username}
                 userAvatar={currentUser.avatar}
                 userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId, faseId) => {
-                  navigate(`/fase/${faseId}/play/${moduloId}/${nivelId || 1}`);
+                  navigate(`/fase/play`, { state: { moduloId, nivelId: nivelId || 1, faseId } });
                 }}
                 onBack={() => navigate('/map')}
               />
@@ -396,7 +394,7 @@ const AppContent: React.FC = () => {
             currentUser ? <WelcomeScreenPhase3 /> : <Navigate to="/login" replace />
           } />
 
-          <Route path="/fase2/play/:moduloId/:nivelId" element={
+          <Route path="/fase2/play" element={
             currentUser ? (
               <Fase2GameScreenWrapper />
             ) : (
@@ -404,7 +402,7 @@ const AppContent: React.FC = () => {
             )
           } />
 
-          <Route path="/fase3/play/:moduloId/:nivelId" element={
+          <Route path="/fase3/play" element={
             currentUser ? (
               <Fase3GameScreenWrapper />
             ) : (
@@ -412,7 +410,7 @@ const AppContent: React.FC = () => {
             )
           } />
 
-          <Route path="/fase/:faseId/play/:moduloId/:nivelId" element={
+          <Route path="/fase/play" element={
             currentUser ? (
               <FaseGenericGameScreen />
             ) : (
@@ -420,7 +418,7 @@ const AppContent: React.FC = () => {
             )
           } />
 
-          <Route path="/level-selection/:category" element={
+          <Route path="/level-selection" element={
             <LevelSelectionScreen
               user={currentUser}
               category={category}
@@ -430,7 +428,7 @@ const AppContent: React.FC = () => {
             />
           } />
 
-          <Route path="/play/:category/:difficulty" element={
+          <Route path="/play" element={
             <GameScreen
               category={category}
               difficulty={difficulty}
@@ -444,7 +442,7 @@ const AppContent: React.FC = () => {
             />
           } />
 
-          <Route path="/results/:category" element={
+          <Route path="/results" element={
             gameStats ? (
               <ResultsScreen
                 stats={gameStats}
