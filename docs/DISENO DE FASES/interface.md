@@ -78,11 +78,23 @@ Para asegurar que un niño nunca se sienta perdido en la navegación y tenga con
     - **Estado Incorrecto**: La caja cambia a un borde y fondo rojo translúcido, desplegando un badge circular rojo con una cruz (`✗`) y un indicador de respuesta esperada (`Era: X`).
   - **Marcador de Aciertos y Errores**: Se incorporan cajas en la base de la tarjeta (`.f2-scores-container` / `.fg-scores-container` y `.f2-score-box` / `.fg-score-box`) con bordes de color diferenciados (verde para aciertos, rojo para errores) que muestran las estadísticas en tiempo real sin interferir en la dinámica del juego.
 - **Teclado Numérico Virtual Unificado en Grid 3x4**:
-  - Todas las fases del juego (incluyendo Fase 1, Fase 2 y Fase Genérica) comparten el mismo diseño premium unificado de teclado numérico táctil basado en Tailwind CSS.
-  - Organizado con una cuadrícula matemática clásica:
-    - Botones del `1` al `9` ordenados en tres filas con soporte para micro-animaciones táctiles mediante `framer-motion` (escalado elástico suave).
-    - Fila inferior: Botón de borrar (`Delete` / `Lucide.Delete`) a la izquierda, número `0` al centro, y el botón de confirmación (`confirm-key` / `[->]` / `Lucide.ArrowRight`) a la derecha.
-  - El botón de confirmación se resalta en un color azul vibrante con degradado y brillo neón. Permanece activo durante la fase de retroalimentación para funcionar como botón de avance ("Continuar").
+  - **Regla Estricta Global**: El componente `CustomKeyboard` es el **patrón global obligatorio** y la **única forma** de introducir datos numéricos en cualquier pantalla de juego, pregunta o desafío de la aplicación.
+  - **Prohibición de Inputs Nativos**: Bajo ninguna circunstancia se deben usar inputs numéricos nativos (`<input type="number">`) o los teclados por defecto del sistema operativo (OS), garantizando una experiencia visual y funcional uniforme e integrada en tablets y entornos web.
+  - **Componente Reusable (`CustomKeyboard.tsx`)**:
+    - Ubicado en `frontend/components/common/CustomKeyboard.tsx`.
+    - No gestiona su propio estado final; se comunica directamente con el contenedor padre (pregunta o desafío).
+    - Propiedades (Props):
+      - `onNumberPress(number: string)`: Callback disparado al pulsar un dígito (0-9).
+      - `onDelete()`: Callback disparado al pulsar el botón coral/rojo de borrado (retroceso).
+      - `onSubmit()`: Callback disparado al pulsar el botón azul de confirmación/avance.
+      - `disabled?: boolean`: Desactiva la interactividad del teclado (por ejemplo, durante la animación de retroalimentación).
+      - `submitDisabled?: boolean`: Desactiva el botón de confirmación (por ejemplo, si el input está vacío).
+  - **Estructura Visual y UX**:
+    - Organizado con una cuadrícula matemática clásica de 3 columnas y 4 filas.
+    - Botones del `1` al `9` en las primeras tres filas, con fondo oscuro semi-translúcido (`#1e293b/50`), bordes y texto blanco en negrita.
+    - Fila inferior: Botón de borrar a la izquierda (borde/icono en rojo/coral), número `0` al centro, y el botón de confirmación a la derecha (fondo azul brillante sólido `#2563eb`, sin borde, icono `Lucide.ArrowRight` blanco).
+    - Prevención de selección accidental: Los botones y texto del teclado cuentan con la regla `user-select: none` (`select-none`) para evitar la selección visual de texto al presionar las teclas rápidamente.
+    - Micro-interacciones táctiles mediante `framer-motion` (animación spring elástica suave de escalado al pasar el cursor o pulsar).
 - **Flujo de Feedback en Línea y Bucle Espejo Progresivo**:
   - Queda prohibido el uso de modales emergentes o ventanas de diálogo intrusivas que interrumpen el ritmo de juego del alumno.
   - **En caso de Acierto**: Se activa un resplandor ambiental verde translúcido alrededor de la pantalla (`.f2-ambient-glow.correct` / `.fg-ambient-glow.correct`) y la interfaz avanza automáticamente a la siguiente pregunta tras 1.2 segundos.
