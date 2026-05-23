@@ -680,24 +680,24 @@ const PedagogyTab: React.FC = () => {
   const changesExist = hasChanges();
 
   return (
-    <motion.div variants={itemVariants} className="w-full flex flex-col gap-6 select-none">
+    <motion.div variants={itemVariants} className="w-full flex flex-col gap-6 lg:gap-10 select-none">
       
       {/* Top Header Card */}
-      <div className="flex items-center justify-between bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl">
+      <div className="flex items-center justify-between bg-white/5 backdrop-blur-2xl border border-white/10 p-6 lg:p-10 rounded-[2.2rem] lg:rounded-[3rem] shadow-2xl">
         <div>
-          <h2 className="text-3xl font-black text-white flex items-center gap-3">
+          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-black text-white flex items-center gap-3 lg:gap-5">
             <div className="p-2.5 bg-blue-500/20 rounded-2xl border border-blue-500/30">
               <Cpu className="text-blue-400" size={24} />
             </div>
             Gestión Pedagógica Avanzada
           </h2>
-          <p className="text-slate-400 text-sm mt-1">Configuración jerárquica con sistema de herencia para las fases del Viaje Matemático.</p>
+          <p className="text-slate-400 text-sm lg:text-base xl:text-lg mt-2 lg:mt-3 leading-relaxed">Configuración jerárquica con sistema de herencia para las fases del Viaje Matemático.</p>
         </div>
 
         <button
           onClick={handleSaveAll}
           disabled={saving || !changesExist}
-          className={`px-6 py-3.5 rounded-2xl flex items-center gap-2 font-black shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100 ${
+          className={`px-6 py-3.5 lg:px-8 lg:py-4 lg:text-lg rounded-2xl flex items-center gap-2 lg:gap-3 font-black shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100 ${
             saveStatus === 'success'
               ? 'bg-green-600 hover:bg-green-500'
               : saveStatus === 'error'
@@ -731,30 +731,30 @@ const PedagogyTab: React.FC = () => {
       )}
 
       {/* MAIN SPLIT GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10 items-start">
         
         {/* LEFT COLUMN: Hierarchical Accordion Tree */}
-        <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
+        <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 lg:p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-4 lg:gap-6">
           <div className="flex justify-between items-center px-2">
-            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Viaje del Alumno</h3>
-            <span className="text-[10px] bg-slate-800 text-slate-400 border border-white/5 px-2 py-0.5 rounded-full font-bold">{STATIC_PHASES.length} Fases</span>
+            <h3 className="text-sm lg:text-base font-black text-slate-400 uppercase tracking-widest">Viaje del Alumno</h3>
+            <span className="text-[10px] lg:text-xs bg-slate-800 text-slate-400 border border-white/5 px-2 py-0.5 lg:px-3 lg:py-1 rounded-full font-bold">{STATIC_PHASES.length} Fases</span>
           </div>
 
-          <div className="flex flex-col gap-2.5 max-h-[65vh] overflow-y-auto pr-1 custom-scrollbar">
+          <div className="flex flex-col gap-2.5 lg:gap-4 max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
             
             {/* PLATFORM GLOBAL CONFIG NODE */}
             <button
               onClick={() => { setSelectedPhaseId(0); setSelectedModule(null); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all text-left ${
+              className={`w-full flex items-center gap-3 lg:gap-4 px-4 py-3 lg:px-6 lg:py-4 rounded-2xl border transition-all text-left ${
                 selectedPhaseId === 0 
                   ? 'bg-blue-600/20 text-white border-blue-500/40 shadow-inner' 
                   : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
               }`}
             >
-              <Settings size={16} className={selectedPhaseId === 0 ? "text-blue-400 animate-spin" : "text-slate-400"} />
+              <Settings size={18} className={selectedPhaseId === 0 ? "text-blue-400 animate-spin" : "text-slate-400"} />
               <div className="flex-1">
-                <span className="text-sm font-black">Límites Globales (Plataforma)</span>
-                <p className="text-[9px] text-slate-500 mt-0.5 font-bold">Valores por defecto ante fallbacks</p>
+                <span className="text-sm lg:text-base font-black leading-tight">Límites Globales (Plataforma)</span>
+                <p className="text-[9px] lg:text-[11px] text-slate-500 mt-1 lg:mt-1.5 font-bold leading-snug">Valores por defecto ante fallbacks</p>
               </div>
             </button>
 
@@ -771,13 +771,13 @@ const PedagogyTab: React.FC = () => {
                   
                   {/* Phase Row */}
                   <div 
-                    className={`flex items-center justify-between p-3 cursor-pointer transition-all hover:bg-white/5 ${
+                    className={`flex items-center justify-between p-3 lg:p-4 cursor-pointer transition-all hover:bg-white/5 ${
                       isSelected ? 'bg-blue-500/10 border-b border-white/5' : ''
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 flex-1" onClick={() => selectPhase(phase.id)}>
-                      <Layers size={15} className={isSelected ? "text-blue-400" : "text-slate-400"} />
-                      <span className={`text-sm font-black transition-colors ${
+                    <div className="flex items-center gap-2.5 lg:gap-4 flex-1" onClick={() => selectPhase(phase.id)}>
+                      <Layers size={18} className={isSelected ? "text-blue-400" : "text-slate-400"} />
+                      <span className={`text-sm lg:text-base font-black transition-colors ${
                         isSelected ? 'text-blue-400' : 'text-white'
                       }`}>
                         {phase.name.split(':')[0]}

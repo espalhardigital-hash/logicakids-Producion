@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut } from 'lucide-react';
+import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut, BookOpen } from 'lucide-react';
 import GeneralTab from './GeneralTab';
 import PedagogyTab from './PedagogyTab';
 import PerformanceTab from './PerformanceTab';
+import ContentTab from './ContentTab';
 
 interface Props {
   onBack: () => void;
   onLogout: () => void;
 }
 
-type TabType = 'general' | 'pedagogy' | 'performance';
+type TabType = 'general' | 'pedagogy' | 'performance' | 'content';
 
 const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
   const [activeTab, setActiveTab] = useState<TabType>('general');
@@ -20,6 +21,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
     { id: 'general', label: 'Vista General', icon: LayoutDashboard },
     { id: 'pedagogy', label: 'Config. Pedagógica', icon: Settings },
     { id: 'performance', label: 'Rendimiento Estudiantil', icon: Activity },
+    { id: 'content', label: 'Banco de Preguntas', icon: BookOpen },
   ];
 
   const handleTabChange = (tabId: TabType) => {
@@ -129,6 +131,11 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
             {activeTab === 'performance' && (
               <motion.div key="performance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                 <PerformanceTab />
+              </motion.div>
+            )}
+            {activeTab === 'content' && (
+              <motion.div key="content" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                <ContentTab />
               </motion.div>
             )}
           </AnimatePresence>
