@@ -409,4 +409,38 @@ async def override_alumno_progress(alumno_id: int, payload: ProgressOverridePayl
             progreso.fecha_aprobacion = None
             
     await db.commit()
+    
+    # Sync with user.settings para todas las fases ya que algunos frontends dependen de unlockedLevels
+    from sqlalchemy.orm.attributes import flag_modified
+    result_alumno = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
+    alumno = result_alumno.scalar_one_or_none()
+    if alumno:
+        result_user = await db.execute(select(User).where(User.id == alumno.user_id))
+        user = result_user.scalar_one_or_none()
+        if user:
+            # Need to use dict() or copy if settings is a SQLAlchemy mutable dict, but typically reassigning and flag_modified is enough
+            settings = user.settings or {}
+            if "unlockedLevels" not in settings:
+                settings["unlockedLevels"] = {}
+            
+            cat_map = {
+                "suma": "addition",
+                "resta": "subtraction",
+                "multiplicacion": "multiplication",
+                "division": "division",
+                "mixta": "challenge"
+            }
+            cat = cat_map.get(payload.operacion)
+            if cat:
+                if payload.action == "approve":
+                    settings["unlockedLevels"][cat] = 6
+                elif payload.action == "unlock":
+                    settings["unlockedLevels"][cat] = 1
+                elif payload.action == "lock":
+                    settings["unlockedLevels"][cat] = 0
+                    
+                user.settings = settings
+                flag_modified(user, "settings")
+                await db.commit()
+
     return {"status": "ok", "message": "Progreso actualizado exitosamente"}

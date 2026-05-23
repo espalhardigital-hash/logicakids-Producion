@@ -1,25 +1,188 @@
 /* Fase3Styles.css - Estética Cyberpunk para LogicaKids Pro Fase 3 */
 
-.fase3-container {
-  background-color: #020617; /* slate-950 */
-  color: #e2e8f0;
+:root {
+  --f3-bg-deep: #020617; /* slate-950 */
+  --f3-bg-card: #0f172a; /* slate-900 */
+  --f3-bg-card-hover: #1e293b; /* slate-800 */
+  --f3-border: rgba(255, 255, 255, 0.08);
+  --f3-text-primary: #f8fafc;
+  --f3-text-secondary: #94a3b8;
+  --f3-text-muted: #64748b;
+  --f3-orange: #F97316;
+  --f3-radius-card: 20px;
+}
+
+.fase3-container, .f3-game-screen {
+  background-color: var(--f3-bg-deep);
+  background-image: radial-gradient(ellipse at 30% 20%, rgba(249, 115, 22, 0.04) 0%, transparent 60%);
+  color: var(--f3-text-primary);
   min-height: 100vh;
   font-family: 'Inter', 'Roboto', sans-serif;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
-/* Panel Cuaderno del Detective */
+/* ── Glows ─────────────────────────────────────────────── */
+.f3-ambient-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  mix-blend-mode: screen;
+}
+.f3-ambient-glow.correct {
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+}
+.f3-ambient-glow.incorrect {
+  background: radial-gradient(circle at center, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+}
+
+/* ── Modern Header ─────────────────────────────────────── */
+.f3-game-header-modern {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: rgba(2, 6, 23, 0.95);
+  border-bottom: 1px solid var(--f3-border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.f3-header-right-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.f3-header-badge-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--f3-border);
+  padding: 8px 20px;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.f3-badge-module { color: var(--f3-orange); }
+.f3-badge-divider { color: rgba(255, 255, 255, 0.2); }
+.f3-badge-level { color: var(--f3-text-primary); }
+.f3-badge-challenge { color: var(--f3-text-secondary); }
+.f3-badge-timer { font-variant-numeric: tabular-nums; }
+
+.f3-full-width-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.f3-full-width-progress-fill {
+  height: 100%;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+}
+
+/* ── Body y Tarjetas ───────────────────────────────────── */
+.f3-game-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.f3-question-card {
+  background: var(--f3-bg-card);
+  border: 1px solid var(--f3-border);
+  border-radius: var(--f3-radius-card);
+  padding: 32px;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.f3-question-text-box {
+  margin-bottom: 24px;
+}
+
+.f3-question-text {
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--f3-text-primary);
+}
+
+/* ── Input Numérico ────────────────────────────────────── */
+.f3-numeric-input-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.f3-custom-input-box {
+  width: 180px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.f3-custom-input-box.focused {
+  border-color: var(--f3-orange);
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
+  background: rgba(249, 115, 22, 0.05);
+}
+
+.f3-custom-input-box.correct {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.f3-custom-input-box.incorrect {
+  border-color: #EF4444;
+  background: rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.f3-input-value-text {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 2px;
+}
+
+/* ── Cuaderno del Detective ────────────────────────────── */
 .detective-notebook {
   background: rgba(15, 23, 42, 0.8);
-  border: 1px solid #1e293b;
-  border-left: 4px solid #F97316; /* Neon Orange */
+  border: 1px solid var(--f3-border);
+  border-left: 4px solid var(--f3-orange);
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
 .detective-notebook h2 {
-  color: #F97316;
+  color: var(--f3-orange);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
@@ -43,22 +206,22 @@
 }
 
 .token-word.selected-valid {
-  background-color: rgba(34, 197, 94, 0.3); /* green neon */
+  background-color: rgba(34, 197, 94, 0.3);
   color: #4ade80;
   text-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
 }
 
 .token-word.selected-invalid {
-  background-color: rgba(239, 68, 68, 0.3); /* red neon */
+  background-color: rgba(239, 68, 68, 0.3);
   color: #f87171;
   text-shadow: 0 0 8px rgba(248, 113, 113, 0.5);
-  animation: shake 0.4s ease-in-out;
+  animation: shake-error 0.4s ease-in-out;
 }
 
-/* Constructor de Operaciones (Drag & Drop Secuencial) */
+/* ── Constructor de Operaciones ────────────────────────── */
 .operation-builder {
-  background: #0f172a;
-  border: 1px solid #334155;
+  background: var(--f3-bg-card);
+  border: 1px solid var(--f3-border);
   border-radius: 12px;
   padding: 1.5rem;
   margin-top: 1.5rem;
@@ -76,23 +239,23 @@
   width: 80px;
   height: 80px;
   border: 2px dashed #475569;
-  border-radius: 8px;
+  border-radius: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.8rem;
+  font-weight: 800;
   color: #94a3b8;
-  background: #0b0f19;
+  background: #020617;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .operation-slot.filled {
   border-style: solid;
-  border-color: #F97316;
+  border-color: var(--f3-orange);
   background: rgba(249, 115, 22, 0.1);
-  color: #F97316;
+  color: var(--f3-orange);
   box-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
 }
 
@@ -102,7 +265,7 @@
   box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
 }
 
-/* Estantería de Datos */
+/* ── Estantería de Datos ───────────────────────────────── */
 .data-shelf {
   display: flex;
   flex-wrap: wrap;
@@ -113,11 +276,11 @@
 .data-card {
   background: #1e293b;
   border: 1px solid #475569;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.75rem 1.5rem;
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #e2e8f0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #f8fafc;
   cursor: pointer;
   user-select: none;
   transition: all 0.2s;
@@ -125,34 +288,67 @@
 
 .data-card:hover {
   transform: translateY(-2px);
-  border-color: #F97316;
+  border-color: var(--f3-orange);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
 }
 
 .data-card.operator {
   background: #334155;
   color: #38bdf8;
+  border-color: #38bdf8;
 }
 
-/* Recuadro Bucle Espejo */
+/* ── Alertas y Utilidades ──────────────────────────────── */
 .mirror-loop-alert {
   background: rgba(220, 38, 38, 0.1);
   border: 1px solid #ef4444;
   border-left: 4px solid #ef4444;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   border-radius: 8px;
-  margin-top: 1rem;
 }
 
 .mirror-loop-alert h4 {
   color: #fca5a5;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+  margin-bottom: 0.2rem;
+  font-weight: 700;
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
+.mirror-loop-alert p {
+  color: #f87171;
+  font-size: 0.95rem;
+}
+
+.shake-error {
+  animation: shake-error 0.45s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake-error {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.f3-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  flex-grow: 1;
+  gap: 20px;
+  color: var(--f3-text-secondary);
+  padding: 60px;
+}
+
+.f3-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--f3-border);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

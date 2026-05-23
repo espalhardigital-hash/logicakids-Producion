@@ -216,6 +216,12 @@ CREATE TABLE niveles_teoria_pool (
 
 > **Ejemplo Aplicado (Módulo 4 - Subrayado):** En la oración "Lucas tiene 5 manzanas rojas", el texto "5 manzanas rojas" es el token `ID: 2` con el rol `"dato_util"`. El frontend solo envía `{"tokens_seleccionados": [2]}`.
 
+### 6.5. Sincronización de Progreso (Compatibilidad)
+
+El sistema utiliza la tabla `ProgresoMaestria` como la principal fuente de verdad autoritativa para el progreso por bloques y módulos. Sin embargo, para mantener compatibilidad con ciertos componentes del frontend (como el Dashboard de la Fase 1) que dependen de la lectura del perfil de configuración del usuario (`user.settings["unlockedLevels"]`), el backend aplica una lógica de sincronización espejo inalterable en todas las fases.
+
+Cada vez que un administrador aprueba, bloquea o interviene manualmente un progreso (mediante el endpoint `/progress/override`), el servidor mapea automáticamente la operación (`suma`, `resta`, `multiplicacion`, `division`, `mixta`) a su clave correspondiente en inglés (`addition`, `subtraction`, `multiplication`, `division`, `challenge`) y sobrescribe el nivel en el diccionario `unlockedLevels` del usuario. Esto garantiza que cualquier cambio de estado se refleje de forma visual e instantánea en la interfaz gráfica del alumno, independientemente de si la fase lee los datos de la tabla relacional o del JSON de ajustes del usuario.
+
 ---
 
 ## 7. Checklist de Creación para Nuevas Fases

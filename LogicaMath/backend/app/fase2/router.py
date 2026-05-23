@@ -824,7 +824,20 @@ async def responder_fase2(
             )
         else:
             progreso.intentos_totales += 1
+            ya_resuelta = False
             if es_correcta:
+                result_previo = await db.execute(
+                    select(Intento.id).where(and_(
+                        Intento.alumno_id == alumno.id,
+                        Intento.pregunta_id == pregunta.id,
+                        Intento.es_correcta == True,
+                        Intento.id != intento.id
+                    ))
+                )
+                if result_previo.scalar_one_or_none():
+                    ya_resuelta = True
+
+            if es_correcta and not ya_resuelta:
                 progreso.aciertos_acumulados += 1
                 
             if config:
@@ -839,11 +852,24 @@ async def responder_fase2(
             progreso.porcentaje_actual = min(100, int((progreso.aciertos_acumulados / cantidad_req) * 100)) if cantidad_req > 0 else 0
             
             bloque_completado = False
+            fase_completada = False
             
             if progreso.porcentaje_actual >= porc_aprobacion and progreso.aciertos_acumulados >= cantidad_req:
-                progreso.estado = EstadoProgresoEnum.APROBADO
-                progreso.fecha_aprobacion = datetime.utcnow()
+                if progreso.estado != EstadoProgresoEnum.APROBADO:
+                    progreso.estado = EstadoProgresoEnum.APROBADO
+                    progreso.fecha_aprobacion = datetime.utcnow()
                 bloque_completado = True
+                
+                await db.flush()
+                res_aprob = await db.execute(
+                    select(func.count(ProgresoMaestria.id)).where(and_(
+                        ProgresoMaestria.alumno_id == alumno.id,
+                        ProgresoMaestria.fase_id == FASE2_ID,
+                        ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
+                    ))
+                )
+                if res_aprob.scalar() >= 26:
+                    fase_completada = True
                 
             await db.commit()
             
@@ -854,6 +880,7 @@ async def responder_fase2(
                 intentos_totales=progreso.intentos_totales,
                 porcentaje_actual=progreso.porcentaje_actual,
                 bloque_completado=bloque_completado,
+                fase_completada=fase_completada,
                 early_exit=False,
                 errores_sesion=errores_sesion,
                 max_errores_tolerados=max_errores,
@@ -862,7 +889,20 @@ async def responder_fase2(
     # 3.2 MODO PRÁCTICA LIBRE (1-10) -> Bucle Espejo (Mirror Loop)
     else:
         progreso.intentos_totales += 1
+        ya_resuelta = False
         if es_correcta:
+            result_previo = await db.execute(
+                select(Intento.id).where(and_(
+                    Intento.alumno_id == alumno.id,
+                    Intento.pregunta_id == pregunta.id,
+                    Intento.es_correcta == True,
+                    Intento.id != intento.id
+                ))
+            )
+            if result_previo.scalar_one_or_none():
+                ya_resuelta = True
+
+        if es_correcta and not ya_resuelta:
             progreso.aciertos_acumulados += 1
 
         if config:
@@ -877,11 +917,24 @@ async def responder_fase2(
         progreso.porcentaje_actual = min(100, int((progreso.aciertos_acumulados / cantidad_req) * 100)) if cantidad_req > 0 else 0
 
         bloque_completado = False
+        fase_completada = False
 
         if progreso.porcentaje_actual >= porc_aprobacion and progreso.aciertos_acumulados >= cantidad_req:
-            progreso.estado = EstadoProgresoEnum.APROBADO
-            progreso.fecha_aprobacion = datetime.utcnow()
+            if progreso.estado != EstadoProgresoEnum.APROBADO:
+                progreso.estado = EstadoProgresoEnum.APROBADO
+                progreso.fecha_aprobacion = datetime.utcnow()
             bloque_completado = True
+            
+            await db.flush()
+            res_aprob = await db.execute(
+                select(func.count(ProgresoMaestria.id)).where(and_(
+                    ProgresoMaestria.alumno_id == alumno.id,
+                    ProgresoMaestria.fase_id == FASE2_ID,
+                    ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
+                ))
+            )
+            if res_aprob.scalar() >= 26:
+                fase_completada = True
 
         espejo = False
         intentos_espejo = 0
@@ -912,6 +965,7 @@ async def responder_fase2(
             intentos_totales=progreso.intentos_totales,
             porcentaje_actual=progreso.porcentaje_actual,
             bloque_completado=bloque_completado,
+            fase_completada=fase_completada,
             es_espejo=espejo,
             intentos_espejo_actuales=intentos_espejo,
             intentos_espejo_max=MAX_ESPEJO,

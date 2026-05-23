@@ -39,6 +39,7 @@ export interface Fase3AnswerResult {
   intentos_totales: number;
   porcentaje_actual: number;
   bloque_completado: boolean;
+  fase_completada?: boolean;
   early_exit: boolean;
   errores_sesion?: number;
   max_errores_tolerados?: number;

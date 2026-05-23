@@ -20,6 +20,7 @@ import type {
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Delete, ArrowRight } from 'lucide-react';
 import { getCurrentUserFull } from '../../services/storageService';
+import { useNavigate } from 'react-router-dom';
 
 // ── Íconos inline ─────────────────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [isInitialReading, setIsInitialReading] = useState(true);
   const [readingData, setReadingData] = useState<Fase2Lectura | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | undefined>(undefined);
+  const navigate = useNavigate();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -228,6 +230,13 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     }
 
     setFeedback({ visible: false, esCorrecta: false });
+    
+    if (feedback.resultado?.fase_completada) {
+      alert("¡Felicidades! Has dominado todos los niveles y desafíos de la Fase 2. ¡Fase 3 desbloqueada!");
+      navigate('/map');
+      return;
+    }
+
     if (feedback.resultado?.bloque_completado) {
       onComplete();
     } else if (feedback.esCorrecta) {
@@ -299,7 +308,12 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
           setFeedback({ visible: true, esCorrecta: true, resultado });
         } else {
           setFeedback({ visible: true, esCorrecta: true, resultado });
-          if (resultado.bloque_completado) {
+          if (resultado.fase_completada) {
+            setTimeout(() => {
+              alert("¡Felicidades! Has dominado todos los niveles y desafíos de la Fase 2. ¡Fase 3 desbloqueada!");
+              navigate('/map');
+            }, 1500);
+          } else if (resultado.bloque_completado) {
             setTimeout(() => onComplete(), 1500);
           } else {
             // Auto advance on correct answer for inline feedback
@@ -332,7 +346,12 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             setFeedback({ visible: true, esCorrecta: true, resultado });
           } else {
             setFeedback({ visible: true, esCorrecta: true, resultado });
-            if (resultado.bloque_completado) {
+            if (resultado.fase_completada) {
+              setTimeout(() => {
+                alert("¡Felicidades! Has dominado todos los niveles y desafíos de la Fase 2. ¡Fase 3 desbloqueada!");
+                navigate('/map');
+              }, 1500);
+            } else if (resultado.bloque_completado) {
               setTimeout(() => onComplete(), 1500);
             } else {
               setTimeout(() => {
