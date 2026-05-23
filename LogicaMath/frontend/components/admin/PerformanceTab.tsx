@@ -416,13 +416,13 @@ const PerformanceTab: React.FC = () => {
       {/* Top Header Panel */}
       <div className="flex items-center justify-between bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl">
         <div>
-          <h2 className="text-2xl font-black text-white flex items-center gap-3">
+          <h2 className="text-3xl font-black text-white flex items-center gap-3">
             <div className="p-2.5 bg-red-500/20 rounded-2xl border border-red-500/30">
               <Shield className="text-red-400" size={24} />
             </div>
             Rendimiento Estudiantil Avanzado
           </h2>
-          <p className="text-slate-400 text-xs mt-1">Busca un alumno para gestionar su avance o interactuar con el banco de preguntas y teoría.</p>
+          <p className="text-slate-400 text-sm mt-1">Busca un alumno para gestionar su avance o interactuar con el banco de preguntas y teoría.</p>
         </div>
 
         <button
@@ -451,7 +451,7 @@ const PerformanceTab: React.FC = () => {
           >
             {/* Left Column: Student search */}
             <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Buscador de Alumnos</h3>
+              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest px-2">Buscador de Alumnos</h3>
               
               <div className="relative">
                 <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -460,7 +460,7 @@ const PerformanceTab: React.FC = () => {
                   placeholder="Buscar por nombre o email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-bold placeholder-slate-500 text-white focus:outline-none focus:border-blue-500/50 transition-colors"
+                  className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-base font-bold placeholder-slate-500 text-white focus:outline-none focus:border-blue-500/50 transition-colors"
                 />
               </div>
 
@@ -473,11 +473,11 @@ const PerformanceTab: React.FC = () => {
                 )}
                 
                 {!loadingSearch && alumnos.length === 0 && searchQuery.trim() !== "" && (
-                  <p className="text-xs text-slate-500 text-center py-10">No se encontraron alumnos.</p>
+                  <p className="text-sm text-slate-500 text-center py-10">No se encontraron alumnos.</p>
                 )}
 
                 {!loadingSearch && alumnos.length === 0 && searchQuery.trim() === "" && (
-                  <p className="text-xs text-slate-500 text-center py-10">Escribe en el buscador para encontrar un alumno.</p>
+                  <p className="text-sm text-slate-500 text-center py-10">Escribe en el buscador para encontrar un alumno.</p>
                 )}
 
                 {alumnos.map((a) => {
@@ -492,7 +492,7 @@ const PerformanceTab: React.FC = () => {
                           : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
                       }`}
                     >
-                      <span className="text-xs font-black">{a.alumno_nombre}</span>
+                      <span className="text-sm font-black">{a.alumno_nombre}</span>
                       <span className="text-[10px] text-slate-500 font-bold">{a.email}</span>
                       <span className="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-white/5 self-start mt-1">
                         Fase Actual: {a.fase_actual_id}
@@ -508,8 +508,8 @@ const PerformanceTab: React.FC = () => {
               {!selectedAlumno ? (
                 <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-12 rounded-[2.2rem] shadow-2xl flex flex-col items-center justify-center text-center min-h-[40vh]">
                   <User size={48} className="text-slate-600 mb-4" />
-                  <h4 className="text-sm font-black text-slate-300">Ningún Alumno Seleccionado</h4>
-                  <p className="text-xs text-slate-500 max-w-xs mt-1">
+                  <h4 className="text-base font-black text-slate-300">Ningún Alumno Seleccionado</h4>
+                  <p className="text-sm text-slate-500 max-w-xs mt-1">
                     Selecciona un alumno de la lista de la izquierda para ver su rendimiento académico detallado y gestionar sus permisos de fase.
                   </p>
                 </div>
@@ -523,26 +523,26 @@ const PerformanceTab: React.FC = () => {
                         <User className="text-blue-400" size={24} />
                       </div>
                       <div>
-                        <h4 className="text-lg font-black text-white">{selectedAlumno.alumno_nombre}</h4>
-                        <p className="text-xs text-slate-500 font-bold">{selectedAlumno.email}</p>
+                        <h4 className="text-xl font-black text-white">{selectedAlumno.alumno_nombre}</h4>
+                        <p className="text-sm text-slate-500 font-bold">{selectedAlumno.email}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <div className="bg-slate-900 border border-white/10 px-4 py-2 rounded-xl text-center">
                         <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Fase Actual</span>
-                        <span className="text-sm font-black text-blue-400">Fase {selectedAlumno.fase_actual_id}</span>
+                        <span className="text-base font-black text-blue-400">Fase {selectedAlumno.fase_actual_id}</span>
                       </div>
                       <div className="bg-slate-900 border border-white/10 px-4 py-2 rounded-xl text-center">
                         <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Estado</span>
-                        <span className="text-sm font-black text-green-400">{selectedAlumno.estado}</span>
+                        <span className="text-base font-black text-green-400">{selectedAlumno.estado}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Progress Drilldown */}
                   <div className="flex flex-col gap-4 border-t border-white/5 pt-4">
-                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Progreso y Control de Maestría</h4>
+                    <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest px-1">Progreso y Control de Maestría</h4>
 
                     {loadingProgress ? (
                       <div className="flex items-center justify-center py-20">
@@ -561,7 +561,7 @@ const PerformanceTab: React.FC = () => {
                                 onClick={() => setExpandedFases(prev => ({ ...prev, [phase.id]: !prev[phase.id] }))}
                                 className="flex justify-between items-center p-4 bg-slate-900/40 cursor-pointer border-b border-white/5 hover:bg-slate-900/60"
                               >
-                                <span className="text-xs font-black text-white">{phase.name}</span>
+                                <span className="text-sm font-black text-white">{phase.name}</span>
                                 {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
                               </div>
 
@@ -685,7 +685,7 @@ const PerformanceTab: React.FC = () => {
           >
             {/* Phase / Module / Level Selectors */}
             <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-[2.2rem] shadow-2xl flex flex-col gap-5">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Selector de Nivel</h3>
+              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest px-2">Selector de Nivel</h3>
               
               {/* Phase selector */}
               <div className="flex flex-col gap-1.5">
@@ -698,7 +698,7 @@ const PerformanceTab: React.FC = () => {
                     setMgrModuloId(1);
                     setMgrLevelId(1);
                   }}
-                  className="bg-slate-950 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-blue-500/50"
+                  className="bg-slate-950 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50"
                 >
                   {PHASE_MAPS.map(p => (
                     <option key={p.id} value={p.id}>{p.name.split(':')[0]}</option>
@@ -716,7 +716,7 @@ const PerformanceTab: React.FC = () => {
                     setMgrModuloId(mid);
                     setMgrLevelId(1);
                   }}
-                  className="bg-slate-950 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-blue-500/50"
+                  className="bg-slate-950 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50"
                 >
                   {PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules.map(m => (
                     <option key={m.id} value={m.id}>{m.name}</option>
@@ -730,7 +730,7 @@ const PerformanceTab: React.FC = () => {
                 <select
                   value={mgrLevelId}
                   onChange={(e) => setMgrLevelId(parseInt(e.target.value))}
-                  className="bg-slate-950 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-blue-500/50"
+                  className="bg-slate-950 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50"
                 >
                   {PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules.find(m => m.id === mgrModuloId)?.levels.map(l => (
                     <option key={l.id} value={l.id}>{l.isChallenge ? 'Desafío' : 'Nivel'} {l.id}: {l.name}</option>
@@ -745,13 +745,13 @@ const PerformanceTab: React.FC = () => {
               {/* SECTION 1: THEORY / CONCEPTS EDITOR */}
               <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-5">
                 <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <FileText size={14} className="text-purple-400" /> Contenido Teórico (Flashcards)
                   </h4>
                   <button
                     onClick={handleSaveTheory}
                     disabled={loadingTheory || savingTheory}
-                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-xs font-black flex items-center gap-1.5 shadow-md shadow-purple-900/10 active:scale-95 transition-all"
+                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-sm font-black flex items-center gap-1.5 shadow-md shadow-purple-900/10 active:scale-95 transition-all"
                   >
                     {savingTheory ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
                     Guardar Teoría
@@ -763,40 +763,243 @@ const PerformanceTab: React.FC = () => {
                     <Loader2 className="animate-spin text-purple-400" size={24} />
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Left fields */}
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">Título de Teoría</label>
-                        <input
-                          type="text"
-                          value={theory?.titulo || ""}
-                          onChange={(e) => setTheory((prev: any) => ({ ...prev, titulo: e.target.value }))}
-                          className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-purple-500/50"
-                        />
+                  <div className="flex flex-col gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Left fields */}
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase">Título de Teoría</label>
+                          <input
+                            type="text"
+                            value={theory?.titulo || ""}
+                            onChange={(e) => setTheory((prev: any) => ({ ...prev, titulo: e.target.value }))}
+                            className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-purple-500/50"
+                          />
+                        </div>
+                        
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase">Texto Descubrimiento</label>
+                          <textarea
+                            rows={3}
+                            value={theory?.texto_descubrimiento || ""}
+                            onChange={(e) => setTheory((prev: any) => ({ ...prev, texto_descubrimiento: e.target.value }))}
+                            className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
+                          />
+                        </div>
                       </div>
-                      
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">Texto Descubrimiento</label>
-                        <textarea
-                          rows={3}
-                          value={theory?.texto_descubrimiento || ""}
-                          onChange={(e) => setTheory((prev: any) => ({ ...prev, texto_descubrimiento: e.target.value }))}
-                          className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
-                        />
+
+                      {/* Right fields */}
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase">Tip Pedagógico / Advertencia</label>
+                          <textarea
+                            rows={6}
+                            value={theory?.advertencia || ""}
+                            onChange={(e) => setTheory((prev: any) => ({ ...prev, advertencia: e.target.value }))}
+                            className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    {/* Right fields */}
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">Tip Pedagógico / Advertencia</label>
-                        <textarea
-                          rows={4}
-                          value={theory?.advertencia || ""}
-                          onChange={(e) => setTheory((prev: any) => ({ ...prev, advertencia: e.target.value }))}
-                          className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
-                        />
+                    {/* DICCIONARIO / GLOSARIO */}
+                    <div className="border-t border-white/5 pt-4 mt-2 flex flex-col gap-3">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Glosario / Diccionario del Nivel</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newDict = { ...(theory?.diccionario || {}) };
+                            let suffix = 1;
+                            while (newDict[`Nuevo Término ${suffix}`]) suffix++;
+                            newDict[`Nuevo Término ${suffix}`] = "Definición del término.";
+                            setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
+                          }}
+                          className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all"
+                        >
+                          <Plus size={10} /> Agregar Término
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {Object.entries(theory?.diccionario || {}).map(([term, def]: [string, any], dIdx) => (
+                          <div key={dIdx} className="flex gap-2 bg-slate-950/20 border border-white/5 p-2 rounded-xl items-start">
+                            <div className="flex-1 flex flex-col gap-1.5">
+                              <input
+                                type="text"
+                                placeholder="Término"
+                                value={term}
+                                onChange={(e) => {
+                                  const newKey = e.target.value;
+                                  if (!newKey) return;
+                                  const newDict: Record<string, any> = {};
+                                  for (const [k, v] of Object.entries(theory.diccionario)) {
+                                    if (k === term) {
+                                      newDict[newKey] = v;
+                                    } else {
+                                      newDict[k] = v;
+                                    }
+                                  }
+                                  setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
+                                }}
+                                className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs font-black text-purple-300 focus:outline-none focus:border-purple-500/50"
+                              />
+                              <textarea
+                                rows={2}
+                                placeholder="Definición"
+                                value={def}
+                                onChange={(e) => {
+                                  const newDict = { ...(theory.diccionario || {}) };
+                                  newDict[term] = e.target.value;
+                                  setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
+                                }}
+                                className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50 resize-none"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newDict = { ...(theory.diccionario || {}) };
+                                delete newDict[term];
+                                setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
+                              }}
+                              className="p-2 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        {Object.keys(theory?.diccionario || {}).length === 0 && (
+                          <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay términos definidos en el glosario de este nivel.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* EJEMPLOS */}
+                    <div className="border-t border-white/5 pt-4 mt-2 flex flex-col gap-3">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Ejemplos del Nivel</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newExamples = [...(theory?.ejemplos || [])];
+                            newExamples.push({
+                              enunciado: "Nuevo Ejemplo",
+                              pasos: [
+                                { orden: 1, texto: "Paso 1 del ejemplo" }
+                              ]
+                            });
+                            setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                          }}
+                          className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all"
+                        >
+                          <Plus size={10} /> Agregar Ejemplo
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {(theory?.ejemplos || []).map((ex: any, eIdx: number) => (
+                          <div key={eIdx} className="bg-slate-950/20 border border-white/5 p-4 rounded-2xl flex flex-col gap-3 relative">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-black text-purple-400">Ejemplo #{eIdx + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newExamples = (theory.ejemplos || []).filter((_: any, i: number) => i !== eIdx);
+                                  setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                }}
+                                className="p-1.5 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase">Enunciado del Ejemplo</label>
+                              <input
+                                type="text"
+                                value={ex.enunciado || ""}
+                                onChange={(e) => {
+                                  const newExamples = [...theory.ejemplos];
+                                  newExamples[eIdx] = { ...ex, enunciado: e.target.value };
+                                  setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                }}
+                                className="bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                              />
+                            </div>
+
+                            <div className="flex flex-col gap-2 bg-slate-950/40 p-3 rounded-xl border border-white/5">
+                              <div className="flex justify-between items-center">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase">Pasos del Ejemplo</label>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newExamples = [...theory.ejemplos];
+                                    const steps = [...(ex.pasos || [])];
+                                    steps.push({ orden: steps.length + 1, texto: "Siguiente paso" });
+                                    newExamples[eIdx] = { ...ex, pasos: steps };
+                                    setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                  }}
+                                  className="px-2 py-0.5 bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-400 rounded text-[9px] font-bold flex items-center gap-0.5 border border-purple-500/20"
+                                >
+                                  <Plus size={8} /> Añadir Paso
+                                </button>
+                              </div>
+
+                              <div className="flex flex-col gap-2">
+                                {(ex.pasos || []).map((step: any, sIdx: number) => (
+                                  <div key={sIdx} className="flex gap-2 items-center">
+                                    <span className="text-xs font-bold text-slate-500">{step.orden}</span>
+                                    <input
+                                      type="text"
+                                      value={step.texto || ""}
+                                      onChange={(e) => {
+                                        const newExamples = [...theory.ejemplos];
+                                        const steps = [...ex.pasos];
+                                        steps[sIdx] = { ...step, texto: e.target.value };
+                                        newExamples[eIdx] = { ...ex, pasos: steps };
+                                        setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                      }}
+                                      className="flex-1 bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newExamples = [...theory.ejemplos];
+                                        const steps = ex.pasos.filter((_: any, i: number) => i !== sIdx)
+                                          .map((s: any, idx: number) => ({ ...s, orden: idx + 1 }));
+                                        newExamples[eIdx] = { ...ex, pasos: steps };
+                                        setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                      }}
+                                      className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                    >
+                                      <X size={10} />
+                                    </button>
+                                  </div>
+                                ))}
+                                {(ex.pasos || []).length === 0 && (
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[9px] text-slate-500 italic">No hay pasos, se usará la respuesta legacy directa:</span>
+                                    <input
+                                      type="text"
+                                      placeholder="Respuesta directa (ej: 18)"
+                                      value={ex.respuesta || ""}
+                                      onChange={(e) => {
+                                        const newExamples = [...theory.ejemplos];
+                                        newExamples[eIdx] = { ...ex, respuesta: e.target.value };
+                                        setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
+                                      }}
+                                      className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {(theory?.ejemplos || []).length === 0 && (
+                          <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay ejemplos resueltos en este nivel.</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -806,13 +1009,13 @@ const PerformanceTab: React.FC = () => {
               {/* SECTION 2: QUESTIONS LIST */}
               <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-5">
                 <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <Settings size={14} className="text-blue-400" /> Banco de Preguntas del Nivel
                   </h4>
                   
                   <button
                     onClick={openNewQuestionModal}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-black flex items-center gap-1.5 shadow-md shadow-blue-900/10 active:scale-95 transition-all"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-black flex items-center gap-1.5 shadow-md shadow-blue-900/10 active:scale-95 transition-all"
                   >
                     <Plus size={12} />
                     Agregar Pregunta
@@ -826,7 +1029,7 @@ const PerformanceTab: React.FC = () => {
                 ) : (
                   <div className="overflow-x-auto w-full">
                     {questions.length === 0 ? (
-                      <p className="text-xs text-slate-500 text-center py-10">No hay preguntas registradas en este nivel.</p>
+                      <p className="text-sm text-slate-500 text-center py-10">No hay preguntas registradas en este nivel.</p>
                     ) : (
                       <table className="w-full text-left border-collapse">
                         <thead>
@@ -839,7 +1042,7 @@ const PerformanceTab: React.FC = () => {
                         </thead>
                         <tbody>
                           {questions.map((q) => (
-                            <tr key={q.id} className="border-b border-white/5 hover:bg-white/5 transition-colors text-xs">
+                            <tr key={q.id} className="border-b border-white/5 hover:bg-white/5 transition-colors text-sm">
                               <td className="py-4 px-4 font-semibold max-w-md truncate">{q.enunciado}</td>
                               <td className="py-4 px-4 font-bold text-green-400">{q.respuesta_correcta}</td>
                               <td className="py-4 px-4">
@@ -886,7 +1089,7 @@ const PerformanceTab: React.FC = () => {
               className="bg-slate-900 border border-white/10 w-full max-w-xl rounded-[2.2rem] p-8 shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto custom-scrollbar text-white select-none"
             >
               <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                <h4 className="text-lg font-black flex items-center gap-2">
+                <h4 className="text-xl font-black flex items-center gap-2">
                   <Shield size={18} className="text-blue-400" />
                   {editingQuestion.id ? 'Editar Pregunta' : 'Nueva Pregunta'}
                 </h4>
@@ -908,7 +1111,7 @@ const PerformanceTab: React.FC = () => {
                     required
                     value={editingQuestion.enunciado}
                     onChange={(e) => setEditingQuestion((prev: any) => ({ ...prev, enunciado: e.target.value }))}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl p-3.5 text-xs font-bold text-white focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-slate-950 border border-white/10 rounded-xl p-3.5 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50"
                   />
                 </div>
 
@@ -920,7 +1123,7 @@ const PerformanceTab: React.FC = () => {
                     required
                     value={editingQuestion.respuesta_correcta}
                     onChange={(e) => setEditingQuestion((prev: any) => ({ ...prev, respuesta_correcta: e.target.value }))}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl p-3.5 text-xs font-bold text-white focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-slate-950 border border-white/10 rounded-xl p-3.5 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50"
                   />
                 </div>
 
@@ -931,7 +1134,7 @@ const PerformanceTab: React.FC = () => {
                     <select
                       value={editingQuestion.tipo_pregunta}
                       onChange={(e) => setEditingQuestion((prev: any) => ({ ...prev, tipo_pregunta: e.target.value }))}
-                      className="bg-slate-950 border border-white/10 rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-blue-500/50"
+                      className="bg-slate-950 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50"
                     >
                       <option value="multiple_opcion">Opción Múltiple</option>
                       <option value="respuesta_numerica">Respuesta Numérica</option>
@@ -960,50 +1163,98 @@ const PerformanceTab: React.FC = () => {
                     <label className="text-[10px] font-black text-slate-400 uppercase">Alternativas del Nivel (Opción Múltiple)</label>
                     
                     {editingQuestion.alternativas.map((alt: any, idx: number) => (
-                      <div key={idx} className="flex items-center gap-3 bg-slate-950/20 border border-white/5 p-2 rounded-xl">
-                        <span className="text-xs font-black text-slate-500 w-5 text-center">#{idx + 1}</span>
-                        <input
-                          type="text"
-                          required
-                          placeholder={`Texto de la opción ${idx + 1}`}
-                          value={alt.texto}
-                          onChange={(e) => {
-                            const newAlts = [...editingQuestion.alternativas];
-                            newAlts[idx] = { ...alt, texto: e.target.value };
-                            // If this option is correct, sync response_correcta
-                            let updateCorrectObj: any = {};
-                            if (alt.es_correcta) {
-                              updateCorrectObj.respuesta_correcta = e.target.value;
-                            }
-                            setEditingQuestion((prev: any) => ({
-                              ...prev,
-                              alternativas: newAlts,
-                              ...updateCorrectObj
-                            }));
-                          }}
-                          className="flex-1 bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500/50"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newAlts = editingQuestion.alternativas.map((a: any, i: number) => ({
-                              ...a,
-                              es_correcta: i === idx
-                            }));
-                            setEditingQuestion((prev: any) => ({
-                              ...prev,
-                              alternativas: newAlts,
-                              respuesta_correcta: alt.texto
-                            }));
-                          }}
-                          className={`px-3 py-1.5 rounded-lg text-[9px] font-black border transition-all ${
-                            alt.es_correcta 
-                              ? 'bg-green-500/20 border-green-500/40 text-green-400' 
-                              : 'bg-white/5 border-white/10 text-slate-500 hover:text-slate-300'
-                          }`}
-                        >
-                          {alt.es_correcta ? 'Correcta' : 'Hacer Correcta'}
-                        </button>
+                      <div key={idx} className="flex flex-col gap-2 bg-slate-950/20 border border-white/5 p-3 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-black text-slate-500 w-5 text-center">#{idx + 1}</span>
+                          <input
+                            type="text"
+                            required
+                            placeholder={`Texto de la opción ${idx + 1}`}
+                            value={alt.texto}
+                            onChange={(e) => {
+                              const newAlts = [...editingQuestion.alternativas];
+                              newAlts[idx] = { ...alt, texto: e.target.value };
+                              // If this option is correct, sync response_correcta
+                              let updateCorrectObj: any = {};
+                              if (alt.es_correcta) {
+                                updateCorrectObj.respuesta_correcta = e.target.value;
+                              }
+                              setEditingQuestion((prev: any) => ({
+                                ...prev,
+                                alternativas: newAlts,
+                                ...updateCorrectObj
+                              }));
+                            }}
+                            className="flex-1 bg-slate-950 border border-white/5 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newAlts = editingQuestion.alternativas.map((a: any, i: number) => ({
+                                ...a,
+                                es_correcta: i === idx,
+                                tipo_error: i === idx ? null : a.tipo_error,
+                                feedback_error: i === idx ? null : a.feedback_error
+                              }));
+                              setEditingQuestion((prev: any) => ({
+                                ...prev,
+                                alternativas: newAlts,
+                                respuesta_correcta: alt.texto
+                              }));
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-black border transition-all ${
+                              alt.es_correcta 
+                                ? 'bg-green-500/20 border-green-500/40 text-green-400' 
+                                : 'bg-white/5 border-white/10 text-slate-500 hover:text-slate-300'
+                            }`}
+                          >
+                            {alt.es_correcta ? 'Correcta' : 'Hacer Correcta'}
+                          </button>
+                        </div>
+                        
+                        {!alt.es_correcta && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-8 border-t border-white/5 pt-2 mt-1">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase">Tipo de Error</label>
+                              <select
+                                value={alt.tipo_error || ""}
+                                onChange={(e) => {
+                                  const newAlts = [...editingQuestion.alternativas];
+                                  newAlts[idx] = { ...alt, tipo_error: e.target.value || null };
+                                  setEditingQuestion((prev: any) => ({ ...prev, alternativas: newAlts }));
+                                }}
+                                className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
+                              >
+                                <option value="">-- Sin Tipo de Error --</option>
+                                <option value="calculo">Cálculo</option>
+                                <option value="lectura">Lectura</option>
+                                <option value="atencion">Atención</option>
+                                <option value="operacion_incorrecta">Operación Incorrecta</option>
+                                <option value="no_identifica_datos">No Identifica Datos</option>
+                                <option value="problema_incompleto">Problema Incompleto</option>
+                                <option value="tabuada">Tabuada</option>
+                                <option value="division">División</option>
+                                <option value="valor_posicional">Valor Posicional</option>
+                                <option value="troco">Troco</option>
+                                <option value="inferencia">Inferencia</option>
+                              </select>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase">Feedback / Retroalimentación</label>
+                              <input
+                                type="text"
+                                placeholder="Retroalimentación específica de este error"
+                                value={alt.feedback_error || ""}
+                                onChange={(e) => {
+                                  const newAlts = [...editingQuestion.alternativas];
+                                  newAlts[idx] = { ...alt, feedback_error: e.target.value };
+                                  setEditingQuestion((prev: any) => ({ ...prev, alternativas: newAlts }));
+                                }}
+                                className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1014,14 +1265,14 @@ const PerformanceTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => { setShowQuestionModal(false); setEditingQuestion(null); }}
-                    className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-xs font-bold transition-all border border-white/5 text-slate-300"
+                    className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-sm font-bold transition-all border border-white/5 text-slate-300"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={savingQuestion}
-                    className="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-xs font-black shadow-lg shadow-blue-900/20 disabled:opacity-40 flex items-center gap-1.5 active:scale-95 transition-all"
+                    className="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-sm font-black shadow-lg shadow-blue-900/20 disabled:opacity-40 flex items-center gap-1.5 active:scale-95 transition-all"
                   >
                     {savingQuestion ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                     {editingQuestion.id ? 'Guardar Cambios' : 'Crear Pregunta'}

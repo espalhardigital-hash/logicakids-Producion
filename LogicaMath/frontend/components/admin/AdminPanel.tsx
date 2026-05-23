@@ -62,8 +62,8 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
               <Shield className="text-red-500" size={26} />
             </div>
             <div>
-              <h2 className="text-xl font-black tracking-tight text-white leading-tight">Admin Pro</h2>
-              <p className="text-xs font-bold text-blue-400 tracking-widest uppercase">LogicaKids</p>
+              <h2 className="text-2xl font-black tracking-tight text-white leading-tight">Admin Pro</h2>
+              <p className="text-sm font-bold text-blue-400 tracking-widest uppercase">LogicaKids</p>
             </div>
           </div>
         </div>
@@ -75,7 +75,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id as TabType)}
-                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 font-bold tracking-wide relative overflow-hidden group ${
+                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 font-bold text-base tracking-wide relative overflow-hidden group ${
                   isActive 
                     ? 'text-white bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.2)]' 
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -98,13 +98,13 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
         <div className="p-6 space-y-3">
           <button
             onClick={onBack}
-            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] group"
+            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-base font-black shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] group"
           >
             Ir a Pruebas (Jugar)
           </button>
           <button
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-slate-400 hover:text-red-400 font-bold transition-all"
+            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-slate-400 hover:text-red-400 text-sm font-bold transition-all"
           >
             <LogOut size={18} />
             Cerrar Sesión

@@ -232,8 +232,8 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
               className={`bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-[2rem] shadow-2xl flex items-center justify-between ${item.onClick ? 'cursor-pointer group' : ''}`}
             >
               <div>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">{item.label}</p>
-                <p className="text-3xl font-black text-white">{item.value}</p>
+                <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-1">{item.label}</p>
+                <p className="text-4xl font-black text-white">{item.value}</p>
               </div>
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                 item.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
@@ -259,7 +259,7 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                 placeholder="Buscar usuario o email..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-14 pr-6 text-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all placeholder:text-slate-500"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-14 pr-6 text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all placeholder:text-slate-500"
               />
             </div>
             <button
@@ -273,7 +273,7 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
           {/* User Table */}
           <div className="flex-1 overflow-auto custom-scrollbar bg-transparent">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-[0.2em] sticky top-0 z-10 border-b border-white/5">
+              <thead className="bg-white/5 text-slate-400 text-sm font-bold uppercase tracking-[0.2em] sticky top-0 z-10 border-b border-white/5">
                 <tr>
                   <th className="p-6">Usuario</th>
                   <th className="p-6 hidden sm:table-cell">Detalles</th>
@@ -301,21 +301,21 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                           <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#1e293b] ${user.status === 'ACTIVE' ? 'bg-green-500' : 'bg-slate-500'}`}></div>
                         </div>
                         <div>
-                          <div className="font-black text-white text-xl tracking-tight">{user.username}</div>
-                          <div className="text-sm font-medium text-slate-400 hidden sm:block">{user.email}</div>
+                          <div className="font-black text-white text-2xl tracking-tight">{user.username}</div>
+                          <div className="text-base font-medium text-slate-400 hidden sm:block">{user.email}</div>
                         </div>
                       </div>
                     </td>
                     <td className="p-6 hidden sm:table-cell">
                       <div className="flex flex-col gap-1.5">
-                        <span className={`text-[10px] font-black px-3 py-1 rounded-lg w-max tracking-widest uppercase ${user.role === 'ADMIN' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
+                        <span className={`text-xs font-black px-3 py-1 rounded-lg w-max tracking-widest uppercase ${user.role === 'ADMIN' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
                           {user.role}
                         </span>
-                        <span className="text-xs font-semibold text-slate-500">Unido el {formatFriendlyDate(user.createdAt, false) || 'Desconocido'}</span>
+                        <span className="text-sm font-semibold text-slate-500">Unido el {formatFriendlyDate(user.createdAt, false) || 'Desconocido'}</span>
                       </div>
                     </td>
                     <td className="p-6">
-                      <span className={`px-4 py-1.5 rounded-xl text-xs font-black tracking-wide ${user.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-slate-500/10 text-slate-400 border border-white/5'}`}>
+                      <span className={`px-4 py-1.5 rounded-xl text-sm font-black tracking-wide ${user.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-slate-500/10 text-slate-400 border border-white/5'}`}>
                         {user.status === 'ACTIVE' ? 'Activo' : 'Baneado'}
                       </span>
                     </td>
@@ -382,37 +382,37 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
               <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
               
               <div className="flex justify-between items-center mb-10">
-                <h3 className="text-3xl font-black text-white tracking-tight">{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
+                <h3 className="text-4xl font-black text-white tracking-tight">{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
                 <button onClick={() => setShowUserModal(false)} className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all"><X size={22} /></button>
               </div>
 
               <form onSubmit={handleSaveUser} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Nombre de Usuario</label>
-                  <input required value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-600" placeholder="Ej: SuperMath" />
+                  <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Nombre de Usuario</label>
+                  <input required value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-base font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-600" placeholder="Ej: SuperMath" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Correo Electrónico</label>
-                  <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all disabled:opacity-30 disabled:cursor-not-allowed" disabled={!!editingUser} placeholder="correo@ejemplo.com" />
+                  <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Correo Electrónico</label>
+                  <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-base font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all disabled:opacity-30 disabled:cursor-not-allowed" disabled={!!editingUser} placeholder="correo@ejemplo.com" />
                 </div>
                 {!editingUser && (
                   <div className="space-y-2">
-                    <label className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Contraseña Inicial</label>
-                    <input required type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" placeholder="••••••••" />
+                    <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Contraseña Inicial</label>
+                    <input required type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-base font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" placeholder="••••••••" />
                   </div>
                 )}
                 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Rol</label>
-                    <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer">
+                    <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Rol</label>
+                    <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-base font-bold focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer">
                       <option value="USER" className="bg-slate-900">Usuario</option>
                       <option value="ADMIN" className="bg-slate-900">Administrador</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Estado</label>
-                    <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer">
+                    <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Estado</label>
+                    <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-base font-bold focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer">
                       <option value="ACTIVE" className="bg-slate-900">Activo</option>
                       <option value="BANNED" className="bg-slate-900">Baneado</option>
                     </select>
@@ -420,8 +420,8 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                 </div>
 
                 <div className="pt-8 flex gap-4">
-                  <button type="button" onClick={() => setShowUserModal(false)} className="flex-1 py-4 rounded-2xl font-black text-slate-400 hover:text-white hover:bg-white/5 transition-all">Cancelar</button>
-                  <button type="submit" className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(37,99,235,0.3)] transition-all">
+                  <button type="button" onClick={() => setShowUserModal(false)} className="flex-1 py-4 rounded-2xl font-black text-slate-400 hover:text-white hover:bg-white/5 text-base transition-all">Cancelar</button>
+                  <button type="submit" className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-base flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(37,99,235,0.3)] transition-all">
                     <Check size={20} /> Guardar Cambios
                   </button>
                 </div>
@@ -457,10 +457,10 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-4xl font-black text-white tracking-tight">{statsUser.username}</h3>
-                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${statsUser.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>{statsUser.role}</span>
+                    <h3 className="text-5xl font-black text-white tracking-tight">{statsUser.username}</h3>
+                    <span className={`px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest ${statsUser.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>{statsUser.role}</span>
                   </div>
-                  <p className="text-slate-400 font-medium mt-1">{statsUser.email}</p>
+                  <p className="text-slate-400 text-base font-medium mt-1">{statsUser.email}</p>
                 </div>
                 <button onClick={() => setShowStatsModal(false)} className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-400 transition-all hover:rotate-90"><X size={24} /></button>
               </div>
@@ -474,16 +474,16 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                 ) : (
                   <div className="space-y-10">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3">
+                      <h4 className="text-sm font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
                         Historial de Rendimiento
                       </h4>
-                      <div className="text-slate-500 text-xs font-bold">Total: {sortedHistory.length} partidas</div>
+                      <div className="text-slate-500 text-sm font-bold">Total: {sortedHistory.length} partidas</div>
                     </div>
 
                     <div className="overflow-hidden rounded-[2rem] border border-white/5 bg-white/[0.02]">
                       <table className="w-full text-left border-collapse">
-                        <thead className="text-[10px] text-slate-500 uppercase font-black tracking-widest bg-white/5 border-b border-white/5">
+                        <thead className="text-xs text-slate-500 uppercase font-black tracking-widest bg-white/5 border-b border-white/5">
                           <tr>
                             <th className="p-5 cursor-pointer hover:text-white transition-colors" onClick={() => toggleSort('date')}>
                               Fecha {sortConfig.key === 'date' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
@@ -505,19 +505,19 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                               key={record.id} 
                               className="hover:bg-white/[0.03] transition-colors"
                             >
-                              <td className="p-5 text-slate-400 font-semibold whitespace-nowrap text-sm">
+                              <td className="p-5 text-slate-400 font-semibold whitespace-nowrap text-base">
                                 {formatFriendlyDate(record.rawDate || record.date)}
                               </td>
-                              <td className="p-5 font-black text-white capitalize tracking-tight">
+                              <td className="p-5 font-black text-white text-base capitalize tracking-tight">
                                 {record.category?.replace(/_/g, ' ') || 'General'}
                               </td>
                               <td className="p-5 text-center">
-                                <span className="text-blue-400 font-black text-sm bg-blue-500/10 px-3 py-1 rounded-lg border border-blue-500/20">
+                                <span className="text-blue-400 font-black text-base bg-blue-500/10 px-3 py-1 rounded-lg border border-blue-500/20">
                                   {record.difficulty?.replace(/_/g, ' ') || '-'}
                                 </span>
                               </td>
                               <td className="p-5 text-center">
-                                <span className={`px-4 py-1.5 rounded-xl text-xs font-black shadow-lg ${
+                                <span className={`px-4 py-1.5 rounded-xl text-sm font-black shadow-lg ${
                                   record.score >= 80 ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 
                                   record.score >= 60 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 
                                   'bg-red-500/20 text-red-400 border border-red-500/30'
@@ -525,7 +525,7 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                                   {record.score}%
                                 </span>
                               </td>
-                              <td className="p-5 text-center font-black text-red-500 text-lg">
+                              <td className="p-5 text-center font-black text-red-500 text-xl">
                                 {record.errorCount}
                               </td>
                             </motion.tr>
@@ -561,13 +561,13 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
             >
               <div className="bg-white/5 p-10 flex justify-between items-center border-b border-white/5">
                 <div>
-                  <h3 className="text-4xl font-black text-white flex items-center gap-5 tracking-tight">
+                  <h3 className="text-5xl font-black text-white flex items-center gap-5 tracking-tight">
                     <div className="w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
                       <Activity className="text-green-500" size={28} />
                     </div>
                     Registros Globales
                   </h3>
-                  <p className="text-slate-500 text-sm font-medium mt-2 ml-1">Partidas totales registradas en LogicaKids Pro</p>
+                  <p className="text-slate-500 text-base font-medium mt-2 ml-1">Partidas totales registradas en LogicaKids Pro</p>
                 </div>
                 <button onClick={() => setShowAllScoresModal(false)} className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all"><X size={24} /></button>
               </div>
@@ -575,7 +575,7 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
               <div className="flex-1 overflow-y-auto custom-scrollbar p-10 bg-transparent">
                 <div className="overflow-hidden rounded-[2.5rem] border border-white/5 bg-white/[0.02]">
                   <table className="w-full text-left border-collapse">
-                    <thead className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] bg-white/5 sticky top-0 z-10 border-b border-white/5">
+                    <thead className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] bg-white/5 sticky top-0 z-10 border-b border-white/5">
                       <tr>
                         <th className="p-6">Fecha y Hora</th>
                         <th className="p-6">Usuario</th>
@@ -594,17 +594,17 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                           key={record.id} 
                           className="hover:bg-white/[0.04] transition-all group"
                         >
-                          <td className="p-6 text-slate-400 font-medium text-sm">
+                          <td className="p-6 text-slate-400 font-medium text-base">
                             {formatFriendlyDate(record.date)}
                           </td>
                           <td className="p-6">
-                            <span className="font-black text-blue-400 text-lg tracking-tight group-hover:text-blue-300 transition-colors cursor-default">{record.user}</span>
+                            <span className="font-black text-blue-400 text-xl tracking-tight group-hover:text-blue-300 transition-colors cursor-default">{record.user}</span>
                           </td>
-                          <td className="p-6 font-bold text-white capitalize tracking-wide">
+                          <td className="p-6 font-bold text-white text-base capitalize tracking-wide">
                             {record.category?.replace(/_/g, ' ') || 'General'}
                           </td>
                           <td className="p-6 text-center">
-                            <span className={`px-4 py-2 rounded-xl text-xs font-black shadow-xl ${
+                            <span className={`px-4 py-2 rounded-xl text-sm font-black shadow-xl ${
                               record.score >= 80 ? 'bg-green-500/20 text-green-400 border border-green-500/30 shadow-green-500/5' : 
                               record.score >= 60 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-amber-500/5' : 
                               'bg-red-500/20 text-red-400 border border-red-500/30 shadow-red-500/5'
@@ -612,7 +612,7 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                               {record.score}%
                             </span>
                           </td>
-                          <td className="p-6 text-center font-black text-red-500 text-xl">
+                          <td className="p-6 text-center font-black text-red-500 text-2xl">
                             {record.errorCount}
                           </td>
                           <td className="p-6 text-center">
@@ -660,7 +660,7 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
               <div className="absolute top-0 left-0 w-full h-1.5 bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]"></div>
               
               <div className="flex justify-between items-center mb-10">
-                <h3 className="text-3xl font-black text-white flex items-center gap-4 tracking-tight">
+                <h3 className="text-4xl font-black text-white flex items-center gap-4 tracking-tight">
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
                     <Key className="text-amber-500" size={24} />
                   </div>
@@ -671,22 +671,22 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
 
               <form onSubmit={handleSavePassword} className="space-y-8">
                 <div className="space-y-3">
-                  <label className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Nueva Contraseña Segura</label>
+                  <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Nueva Contraseña Segura</label>
                   <input
                     required
                     type="password"
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white font-black text-xl focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all placeholder:text-slate-700"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white font-black text-2xl focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all placeholder:text-slate-700"
                     placeholder="••••••••"
                     minLength={6}
                   />
-                  <p className="text-[10px] text-amber-500/60 font-bold px-1 italic">Mínimo 6 caracteres alfanuméricos</p>
+                  <p className="text-xs text-amber-500/60 font-bold px-1 italic">Mínimo 6 caracteres alfanuméricos</p>
                 </div>
 
                 <div className="pt-4 flex gap-4">
-                  <button type="button" onClick={() => setShowPasswordModal(false)} className="flex-1 py-4 rounded-2xl font-black text-slate-400 hover:text-white hover:bg-white/5 transition-all">Cancelar</button>
-                  <button type="submit" className="flex-[2] py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(245,158,11,0.3)] transition-all">
+                  <button type="button" onClick={() => setShowPasswordModal(false)} className="flex-1 py-4 rounded-2xl font-black text-slate-400 hover:text-white hover:bg-white/5 text-base transition-all">Cancelar</button>
+                  <button type="submit" className="flex-[2] py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-base flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(245,158,11,0.3)] transition-all">
                     <Check size={22} /> Actualizar Ahora
                   </button>
                 </div>

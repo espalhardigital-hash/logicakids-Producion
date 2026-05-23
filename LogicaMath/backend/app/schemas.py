@@ -232,6 +232,7 @@ class PreguntaUpdate(BaseModel):
     palabras_clave: Optional[Dict[str, Any]] = None
     errores_previstos: Optional[Dict[str, Any]] = None
     estado: Optional[str] = None
+    alternativas: Optional[List[AlternativaCreate]] = None
 
 
 class PreguntaResponse(PreguntaBase):

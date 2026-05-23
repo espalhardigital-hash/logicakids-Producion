@@ -205,10 +205,22 @@ const STATIC_PHASES: StaticPhase[] = [
 ];
 
 const DEFAULT_GLOBAL_CONFIG: PedagogyConfig = {
-  questionsPerPhase: 50,
-  timers: { easy: 10, easy_medium: 12, medium: 14, medium_hard: 16, hard: 18 },
-  useTimer: true,
-  passingScore: 90,
+  practica_libre: {
+    cantidad_requerida: 15,
+    porcentaje_aprobacion: 80,
+    usa_cronometro: false,
+    tiempo_default_segundos: 15,
+    tipo_feedback: 'simple',
+  },
+  desafios: {
+    cantidad_requerida: 20,
+    porcentaje_aprobacion: 90,
+    usa_cronometro: true,
+    tiempo_default_segundos_11: 25,
+    tiempo_default_segundos_12: 40,
+    tiempo_default_segundos_13: 50,
+    tipo_feedback: 'simple',
+  },
 };
 
 const itemVariants = {
@@ -238,7 +250,7 @@ const SliderWithTooltip: React.FC<{
         className="absolute -top-3 transform -translate-x-1/2 pointer-events-none transition-all duration-100 z-30"
         style={{ left: `${percentage}%` }}
       >
-        <div className="bg-slate-900 border border-white/20 text-white font-black text-xs px-2 py-0.5 rounded shadow-xl whitespace-nowrap">
+        <div className="bg-slate-900 border border-white/20 text-white font-black text-sm px-2 py-0.5 rounded shadow-xl whitespace-nowrap">
           {value}{unit}
           <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
         </div>
@@ -312,7 +324,10 @@ const PedagogyTab: React.FC = () => {
       ]);
 
       if (settingsData) {
-        const mergedGlobal = { ...DEFAULT_GLOBAL_CONFIG, ...settingsData, timers: { ...DEFAULT_GLOBAL_CONFIG.timers, ...(settingsData.timers || {}) } };
+        const mergedGlobal: PedagogyConfig = {
+          practica_libre: { ...DEFAULT_GLOBAL_CONFIG.practica_libre, ...(settingsData.practica_libre || {}) },
+          desafios: { ...DEFAULT_GLOBAL_CONFIG.desafios, ...(settingsData.desafios || {}) }
+        };
         setGlobalConfig(mergedGlobal);
         setDraftGlobalConfig(mergedGlobal);
       }
@@ -390,41 +405,54 @@ const PedagogyTab: React.FC = () => {
   // Module specific -> Phase default -> Platform Global
   const getInheritedQuestionsCount = (): number => {
     if (activePhaseDefaultRecord) return activePhaseDefaultRecord.cantidad_requerida;
-    return draftGlobalConfig.questionsPerPhase;
+    return isSelectedChallenge 
+      ? draftGlobalConfig.desafios.cantidad_requerida
+      : draftGlobalConfig.practica_libre.cantidad_requerida;
   };
 
   const getInheritedPassingScore = (): number => {
     if (activePhaseDefaultRecord) return activePhaseDefaultRecord.porcentaje_aprobacion;
-    return draftGlobalConfig.passingScore;
+    return isSelectedChallenge 
+      ? draftGlobalConfig.desafios.porcentaje_aprobacion
+      : draftGlobalConfig.practica_libre.porcentaje_aprobacion;
   };
 
   const getInheritedUseTimer = (): boolean => {
     if (activePhaseDefaultRecord) return activePhaseDefaultRecord.usa_cronometro;
-    return draftGlobalConfig.useTimer;
+    return isSelectedChallenge 
+      ? draftGlobalConfig.desafios.usa_cronometro
+      : draftGlobalConfig.practica_libre.usa_cronometro;
   };
 
   const getInheritedFeedbackType = (): string => {
     if (activePhaseDefaultRecord) return activePhaseDefaultRecord.tipo_feedback;
-    return 'simple';
+    return isSelectedChallenge 
+      ? draftGlobalConfig.desafios.tipo_feedback
+      : draftGlobalConfig.practica_libre.tipo_feedback;
   };
 
   const getInheritedTimerForLevel = (levelKey: 'easy' | 'easy_medium' | 'medium' | 'medium_hard' | 'hard'): number => {
     if (activePhaseDefaultRecord && activePhaseDefaultRecord.tiempo_default_segundos !== null) {
       return activePhaseDefaultRecord.tiempo_default_segundos;
     }
-    return draftGlobalConfig.timers[levelKey] || 12;
+    if (isSelectedChallenge) {
+      if (selectedSubLevelId === 11) return draftGlobalConfig.desafios.tiempo_default_segundos_11;
+      if (selectedSubLevelId === 12) return draftGlobalConfig.desafios.tiempo_default_segundos_12;
+      if (selectedSubLevelId === 13) return draftGlobalConfig.desafios.tiempo_default_segundos_13;
+      return 25;
+    }
+    return draftGlobalConfig.practica_libre.tiempo_default_segundos;
   };
 
   // Handle Updates
-  const updateGlobalTimer = (key: keyof PedagogyConfig['timers'], val: number) => {
+  const updateGlobalField = (section: 'practica_libre' | 'desafios', field: string, val: any) => {
     setDraftGlobalConfig(prev => ({
       ...prev,
-      timers: { ...prev.timers, [key]: val }
+      [section]: {
+        ...prev[section],
+        [field]: val
+      }
     }));
-  };
-
-  const updateGlobalField = (field: keyof PedagogyConfig, val: any) => {
-    setDraftGlobalConfig(prev => ({ ...prev, [field]: val }));
   };
 
   // Update or Create Phase Default Override
@@ -440,12 +468,12 @@ const PedagogyTab: React.FC = () => {
           fase_id: selectedPhaseId,
           seccion: 0,
           operacion: 'mixta',
-          cantidad_requerida: field === 'cantidad_requerida' ? val : draftGlobalConfig.questionsPerPhase,
-          porcentaje_aprobacion: field === 'porcentaje_aprobacion' ? val : draftGlobalConfig.passingScore,
+          cantidad_requerida: field === 'cantidad_requerida' ? val : draftGlobalConfig.practica_libre.cantidad_requerida,
+          porcentaje_aprobacion: field === 'porcentaje_aprobacion' ? val : draftGlobalConfig.practica_libre.porcentaje_aprobacion,
           orden_desbloqueo: 0,
-          tipo_feedback: field === 'tipo_feedback' ? val : 'simple',
-          usa_cronometro: field === 'usa_cronometro' ? val : draftGlobalConfig.useTimer,
-          tiempo_default_segundos: field === 'tiempo_default_segundos' ? val : draftGlobalConfig.timers.medium,
+          tipo_feedback: field === 'tipo_feedback' ? val : draftGlobalConfig.practica_libre.tipo_feedback,
+          usa_cronometro: field === 'usa_cronometro' ? val : draftGlobalConfig.practica_libre.usa_cronometro,
+          tiempo_default_segundos: field === 'tiempo_default_segundos' ? val : draftGlobalConfig.practica_libre.tiempo_default_segundos,
           activo: true
         };
         return [...prev, newRecord];
@@ -497,12 +525,12 @@ const PedagogyTab: React.FC = () => {
           fase_id: selectedPhaseId,
           seccion: 0,
           operacion: 'mixta',
-          cantidad_requerida: draftGlobalConfig.questionsPerPhase,
-          porcentaje_aprobacion: draftGlobalConfig.passingScore,
+          cantidad_requerida: draftGlobalConfig.practica_libre.cantidad_requerida,
+          porcentaje_aprobacion: draftGlobalConfig.practica_libre.porcentaje_aprobacion,
           orden_desbloqueo: 0,
-          tipo_feedback: 'simple',
-          usa_cronometro: draftGlobalConfig.useTimer,
-          tiempo_default_segundos: draftGlobalConfig.timers.medium,
+          tipo_feedback: draftGlobalConfig.practica_libre.tipo_feedback,
+          usa_cronometro: draftGlobalConfig.practica_libre.usa_cronometro,
+          tiempo_default_segundos: draftGlobalConfig.practica_libre.tiempo_default_segundos,
           activo: true
         };
         return [...prev, newRecord];
@@ -643,7 +671,7 @@ const PedagogyTab: React.FC = () => {
       <div className="w-full flex items-center justify-center py-40 select-none">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="text-blue-500 animate-spin" size={48} />
-          <p className="text-slate-400 font-bold text-sm">Cargando base de datos pedagógica...</p>
+          <p className="text-slate-400 font-bold text-base">Cargando base de datos pedagógica...</p>
         </div>
       </div>
     );
@@ -657,13 +685,13 @@ const PedagogyTab: React.FC = () => {
       {/* Top Header Card */}
       <div className="flex items-center justify-between bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl">
         <div>
-          <h2 className="text-2xl font-black text-white flex items-center gap-3">
+          <h2 className="text-3xl font-black text-white flex items-center gap-3">
             <div className="p-2.5 bg-blue-500/20 rounded-2xl border border-blue-500/30">
               <Cpu className="text-blue-400" size={24} />
             </div>
             Gestión Pedagógica Avanzada
           </h2>
-          <p className="text-slate-400 text-xs mt-1">Configuración jerárquica con sistema de herencia para las fases del Viaje Matemático.</p>
+          <p className="text-slate-400 text-sm mt-1">Configuración jerárquica con sistema de herencia para las fases del Viaje Matemático.</p>
         </div>
 
         <button
@@ -696,7 +724,7 @@ const PedagogyTab: React.FC = () => {
           className="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-6 py-3.5 flex items-center gap-3"
         >
           <AlertCircle size={18} className="text-amber-400" />
-          <span className="text-amber-300 text-xs font-black">
+          <span className="text-amber-300 text-sm font-black">
             Tienes modificaciones pendientes sin sincronizar. Presiona "Guardar Cambios" para aplicar a la base de datos.
           </span>
         </motion.div>
@@ -708,7 +736,7 @@ const PedagogyTab: React.FC = () => {
         {/* LEFT COLUMN: Hierarchical Accordion Tree */}
         <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
           <div className="flex justify-between items-center px-2">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Viaje del Alumno</h3>
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Viaje del Alumno</h3>
             <span className="text-[10px] bg-slate-800 text-slate-400 border border-white/5 px-2 py-0.5 rounded-full font-bold">{STATIC_PHASES.length} Fases</span>
           </div>
 
@@ -725,7 +753,7 @@ const PedagogyTab: React.FC = () => {
             >
               <Settings size={16} className={selectedPhaseId === 0 ? "text-blue-400 animate-spin" : "text-slate-400"} />
               <div className="flex-1">
-                <span className="text-xs font-black">Límites Globales (Plataforma)</span>
+                <span className="text-sm font-black">Límites Globales (Plataforma)</span>
                 <p className="text-[9px] text-slate-500 mt-0.5 font-bold">Valores por defecto ante fallbacks</p>
               </div>
             </button>
@@ -749,7 +777,7 @@ const PedagogyTab: React.FC = () => {
                   >
                     <div className="flex items-center gap-2.5 flex-1" onClick={() => selectPhase(phase.id)}>
                       <Layers size={15} className={isSelected ? "text-blue-400" : "text-slate-400"} />
-                      <span className={`text-xs font-black transition-colors ${
+                      <span className={`text-sm font-black transition-colors ${
                         isSelected ? 'text-blue-400' : 'text-white'
                       }`}>
                         {phase.name.split(':')[0]}
@@ -865,101 +893,260 @@ const PedagogyTab: React.FC = () => {
               >
                 <div>
                   <div className="inline-flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-                    Límites Globales de la Plataforma
+                    Límites Globales (Fases estructuradas 2 a 8)
                   </div>
-                  <h3 className="text-xl font-black text-white mt-3">Configuración de Fallbacks Generales</h3>
-                  <p className="text-slate-400 text-xs mt-1">Estos valores actúan como fallback en caso de que una fase o módulo no posea un override específico.</p>
+                  <h3 className="text-2xl font-black text-white mt-3">Configuración de Fallbacks Generales</h3>
+                  <p className="text-slate-400 text-sm mt-1">Estos valores actúan como fallback para las Fases 2 a 8 si no existe un override específico en la fase, módulo o nivel.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
-                  {/* Left Parameter Inputs */}
-                  <div className="flex flex-col gap-6">
-                    {/* Questions Volume */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <label className="text-xs text-slate-300 font-bold">Volumen de Ejercicios por Fase</label>
-                        <span className="text-base font-black text-blue-400 bg-blue-500/10 px-3 py-1 rounded-xl border border-blue-500/20 min-w-[70px] text-center">
-                          {draftGlobalConfig.questionsPerPhase}
-                        </span>
-                      </div>
-                      <SliderWithTooltip
-                        value={draftGlobalConfig.questionsPerPhase}
-                        min={10}
-                        max={120}
-                        step={5}
-                        onChange={(val) => updateGlobalField('questionsPerPhase', val)}
-                        accentColor="bg-blue-500"
-                      />
-                    </div>
+                <div className="flex flex-col gap-8">
+                  {/* SECCIÓN 1: PRÁCTICA LIBRE (Niveles 1-10) */}
+                  <div className="bg-slate-950/20 border border-white/5 p-6 rounded-3xl flex flex-col gap-5">
+                    <h4 className="text-base font-black text-white flex items-center gap-2 border-b border-white/5 pb-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      Práctica Libre (Niveles 1 a 10)
+                    </h4>
 
-                    {/* Passing Score percentage */}
-                    <div className="space-y-3 pt-4 border-t border-white/5">
-                      <div className="flex justify-between items-center">
-                        <label className="text-xs text-slate-300 font-bold">Porcentaje Mínimo de Aprobación</label>
-                        <span className="text-base font-black text-green-400 bg-green-500/10 px-3 py-1 rounded-xl border border-green-500/20 min-w-[65px] text-center">
-                          {draftGlobalConfig.passingScore}%
-                        </span>
-                      </div>
-                      <SliderWithTooltip
-                        value={draftGlobalConfig.passingScore}
-                        min={50}
-                        max={100}
-                        step={5}
-                        onChange={(val) => updateGlobalField('passingScore', val)}
-                        accentColor="bg-green-500"
-                        unit="%"
-                      />
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Left: Vol & Pct */}
+                      <div className="flex flex-col gap-5">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-slate-300 font-bold">Volumen de Ejercicios</label>
+                            <span className="text-base font-black text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-lg border border-blue-500/20 text-center">
+                              {draftGlobalConfig.practica_libre.cantidad_requerida}
+                            </span>
+                          </div>
+                          <SliderWithTooltip
+                            value={draftGlobalConfig.practica_libre.cantidad_requerida}
+                            min={5}
+                            max={60}
+                            step={1}
+                            onChange={(val) => updateGlobalField('practica_libre', 'cantidad_requerida', val)}
+                            accentColor="bg-blue-500"
+                          />
+                        </div>
 
-                    {/* Use Timer Switch */}
-                    <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                      <div>
-                        <label className="text-xs text-slate-300 font-bold">Uso de Cronómetro Global</label>
-                        <p className="text-[10px] text-slate-500">Habilita o deshabilita la presión de tiempo general.</p>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
+                            <span className="text-base font-black text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-lg border border-green-500/20 text-center">
+                              {draftGlobalConfig.practica_libre.porcentaje_aprobacion}%
+                            </span>
+                          </div>
+                          <SliderWithTooltip
+                            value={draftGlobalConfig.practica_libre.porcentaje_aprobacion}
+                            min={50}
+                            max={100}
+                            step={5}
+                            onChange={(val) => updateGlobalField('practica_libre', 'porcentaje_aprobacion', val)}
+                            accentColor="bg-green-500"
+                            unit="%"
+                          />
+                        </div>
                       </div>
-                      <button 
-                        onClick={() => updateGlobalField('useTimer', !draftGlobalConfig.useTimer)} 
-                        className="transition-all hover:scale-105"
-                      >
-                        {draftGlobalConfig.useTimer ? (
-                          <ToggleRight size={38} className="text-blue-500" />
-                        ) : (
-                          <ToggleLeft size={38} className="text-slate-600" />
+
+                      {/* Right: Cronometro, Timer, Feedback */}
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <label className="text-sm text-slate-300 font-bold">Uso de Cronómetro</label>
+                            <p className="text-[10px] text-slate-500">¿Tiene límite de tiempo por pregunta?</p>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => updateGlobalField('practica_libre', 'usa_cronometro', !draftGlobalConfig.practica_libre.usa_cronometro)} 
+                            className="transition-all hover:scale-105"
+                          >
+                            {draftGlobalConfig.practica_libre.usa_cronometro ? (
+                              <ToggleRight size={34} className="text-blue-500" />
+                            ) : (
+                              <ToggleLeft size={34} className="text-slate-600" />
+                            )}
+                          </button>
+                        </div>
+
+                        {draftGlobalConfig.practica_libre.usa_cronometro && (
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <label className="text-sm text-slate-300 font-bold">Tiempo Límite por Pregunta</label>
+                              <span className="text-sm font-black text-blue-400">{draftGlobalConfig.practica_libre.tiempo_default_segundos}s</span>
+                            </div>
+                            <SliderWithTooltip
+                              value={draftGlobalConfig.practica_libre.tiempo_default_segundos}
+                              min={3}
+                              max={60}
+                              onChange={(val) => updateGlobalField('practica_libre', 'tiempo_default_segundos', val)}
+                              accentColor="bg-blue-500"
+                              unit="s"
+                            />
+                          </div>
                         )}
-                      </button>
+
+                        <div className="space-y-2">
+                          <label className="text-sm text-slate-300 font-bold block">Feedback Pedagógico</label>
+                          <div className="flex gap-2">
+                            {['simple', 'detallado'].map((ft) => (
+                              <button
+                                type="button"
+                                key={ft}
+                                onClick={() => updateGlobalField('practica_libre', 'tipo_feedback', ft)}
+                                className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${
+                                  draftGlobalConfig.practica_libre.tipo_feedback === ft
+                                    ? 'bg-blue-600 border-blue-500 text-white shadow-md'
+                                    : 'bg-slate-900 border-white/5 text-slate-400 hover:text-slate-300'
+                                }`}
+                              >
+                                {ft === 'simple' ? 'Simple' : 'Detallado'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Right Parameter Inputs: Timers */}
-                  <div className="flex flex-col gap-5 bg-slate-950/20 border border-white/5 p-5 rounded-3xl">
-                    <h4 className="text-xs font-black text-white flex items-center gap-2">
-                      <Clock size={14} className="text-amber-400" /> Tiempos Base de Dificultad (1 a 5)
+                  {/* SECCIÓN 2: ZONA DE DESAFÍOS (Niveles 11-13) */}
+                  <div className="bg-slate-950/20 border border-white/5 p-6 rounded-3xl flex flex-col gap-5">
+                    <h4 className="text-base font-black text-white flex items-center gap-2 border-b border-white/5 pb-2">
+                      <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                      Zona de Desafíos (Niveles 11 a 13)
                     </h4>
 
-                    <div className="space-y-4" style={{ opacity: draftGlobalConfig.useTimer ? 1 : 0.3, transition: 'opacity 0.2s' }}>
-                      {([
-                        { id: 'easy' as const, label: 'Nivel 1 (Fácil)', color: 'text-green-400', accent: 'bg-green-500' },
-                        { id: 'easy_medium' as const, label: 'Nivel 2 (Medio Fácil)', color: 'text-emerald-400', accent: 'bg-emerald-500' },
-                        { id: 'medium' as const, label: 'Nivel 3 (Medio)', color: 'text-amber-400', accent: 'bg-amber-500' },
-                        { id: 'medium_hard' as const, label: 'Nivel 4 (Medio Difícil)', color: 'text-orange-400', accent: 'bg-orange-500' },
-                        { id: 'hard' as const, label: 'Nivel 5 (Difícil)', color: 'text-red-400', accent: 'bg-red-500' },
-                      ]).map((level) => (
-                        <div key={level.id} className="space-y-1">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Left: Vol, Pct, Feedback, Cronometro toggle */}
+                      <div className="flex flex-col gap-5">
+                        <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <span className={`text-[10px] font-bold ${level.color}`}>{level.label}</span>
-                            <span className="text-xs font-black text-slate-300">{draftGlobalConfig.timers[level.id]}s</span>
+                            <label className="text-sm text-slate-300 font-bold">Volumen de Ejercicios</label>
+                            <span className="text-base font-black text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-lg border border-purple-500/20 text-center">
+                              {draftGlobalConfig.desafios.cantidad_requerida}
+                            </span>
                           </div>
                           <SliderWithTooltip
-                            value={draftGlobalConfig.timers[level.id]}
-                            min={3}
+                            value={draftGlobalConfig.desafios.cantidad_requerida}
+                            min={5}
                             max={60}
-                            disabled={!draftGlobalConfig.useTimer}
-                            onChange={(val) => updateGlobalTimer(level.id, val)}
-                            accentColor={level.accent}
-                            unit="s"
+                            step={1}
+                            onChange={(val) => updateGlobalField('desafios', 'cantidad_requerida', val)}
+                            accentColor="bg-purple-500"
                           />
                         </div>
-                      ))}
+
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
+                            <span className="text-base font-black text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-lg border border-green-500/20 text-center">
+                              {draftGlobalConfig.desafios.porcentaje_aprobacion}%
+                            </span>
+                          </div>
+                          <SliderWithTooltip
+                            value={draftGlobalConfig.desafios.porcentaje_aprobacion}
+                            min={50}
+                            max={100}
+                            step={5}
+                            onChange={(val) => updateGlobalField('desafios', 'porcentaje_aprobacion', val)}
+                            accentColor="bg-green-500"
+                            unit="%"
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2">
+                          <div>
+                            <label className="text-sm text-slate-300 font-bold">Uso de Cronómetro</label>
+                            <p className="text-[10px] text-slate-500">¿Tienen límite de tiempo los desafíos?</p>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => updateGlobalField('desafios', 'usa_cronometro', !draftGlobalConfig.desafios.usa_cronometro)} 
+                            className="transition-all hover:scale-105"
+                          >
+                            {draftGlobalConfig.desafios.usa_cronometro ? (
+                              <ToggleRight size={34} className="text-purple-500" />
+                            ) : (
+                              <ToggleLeft size={34} className="text-slate-600" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Right: Individual Timers for Desafíos */}
+                      <div className="flex flex-col gap-4">
+                        <div className="space-y-3" style={{ opacity: draftGlobalConfig.desafios.usa_cronometro ? 1 : 0.3, transition: 'opacity 0.2s' }}>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Tiempos Límite por Desafío</span>
+                          
+                          {/* Desafío 1 */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-bold text-slate-300">Desafío 1 (Estándar)</span>
+                              <span className="text-sm font-black text-purple-400">{draftGlobalConfig.desafios.tiempo_default_segundos_11}s</span>
+                            </div>
+                            <SliderWithTooltip
+                              value={draftGlobalConfig.desafios.tiempo_default_segundos_11}
+                              min={10}
+                              max={200}
+                              disabled={!draftGlobalConfig.desafios.usa_cronometro}
+                              onChange={(val) => updateGlobalField('desafios', 'tiempo_default_segundos_11', val)}
+                              accentColor="bg-purple-500"
+                              unit="s"
+                            />
+                          </div>
+
+                          {/* Desafío 2 */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-bold text-slate-300">Desafío 2 (Avanzado)</span>
+                              <span className="text-sm font-black text-purple-400">{draftGlobalConfig.desafios.tiempo_default_segundos_12}s</span>
+                            </div>
+                            <SliderWithTooltip
+                              value={draftGlobalConfig.desafios.tiempo_default_segundos_12}
+                              min={10}
+                              max={200}
+                              disabled={!draftGlobalConfig.desafios.usa_cronometro}
+                              onChange={(val) => updateGlobalField('desafios', 'tiempo_default_segundos_12', val)}
+                              accentColor="bg-purple-500"
+                              unit="s"
+                            />
+                          </div>
+
+                          {/* Desafío Final */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-bold text-slate-300">Desafío Final (Maestría)</span>
+                              <span className="text-sm font-black text-purple-400">{draftGlobalConfig.desafios.tiempo_default_segundos_13}s</span>
+                            </div>
+                            <SliderWithTooltip
+                              value={draftGlobalConfig.desafios.tiempo_default_segundos_13}
+                              min={10}
+                              max={200}
+                              disabled={!draftGlobalConfig.desafios.usa_cronometro}
+                              onChange={(val) => updateGlobalField('desafios', 'tiempo_default_segundos_13', val)}
+                              accentColor="bg-purple-500"
+                              unit="s"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm text-slate-300 font-bold block">Feedback Pedagógico</label>
+                          <div className="flex gap-2">
+                            {['simple', 'detallado'].map((ft) => (
+                              <button
+                                type="button"
+                                key={ft}
+                                onClick={() => updateGlobalField('desafios', 'tipo_feedback', ft)}
+                                className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${
+                                  draftGlobalConfig.desafios.tipo_feedback === ft
+                                    ? 'bg-purple-600 border-purple-500 text-white shadow-md'
+                                    : 'bg-slate-900 border-white/5 text-slate-400 hover:text-slate-300'
+                                }`}
+                              >
+                                {ft === 'simple' ? 'Simple' : 'Detallado'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -980,8 +1167,8 @@ const PedagogyTab: React.FC = () => {
                     <div className="inline-flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
                       Parámetros por Defecto de Fase
                     </div>
-                    <h3 className="text-xl font-black text-white mt-3">{activePhase.name}</h3>
-                    <p className="text-slate-400 text-xs mt-1">{activePhase.description}</p>
+                    <h3 className="text-2xl font-black text-white mt-3">{activePhase.name}</h3>
+                    <p className="text-slate-400 text-sm mt-1">{activePhase.description}</p>
                   </div>
 
                   {/* Override platform defaults toggle */}
@@ -1012,7 +1199,7 @@ const PedagogyTab: React.FC = () => {
                         className="absolute inset-0 bg-slate-950/60 backdrop-blur-md z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-white/5 shadow-inner"
                       >
                         <ShieldAlert className="text-blue-400 mb-2" size={28} />
-                        <h4 className="text-xs font-black text-white">Heredando de Límites Globales</h4>
+                        <h4 className="text-sm font-black text-white">Heredando de Límites Globales</h4>
                         <p className="text-[11px] text-slate-400 max-w-sm mt-1">
                           Esta Fase está utilizando las reglas por defecto del sistema. Activa el toggle <strong>"Sobrescribir Global"</strong> para definir límites de volumen o tiempo propios para esta fase.
                         </p>
@@ -1025,7 +1212,7 @@ const PedagogyTab: React.FC = () => {
                     <div className="flex flex-col gap-6">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <label className="text-xs text-slate-300 font-bold">Volumen de Ejercicios de Fase</label>
+                          <label className="text-sm text-slate-300 font-bold">Volumen de Ejercicios de Fase</label>
                           <span className="text-base font-black text-blue-400 bg-blue-500/10 px-3 py-1 rounded-xl border border-blue-500/20">
                             {activePhaseDefaultRecord?.cantidad_requerida ?? draftGlobalConfig.questionsPerPhase}
                           </span>
@@ -1043,7 +1230,7 @@ const PedagogyTab: React.FC = () => {
 
                       <div className="space-y-3 pt-4 border-t border-white/5">
                         <div className="flex justify-between items-center">
-                          <label className="text-xs text-slate-300 font-bold">Porcentaje de Aprobación</label>
+                          <label className="text-sm text-slate-300 font-bold">Porcentaje de Aprobación</label>
                           <span className="text-base font-black text-green-400 bg-green-500/10 px-3 py-1 rounded-xl border border-green-500/20">
                             {activePhaseDefaultRecord?.porcentaje_aprobacion ?? draftGlobalConfig.passingScore}%
                           </span>
@@ -1063,7 +1250,7 @@ const PedagogyTab: React.FC = () => {
 
                     {/* Single default timer override input */}
                     <div className="bg-slate-950/20 border border-white/5 p-5 rounded-3xl flex flex-col gap-4">
-                      <h4 className="text-xs font-black text-white flex items-center gap-2">
+                      <h4 className="text-sm font-black text-white flex items-center gap-2">
                         <Clock size={14} className="text-amber-400" /> Temporizador de Fase Único
                       </h4>
                       <p className="text-[10px] text-slate-500">
@@ -1073,7 +1260,7 @@ const PedagogyTab: React.FC = () => {
                       <div className="space-y-3 pt-2">
                         <div className="flex items-center justify-between">
                           <div>
-                            <label className="text-xs text-slate-300 font-bold">Habilitar Cronómetro de Fase</label>
+                            <label className="text-sm text-slate-300 font-bold">Habilitar Cronómetro de Fase</label>
                             <p className="text-[9px] text-slate-500">Uso local para esta fase.</p>
                           </div>
                           <button 
@@ -1093,7 +1280,7 @@ const PedagogyTab: React.FC = () => {
                           <div className="space-y-2 pt-2 border-t border-white/5">
                             <div className="flex justify-between items-center">
                               <label className="text-[10px] text-slate-400 font-bold">Segundos Límite del Juego</label>
-                              <span className="text-sm font-black text-amber-400">
+                              <span className="text-base font-black text-amber-400">
                                 {activePhaseDefaultRecord.tiempo_default_segundos || 12}s
                               </span>
                             </div>
@@ -1131,15 +1318,15 @@ const PedagogyTab: React.FC = () => {
                     <div className="inline-flex items-center gap-2 text-[10px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
                       Configuración de Módulo
                     </div>
-                    <h3 className="text-xl font-black text-white mt-3">
+                    <h3 className="text-2xl font-black text-white mt-3">
                       {selectedModule.name}
                       {selectedPhaseId > 1 && selectedSubLevelId && (
-                        <span className="text-blue-400 ml-2 text-sm font-black">
+                        <span className="text-blue-400 ml-2 text-base font-black">
                           ({isSelectedChallenge ? 'Desafío' : 'Nivel'} {selectedSubLevelId})
                         </span>
                       )}
                     </h3>
-                    <p className="text-slate-400 text-xs mt-1">Configuración personalizada aplicable a esta disciplina en la Fase {selectedPhaseId}.</p>
+                    <p className="text-slate-400 text-sm mt-1">Configuración personalizada aplicable a esta disciplina en la Fase {selectedPhaseId}.</p>
                   </div>
 
                   {/* Override parent default toggle */}
@@ -1170,7 +1357,7 @@ const PedagogyTab: React.FC = () => {
                         className="absolute inset-0 bg-slate-950/60 backdrop-blur-md z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-white/5 shadow-inner"
                       >
                         <ShieldAlert className="text-amber-400 mb-2" size={28} />
-                        <h4 className="text-xs font-black text-white">Heredando de la Fase {selectedPhaseId}</h4>
+                        <h4 className="text-sm font-black text-white">Heredando de la Fase {selectedPhaseId}</h4>
                         <p className="text-[11px] text-slate-400 max-w-sm mt-1">
                           Este nivel/desafío está usando los valores por defecto de la Fase superior. Activa el toggle <strong>"Sobrescribir Padre"</strong> superior para definir límites exclusivos.
                         </p>
@@ -1188,7 +1375,7 @@ const PedagogyTab: React.FC = () => {
                           <button
                             key={`lvl-${lvl.id}`}
                             onClick={() => { setSelectedSubLevelId(lvl.id); setIsSelectedChallenge(false); }}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                            className={`px-3 py-1.5 rounded-xl text-sm font-bold border transition-all ${
                               !isSelectedChallenge && selectedSubLevelId === lvl.id
                                 ? 'bg-blue-600 border-blue-500 text-white font-black'
                                 : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
@@ -1202,7 +1389,7 @@ const PedagogyTab: React.FC = () => {
                           <button
                             key={`ch-${ch.id}`}
                             onClick={() => { setSelectedSubLevelId(ch.id); setIsSelectedChallenge(true); }}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                            className={`px-3 py-1.5 rounded-xl text-sm font-bold border transition-all ${
                               isSelectedChallenge && selectedSubLevelId === ch.id
                                 ? 'bg-amber-600 border-amber-500 text-white font-black'
                                 : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
@@ -1221,7 +1408,7 @@ const PedagogyTab: React.FC = () => {
                       {/* Questions Count */}
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <label className="text-xs text-slate-300 font-bold">Cantidad de Preguntas</label>
+                          <label className="text-sm text-slate-300 font-bold">Cantidad de Preguntas</label>
                           <span className="text-base font-black text-blue-400 bg-blue-500/10 px-3 py-1 rounded-xl border border-blue-500/20">
                             {activeModuleRecord?.cantidad_requerida ?? getInheritedQuestionsCount()}
                           </span>
@@ -1240,7 +1427,7 @@ const PedagogyTab: React.FC = () => {
                       {/* Passing Score */}
                       <div className="space-y-3 pt-4 border-t border-white/5">
                         <div className="flex justify-between items-center">
-                          <label className="text-xs text-slate-300 font-bold">Porcentaje de Aprobación</label>
+                          <label className="text-sm text-slate-300 font-bold">Porcentaje de Aprobación</label>
                           <span className="text-base font-black text-green-400 bg-green-500/10 px-3 py-1 rounded-xl border border-green-500/20">
                             {activeModuleRecord?.porcentaje_aprobacion ?? getInheritedPassingScore()}%
                           </span>
@@ -1263,7 +1450,7 @@ const PedagogyTab: React.FC = () => {
                       {/* Feedback choice */}
                       {!isSelectedChallenge && (
                         <div className="space-y-3">
-                          <label className="text-xs text-slate-300 font-bold flex items-center gap-1.5">
+                          <label className="text-sm text-slate-300 font-bold flex items-center gap-1.5">
                             <HelpCircle size={14} className="text-purple-400" /> Tipo de Feedback Pedagógico
                           </label>
                           <div className="grid grid-cols-2 gap-3">
@@ -1297,7 +1484,7 @@ const PedagogyTab: React.FC = () => {
                       <div className="pt-3 border-t border-white/5 space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <label className="text-xs text-slate-300 font-bold">Usar Cronómetro</label>
+                            <label className="text-sm text-slate-300 font-bold">Usar Cronómetro</label>
                             <p className="text-[9px] text-slate-500">Cronómetro específico local.</p>
                           </div>
                           <button 
@@ -1317,7 +1504,7 @@ const PedagogyTab: React.FC = () => {
                           <div className="space-y-2 pt-2 border-t border-white/5">
                             <div className="flex justify-between items-center">
                               <label className="text-[10px] text-slate-400 font-bold">Tiempo Límite en Segundos</label>
-                              <span className="text-sm font-black text-amber-400">
+                              <span className="text-base font-black text-amber-400">
                                 {activeModuleRecord?.tiempo_default_segundos ?? getInheritedTimerForLevel('medium')}s
                               </span>
                             </div>

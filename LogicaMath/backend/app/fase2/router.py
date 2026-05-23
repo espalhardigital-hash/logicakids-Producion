@@ -30,6 +30,7 @@ from ..models.sql_models import (
     ProgresoMaestria, Intento, PoolAsignadoAlumno,
     StatusEnum, EstadoProgresoEnum, Alternativa,
     OperacionEnum, TipoPreguntaEnum, TipoErrorEnum,
+    PlatformSettings,
 )
 from .models import NivelTeoria, IntentoPregunta, IntentoPaso
 from .schemas import (
@@ -122,6 +123,34 @@ def _seccion_operacion(modulo_id: int, nivel_id: int) -> tuple:
         seccion = modulo_id * 100 + nivel_id
         operacion_map = {1: "suma", 2: "multiplicacion", 3: "mixta", 4: "mixta"}
         return seccion, operacion_map.get(modulo_id, "mixta")
+
+
+async def _get_global_config(db: AsyncSession) -> dict:
+    """Obtiene la configuración pedagógica global de la plataforma desde PlatformSettings."""
+    result = await db.execute(
+        select(PlatformSettings).where(PlatformSettings.key == "pedagogy_config")
+    )
+    settings = result.scalar_one_or_none()
+    if not settings:
+        return {
+            "practica_libre": {
+                "cantidad_requerida": 15,
+                "porcentaje_aprobacion": 80,
+                "usa_cronometro": False,
+                "tiempo_default_segundos": 15,
+                "tipo_feedback": "simple"
+            },
+            "desafios": {
+                "cantidad_requerida": 20,
+                "porcentaje_aprobacion": 90,
+                "usa_cronometro": True,
+                "tiempo_default_segundos_11": 25,
+                "tiempo_default_segundos_12": 40,
+                "tiempo_default_segundos_13": 50,
+                "tipo_feedback": "simple"
+            }
+        }
+    return settings.value
 
 
 async def _get_config(db: AsyncSession, seccion: int, operacion: str) -> Optional[ConfiguracionProgreso]:
@@ -228,6 +257,10 @@ async def get_fase2_dashboard(
     )
     configs = {(c.seccion, c.operacion): c for c in result.scalars().all()}
 
+    global_cfg = await _get_global_config(db)
+    pl_cfg = global_cfg.get("practica_libre", {})
+    des_cfg = global_cfg.get("desafios", {})
+
     modulos = []
     modulo_niveles_map = {1: 3, 2: 4, 3: 4, 4: 3}
     
@@ -249,7 +282,7 @@ async def get_fase2_dashboard(
                 estado = "bloqueado"
                 porcentaje = 0
                 aciertos = 0
-                requeridos = 15
+                requeridos = pl_cfg.get("cantidad_requerida", 15)
             elif progreso is None:
                 estado = "en_progreso" if _is_nivel_unlocked(progresos, mod_id, niv_id) else "bloqueado"
                 porcentaje = 0
@@ -275,7 +308,7 @@ async def get_fase2_dashboard(
                 porcentaje=porcentaje,
                 aciertos=aciertos,
                 requeridos=requeridos,
-                usa_cronometro=config.usa_cronometro if config else False,
+                usa_cronometro=config.usa_cronometro if config else pl_cfg.get("usa_cronometro", False),
             ))
 
         all_practice_approved = all(n.estado == "dominado" for n in niveles)
@@ -297,7 +330,7 @@ async def get_fase2_dashboard(
                 estado = "bloqueado"
                 porcentaje = 0
                 aciertos = 0
-                requeridos = 25 if des_id != 13 else 10
+                requeridos = des_cfg.get("cantidad_requerida", 25 if des_id != 13 else 10)
             elif progreso is None:
                 estado = "en_progreso" if _is_desafio_unlocked(progresos, mod_id, des_id, all_practice_approved) else "bloqueado"
                 porcentaje = 0
@@ -314,12 +347,14 @@ async def get_fase2_dashboard(
                 else:
                     estado = "en_progreso" if _is_desafio_unlocked(progresos, mod_id, des_id, all_practice_approved) else "bloqueado"
 
-            tiempo_limite = d_conf["tiempo_limite"]
-            usa_crono = True
             if config:
                 usa_crono = config.usa_cronometro
-                if config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0:
-                    tiempo_limite = config.tiempo_default_segundos
+                tiempo_limite = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else d_conf["tiempo_limite"]
+            else:
+                usa_crono = des_cfg.get("usa_cronometro", True)
+                tiempo_key = f"tiempo_default_segundos_{des_id}"
+                tiempo_limite = des_cfg.get(tiempo_key, d_conf["tiempo_limite"])
+
             if not usa_crono:
                 tiempo_limite = 0
 
@@ -478,8 +513,16 @@ async def get_pregunta_fase2(
             ]
             random.shuffle(alts_out)
 
-        tiene_crono = config.usa_cronometro if config else True
-        tiempo_lim = config.tiempo_default_segundos if (config and config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
+        if config:
+            tiene_crono = config.usa_cronometro
+            tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
+        else:
+            global_cfg = await _get_global_config(db)
+            des_cfg = global_cfg.get("desafios", {})
+            tiene_crono = des_cfg.get("usa_cronometro", True)
+            tiempo_key = f"tiempo_default_segundos_{nivel_id}"
+            tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
+
         if not tiene_crono:
             tiempo_lim = None
 
@@ -607,14 +650,26 @@ async def get_pregunta_fase2(
             ]
             random.shuffle(alts_out)
 
+        if config:
+            tiene_crono = config.usa_cronometro
+            tiempo_lim = config.tiempo_default_segundos
+        else:
+            global_cfg = await _get_global_config(db)
+            pl_cfg = global_cfg.get("practica_libre", {})
+            tiene_crono = pl_cfg.get("usa_cronometro", False)
+            tiempo_lim = pl_cfg.get("tiempo_default_segundos", 15)
+
+        if not tiene_crono:
+            tiempo_lim = None
+
         return Fase2PreguntaParaAlumno(
             id=pregunta_elex.id,
             modulo_id=modulo_id,
             nivel_id=nivel_id,
             enunciado=pregunta_elex.enunciado,
             tipo_pregunta=pregunta_elex.tipo_pregunta.value,
-            tiene_cronometro=config.usa_cronometro if config else False,
-            tiempo_limite_segundos=config.tiempo_default_segundos if config else None,
+            tiene_cronometro=tiene_crono,
+            tiempo_limite_segundos=tiempo_lim,
             pasos_encadenados=pasos_encadenados,
             alternativas=alts_out,
             datos_numericos=pregunta_elex.datos_numericos,
@@ -772,11 +827,18 @@ async def responder_fase2(
             if es_correcta:
                 progreso.aciertos_acumulados += 1
                 
-            cantidad_req = config.cantidad_requerida if config else (10 if nivel_id == 13 else 25)
+            if config:
+                cantidad_req = config.cantidad_requerida
+                porc_aprobacion = config.porcentaje_aprobacion
+            else:
+                global_cfg = await _get_global_config(db)
+                des_cfg = global_cfg.get("desafios", {})
+                cantidad_req = des_cfg.get("cantidad_requerida", 10 if nivel_id == 13 else 25)
+                porc_aprobacion = des_cfg.get("porcentaje_aprobacion", 90)
+
             progreso.porcentaje_actual = min(100, int((progreso.aciertos_acumulados / cantidad_req) * 100)) if cantidad_req > 0 else 0
             
             bloque_completado = False
-            porc_aprobacion = config.porcentaje_aprobacion if config else 90
             
             if progreso.porcentaje_actual >= porc_aprobacion and progreso.aciertos_acumulados >= cantidad_req:
                 progreso.estado = EstadoProgresoEnum.APROBADO
@@ -803,11 +865,18 @@ async def responder_fase2(
         if es_correcta:
             progreso.aciertos_acumulados += 1
 
-        cantidad_req = config.cantidad_requerida if config else 15
+        if config:
+            cantidad_req = config.cantidad_requerida
+            porc_aprobacion = config.porcentaje_aprobacion
+        else:
+            global_cfg = await _get_global_config(db)
+            pl_cfg = global_cfg.get("practica_libre", {})
+            cantidad_req = pl_cfg.get("cantidad_requerida", 15)
+            porc_aprobacion = pl_cfg.get("porcentaje_aprobacion", 80)
+
         progreso.porcentaje_actual = min(100, int((progreso.aciertos_acumulados / cantidad_req) * 100)) if cantidad_req > 0 else 0
 
         bloque_completado = False
-        porc_aprobacion = config.porcentaje_aprobacion if config else 80
 
         if progreso.porcentaje_actual >= porc_aprobacion and progreso.aciertos_acumulados >= cantidad_req:
             progreso.estado = EstadoProgresoEnum.APROBADO

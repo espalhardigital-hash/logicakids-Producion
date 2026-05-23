@@ -16,8 +16,12 @@ export const calculateTimeLimit = (
   adminConfig?: import('../types').PedagogyConfig | null
 ): number => {
   // 0. Global Timer Disable
-  if (adminConfig && adminConfig.useTimer === false) {
-    return 999; // Effectively disable timer
+  if (adminConfig) {
+    const isChallenge = category === 'challenge';
+    const subConfig = isChallenge ? adminConfig.desafios : adminConfig.practica_libre;
+    if (subConfig.usa_cronometro === false) {
+      return 999; // Effectively disable timer
+    }
   }
 
   // 1. Priority: User Custom Settings (if defined for this difficulty)
@@ -37,9 +41,20 @@ export const calculateTimeLimit = (
   }
 
   // 2. Admin Config Timers
-  if (adminConfig && adminConfig.timers) {
-    const adminTime = adminConfig.timers[effectiveDifficulty as keyof typeof adminConfig.timers];
-    if (adminTime) return adminTime;
+  if (adminConfig) {
+    const isChallenge = category === 'challenge';
+    if (isChallenge) {
+      let adminTime = adminConfig.desafios.tiempo_default_segundos_11;
+      if (effectiveDifficulty === 'medium' || effectiveDifficulty === 'medium_hard') {
+        adminTime = adminConfig.desafios.tiempo_default_segundos_12;
+      } else if (effectiveDifficulty === 'hard') {
+        adminTime = adminConfig.desafios.tiempo_default_segundos_13;
+      }
+      if (adminTime) return adminTime;
+    } else {
+      const adminTime = adminConfig.practica_libre.tiempo_default_segundos;
+      if (adminTime) return adminTime;
+    }
   }
 
   // 3. Default Time Logic as fallback

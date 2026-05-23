@@ -26,16 +26,22 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 PEDAGOGY_CONFIG_KEY = "pedagogy_config"
 
 DEFAULT_PEDAGOGY_CONFIG = {
-    "questionsPerPhase": 50,
-    "timers": {
-        "easy": 10,
-        "easy_medium": 12,
-        "medium": 18,
-        "medium_hard": 22,
-        "hard": 25,
+    "practica_libre": {
+        "cantidad_requerida": 15,
+        "porcentaje_aprobacion": 80,
+        "usa_cronometro": False,
+        "tiempo_default_segundos": 15,
+        "tipo_feedback": "simple"
     },
-    "useTimer": True,
-    "passingScore": 90,
+    "desafios": {
+        "cantidad_requerida": 20,
+        "porcentaje_aprobacion": 90,
+        "usa_cronometro": True,
+        "tiempo_default_segundos_11": 25,
+        "tiempo_default_segundos_12": 40,
+        "tiempo_default_segundos_13": 50,
+        "tipo_feedback": "simple"
+    }
 }
 
 @router.get("/settings")
@@ -198,6 +204,18 @@ async def update_pregunta(pregunta_id: int, pregunta_data: PreguntaUpdate, db: A
         raise HTTPException(status_code=404, detail="Pregunta no encontrada")
         
     update_data = pregunta_data.model_dump(exclude_unset=True)
+    
+    # Manejar alternativas si vienen en la petición
+    if "alternativas" in update_data:
+        alts_data = update_data.pop("alternativas")
+        # Eliminar las alternativas existentes
+        await db.execute(delete(Alternativa).where(Alternativa.pregunta_id == pregunta_id))
+        # Insertar las nuevas alternativas
+        if alts_data:
+            for alt in alts_data:
+                nueva_alt = Alternativa(**alt, pregunta_id=pregunta_id)
+                db.add(nueva_alt)
+                
     for key, value in update_data.items():
         setattr(pregunta, key, value)
         

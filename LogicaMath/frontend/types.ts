@@ -129,17 +129,27 @@ export interface CategoryProgress {
   avg_response_time?: number;
 }
 
+export interface GlobalPedagogySubConfig {
+  cantidad_requerida: number;
+  porcentaje_aprobacion: number;
+  usa_cronometro: boolean;
+  tiempo_default_segundos: number;
+  tipo_feedback: string;
+}
+
+export interface GlobalDesafiosSubConfig {
+  cantidad_requerida: number;
+  porcentaje_aprobacion: number;
+  usa_cronometro: boolean;
+  tiempo_default_segundos_11: number;
+  tiempo_default_segundos_12: number;
+  tiempo_default_segundos_13: number;
+  tipo_feedback: string;
+}
+
 export interface PedagogyConfig {
-  questionsPerPhase: number;
-  timers: {
-    easy: number;
-    easy_medium: number;
-    medium: number;
-    medium_hard: number;
-    hard: number;
-  };
-  useTimer: boolean;
-  passingScore: number;
+  practica_libre: GlobalPedagogySubConfig;
+  desafios: GlobalDesafiosSubConfig;
 }
 
 export interface ConfiguracionProgreso {
