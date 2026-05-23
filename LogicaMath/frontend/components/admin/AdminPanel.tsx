@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut, BookOpen } from 'lucide-react';
 import GeneralTab from './GeneralTab';
@@ -16,6 +16,30 @@ type TabType = 'general' | 'pedagogy' | 'performance' | 'content';
 const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Custom Admin UI Settings
+  const [adminScale, setAdminScale] = useState<number>(100);
+  const [adminFontFamily, setAdminFontFamily] = useState<string>('');
+
+  useEffect(() => {
+    const savedScale = localStorage.getItem('adminScale');
+    const savedFont = localStorage.getItem('adminFontFamily');
+    if (savedScale) setAdminScale(Number(savedScale));
+    if (savedFont) setAdminFontFamily(savedFont);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('adminScale', adminScale.toString());
+    localStorage.setItem('adminFontFamily', adminFontFamily);
+    
+    const html = document.documentElement;
+    const originalFontSize = html.style.fontSize;
+    html.style.fontSize = `${adminScale}%`;
+
+    return () => {
+      html.style.fontSize = originalFontSize;
+    };
+  }, [adminScale, adminFontFamily]);
 
   const tabs = [
     { id: 'general', label: 'Vista General', icon: LayoutDashboard },
@@ -30,7 +54,10 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-gray-950 to-black text-white overflow-hidden w-full h-full flex custom-scrollbar">
+    <div 
+      className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-gray-950 to-black text-white overflow-hidden w-full h-full flex custom-scrollbar"
+      style={{ fontFamily: adminFontFamily || undefined }}
+    >
       {/* Elementos Decorativos */}
       <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -96,6 +123,46 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
             );
           })}
         </nav>
+
+        {/* Controles de Ajuste UI (Solo Admin) */}
+        <div className="px-5 py-4 mt-2 border-t border-white/10 bg-black/20">
+          <p className="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest">Ajustes Visuales</p>
+          
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-xs text-slate-400">Escala de Interfaz</label>
+                <span className="text-xs text-blue-400 font-bold">{adminScale}%</span>
+              </div>
+              <input 
+                type="range" 
+                min="80" 
+                max="150" 
+                step="5" 
+                value={adminScale} 
+                onChange={(e) => setAdminScale(Number(e.target.value))}
+                className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="text-xs text-slate-400 mb-1 block">Tipo de Fuente</label>
+              <select 
+                value={adminFontFamily} 
+                onChange={(e) => setAdminFontFamily(e.target.value)}
+                className="w-full bg-slate-900 border border-white/10 rounded-lg p-2 text-xs text-white outline-none focus:border-blue-500 transition-colors"
+                style={{ fontFamily: adminFontFamily || undefined }}
+              >
+                <option value="">Predeterminada (Outfit)</option>
+                <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans</option>
+                <option value="'OpenDyslexic', 'Comic Sans MS', sans-serif">Alta Legibilidad</option>
+                <option value="monospace">Monospace (Terminal)</option>
+                <option value="Arial, Helvetica, sans-serif">Arial</option>
+                <option value="'Times New Roman', Times, serif">Serif Clásica</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
         <div className="p-6 space-y-3">
           <button
