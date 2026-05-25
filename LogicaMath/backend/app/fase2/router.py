@@ -52,14 +52,25 @@ MAX_ESPEJO = 3  # Intentos máximos en Bucle Espejo
 def normalize_response(val: str, is_money: bool = False) -> str:
     if not val:
         return ""
+    # Limpieza básica
     cleaned = val.strip().lower().replace("r$", "").replace("$", "").replace(" ", "").replace("reais", "").replace("real", "")
+    
+    # Si contiene separadores decimales o es modo moneda
     if is_money or "," in cleaned or "." in cleaned:
         cleaned_num = cleaned.replace(",", ".")
         try:
             val_float = float(cleaned_num)
-            return str(round(val_float * 100))
+            if is_money:
+                # Modo moneda: siempre a centavos enteros para evitar líos de flotantes
+                return str(round(val_float * 100))
+            else:
+                # Modo numérico general: normalizar a entero si no hay decimales reales
+                if val_float == int(val_float):
+                    return str(int(val_float))
+                return str(val_float)
         except ValueError:
             pass
+    
     return cleaned.replace(",", ".")
 
 # ─────────────────────────────────────────────────────────────────────────────
