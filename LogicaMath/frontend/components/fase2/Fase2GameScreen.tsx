@@ -250,7 +250,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         loadPregunta();
       }
     } else {
-      if (isChallenge) { loadPregunta(); } else if (feedback.resultado?.es_espejo || feedback.resultado?.intentos_espejo_actuales !== undefined) {
+      if (isChallenge) { loadPregunta(); } else if (feedback.resultado?.es_espejo) {
         loadPregunta();
       } else {
         setRespuesta('');
@@ -589,7 +589,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     </div>
                     <div className="f2-score-box incorrect">
                       <span className="f2-score-label">ERRORES</span>
-                      <span className="f2-score-value">{progreso.intentos - progreso.aciertos}</span>
+                      <span className="f2-score-value">{feedback.resultado?.errores_sesion !== undefined ? feedback.resultado.errores_sesion : (progreso.intentos - progreso.aciertos)}</span>
                     </div>
                   </div>
                 )}
@@ -901,7 +901,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     </div>
                     <div className="f2-score-box incorrect">
                       <span className="f2-score-label">ERRORES</span>
-                      <span className="f2-score-value">{progreso.intentos - progreso.aciertos}</span>
+                      <span className="f2-score-value">{feedback.resultado?.errores_sesion !== undefined ? feedback.resultado.errores_sesion : (progreso.intentos - progreso.aciertos)}</span>
                     </div>
                   </div>
                 )}
@@ -982,7 +982,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     </div>
                     <div className="f2-score-box incorrect">
                       <span className="f2-score-label">ERRORES</span>
-                      <span className="f2-score-value">{progreso.intentos - progreso.aciertos}</span>
+                      <span className="f2-score-value">{feedback.resultado?.errores_sesion !== undefined ? feedback.resultado.errores_sesion : (progreso.intentos - progreso.aciertos)}</span>
                     </div>
                   </div>
                 )}
@@ -1495,6 +1495,9 @@ function MOCK_RESULTADO(
 }
 
 export default Fase2GameScreen;
+
+
+
 
 
 
