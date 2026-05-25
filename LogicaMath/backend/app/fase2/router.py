@@ -20,7 +20,7 @@ from typing import Optional, List, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_, func, delete
 from sqlalchemy.orm import selectinload
 
 from ..db.session import get_db
@@ -38,7 +38,7 @@ from .schemas import (
     Fase2PreguntaParaAlumno, Fase2Token,
     Fase2ResponderPregunta, Fase2ResultadoRespuesta,
     Fase2ContenidoLectura, Fase2DesafioInfo,
-    Fase2AlternativaOut,
+    Fase2AlternativaOut, Fase2CerrarRescate,
 )
 
 router = APIRouter(prefix="/fase2", tags=["fase2"])
@@ -502,6 +502,7 @@ async def get_lectura_fase2(
 async def get_pregunta_fase2(
     modulo_id: int,
     nivel_id: int,
+    reload: bool = False,
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
@@ -584,23 +585,59 @@ async def get_pregunta_fase2(
 
     # 2. MODO PRÁCTICA LIBRE (1-10)
     else:
-        # Consultar el último intento en este nivel
-        result = await db.execute(
-            select(Intento)
-            .where(and_(
-                Intento.alumno_id == alumno.id,
-                Intento.fase_id == FASE2_ID,
-                Intento.seccion == seccion,
-            ))
-            .order_by(Intento.fecha.desc())
-            .limit(1)
-        )
-        latest_attempt = result.scalar_one_or_none()
+        if reload:
+            # 1. Borrar los intentos de la tabla general `Intento` para esta sección
+            await db.execute(
+                delete(Intento).where(and_(
+                    Intento.alumno_id == alumno.id,
+                    Intento.fase_id == FASE2_ID,
+                    Intento.seccion == seccion
+                ))
+            )
+            
+            # 2. Borrar los intentos de la tabla `IntentoPregunta` para las preguntas de esta sección
+            result_q_ids = await db.execute(
+                select(Pregunta.id).where(and_(
+                    Pregunta.fase_id == FASE2_ID,
+                    Pregunta.seccion == seccion
+                ))
+            )
+            q_ids = result_q_ids.scalars().all()
+            if q_ids:
+                await db.execute(
+                    delete(IntentoPregunta).where(and_(
+                        IntentoPregunta.alumno_id == alumno.id,
+                        IntentoPregunta.pregunta_id.in_(q_ids)
+                    ))
+                )
+            
+            # 3. Restablecer el progreso de maestría a 0%
+            progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
+            progreso.aciertos_acumulados = 0
+            progreso.intentos_totales = 0
+            progreso.porcentaje_actual = 0
+            progreso.estado = EstadoProgresoEnum.EN_PROGRESO
+            await db.commit()
+            
+            latest_attempt = None
+        else:
+            # Consultar el último intento en este nivel
+            result = await db.execute(
+                select(Intento)
+                .where(and_(
+                    Intento.alumno_id == alumno.id,
+                    Intento.fase_id == FASE2_ID,
+                    Intento.seccion == seccion,
+                ))
+                .order_by(Intento.fecha.desc())
+                .limit(1)
+            )
+            latest_attempt = result.scalar_one_or_none()
 
         espejo_pregunta = None
         
-        # Lógica Bucle Espejo (solo si el último intento fue fallido)
-        if latest_attempt and not latest_attempt.es_correcta:
+        # Lógica Bucle Espejo (solo si el último intento fue fallido y no fue bypass)
+        if latest_attempt and not latest_attempt.es_correcta and latest_attempt.respuesta_dada != "BYPASS_EXPLICACION":
             result_q = await db.execute(
                 select(Pregunta).where(Pregunta.id == latest_attempt.pregunta_id)
             )
@@ -906,62 +943,7 @@ async def responder_fase2(
                         Intento.id != intento.id
                     ))
                 )
-                if result_previo.scalar_one_or_none():
-                    ya_resuelta = True
-
-            if es_correcta and not ya_resuelta:
-                progreso.aciertos_acumulados += 1
-                
-            if config:
-                cantidad_req = config.cantidad_requerida
-                porc_aprobacion = config.porcentaje_aprobacion
-            else:
-                global_cfg = await _get_global_config(db)
-                des_cfg = global_cfg.get("desafios", {})
-                cantidad_req = des_cfg.get("cantidad_requerida", 10 if nivel_id == 13 else 25)
-                porc_aprobacion = des_cfg.get("porcentaje_aprobacion", 90)
-
-            progreso.porcentaje_actual = min(100, int((progreso.aciertos_acumulados / cantidad_req) * 100)) if cantidad_req > 0 else 0
-            
-            bloque_completado = False
-            fase_completada = False
-            
-            if progreso.porcentaje_actual >= porc_aprobacion and progreso.aciertos_acumulados >= cantidad_req:
-                if progreso.estado != EstadoProgresoEnum.APROBADO:
-                    progreso.estado = EstadoProgresoEnum.APROBADO
-                    progreso.fecha_aprobacion = datetime.utcnow()
-                bloque_completado = True
-                
-                await db.flush()
-                res_aprob = await db.execute(
-                    select(func.count(ProgresoMaestria.id)).where(and_(
-                        ProgresoMaestria.alumno_id == alumno.id,
-                        ProgresoMaestria.fase_id == FASE2_ID,
-                        ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
-                    ))
-                )
-                if res_aprob.scalar() >= 26:
-                    fase_completada = True
-                
-                # Sincronizar espejo visual heredado
-                await _sync_unlocked_levels(db, alumno.id, operacion)
-                
-            await db.commit()
-            
-            return Fase2ResultadoRespuesta(
-                es_correcta=es_correcta,
-                respuesta_correcta=respuesta_correcta_str,
-                aciertos_acumulados=progreso.aciertos_acumulados,
-                intentos_totales=progreso.intentos_totales,
-                porcentaje_actual=progreso.porcentaje_actual,
-                bloque_completado=bloque_completado,
-                fase_completada=fase_completada,
-                early_exit=False,
-                errores_sesion=errores_sesion,
-                max_errores_tolerados=max_errores,
-            )
-
-    # 3.2 MODO PRÁCTICA LIBRE (1-10) -> Bucle Espejo (Mirror Loop)
+         # 3.2 MODO PRÁCTICA LIBRE (1-10) -> Bucle Espejo (Mirror Loop)
     else:
         progreso.intentos_totales += 1
         ya_resuelta = False
@@ -989,12 +971,24 @@ async def responder_fase2(
             cantidad_req = pl_cfg.get("cantidad_requerida", 15)
             porc_aprobacion = pl_cfg.get("porcentaje_aprobacion", 80)
 
-        progreso.porcentaje_actual = min(100, int((progreso.aciertos_acumulados / cantidad_req) * 100)) if cantidad_req > 0 else 0
+        # NUEVO CÁLCULO DE PROGRESO POR COMPLETITUD (Familias únicas intentadas)
+        res_fam_intentadas = await db.execute(
+            select(func.count(func.distinct(Pregunta.estructura_padre_id)))
+            .join(Intento, Intento.pregunta_id == Pregunta.id)
+            .where(and_(
+                Intento.alumno_id == alumno.id,
+                Intento.fase_id == FASE2_ID,
+                Intento.seccion == seccion
+            ))
+        )
+        familias_intentadas = res_fam_intentadas.scalar() or 0
+        
+        progreso.porcentaje_actual = min(100, int((familias_intentadas / cantidad_req) * 100)) if cantidad_req > 0 else 0
 
         bloque_completado = False
         fase_completada = False
 
-        if progreso.porcentaje_actual >= porc_aprobacion and progreso.aciertos_acumulados >= cantidad_req:
+        if progreso.porcentaje_actual >= 100:
             if progreso.estado != EstadoProgresoEnum.APROBADO:
                 progreso.estado = EstadoProgresoEnum.APROBADO
                 progreso.fecha_aprobacion = datetime.utcnow()
@@ -1036,21 +1030,114 @@ async def responder_fase2(
 
         await db.commit()
 
-        return Fase2ResultadoRespuesta(
-            es_correcta=es_correcta,
-            respuesta_correcta=respuesta_correcta_str,
-            aciertos_acumulados=progreso.aciertos_acumulados,
-            intentos_totales=progreso.intentos_totales,
-            porcentaje_actual=progreso.porcentaje_actual,
-            bloque_completado=bloque_completado,
-            fase_completada=fase_completada,
-            es_espejo=espejo,
-            intentos_espejo_actuales=intentos_espejo,
-            intentos_espejo_max=MAX_ESPEJO,
-            soporte_avanzado=soporte_avanzado,
-            paso_aprobado=paso_aprobado,
-            valor_paso1_congelado=valor_paso1_congelado,
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT 4.5 — Cerrar Rescate (Bypass sin anti-spam)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/cerrar-rescate", response_model=Fase2ResultadoRespuesta)
+async def cerrar_rescate_fase2(
+    payload: Fase2CerrarRescate,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Cierra la explicación del bloque de rescate y registra un intento virtual 'BYPASS_EXPLICACION'.
+    Esto incrementa la completitud del alumno y resetea el bucle espejo de forma fluida.
+    """
+    alumno = await _get_alumno(db, current_user)
+    modulo_id = payload.modulo_id
+    nivel_id = payload.nivel_id
+    seccion, operacion = _seccion_operacion(modulo_id, nivel_id)
+    config = await _get_config(db, seccion, operacion)
+    progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
+
+    result_q = await db.execute(
+        select(Pregunta).where(Pregunta.id == payload.pregunta_id)
+    )
+    pregunta = result_q.scalar_one_or_none()
+    if not pregunta:
+        raise HTTPException(status_code=404, detail="Pregunta no encontrada.")
+
+    # Registrar el bypass como un intento fallido especial
+    intento = Intento(
+        alumno_id=alumno.id,
+        pregunta_id=payload.pregunta_id,
+        respuesta_dada="BYPASS_EXPLICACION",
+        es_correcta=False,
+        fase_id=FASE2_ID,
+        seccion=seccion,
+        operacion=operacion,
+        tipo_error=TipoErrorEnum.CALCULO,
+        feedback_mostrado="Bypass de Explicación",
+        explicacion_mostrada=None,
+        tiempo_respuesta_segundos=0.0,
+    )
+    db.add(intento)
+    await db.flush()
+
+    progreso.intentos_totales += 1
+
+    if config:
+        cantidad_req = config.cantidad_requerida
+    else:
+        global_cfg = await _get_global_config(db)
+        pl_cfg = global_cfg.get("practica_libre", {})
+        cantidad_req = pl_cfg.get("cantidad_requerida", 15)
+
+    # Calcular progreso por completitud (familias intentadas)
+    res_fam_intentadas = await db.execute(
+        select(func.count(func.distinct(Pregunta.estructura_padre_id)))
+        .join(Intento, Intento.pregunta_id == Pregunta.id)
+        .where(and_(
+            Intento.alumno_id == alumno.id,
+            Intento.fase_id == FASE2_ID,
+            Intento.seccion == seccion
+        ))
+    )
+    familias_intentadas = res_fam_intentadas.scalar() or 0
+    
+    progreso.porcentaje_actual = min(100, int((familias_intentadas / cantidad_req) * 100)) if cantidad_req > 0 else 0
+
+    bloque_completado = False
+    fase_completada = False
+
+    if progreso.porcentaje_actual >= 100:
+        if progreso.estado != EstadoProgresoEnum.APROBADO:
+            progreso.estado = EstadoProgresoEnum.APROBADO
+            progreso.fecha_aprobacion = datetime.utcnow()
+        bloque_completado = True
+        
+        await db.flush()
+        res_aprob = await db.execute(
+            select(func.count(ProgresoMaestria.id)).where(and_(
+                ProgresoMaestria.alumno_id == alumno.id,
+                ProgresoMaestria.fase_id == FASE2_ID,
+                ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
+            ))
         )
+        if res_aprob.scalar() >= 26:
+            fase_completada = True
+
+        # Sincronizar espejo visual heredado
+        await _sync_unlocked_levels(db, alumno.id, operacion)
+
+    await db.commit()
+
+    return Fase2ResultadoRespuesta(
+        es_correcta=False,
+        respuesta_correcta=pregunta.respuesta_correcta,
+        aciertos_acumulados=progreso.aciertos_acumulados,
+        intentos_totales=progreso.intentos_totales,
+        porcentaje_actual=progreso.porcentaje_actual,
+        bloque_completado=bloque_completado,
+        fase_completada=fase_completada,
+        es_espejo=False,
+        intentos_espejo_actuales=0,
+        intentos_espejo_max=MAX_ESPEJO,
+        soporte_avanzado=False,
+    )
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────

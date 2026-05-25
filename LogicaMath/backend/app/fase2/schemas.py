@@ -92,6 +92,18 @@ class Fase2ResponderPregunta(BaseModel):
 
 
 # ============================================================
+# CIERRE DE RESCATE (Fase 2)
+# ============================================================
+
+class Fase2CerrarRescate(BaseModel):
+    """Payload que envía el alumno para omitir la explicación de rescate."""
+    modulo_id: int
+    nivel_id: int
+    pregunta_id: int
+
+
+
+# ============================================================
 # RESULTADO DE RESPUESTA (Fase 2)
 # ============================================================
 
