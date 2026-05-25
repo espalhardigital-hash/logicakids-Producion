@@ -166,6 +166,29 @@ Ejemplo:
 }
 ```
 
+### 3.6. Modelo de Progreso Estudiantil (`ProgresoMaestria`)
+
+Esta tabla es la fuente única de verdad autoritativa para el avance y nivel de dominio del alumno en cada bloque (nivel de práctica o desafío virtual).
+
+Campos obligatorios:
+
+* `id`: UUID Primary Key.
+* `alumno_id`: ForeignKey hacia `alumnos`.
+* `fase_id`: ID de la fase.
+* `modulo_id`: ID del módulo.
+* `nivel_id`: ID del nivel (nullable si es progreso de un desafío).
+* `desafio_id`: Identificador del desafío (nullable si es progreso de práctica libre).
+* `completado`: Booleano. Indica si el alumno ha completado la batería mínima.
+* `porcentaje_precision`: Float/Integer. Porcentaje real de precisión calculado sobre las respuestas correctas.
+* `intentos_fallidos`: Integer. Contador de fallas acumuladas.
+* `fallas_consecutivas_bucle`: Integer. Para control del Bucle Espejo (0 a 4).
+* `desbloqueado`: Booleano. Indica si el bloque está accesible para el estudiante.
+* **Campos de Override Administrativo Manual (Flexibilidad):**
+  * `desbloqueado_por_admin`: Booleano. Por defecto `false`. Indica si fue liberado manualmente (`unlock`) por un tutor para permitir saltar prerrequisitos.
+  * `aprobado_por_admin`: Booleano. Por defecto `false`. Indica si el bloque fue aprobado por decreto administrativo (`approve`).
+  * `override_motivo`: String/Text nullable. Explicación/justificación pedagógica del override obligatoria para auditoría.
+  * `override_fecha`: DateTime nullable. Fecha y hora UTC del registro del override.
+
 ---
 
 ## 4. Paso 2: Plantilla de Seeder (`seed.py`)
@@ -283,7 +306,11 @@ configs.append({
     "modo_tutoria": "normal",
     "activo": True
 })
+
+# ... configs adicionales para Desafío 2 y Final ...
 ```
+
+> Nota de Calibración de Datos: Las volumetrías (`cantidad_requerida`), estados de temporizador (`usa_cronometro`) y tiempos por pregunta (`tiempo_default_segundos`) inicializados en el seeder representan baselines de referencia estándar. La arquitectura del backend está diseñada de forma modular para consultar dinámicamente estos parámetros en cada inicio de sesión, permitiendo al superusuario calibrar los valores de forma transparente y asíncrona.
 
 > Nota de implementación: Aunque los valores del seeder se inicializan con estándares pedagógicos, toda la lógica del backend debe consumir estos parámetros dinámicamente desde la base de datos y no de forma hardcoded.
 
@@ -425,12 +452,20 @@ async def _get_alumno(db: AsyncSession, current_user: dict) -> Alumno:
 
 ### 5.3. `GET /api/fases/{fase_id}/dashboard`
 
-Construye el árbol de progresión de la fase. Para habilitar desafíos, debe verificar dos condiciones independientes:
+Construye el árbol de progresión de la fase. Para determinar la disponibilidad y estado de cada bloque, el backend debe priorizar los campos de **Override Administrativo**:
 
-1. `completitud_requerida`: el alumno completó el 100% de la batería asignada del bloque.
-2. `precision_minima`: el alumno alcanzó el `porcentaje_aprobacion`, por defecto 90%.
-
-Solo cuando ambas condiciones se cumplen, el backend habilita el acceso a los desafíos en cascada.
+1. **Lógica de Aprobación por Override (`aprobado_por_admin == true`):**
+   * El backend omite el cálculo estándar de respuestas correctas e intentos.
+   * Considera automáticamente el nivel/módulo como `APROBADO` con 100% de completitud y 90% de precisión simulada.
+   * Retorna información adicional: `intervenido: true`, `override_motivo`, `override_fecha` y la firma del administrador.
+   * Habilita automáticamente el desbloqueo del bloque siguiente en la cascada de progresión.
+2. **Lógica de Desbloqueo por Override (`desbloqueado_por_admin == true`):**
+   * El backend fuerza el estado del bloque a `EN_PROGRESO` (desbloqueado y activo), permitiendo al alumno consumirlo de inmediato, incluso si los prerrequisitos anteriores no están aprobados.
+3. **Lógica de Avance Automático Estándar (si no hay override activo):**
+   * El backend evalúa si el alumno cumple ambas condiciones basadas en su desempeño:
+     1. `completitud_requerida`: el alumno completó el 100% de la batería asignada del bloque.
+     2. `precision_minima`: el alumno alcanzó el `porcentaje_aprobacion`, por defecto 90%.
+   * Solo cuando ambas se cumplen, el backend habilita el acceso al siguiente bloque o desafíos en cascada.
 
 ### 5.4. `GET /api/fases/{fase_id}/pregunta`
 
@@ -441,6 +476,7 @@ Reglas:
 * Si `fallas_consecutivas_bucle < 4`, entrega la variante espejo correspondiente.
 * Si no hay falla activa, entrega una nueva pregunta original.
 * Nunca expone `respuesta_correcta` al frontend.
+* **Integración del Cronómetro Dinámico:** El payload de retorno de la pregunta debe incluir obligatoriamente los campos de calibración `usa_cronometro` (bool) y `tiempo_limite_segundos` (int), resueltos dinámicamente a través de la cascada de configuración del servidor. Esto le da al cliente la instrucción exacta del valor de inicio del temporizador reactivo.
 
 ```python
 if fallas_consecutivas_bucle < 4:
@@ -477,6 +513,9 @@ Reglas de desafío:
   "early_exit": true
 }
 ```
+
+#### Regla Crítica de Sincronización Legacy:
+Ante cualquier evento que modifique el estado de progreso en `ProgresoMaestria` (ya sea por avance de desempeño del alumno o por override administrativo directo), el backend **debe sincronizar de forma inmediata** la clave de visualización legacy `user.settings["unlockedLevels"]` (ej: asignando `6` al estar aprobado, `1` al estar desbloqueado y `0` al bloquearse) para evitar desajustes visuales entre componentes nuevos y antiguos en el cliente.
 
 ### 5.6. `POST /api/fases/{fase_id}/cerrar-rescate`
 

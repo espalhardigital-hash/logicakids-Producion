@@ -30,7 +30,7 @@ from ..models.sql_models import (
     ProgresoMaestria, Intento, PoolAsignadoAlumno,
     StatusEnum, EstadoProgresoEnum, Alternativa,
     OperacionEnum, TipoPreguntaEnum, TipoErrorEnum,
-    PlatformSettings,
+    PlatformSettings, User,
 )
 from .models import NivelTeoria, IntentoPregunta, IntentoPaso
 from .schemas import (
@@ -45,6 +45,50 @@ router = APIRouter(prefix="/fase2", tags=["fase2"])
 
 FASE2_ID = 2
 MAX_ESPEJO = 3  # Intentos máximos en Bucle Espejo
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HELPER DE NORMALIZACIÓN DE RESPUESTAS (MONEDA Y ENTEROS)
+# ─────────────────────────────────────────────────────────────────────────────
+def normalize_response(val: str, is_money: bool = False) -> str:
+    if not val:
+        return ""
+    cleaned = val.strip().lower().replace("r$", "").replace("$", "").replace(" ", "").replace("reais", "").replace("real", "")
+    if is_money or "," in cleaned or "." in cleaned:
+        cleaned_num = cleaned.replace(",", ".")
+        try:
+            val_float = float(cleaned_num)
+            return str(round(val_float * 100))
+        except ValueError:
+            pass
+    return cleaned.replace(",", ".")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HELPER DE SINCRONIZACIÓN CON CONFIGURACIONES HEREDADAS (unlockedLevels)
+# ─────────────────────────────────────────────────────────────────────────────
+async def _sync_unlocked_levels(db: AsyncSession, alumno_id: int, operacion: str):
+    from sqlalchemy.orm.attributes import flag_modified
+    result_alumno = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
+    alumno = result_alumno.scalar_one_or_none()
+    if alumno:
+        result_user = await db.execute(select(User).where(User.id == alumno.user_id))
+        user = result_user.scalar_one_or_none()
+        if user:
+            settings = user.settings or {}
+            if "unlockedLevels" not in settings:
+                settings["unlockedLevels"] = {}
+            cat_map = {
+                "suma": "addition",
+                "resta": "subtraction",
+                "multiplicacion": "multiplication",
+                "division": "division",
+                "mixta": "challenge"
+            }
+            cat = cat_map.get(operacion)
+            if cat:
+                settings["unlockedLevels"][cat] = 6
+                user.settings = settings
+                flag_modified(user, "settings")
+                await db.flush()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONSTANTES DE MÓDULOS Y NIVELES
@@ -717,6 +761,10 @@ async def responder_fase2(
 
     # 1. VALIDAR LA RESPUESTA
     tipo_pregunta = pregunta.tipo_pregunta.value
+    is_money = (modulo_id == 3)
+
+    tipo_error = None
+    feedback_mostrado = None
 
     if tipo_pregunta == "multiple_opcion":
         if not payload.alternativa_id:
@@ -729,6 +777,9 @@ async def responder_fase2(
         es_correcta = alternativa_elegida.es_correcta
         correct_alt = next((a for a in pregunta.alternativas if a.es_correcta), None)
         respuesta_correcta_str = correct_alt.texto if correct_alt else pregunta.respuesta_correcta
+        if not es_correcta:
+            tipo_error = alternativa_elegida.tipo_error
+            feedback_mostrado = alternativa_elegida.feedback_error
 
     elif tipo_pregunta == "constructor_soluciones_chained":
         pasos = (pregunta.datos_numericos or {}).get("pasos", [])
@@ -739,8 +790,8 @@ async def responder_fase2(
         paso = pasos[paso_idx]
         respuesta_correcta_str = str(paso.get("respuesta_correcta", ""))
         
-        resp_dada = (payload.respuesta_dada or "").strip().lower().replace(",", ".").replace("r$ ", "")
-        resp_corr = respuesta_correcta_str.strip().lower().replace(",", ".").replace("r$ ", "")
+        resp_dada = normalize_response(payload.respuesta_dada, is_money)
+        resp_corr = normalize_response(respuesta_correcta_str, is_money)
         es_correcta = resp_dada == resp_corr
         
         if es_correcta:
@@ -749,11 +800,29 @@ async def responder_fase2(
                 valor_paso1_congelado = respuesta_correcta_str
 
     else:
-        resp_dada = (payload.respuesta_dada or "").strip().lower().replace(",", ".").replace("r$ ", "")
-        resp_corr = respuesta_correcta_str.strip().lower().replace(",", ".").replace("r$ ", "")
+        resp_dada = normalize_response(payload.respuesta_dada, is_money)
+        resp_corr = normalize_response(respuesta_correcta_str, is_money)
         es_correcta = resp_dada == resp_corr
 
-    # 2. REGISTRAR EL INTENTO
+    # 2. DETECTAR ERRORES COGNITIVOS EN PREGUNTAS ABIERTAS
+    if not es_correcta and tipo_pregunta != "multiple_opcion":
+        if pregunta.errores_previstos and isinstance(pregunta.errores_previstos, dict):
+            normalized_dada = normalize_response(payload.respuesta_dada, is_money)
+            err_list = pregunta.errores_previstos.get("respuestas_erroneas", [])
+            for err in err_list:
+                err_val_normalized = normalize_response(err.get("valor", ""), is_money)
+                if normalized_dada == err_val_normalized:
+                    tipo_error_str = err.get("tipo_error", "calculo")
+                    tipo_error = TipoErrorEnum(tipo_error_str) if hasattr(TipoErrorEnum, tipo_error_str) else TipoErrorEnum.CALCULO
+                    feedback_mostrado = err.get("feedback")
+                    break
+            
+            # Fallback a calculo si no coincide con ningun error cognitivo previsto
+            if not tipo_error:
+                tipo_error = TipoErrorEnum.CALCULO
+                feedback_mostrado = pregunta.errores_previstos.get("calculo", "Revisa tus cálculos e inténtalo de nuevo.")
+
+    # 3. REGISTRAR EL INTENTO
     intento = Intento(
         alumno_id=alumno.id,
         pregunta_id=payload.pregunta_id,
@@ -762,6 +831,9 @@ async def responder_fase2(
         fase_id=FASE2_ID,
         seccion=seccion,
         operacion=operacion,
+        tipo_error=tipo_error,
+        feedback_mostrado=feedback_mostrado,
+        explicacion_mostrada=pregunta.explicacion_paso_a_paso if not es_correcta else None,
         tiempo_respuesta_segundos=payload.tiempo_respuesta_segundos,
     )
     db.add(intento)
@@ -871,6 +943,9 @@ async def responder_fase2(
                 if res_aprob.scalar() >= 26:
                     fase_completada = True
                 
+                # Sincronizar espejo visual heredado
+                await _sync_unlocked_levels(db, alumno.id, operacion)
+                
             await db.commit()
             
             return Fase2ResultadoRespuesta(
@@ -935,6 +1010,9 @@ async def responder_fase2(
             )
             if res_aprob.scalar() >= 26:
                 fase_completada = True
+
+            # Sincronizar espejo visual heredado
+            await _sync_unlocked_levels(db, alumno.id, operacion)
 
         espejo = False
         intentos_espejo = 0

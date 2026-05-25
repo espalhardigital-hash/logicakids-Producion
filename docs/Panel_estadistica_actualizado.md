@@ -20,10 +20,10 @@ La fuente de verdad del progreso académico es `ProgresoMaestria`. La bitácora 
 
 El sistema reconoce dos vías de avance académico:
 
-1. **Avance automático por desempeño:** el backend aprueba o desbloquea bloques cuando el alumno cumple las reglas pedagógicas configuradas.
-2. **Intervención manual por administrador:** un administrador autorizado puede liberar, aprobar, bloquear o restablecer módulos, niveles o desafíos específicos para un alumno concreto.
+1. **Avance automático por desempeño:** El backend aprueba o desbloquea bloques cuando el alumno cumple las reglas pedagógicas configuradas (porcentaje de precisión ≥90% y completitud al 100%).
+2. **Intervención manual por administrador (Override):** Un administrador autorizado (Superusuario/Tutor) puede liberar (`unlock`), aprobar (`approve`) o bloquear/restablecer (`reset`/`lock`) módulos, niveles o desafíos específicos para un alumno concreto.
 
-El Panel de Estadísticas debe mostrar ambas situaciones con claridad visual, diferenciando progreso obtenido por desempeño y progreso intervenido por administrador.
+El Panel de Estadísticas ("Mi Progreso") debe reflejar ambas situaciones con absoluta claridad visual y transparencia. Los bloques superados por desempeño ordinario lucirán una aureola dorada, mientras que los bloques intervenidos por administración mostrarán marcos cromáticos cian, distintivos especiales e información detallada de la tutoría (motivo, fecha y firma del autorizador), garantizando la transparencia para los padres y tutores.
 
 ---
 
@@ -116,24 +116,20 @@ Cada bloque debe mostrar:
 
 ### 3.4. Visualización de intervención manual
 
-Cuando un bloque fue intervenido por administrador, el panel debe mostrarlo de forma explícita y transparente:
+Cuando un bloque es intervenido de forma manual por un administrador, el Panel de Estadísticas del estudiante debe mostrar de forma transparente, explícita y motivacional los detalles de dicha intervención, evitando confusiones y dando visibilidad completa a los padres de familia sobre la personalización de la ruta de aprendizaje:
 
-```text
-Estado: APROBADO
-Origen: Aprobado manualmente por administrador
-Motivo: Evaluación diagnóstica externa
-Fecha: 25/05/2026
-```
+#### Estructura Visual del Acordeón para Bloques Intervenidos:
+* **Brillo de Borde:** En lugar del brillo verde (en progreso) o dorado (aprobado ordinario), el bloque interactivo muestra un resplandor ambiental y borde **cian/azul neón** (`border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)]`).
+* **Badge de Estado:** Se renderiza una etiqueta en color cian con el texto:
+  * *"APROBADO POR EL TUTOR"* (en caso de `approve`).
+  * *"HABILITADO POR EL TUTOR"* (en caso de `unlock`).
+* **Cuerpo de Detalle (Desplegable del Acordeón):**
+  Al expandir la fila del bloque, se despliega una tarjeta de diseño esmerilado (`backdrop-blur-md bg-cyan-950/20 border-cyan-500/10`) que detalla los metadatos de auditoría:
+  * **Origen / Autor: ** `Autorizado por: Dirección Académica LogicaKids (Superusuario)`
+  * **Motivo Pedagógico: ** Se renderiza textualmente el campo `override_motivo` (ej. *"Estudiante avanzado de 5º grado, demuestra dominio inicial en diagnóstico presencial"*).
+  * **Fecha de Registro: ** Se muestra la fecha y hora local formateada proveniente de `override_fecha`.
 
-O:
-
-```text
-Estado: EN PROGRESO
-Origen: Liberado por administrador
-Motivo: Alumno ingresó con nivel intermedio
-```
-
-Esto evita confundir una aprobación manual con una aprobación obtenida por ejecución dentro de la plataforma.
+Esto evita confundir una aprobación manual con una aprobación obtenida por ejecución estándar dentro de la plataforma y celebra la flexibilidad curricular de la escuela o tutor.
 
 ### 3.5. Historial de intentos
 
@@ -148,7 +144,8 @@ El historial se alimenta de la tabla `intentos` y de resúmenes derivados del ba
 * resultado correcto/incorrecto sin exponer `es_correcta` en payloads de preguntas activas;
 * tipo de error;
 * feedback mostrado;
-* tiempo de respuesta.
+* tiempo de respuesta del estudiante;
+* **Metadatos de Calibración Activos:** Límite de tiempo configurado en la sesión (`tiempo_limite_activo`) y total de preguntas del bloque (`total_preguntas_activo`). Esto permite congelar en el historial las condiciones operativas de la prueba al momento de ser ejecutada por el alumno, evitando distorsiones si el superusuario edita los parámetros globales posteriormente.
 
 El alumno no debe poder eliminar físicamente registros académicos. Si se permite ocultar un intento en la vista del alumno, debe usarse una marca visual como `oculto_para_alumno = true`, sin borrar `intentos` ni `ProgresoMaestria`.
 
@@ -267,6 +264,9 @@ export interface StudentAttemptSummary {
     | 'RESCATE_COMPLETADO'
     | 'ADMIN_UNLOCK'
     | 'ADMIN_APPROVE';
+
+  tiempo_limite_configurado?: number | null;
+  preguntas_configuradas?: number | null;
 
   fecha_inicio: string;
   fecha_fin: string;

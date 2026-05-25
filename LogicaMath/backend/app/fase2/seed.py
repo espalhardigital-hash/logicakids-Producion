@@ -4,6 +4,8 @@ import random
 import json
 from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel, Field
+from typing import List, Dict, Any
 
 from app.db.session import AsyncSessionLocal
 from app.models.sql_models import (
@@ -20,6 +22,17 @@ from app.fase2.models import NivelTeoria
 
 # ID de la Fase 2 en la base de datos
 FASE2_ID = 2
+
+# Schema de Validación de Teoría para garantizar 3 interactivos obligatorios
+class NivelTeoriaSeederSchema(BaseModel):
+    modulo_id: int
+    nivel_id: int
+    titulo: str
+    texto_descubrimiento: str
+    diccionario: Dict[str, str]
+    advertencia: str
+    ejemplos: List[Dict[str, Any]]
+    interactivos: List[Dict[str, Any]] = Field(..., min_items=3, max_items=3)
 
 # ==============================================================================
 # PART A: SEED NIVEL TEORIA (14 Levels)
@@ -643,6 +656,8 @@ async def seed_teoria_niveles(session: AsyncSession):
     ]
     
     for nt in niveles_teoria:
+        # Validación de teoría con Pydantic para asegurar que tiene exactamente 3 interactivos
+        NivelTeoriaSeederSchema(**nt)
         # Verificar si ya existe
         res = await session.execute(
             select(NivelTeoria).where(and_(
@@ -806,39 +821,54 @@ async def seed_configuracion_progreso(session: AsyncSession):
             existing.tipo_feedback = c["tipo_feedback"]
             print(f"  Actualizada config progreso para Sección {c['seccion']}")
 
-# ==============================================================================
-# PART C: PRACTICE GENERATORS & POOL (120 families × 14 levels)
-# ==============================================================================
-
 # Helper generators
 def _gen_m1l1(rng, fam, es_espejo, var):
     op = rng.choice(["doble", "triple", "mitad", "cuádruple"])
+    respuestas_erroneas = []
+    
     if op == "mitad":
         base = rng.randint(4, 50) * 2
         ans = base // 2
         enunciado = f"Halla la mitad de {base}."
         expl = f"Para hallar la mitad, dividimos entre 2: {base} ÷ 2 = {ans}."
+        
+        err_val = base - 2
+        err_feedback = "¡Cuidado! La mitad significa dividir entre 2 (partir en dos partes iguales), no restarle 2."
+        respuestas_erroneas.append({"valor": str(err_val), "tipo_error": "impulso", "feedback": err_feedback})
     elif op == "doble":
         base = rng.randint(3, 50)
         ans = base * 2
         enunciado = f"Halla el doble de {base}."
         expl = f"Para hallar el doble, multiplicamos por 2: {base} × 2 = {ans}."
+        
+        err_val = base + 2
+        err_feedback = "¡Cuidado con la trampa del apuro! El doble significa multiplicar por 2 (tomar esa cantidad dos veces), no sumarle 2."
+        respuestas_erroneas.append({"valor": str(err_val), "tipo_error": "impulso", "feedback": err_feedback})
     elif op == "triple":
         base = rng.randint(3, 33)
         ans = base * 3
         enunciado = f"Halla el triple de {base}."
         expl = f"Para hallar el triple, multiplicamos por 3: {base} × 3 = {ans}."
+        
+        err_val = base + 3
+        err_feedback = "¡Cuidado con la trampa del apuro! El triple significa multiplicar por 3 (tres veces el mismo número), no sumarle 3."
+        respuestas_erroneas.append({"valor": str(err_val), "tipo_error": "impulso", "feedback": err_feedback})
     else:
         base = rng.randint(3, 25)
         ans = base * 4
         enunciado = f"Halla el cuádruple de {base}."
         expl = f"Para hallar el cuádruple, multiplicamos por 4: {base} × 4 = {ans}."
         
+        err_val = base + 4
+        err_feedback = "¡Cuidado con la trampa del apuro! El cuádruple significa multiplicar por 4 (cuatro veces el mismo número), no sumarle 4."
+        respuestas_erroneas.append({"valor": str(err_val), "tipo_error": "impulso", "feedback": err_feedback})
+        
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
         "datos_numericos": {"base": base, "operacion": op, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "impulso": "¡Cuidado! Recuerda que no debes sumar el multiplicador, sino multiplicar el número base.",
             "calculo": "Revisa bien las tablas de multiplicar y dividir."
         },
@@ -853,6 +883,8 @@ def _gen_m1l1(rng, fam, es_espejo, var):
 
 def _gen_m1l2(rng, fam, es_espejo, var):
     patron = rng.choice(["a + b * c", "a * b + c", "a - b / c", "(a + b) * c"])
+    respuestas_erroneas = []
+    
     if patron == "a + b * c":
         a = rng.randint(2, 20)
         b = rng.randint(2, 9)
@@ -860,6 +892,14 @@ def _gen_m1l2(rng, fam, es_espejo, var):
         ans = a + b * c
         enunciado = f"Resuelve respetando la jerarquía: {a} + {b} × {c}"
         expl = f"Primero resolvemos la multiplicación por jerarquía: {b} × {c} = {b*c}. Luego sumamos: {a} + {b*c} = {ans}."
+        
+        linear_val = (a + b) * c
+        if linear_val != ans:
+            respuestas_erroneas.append({
+                "valor": str(linear_val),
+                "tipo_error": "impulso",
+                "feedback": "¡Alto ahí! Le diste prioridad a la suma. Recuerda que la multiplicación y la división tienen escudo de oro y se resuelven antes."
+            })
     elif patron == "a * b + c":
         a = rng.randint(2, 9)
         b = rng.randint(2, 9)
@@ -867,6 +907,14 @@ def _gen_m1l2(rng, fam, es_espejo, var):
         ans = a * b + c
         enunciado = f"Resuelve respetando la jerarquía: {a} × {b} + {c}"
         expl = f"Primero resolvemos la multiplicación: {a} × {b} = {a*b}. Luego sumamos: {a*b} + {c} = {ans}."
+        
+        parenthesis_val = a * (b + c)
+        if parenthesis_val != ans:
+            respuestas_erroneas.append({
+                "valor": str(parenthesis_val),
+                "tipo_error": "impulso",
+                "feedback": "¡Alto ahí! Resolviste la suma antes que la multiplicación. Recuerda que la multiplicación tiene prioridad a menos que esté protegida por paréntesis."
+            })
     elif patron == "a - b / c":
         c = rng.randint(2, 8)
         ans = rng.randint(2, 10)
@@ -876,6 +924,14 @@ def _gen_m1l2(rng, fam, es_espejo, var):
         enunciado = f"Resuelve respetando la jerarquía: {a} - {b} ÷ {c}"
         expl = f"Primero resolvemos la división: {b} ÷ {c} = {ans}. Luego restamos: {a} - {ans} = {final_ans}."
         ans = final_ans
+        
+        linear_val = (a - b) // c
+        if linear_val != ans and linear_val > 0:
+            respuestas_erroneas.append({
+                "valor": str(linear_val),
+                "tipo_error": "impulso",
+                "feedback": "¡Alto ahí! Le diste prioridad a la resta. Recuerda que la multiplicación y la división se resuelven antes."
+            })
     else: # (a + b) * c
         a = rng.randint(2, 10)
         b = rng.randint(2, 10)
@@ -884,11 +940,20 @@ def _gen_m1l2(rng, fam, es_espejo, var):
         enunciado = f"Resuelve: ({a} + {b}) × {c}"
         expl = f"Primero resolvemos el paréntesis protector: {a} + {b} = {a+b}. Luego multiplicamos: {a+b} × {c} = {ans}."
         
+        ignore_val = a + b * c
+        if ignore_val != ans:
+            respuestas_erroneas.append({
+                "valor": str(ignore_val),
+                "tipo_error": "parentesis",
+                "feedback": "¡El escudo mágico fue ignorado! Resuelve primero la operación que está protegida dentro del paréntesis ( )."
+            })
+        
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
         "datos_numericos": {"patron": patron, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "impulso": "¡Jerarquía de operaciones! Primero se resuelven los paréntesis, luego multiplicaciones/divisiones, y al final sumas/restas."
         },
         "explicacion_paso_a_paso": {
@@ -902,18 +967,36 @@ def _gen_m1l2(rng, fam, es_espejo, var):
 
 def _gen_m1l3(rng, fam, es_espejo, var):
     patron = rng.choice(["doble_suma", "triple_resta", "mitad_suma"])
+    respuestas_erroneas = []
+    
     if patron == "doble_suma":
         a = rng.randint(2, 15)
         b = rng.randint(2, 15)
         ans = 2 * (a + b)
         enunciado = f"¿Cuál es el doble de la suma de {a} y {b}?"
         expl = f"Primero sumamos {a} y {b}: {a} + {b} = {a+b}. Luego multiplicamos por 2 para el doble: 2 × {a+b} = {ans}."
+        
+        ignore_val = 2 * a + b
+        if ignore_val != ans:
+            respuestas_erroneas.append({
+                "valor": str(ignore_val),
+                "tipo_error": "parentesis",
+                "feedback": "¡Cuidado con la traducción! Protege la suma con un paréntesis en tu mente antes de multiplicarla por 2."
+            })
     elif patron == "triple_resta":
         b = rng.randint(2, 15)
         a = rng.randint(b + 2, b + 20)
         ans = 3 * (a - b)
         enunciado = f"¿Cuál es el triple de la diferencia entre {a} y {b}?"
         expl = f"La diferencia es la resta: {a} - {b} = {a-b}. El triple significa multiplicar por 3: 3 × {a-b} = {ans}."
+        
+        ignore_val = 3 * a - b
+        if ignore_val != ans:
+            respuestas_erroneas.append({
+                "valor": str(ignore_val),
+                "tipo_error": "parentesis",
+                "feedback": "¡Cuidado con la traducción! Protege la diferencia con un paréntesis en tu mente antes de triplicarla."
+            })
     else: # mitad_suma
         a = rng.randint(2, 20) * 2
         b = rng.randint(2, 20)
@@ -921,11 +1004,20 @@ def _gen_m1l3(rng, fam, es_espejo, var):
         enunciado = f"A la mitad de {a} sumarle {b}."
         expl = f"Primero hallamos la mitad de {a}: {a} ÷ 2 = {a//2}. Luego le sumamos {b}: {a//2} + {b} = {ans}."
         
+        ignore_val = a // (2 + b)
+        if ignore_val != ans:
+            respuestas_erroneas.append({
+                "valor": str(ignore_val),
+                "tipo_error": "calculo",
+                "feedback": "Sigue el orden de la lectura. Primero calcula la mitad de A y al resultado súmale B."
+            })
+        
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
         "datos_numericos": {"patron": patron, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "parentesis": "¡Cuidado con la traducción! Protege la suma o resta con un paréntesis en tu mente antes de multiplicarla."
         },
         "explicacion_paso_a_paso": {
@@ -940,11 +1032,20 @@ def _gen_m1l3(rng, fam, es_espejo, var):
 def _gen_m2l1(rng, fam, es_espejo, var):
     op = rng.choice(["suma", "resta"])
     a = rng.randint(2, 40)
+    respuestas_erroneas = []
+    
     if op == "suma":
         ans = rng.randint(2, 40)
         b = ans + a
         enunciado = f"Descubre el valor de X: X + {a} = {b}"
         expl = f"El {a} está sumando. La inversa es restar: X = {b} - {a} = {ans}."
+        
+        err_val = b + a
+        respuestas_erroneas.append({
+            "valor": str(err_val),
+            "tipo_error": "inversa",
+            "feedback": "¡La balanza se inclinó de más! Para descubrir el número original que sumaba, debes usar el camino de regreso haciendo una resta."
+        })
     else:
         ans = rng.randint(2, 40)
         b = ans - a
@@ -954,17 +1055,26 @@ def _gen_m2l1(rng, fam, es_espejo, var):
         enunciado = f"Descubre el valor de X: X - {a} = {b}"
         expl = f"El {a} está restando. La inversa es sumar: X = {b} + {a} = {ans}."
         
+        err_val = b - a
+        if err_val > 0:
+            respuestas_erroneas.append({
+                "valor": str(err_val),
+                "tipo_error": "inversa",
+                "feedback": "¡La balanza se desequilibró! Como el número estaba restando, para regresar al valor original debes sumarlo."
+            })
+        
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
         "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "inversa": "Para despejar X, pasa el número al otro lado usando su operación contraria (resta si suma, suma si resta)."
         },
         "explicacion_paso_a_paso": {
             "titulo": "Operación Inversa",
             "pasos": [
-                {"orden": 1, "texto": f"Identificamos que {a} acompaña a X en una {op}."},
+                {"orden": 1, "texto": f"Identificamos que {a} acompaña a X in una {op}."},
                 {"orden": 2, "texto": expl}
             ]
         }
@@ -974,10 +1084,19 @@ def _gen_m2l2(rng, fam, es_espejo, var):
     op = rng.choice(["mult", "div"])
     a = rng.randint(2, 10)
     ans = rng.randint(2, 12)
+    respuestas_erroneas = []
+    
     if op == "mult":
         b = a * ans
         enunciado = f"Resuelve para Y: {a} × Y = {b}"
         expl = f"El {a} está multiplicando. Pasamos dividiendo al otro lado del igual: Y = {b} ÷ {a} = {ans}."
+        
+        err_val = b * a
+        respuestas_erroneas.append({
+            "valor": str(err_val),
+            "tipo_error": "inversa",
+            "feedback": "¡Espejo equivocado! Si el número ya fue multiplicado para llegar a B, debes dividirlo para regresar al original."
+        })
     else:
         b = ans
         total = a * b
@@ -985,11 +1104,20 @@ def _gen_m2l2(rng, fam, es_espejo, var):
         expl = f"El {a} está dividiendo. Pasamos multiplicando al otro lado del igual: Y = {b} × {a} = {total}."
         ans = total
         
+        err_val = b // a
+        if err_val > 0:
+            respuestas_erroneas.append({
+                "valor": str(err_val),
+                "tipo_error": "inversa",
+                "feedback": "¡Balanza desarmada! Como el número estaba dividido, para recuperarlo debes multiplicar."
+            })
+        
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
         "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "inversa": "La multiplicación se deshace con división. La división se deshace con multiplicación."
         },
         "explicacion_paso_a_paso": {
@@ -1003,24 +1131,47 @@ def _gen_m2l2(rng, fam, es_espejo, var):
 
 def _gen_m2l3(rng, fam, es_espejo, var):
     tipo = rng.choice(["a + [] = b", "[] * a = b", "a - [] = b", "[] / a = b"])
+    respuestas_erroneas = []
+    
     if tipo == "a + [] = b":
         a = rng.randint(3, 50)
         ans = rng.randint(3, 50)
         b = a + ans
         enunciado = f"Completa el espacio faltante: {a} + [ ] = {b}"
         expl = f"Buscamos qué sumar a {a} para obtener {b}. Restamos: {b} - {a} = {ans}."
+        
+        err_val = b + a
+        respuestas_erroneas.append({
+            "valor": str(err_val),
+            "tipo_error": "balanza",
+            "feedback": "¡La balanza se inclinó! Recuerda que para encontrar el sumando que falta debes restar."
+        })
     elif tipo == "[] * a = b":
         a = rng.randint(2, 10)
         ans = rng.randint(2, 12)
         b = a * ans
         enunciado = f"Completa el espacio faltante: [ ] × {a} = {b}"
         expl = f"Buscamos qué número multiplicado por {a} da {b}. Dividimos: {b} ÷ {a} = {ans}."
+        
+        err_val = b * a
+        respuestas_erroneas.append({
+            "valor": str(err_val),
+            "tipo_error": "balanza",
+            "feedback": "Para encontrar el factor faltante, realiza la operación inversa: divide el total entre el factor conocido."
+        })
     elif tipo == "a - [] = b":
         a = rng.randint(15, 60)
         ans = rng.randint(2, a - 2)
         b = a - ans
         enunciado = f"Completa el espacio faltante: {a} - [ ] = {b}"
         expl = f"A {a} le quitamos cierta cantidad para llegar a {b}. Calculamos la diferencia: {a} - {b} = {ans}."
+        
+        err_val = a + b
+        respuestas_erroneas.append({
+            "valor": str(err_val),
+            "tipo_error": "balanza",
+            "feedback": "¡Cuidado! Si sumas, obtendrás un número mayor. A ese número le tienes que quitar algo para llegar al resultado."
+        })
     else: # [] / a = b
         a = rng.randint(2, 9)
         b = rng.randint(2, 10)
@@ -1028,11 +1179,20 @@ def _gen_m2l3(rng, fam, es_espejo, var):
         enunciado = f"Completa el espacio faltante: [ ] ÷ {a} = {b}"
         expl = f"Un número dividido entre {a} da {b}. Multiplicamos para hallarlo: {b} × {a} = {ans}."
         
+        err_val = b // a
+        if err_val > 0:
+            respuestas_erroneas.append({
+                "valor": str(err_val),
+                "tipo_error": "balanza",
+                "feedback": "Para encontrar el número dividido, realiza la operación inversa: multiplica."
+            })
+        
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
         "datos_numericos": {"tipo": tipo, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "balanza": "¡Piensa de forma intuitiva! El valor en la casilla vacía debe equilibrar la balanza en ambos lados."
         },
         "explicacion_paso_a_paso": {
@@ -1063,12 +1223,21 @@ def _gen_m3l1(rng, fam, es_espejo, var):
     
     # Asegurar formato exacto de respuesta string
     ans_str = f"{reais:.2f}".replace(".", ",")
+    respuestas_erroneas = []
+    
+    # Error: escribir en centavos directos sin coma (ej: 150 en lugar de 1,50)
+    respuestas_erroneas.append({
+        "valor": str(total_cents),
+        "tipo_error": "decimal",
+        "feedback": "¡Cuidado con los centavos! Escribe tu respuesta en formato de dinero con coma (ej. 1,50), no en centavos sueltos."
+    })
     
     return {
         "enunciado": enunciado,
         "respuesta_correcta": ans_str,
         "datos_numericos": {"n50": n50, "n25": n25, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "decimal": "Cuidado con los decimales. 0,50 + 0,50 es 1,00 real entero."
         },
         "explicacion_paso_a_paso": {
@@ -1091,12 +1260,23 @@ def _gen_m3l2(rng, fam, es_espejo, var):
     ans_str = f"{cambio:.2f}".replace(".", ",")
     
     enunciado = f"Compro un dulce de {precio:.2f} pesos y pago con un billete de {pago:.2f} pesos. ¿Cuánto cambio recibo?"
+    respuestas_erroneas = []
+    
+    # Vuelto mocho error común: restar centavos con centavos sin pedir prestado
+    err_cents = int((pago - precio) * 100) + 10
+    err_str = f"{err_cents/100:.2f}".replace(".", ",")
+    respuestas_erroneas.append({
+        "valor": err_str,
+        "tipo_error": "vuelto",
+        "feedback": "¡Cuenta incompleta! Recuerda restar centavos con centavos y pedir prestado 1 real (100 centavos) si es necesario."
+    })
     
     return {
         "enunciado": enunciado,
         "respuesta_correcta": ans_str,
         "datos_numericos": {"precio": precio, "pago": pago, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "vuelto": "Recuerda restar centavos con centavos. 1 peso entero son 100 centavos."
         },
         "explicacion_paso_a_paso": {
@@ -1118,12 +1298,22 @@ def _gen_m3l3(rng, fam, es_espejo, var):
     ans_str = f"{total:.2f}".replace(".", ",")
     
     enunciado = f"En tu carrito llevas tres cosas: un chicle de {p1:.2f} pesos, un lápiz de {p2:.2f} pesos y un helado de {p3:.2f} pesos. ¿Cuánto es el total?"
+    respuestas_erroneas = []
+    
+    # Error: sumar centavos y no llevarse 1 a la parte entera (ej: .75 + .25 = .100)
+    err_str = f"{int(p1) + int(p2) + int(p3)},100"
+    respuestas_erroneas.append({
+        "valor": err_str,
+        "tipo_error": "suma_decimal",
+        "feedback": "¡Cuidado con los centavos! 75 centavos + 25 centavos forman 100 centavos, lo que equivale a un peso extra que debes añadir a los enteros."
+    })
     
     return {
         "enunciado": enunciado,
         "respuesta_correcta": ans_str,
         "datos_numericos": {"p1": p1, "p2": p2, "p3": p3, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "suma_decimal": "Suma los centavos por un lado. Si superan 100 centavos, agrúpalos como 1 peso entero extra."
         },
         "explicacion_paso_a_paso": {
@@ -1138,10 +1328,10 @@ def _gen_m3l3(rng, fam, es_espejo, var):
 def _gen_m3l4(rng, fam, es_espejo, var):
     tipo = rng.choice(["alcanza", "falta"])
     costo = rng.choice([2.25, 2.50, 2.75, 3.25, 3.50, 3.75, 4.25, 4.50, 4.75, 5.25, 5.50])
+    respuestas_erroneas = []
     
     if tipo == "alcanza":
         presupuesto = rng.choice([6.00, 7.00, 8.00, 10.00])
-        # Preguntar si alcanza: 1 para sí, 2 para no
         ans_str = "1"
         enunciado = f"Tienes {presupuesto:.2f} pesos de presupuesto. Tu carrito de compras suma {costo:.2f} pesos. ¿Te alcanza el dinero? (Escribe 1 para SÍ, 2 para NO)"
         expl = f"Como el presupuesto ({presupuesto:.2f}) es mayor o igual al costo ({costo:.2f}), sí te alcanza (1)."
@@ -1152,11 +1342,20 @@ def _gen_m3l4(rng, fam, es_espejo, var):
         enunciado = f"Llevas {presupuesto:.2f} pesos en el bolsillo. Si tu carrito cuesta {costo:.2f} pesos, ¿cuánto dinero te hace falta para pagar?"
         expl = f"Restamos el costo menos el presupuesto: {costo:.2f} - {presupuesto:.2f} = {falta:.2f} pesos faltantes."
         
+        # Error común: sumar en lugar de restar
+        err_str = f"{(costo + presupuesto):.2f}".replace(".", ",")
+        respuestas_erroneas.append({
+            "valor": err_str,
+            "tipo_error": "presupuesto",
+            "feedback": "Para saber cuánto falta, resta el precio total menos tu presupuesto."
+        })
+        
     return {
         "enunciado": enunciado,
         "respuesta_correcta": ans_str,
         "datos_numericos": {"presupuesto": presupuesto, "costo": costo, "tipo": tipo, "es_espejo": es_espejo, "variante": var},
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "presupuesto": "Compara detenidamente los valores decimales para ver si te sobra o te falta."
         },
         "explicacion_paso_a_paso": {
@@ -1189,6 +1388,7 @@ def _gen_m4l1(rng, fam, es_espejo, var):
             ]
         },
         "errores_previstos": {
+            "respuestas_erroneas": [],
             "arrastre": "Resuelve paso a paso. Primero el total de crayones y luego resta los dañados."
         },
         "explicacion_paso_a_paso": {
@@ -1222,6 +1422,7 @@ def _gen_m4l2(rng, fam, es_espejo, var):
             ]
         },
         "errores_previstos": {
+            "respuestas_erroneas": [],
             "secuencia": "Primero suma todas las manzanas recolectadas y luego divide ese total entre 2."
         },
         "explicacion_paso_a_paso": {
@@ -1241,6 +1442,15 @@ def _gen_m4l3(rng, fam, es_espejo, var):
     p2_ans = p1_ans * 2
     
     enunciado = f"Valentina tenía {bombones} bombones en una caja y también vio {sillas} sillas de madera. Si se comió {comidos} bombones, y luego su abuela le duplicó la cantidad restante, ¿con cuántos bombones cuenta ahora?"
+    respuestas_erroneas = []
+    
+    # Error: operar incluyendo el distractor (sillas)
+    err_ans = (bombones + sillas - comidos) * 2
+    respuestas_erroneas.append({
+        "valor": str(err_ans),
+        "tipo_error": "distractor",
+        "feedback": "¡Caíste en la trampa del distractor! Antes de operar, levanta tu escudo y separa solo los datos útiles para resolver la pregunta."
+    })
     
     return {
         "enunciado": enunciado,
@@ -1254,6 +1464,7 @@ def _gen_m4l3(rng, fam, es_espejo, var):
             ]
         },
         "errores_previstos": {
+            "respuestas_erroneas": respuestas_erroneas,
             "distractor": "¡Escudo de datos basura activado! Ignora por completo las sillas de madera, solo importan los bombones."
         },
         "explicacion_paso_a_paso": {

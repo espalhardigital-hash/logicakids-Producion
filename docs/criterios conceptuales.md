@@ -176,6 +176,14 @@ Los tiempos están calculados de forma inversa a la asistencia de la interfaz:
 * Desafío 2: más tiempo por mayor complejidad conceptual.
 * Desafío Final: más tiempo porque exige evocación pura sin distractores.
 
+### 6.2. Calibración en Caliente de Estrés Temporal y Fatiga de Atención (Overrides)
+
+Los tiempos (temporizadores) y la cantidad de preguntas de cada bloque estipulados en las tablas anteriores representan **valores iniciales de referencia pedagógica**. 
+
+Durante las fases de desarrollo, pruebas de campo e investigación activa, los tiempos óptimos y la fatiga del alumno son variables experimentales. Por ello, el sistema pedagógico de LogicaKids Pro habilita la **Calibración en Caliente**:
+* Desde el Panel de Administración, el Superusuario tiene la autoridad para modificar en tiempo real el número de preguntas (`cantidad_requerida`), activar/desactivar temporizadores (`usa_cronometro`) y alterar la duración de los mismos (`tiempo_default_segundos`) para cualquier nivel de práctica libre, desafío, módulo o fase.
+* Esto permite adaptar la presión temporal del juego a diferentes metodologías escolares, ritmos grupales o necesidades experimentales de investigación sin alterar la base de datos de manera estática ni requerir despliegues de código nuevos.
+
 ---
 
 ## 7. Reglas Universales de Aprobación, Completitud y Early Exit
@@ -208,21 +216,42 @@ Todas las evaluaciones exigen por defecto 90% de precisión. El servidor debe ab
 | 25 preguntas | Aborta al 3er error |
 | 50 preguntas | Aborta al 6º error |
 
-> Nota de flexibilidad operativa: La volumetría, los límites de tiempo, los porcentajes de aprobación, la completitud requerida y los umbrales de Early Exit son parámetros editables desde `configuraciones_progreso`. Los valores de este documento representan la configuración pedagógica estándar, no valores hardcoded.
+> Nota de flexibilidad operativa: La volumetría, los límites de tiempo, los porcentajes de aprobación, la completitud requerida y los umbrales de Early Exit son parámetros editables desde `configuraciones_progreso`. Los valores de este documento representan la configuración pedagógica estándar, no valores hardcoded. El umbral de Early Exit (Tabla Maestra de Tolerancia) es recalculado de forma determinista por el backend con base en la `cantidad_requerida` configurada en el momento de iniciar la prueba, respetando siempre el principio de tolerancia proporcional del 90%.
+
+### 7.4. Flexibilidad Pedagógica y Vías de Avance (Anulación Manual / Override)
+
+El criterio estándar de aprobación del **90% de precisión** y **100% de completitud** en la Práctica Libre es un **estándar relativo y estadístico**. Dado que los estudiantes de LogicaKids Pro ingresan con diferentes conocimientos previos, ritmos de aprendizaje o necesidades de nivelación inmediata, obligar a una ruta lineal rígida puede generar desmotivación en alumnos avanzados o retrasos innecesarios en casos particulares.
+
+Por tanto, el sistema pedagógico implementa dos vías legítimas y paralelas para el avance de un estudiante:
+
+1. **Avance Automático por Desempeño (Regla Pedagógica Estándar):**
+   * El backend evalúa si el alumno cumple dinámicamente con los requisitos cuantitativos (precisión y completitud) definidos para el nivel o módulo.
+2. **Override Administrativo Manual (Intervención Pedagógica Directa):**
+   * Un tutor o superusuario, desde el Panel de Administrador, tiene la autoridad pedagógica de anular el flujo estándar para un alumno en específico, aplicando una de las siguientes tres acciones de override:
+     * **Liberar (`unlock`):** Cambia manualmente el estado de un nivel o módulo a `EN_PROGRESO` sin obligar al alumno a completar las etapas o niveles precedentes. Esto le permite saltar contenidos ya dominados y acceder directamente al material.
+     * **Aprobar (`approve`):** Declara manualmente un nivel o módulo como `APROBADO` sin que el alumno complete la práctica o los desafíos. El backend simula un **100% de completitud** y un **90% de porcentaje de precisión**, marcando la bandera `aprobado_por_admin = true`, y guardando de forma obligatoria un *Motivo pedagógico* y la *Fecha* de intervención. Esta aprobación desencadena la cascada de desbloqueo para el siguiente nivel de forma inmediata.
+     * **Restablecer o Bloquear (`lock` o `reset`):** Regresa un nivel o módulo al estado `BLOQUEADO` o reinicializa su progreso a cero (limpiando contadores de fallas consecutivas y reiniciando barras de avance), obligando al estudiante a cursarlo de nuevo.
+
+#### Regla Crítica de Integridad y Sincronización de Datos:
+Cualquier intervención manual de override que cambie el estado de un bloque o nivel en la tabla autoritativa `ProgresoMaestria` **debe disparar obligatoriamente una sincronización inmediata con el espejo de compatibilidad** `user.settings["unlockedLevels"]` (por ejemplo, asignando el valor `6` en caso de aprobación total, `1` en caso de liberación activa, o `0` en caso de bloqueo). Esto garantiza que el frontend heredado visualice coherentemente el estado administrativo sin desajustes de interfaz.
 
 ---
 
-## 8. Especificaciones Técnicas y de Base de Datos
+## 8. Especificaciones Técnicas y de Base de Datos (Pools Segmentados por Fase)
 
-Para garantizar aislamiento de lógicas, rendimiento y ausencia de campos nulos innecesarios, el sistema descarta el uso de una tabla maestra única. Toda fase debe mapearse en **tres tablas independientes**.
+Para garantizar aislamiento absoluto de lógicas, escalabilidad de contenidos, rendimiento óptimo en índices y ausencia de campos nulos innecesarios, el sistema descarta el uso de tablas maestras globales y monolíticas para almacenar las preguntas de la plataforma. 
 
-### 8.1. Tabla 1: Aprendizaje y Evocación (`niveles_teoria_pool`)
+**Cada Fase `X` posee su propio conjunto físico e independiente de tablas segmentadas (Isolated Phase Pools)**, prefijadas por el identificador de la fase (ej: `fase{X}_...`). Esto permite realizar mantenimientos, migraciones, seeders y correcciones pedagógicas en una fase en específico sin afectar la disponibilidad o integridad de las demás fases activas.
 
-Esta tabla almacena el contenido estático del carrusel inicial.
+Para cada Fase `X`, el Pool Precargado se divide físicamente en un **trinomio de tablas aisladas** correspondientes a las tres etapas del módulo:
+
+### 8.1. Tabla 1: Aprendizaje y Evocación (`fase{X}_teoria_pool`)
+
+Esta tabla almacena el contenido estático de teoría y los mini-retos interactivos de la Etapa 1.
 
 Campos conceptuales requeridos:
 
-* `fase_id`
+* `fase_id` (ID de fase, ej: `2`)
 * `modulo_id`
 * `nivel_id`
 * `titulo`
@@ -233,11 +262,11 @@ Campos conceptuales requeridos:
 * `ejemplo_guiado`
 * `interactivos_desbloqueo`
 
-Volumetría: 1 registro por cada nivel de aprendizaje.
+Volumetría: 1 registro por cada nivel de aprendizaje de la fase.
 
-### 8.2. Tabla 2: Práctica Libre (`practica_libre_pool`)
+### 8.2. Tabla 2: Práctica Libre y Bucle Espejo (`fase{X}_practica_pool`)
 
-Esta tabla es exclusiva para entrenamiento y Bucle Espejo.
+Esta tabla es exclusiva para entrenamiento y asistencia del Bucle Espejo. No maneja opciones múltiples en la práctica estándar.
 
 Campos conceptuales requeridos:
 
@@ -256,11 +285,11 @@ Campos conceptuales requeridos:
 * `tokens_texto`
 * `tokens_correctos`
 
-Volumetría estricta: 120 familias por nivel, equivalentes a 480 preguntas individuales por nivel.
+Volumetría estricta: 120 familias por nivel (equivalente a 480 preguntas individuales por nivel) dentro de la fase.
 
-### 8.3. Tabla 3: Evaluación y Desafíos (`desafios_pool`)
+### 8.3. Tabla 3: Evaluación y Desafíos (`fase{X}_desafios_pool`)
 
-Esta tabla se desentiende por completo de la lógica espejo y del rescate pedagógico.
+Esta tabla se desentiende por completo de la lógica espejo y del rescate pedagógico, optimizada para exámenes cronometrados.
 
 Campos conceptuales requeridos:
 
@@ -274,11 +303,11 @@ Campos conceptuales requeridos:
 * `respuesta_correcta`
 * `datos_numericos`
 
-Volumetría estricta: mínimo 150 preguntas individuales e independientes para cada desafío.
+Volumetría estricta: mínimo 150 preguntas individuales independientes para cada desafío de la fase.
 
-### 8.4. Tabla Auxiliar de Alternativas (`alternativas_desafios_pool`)
+### 8.4. Tabla Auxiliar de Alternativas (`fase{X}_alternativas_desafios_pool`)
 
-Para preguntas de opción múltiple, se utiliza una tabla auxiliar conectada a `desafios_pool`.
+Para preguntas de opción múltiple, se utiliza una tabla auxiliar conectada mediante clave foránea a `fase{X}_desafios_pool`.
 
 Campos conceptuales requeridos:
 
@@ -289,9 +318,9 @@ Campos conceptuales requeridos:
 * `orden`
 * `tipo_error`
 
-### 8.5. Tabla Auxiliar de Errores (`respuestas_erroneas`)
+### 8.5. Tabla Auxiliar de Errores (`fase{X}_respuestas_erroneas`)
 
-Para activar el Tutor Invisible, las respuestas incorrectas previstas deben mapearse a un tipo de error y a un feedback específico.
+Mapea las respuestas incorrectas previstas de `fase{X}_practica_pool` a un tipo de error y feedback específico del Tutor Invisible.
 
 Ejemplo:
 

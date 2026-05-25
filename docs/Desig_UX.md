@@ -166,15 +166,31 @@ El frontend debe:
 
 ## 6. Dashboard de Fase
 
-El dashboard muestra los niveles como nodos estelares.
+El dashboard de la fase organiza el progreso del alumno mapeando los niveles y desafíos virtuales como un trayecto espacial de **nodos estelares interactivos**.
 
-Estados visuales:
+### 6.1. Estados Visuales y Retroalimentación Cromática de los Nodos
 
-* **Bloqueado:** candado esmerilado.
-* **Disponible:** nodo activo con brillo suave.
-* **En progreso:** animación pulsante.
-* **Aprobado:** resplandor dorado.
-* **Aprobado por Admin:** insignia especial de intervención.
+Cada nodo del mapa estelar refleja visualmente su estado calculado en el backend mediante un sistema cromático premium con micro-animaciones en CSS y Framer Motion:
+
+* **Bloqueado:**
+  * **Estética:** Nodo gris semiopaco con un candado esmerilado de cristal (`glassmorphism`).
+  * **Comportamiento:** Hover inactivo, escala neutra.
+* **Disponible (Desbloqueado Linealmente):**
+  * **Estética:** Nodo con color principal de la fase y un brillo exterior (`drop-shadow`) suave y estático.
+  * **Comportamiento:** Al pasar el cursor (`hover`), escala suavemente (+5%) y activa un sonido sutil de sistema.
+* **En Progreso / Siguiente Recomendado:**
+  * **Estética:** Nodo rodeado por una órbita animada pulsante con gradiente dinámico.
+  * **Comportamiento:** Invita activamente al alumno a hacer clic mediante micro-rebotes y pulsos de luz cíclicos.
+* **Aprobado (Progresión Automática Ordinaria):**
+  * **Estética:** Resplandor de aureola **dorada premium** (`gold glow`), indicando que el alumno alcanzó el ≥90% de precisión y completitud por su propio desempeño.
+  * **Comportamiento:** Despliega estrellas doradas en una animación explosiva de partículas al momento de aprobarse.
+* **Aprobado por Decreto Administrativo (Override Manual de Aprobación):**
+  * **Estética:** Resplandor de aureola **cian/azul neón distintivo** (`cyan/neon glow`) en lugar de dorado. Esto diferencia inmediatamente un bloque aprobado de manera ordinaria de uno intervenido.
+  * **Insignia de Intervención:** Se renderiza una pequeña insignia o icono de "Súper-Tutor" (icono de rayo o escudo cian esmerilado) en la esquina superior derecha del nodo.
+  * **Tooltip de Retroalimentación:** Al hacer hover o clic, se muestra una tarjeta esmerilada explicativa que indica de forma transparente y motivadora: *"¡Liberado por tu tutor! Motivo: [Motivo de Override] - [Fecha de Override]"*.
+* **Liberado por Administración (Override Manual de Desbloqueo):**
+  * **Estética:** Nodo con órbita pulsante en **brillo cian/neón** (en lugar de color de fase estándar), indicando que está activo por bypass del administrador.
+  * **Tooltip de Retroalimentación:** Muestra el mensaje: *"¡Habilitado por tu tutor para tu práctica especial!"*.
 
 Los niveles y desafíos se desbloquean según la respuesta de `/api/fases/{fase_id}/dashboard`.
 
@@ -236,6 +252,14 @@ El frontend no debe recibir ni renderizar:
 * distractores marcados internamente;
 * reglas de validación completas.
 
+### 8.5. Cronómetro Reactivo Dinámico
+
+Para evitar discrepancias entre la calibración pedagógica y el comportamiento visual del juego, **se prohíbe hardcodear límites de tiempo en el frontend**:
+* El componente del temporizador (`TimerController.tsx`) debe ser enteramente reactivo. Al recibir el payload de `/api/fases/{fase_id}/pregunta`, lee las variables de configuración de inicio:
+  * Si `usa_cronometro` es `false`, oculta el elemento visual del reloj por completo y elimina toda lógica de expiración de tiempo.
+  * Si `usa_cronometro` es `true`, renderiza la barra circular de progreso temporal e inicializa la cuenta regresiva con base en los segundos devueltos por `tiempo_limite_segundos`.
+* Esta reactividad garantiza que cualquier calibración del superusuario en caliente impacte inmediatamente la experiencia del estudiante de forma fluida y sin redespliegue.
+
 ---
 
 ## 9. Mapeo General de Fases
@@ -262,15 +286,33 @@ Las fases se desbloquean dinámicamente según `ProgresoMaestria` y el dashboard
 
 El Panel Admin debe mantener la misma identidad visual, pero con mayor densidad informativa.
 
-Reglas:
+### 10.1. Reglas de Interfaz del Panel Administrativo
 
-* tablas claras;
-* filtros visibles;
-* acciones destructivas con confirmación;
-* edición en modales;
-* indicadores de estado;
-* separación entre práctica libre y desafíos;
-* vista diferenciada para teoría, preguntas, tokens y feedbacks.
+* **Tablas de Alto Rendimiento:** Datos paginados y ordenables que permiten buscar estudiantes por nombre o correo con latencia cero.
+* **Filtros Flexibles:** Selectores para filtrar rápidamente por fase, módulo y tipo de bloque (Práctica Libre vs Desafío).
+* **Edición y Configuración en Modales:** Evitar redirecciones innecesarias de página; todos los parámetros pedagógicos y contenidos se editan mediante modales de vidrio esmerilado (`backdrop-blur`).
+* **Visualización de Intentos:** Un subpanel interactivo de análisis cognitivo que muestra las respuestas dadas, los errores previstos identificados y el feedback recibido por el alumno en tiempo real.
+
+### 10.2. UX/UI para Intervenciones y Overrides de Progreso
+
+La interfaz de overrides de rendimiento debe cumplir con los siguientes estándares estrictos de usabilidad:
+
+* **Control de Tres Estados:** Botones claramente separados y estilizados para `unlock` (Liberar), `approve` (Aprobar) y `reset` (Bloquear/Restablecer).
+* **Modal de Confirmación Destructiva y Justificación:**
+  * Al hacer clic en cualquier override, la UI despliega un modal prioritario con desenfoque del fondo (`backdrop-blur-md`).
+  * Muestra una advertencia explícita sobre el impacto didáctico y el desencadenamiento automático de la cascada de desbloqueos.
+  * **Campo de Texto Reactivo:** Área de entrada de texto para registrar el *Motivo del Override*. El botón de confirmación se habilita únicamente si el texto ingresado tiene al menos 10 caracteres, evitando registros de auditoría vacíos o de spam (como "ok" o "123").
+* **Indicadores Visuales de Override Activo:**
+  * Al completarse la petición de override, la UI del administrador aplica un resplandor cian/azul neón en el renglón o celda del alumno, con un badge con el texto *"INTERVENIDO POR ADMIN"* que permite identificar rápidamente qué alumnos tienen rutas personalizadas y por qué.
+
+### 10.3. UI/UX para Calibración de Parámetros (Tiempos y Volúmenes)
+
+La pestaña de gestión pedagógica avanzada debe contar con controles intuitivos que minimicen los errores de entrada operativa:
+
+* **Toggles Claros de Tiempo:** Switch reactivo en Tailwind que al activarse expande un submenú deslizante con el slider de segundos.
+* **Sliders de Control Fino con Indicador Dinámico:** Deslizadores para la duración temporal con marcas de escala legibles y un indicador textual en tiempo real (ej. *"Límite por pregunta: 35 segundos"*).
+* **Campos Numéricos con Límites Lógicos (Min/Max):** Entradas para `cantidad_requerida` que bloquean o advierten mediante alertas preventivas rojas si se intentan registrar valores extremos (ej. menos de 5 preguntas o más de 50) que puedan romper el ritmo de atención infantil.
+* **Indicadores de Herencia Activa:** Etiquetas visuales que muestran explícitamente el origen del valor actual (ej. *"Heredado de: Fase 2"* o *"Override Local Activo"*).
 
 ---
 

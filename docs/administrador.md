@@ -124,7 +124,7 @@ El modal de rendimiento debe mostrar:
 
 ## 5. Gestión Pedagógica Avanzada (`PedagogyTab.tsx`)
 
-Esta pestaña permite definir el ritmo, volumen y comportamiento didáctico del alumno. Utiliza un árbol de jerarquía y un sistema de herencia de configuración.
+Esta pestaña permite definir el ritmo, volumen y comportamiento didáctico del alumno de forma dinámica. Utiliza un árbol de jerarquía y un sistema de herencia de configuración.
 
 ### 5.1. Niveles de Configuración
 
@@ -142,28 +142,76 @@ graph TD
     B -->|Si no existe o está inactivo| C["Límites Globales de Plataforma"]
 ```
 
+### 5.3. Calibración en Caliente de Tiempos y Volúmenes
+
+Para facilitar las pruebas de campo, la investigación pedagógica y la calibración empírica durante el desarrollo, la interfaz de `PedagogyTab.tsx` expone controles deslizantes (sliders) y selectores numéricos para editar en caliente el estrés de tiempo y el volumen de trabajo del alumno:
+
+* **Editor de Preguntas Requeridas (`cantidad_requerida`):**
+  * **Control:** Campo de entrada numérico incremental (con límites lógicos de validación de 5 a 50 preguntas).
+  * **Propósito:** Permite aumentar o disminuir el tamaño de la batería en base a la fatiga del alumno observada en pruebas grupales.
+* **Habilitación de Cronómetro (`usa_cronometro`):**
+  * **Control:** Switch Toggle interactivo.
+  * **Propósito:** Permite desactivar por completo la presión del temporizador en fases iniciales de pruebas y activarla progresivamente para la preparación formal.
+* **Límite de Tiempo por Pregunta (`tiempo_default_segundos`):**
+  * **Control:** Deslizador (slider) con rango de 10 a 120 segundos.
+  * **Propósito:** Calibración fina del estrés temporal del juego por pregunta (en desafíos).
+
+Cualquier cambio guardado en la interfaz se asocia al nivel de jerarquía seleccionado (Fase, Módulo, o Nivel específico), actualiza la base de datos de manera inmediata y se propaga en cascada en las siguientes sesiones que inicien los alumnos.
+
 ---
 
 ## 6. Rendimiento Estudiantil Avanzado (`PerformanceTab.tsx`)
 
-Herramienta de tutoría y control para intervenir el progreso académico de un estudiante.
+Herramienta de tutoría y control para intervenir el progreso académico de un estudiante. Dado que cada estudiante ingresa con una realidad cognitiva y de partida diferente, esta sección permite flexibilizar la ruta lineal del juego mediante intervenciones directas de un superusuario.
 
-### 6.1. Funciones
+### 6.1. Funciones de Tutoría
 
-* Buscar alumnos por nombre o email.
-* Ver fase actual.
-* Ver progreso por módulo, nivel y desafío.
-* Revisar porcentaje actual.
-* Revisar si fue aprobado por admin.
-* Ejecutar acciones manuales.
+* Buscar alumnos por nombre o email de forma responsiva.
+* Visualizar la fase y módulo activo del estudiante.
+* Inspeccionar de forma granular el progreso de cada nivel de práctica libre y cada bloque de desafío.
+* Revisar el porcentaje de acierto real (`porcentaje_precision`), intentos acumulados y el estado actual (`BLOQUEADO`, `EN_PROGRESO`, `APROBADO`).
+* Identificar claramente si el estado de maestría actual fue obtenido automáticamente por desempeño del alumno o mediante una intervención administrativa previa (mostrando el logo o indicador visual correspondiente).
 
-### 6.2. Acciones de Maestría
+### 6.2. Panel de Intervención (Acciones de Override)
 
-* **Liberar (`unlock`):** Desbloquea manualmente un bloque.
-* **Aprobar (`approve`):** Marca un bloque como aprobado con 90% automático y `aprobado_por_admin = true`.
-* **Restablecer (`lock` / `reset`):** Borra el progreso del bloque y lo bloquea nuevamente.
+La interfaz expone para cada bloque tres controles críticos de anulación pedagógica, agrupados en un submódulo de seguridad:
 
-Toda acción debe actualizar `ProgresoMaestria`. Si existen componentes heredados que dependen de `user.settings["unlockedLevels"]`, el backend sincroniza ese espejo visual después de modificar la fuente relacional.
+1. **Liberar (`unlock`):**
+   * **Propósito:** Abrir el bloque seleccionado para que el estudiante pueda jugar e interactuar con la teoría y práctica directamente, sin haber aprobado los bloques anteriores.
+   * **Efecto DB:** El backend establece el estado del bloque en `EN_PROGRESO` en `ProgresoMaestria` y coloca `desbloqueado_por_admin = true`.
+   * **Espejo Legacy:** Sincroniza `user.settings["unlockedLevels"]` asignándole el valor `1` para el nivel correspondiente.
+2. **Aprobar (`approve`):**
+   * **Propósito:** Aprobar de forma directa y por decreto pedagógico el bloque seleccionado (por ejemplo, para alumnos con conocimientos avanzados previos).
+   * **Efecto DB:** El backend establece el estado del bloque en `APROBADO` en `ProgresoMaestria`, coloca `aprobado_por_admin = true`, simula un `porcentaje_precision = 90` y `completado = true`.
+   * **Cascada Automática:** El motor del backend calcula inmediatamente el siguiente bloque en la secuencia lineal del mapa y lo cambia al estado `EN_PROGRESO` (`desbloqueado = true`), abriendo la cascada estándar de avance.
+   * **Espejo Legacy:** Sincroniza `user.settings["unlockedLevels"]` asignándole el valor `6` para el nivel correspondiente.
+3. **Restablecer / Bloquear (`reset` / `lock`):**
+   * **Propósito:** Limpiar todo el progreso de un alumno en un nivel o bloquear su acceso para obligarlo a reevaluarse o repetir la práctica.
+   * **Efecto DB:** El backend reinicia todos los contadores de progreso (`aciertos_acumulados = 0`, `intentos_totales = 0`, `fallas_consecutivas_bucle = 0`, `completado = false`), establece el estado a `BLOQUEADO` y limpia las banderas `aprobado_por_admin` y `desbloqueado_por_admin`.
+   * **Espejo Legacy:** Sincroniza `user.settings["unlockedLevels"]` asignándole el valor `0` para el nivel correspondiente.
+
+### 6.3. Protocolo de Auditoría y Flujo de Trabajo del Administrador
+
+Para evitar intervenciones accidentales y mantener un registro riguroso de las decisiones de tutoría, se define el siguiente flujo de usuario obligatorio en la UI de Overrides:
+
+1. **Selección del Bloque e Intervención:** El administrador hace clic en el botón de la acción deseada (`unlock`, `approve`, o `reset`).
+2. **Modal de Confirmación e Ingreso de Motivo:**
+   * La UI despliega un modal esmerilado (`glassmorphic`) con advertencias sobre el impacto pedagógico y la cascada de desbloqueos.
+   * **Registro Obligatorio de Motivo:** El modal contiene un área de texto obligatoria donde el administrador debe detallar el motivo didáctico (ej. *"Estudiante avanzado de 5º grado, demuestra dominio inicial"*, *"Nivelación acelerada por retraso en currículo"*). El botón "Confirmar" permanece deshabilitado hasta que se ingrese un texto descriptivo de mínimo 10 caracteres.
+3. **Petición Segura a la API (`POST /api/admin/alumnos/{alumno_id}/progress/override`):**
+   * El cliente envía la solicitud estructurada al backend con los siguientes parámetros:
+     ```json
+     {
+       "fase_id": 2,
+       "modulo_id": 1,
+       "nivel_id": 3,
+       "desafio_id": null,
+       "accion": "approve",
+       "motivo": "Estudiante avanzado de 5º grado, demuestra dominio inicial"
+     }
+     ```
+   * El backend procesa la petición de forma server-authoritative: valida los permisos del superusuario, altera las tablas correspondientes, genera la marca de tiempo UTC automática para `override_fecha`, ejecuta la cascada para el siguiente nivel, actualiza el espejo `user.settings` y registra la transacción.
+4. **Respuesta y Refresco Visual:** El servidor retorna el árbol de progreso actualizado. La UI se refresca suavemente (utilizando Framer Motion) y muestra un indicador de estado con brillo cian distintivo en el nivel intervenido, permitiendo al administrador auditar visualmente los overrides activos.
 
 ---
 
