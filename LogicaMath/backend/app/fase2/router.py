@@ -615,7 +615,9 @@ async def get_pregunta_fase2(
             progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
             progreso.aciertos_acumulados = 0
             progreso.intentos_totales = 0
-            progreso.porcentaje_actual = 0`n            progreso.estado = EstadoProgresoEnum.EN_PROGRESO`n            await db.commit()
+            progreso.porcentaje_actual = 0
+            progreso.estado = EstadoProgresoEnum.EN_PROGRESO
+            await db.commit()
             
             latest_attempt = None
         else:
