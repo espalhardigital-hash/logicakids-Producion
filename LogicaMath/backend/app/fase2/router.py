@@ -530,7 +530,7 @@ async def get_pregunta_fase2(
         correct_pregunta_ids = set(result.scalars().all())
 
         # Si modulo_id == 99, traer preguntas de toda la fase 2
-        query = select(Pregunta).options(selectinload(Pregunta.alternativas)).where(and_(
+        query = select(Pregunta).options(selectinload(Pregunta.alternativas)).options(selectinload(Pregunta.alternativas)).where(and_(
             Pregunta.fase_id == FASE2_ID,
             Pregunta.estado == StatusEnum.ACTIVO
         ))
@@ -639,7 +639,7 @@ async def get_pregunta_fase2(
         # Lógica Bucle Espejo (solo si el último intento fue fallido y no fue bypass)
         if latest_attempt and not latest_attempt.es_correcta and latest_attempt.respuesta_dada != "BYPASS_EXPLICACION":
             result_q = await db.execute(
-                select(Pregunta).options(selectinload(Pregunta.alternativas)).where(Pregunta.id == latest_attempt.pregunta_id)
+                select(Pregunta).options(selectinload(Pregunta.alternativas)).options(selectinload(Pregunta.alternativas)).where(Pregunta.id == latest_attempt.pregunta_id)
             )
             failed_pregunta = result_q.scalar_one_or_none()
             
@@ -661,7 +661,7 @@ async def get_pregunta_fase2(
                 if attempts_count > 0 and not family_attempts[0].es_correcta and attempts_count < (MAX_ESPEJO + 1):
                     # Obtener las preguntas del pool para esta familia
                     result_fam_qs = await db.execute(
-                        select(Pregunta)
+                        select(Pregunta).options(selectinload(Pregunta.alternativas))
                         .where(and_(
                             Pregunta.estructura_padre_id == failed_pregunta.estructura_padre_id,
                             Pregunta.estado == StatusEnum.ACTIVO
@@ -683,7 +683,7 @@ async def get_pregunta_fase2(
         else:
             # Seleccionar una nueva familia (pregunta original: es_espejo = False)
             result_qs = await db.execute(
-                select(Pregunta)
+                select(Pregunta).options(selectinload(Pregunta.alternativas))
                 .where(and_(
                     Pregunta.fase_id == FASE2_ID,
                     Pregunta.seccion == seccion,
@@ -783,7 +783,7 @@ async def responder_fase2(
         raise HTTPException(status_code=400, detail="pregunta_id es requerido para validar la respuesta.")
 
     result_q = await db.execute(
-        select(Pregunta)
+        select(Pregunta).options(selectinload(Pregunta.alternativas))
         .options(selectinload(Pregunta.alternativas))
         .where(Pregunta.id == payload.pregunta_id)
     )
@@ -1122,7 +1122,7 @@ async def cerrar_rescate_fase2(
     progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
 
     result_q = await db.execute(
-        select(Pregunta).where(Pregunta.id == payload.pregunta_id)
+        select(Pregunta).options(selectinload(Pregunta.alternativas)).where(Pregunta.id == payload.pregunta_id)
     )
     pregunta = result_q.scalar_one_or_none()
     if not pregunta:
