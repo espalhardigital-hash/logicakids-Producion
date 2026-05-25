@@ -117,7 +117,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   // ── Cargar pregunta ─────────────────────────────────────────────────────
 
-  const loadPregunta = useCallback(async () => {
+  const loadPregunta = useCallback(async (isFirstLoad: boolean = false) => {
     setLoading(true);
     setRespuesta('');
     setTokensSeleccionados([]);
@@ -125,7 +125,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     setPaso(1);
     setPaso1Valor(null);
     try {
-      const data = await getFase2Question(moduloId, nivelId);
+      const data = await getFase2Question(moduloId, nivelId, isFirstLoad);
       setPregunta(data);
       setIsMockMode(false);
       
@@ -154,7 +154,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     }
   }, [moduloId, nivelId, isChallenge]);
 
-  useEffect(() => { loadPregunta(); }, [loadPregunta]);
+  useEffect(() => { loadPregunta(true); }, [loadPregunta]);
 
   const handleOpenReading = useCallback(async () => {
     if (isChallenge) return;
@@ -1495,6 +1495,7 @@ function MOCK_RESULTADO(
 }
 
 export default Fase2GameScreen;
+
 
 
 

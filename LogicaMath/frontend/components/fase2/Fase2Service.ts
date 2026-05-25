@@ -67,13 +67,11 @@ export async function getFase2Dashboard(): Promise<Fase2Dashboard> {
  * Obtiene la siguiente pregunta para un módulo y nivel específicos.
  */
 export async function getFase2Question(
-  moduloId: number,
-  nivelId: number
-): Promise<Fase2Pregunta> {
+  moduloId: number, nivelId: number, reload: boolean = false): Promise<Fase2Pregunta> {
   const key = `question-${moduloId}-${nivelId}`;
   return fetchDeduplicated(key, async () => {
     const res = await fetch(
-      `${API_URL}/fase2/modulo/${moduloId}/nivel/${nivelId}/pregunta`,
+      `${API_URL}/fase2/modulo/${moduloId}/nivel/${nivelId}/pregunta?reload=${reload}`,
       { headers: getAuthHeaders() }
     );
     return handleResponse<Fase2Pregunta>(res);
@@ -98,9 +96,7 @@ export async function submitFase2Answer(
  * Obtiene el contenido de lectura/teoría de un nivel.
  */
 export async function getFase2Reading(
-  moduloId: number,
-  nivelId: number
-): Promise<Fase2Lectura> {
+  moduloId: number, nivelId: number, reload: boolean = false): Promise<Fase2Lectura> {
   const key = `reading-${moduloId}-${nivelId}`;
   return fetchDeduplicated(key, async () => {
     const res = await fetch(
@@ -125,3 +121,4 @@ export async function graduateFase2(): Promise<{
   });
   return handleResponse(res);
 }
+
