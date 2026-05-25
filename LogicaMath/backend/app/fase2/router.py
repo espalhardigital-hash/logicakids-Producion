@@ -639,7 +639,7 @@ async def get_pregunta_fase2(
         # Lógica Bucle Espejo (solo si el último intento fue fallido y no fue bypass)
         if latest_attempt and not latest_attempt.es_correcta and latest_attempt.respuesta_dada != "BYPASS_EXPLICACION":
             result_q = await db.execute(
-                select(Pregunta).where(Pregunta.id == latest_attempt.pregunta_id)
+                select(Pregunta).options(selectinload(Pregunta.alternativas)).where(Pregunta.id == latest_attempt.pregunta_id)
             )
             failed_pregunta = result_q.scalar_one_or_none()
             
