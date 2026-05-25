@@ -316,12 +316,12 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
           } else if (resultado.bloque_completado) {
             setTimeout(() => onComplete(), 1500);
           } else {
-            // Auto advance on correct answer for inline feedback
-            setTimeout(() => {
-              setFeedback({ visible: false, esCorrecta: false, isError: false });
-              loadPregunta();
-            }, 1200);
-          }
+              // Auto advance on correct answer — 500ms para que el alumno vea el checkmark
+              setTimeout(() => {
+                setFeedback({ visible: false, esCorrecta: false, isError: false });
+                loadPregunta();
+              }, 500);
+            }
         }
       } else {
         setShaking(true);
@@ -354,10 +354,11 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             } else if (resultado.bloque_completado) {
               setTimeout(() => onComplete(), 1500);
             } else {
+              // Auto advance on correct answer — 500ms para que el alumno vea el checkmark
               setTimeout(() => {
                 setFeedback({ visible: false, esCorrecta: false, isError: false });
                 loadPregunta();
-              }, 1200);
+              }, 500);
             }
           }
         } else {

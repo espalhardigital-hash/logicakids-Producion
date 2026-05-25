@@ -66,6 +66,21 @@ Regla de Expulsión Rápida (Early Exit): El servidor aborta la sesión de inmed
 
 ---
 
+🎯 UX de Feedback de Respuestas — Práctica Libre (Niveles 1–10)
+
+| Evento | Comportamiento UI | Tiempo de Avance |
+| --- | --- | --- |
+| Respuesta **correcta** | Checkmark verde inline → avance automático | **500ms** (auto-advance) |
+| Respuesta **incorrecta** | Cruz roja + "Era: X" inline → espera al alumno | **Manual** — alumno pulsa Enter / botón → / cualquier tecla |
+
+Razón pedagógica del avance manual en error: garantizar que el alumno lea y analice el valor correcto antes de continuar. El sistema luego activa el Bucle Espejo (pregunta reformulada del mismo tipo) para reforzar el concepto fallado.
+
+Nota técnica: al estar en estado `feedback.visible` con error, el botón `→` del teclado numérico y la tecla `Enter` del teclado físico activan directamente `handleFeedbackClose → loadPregunta`, cargando la siguiente pregunta (espejo o nueva familia).
+
+---
+
+
+
 PARTE 2: GUION DE TEXTOS DE APRENDIZAJE Y EVOCACIÓN
 Para cada nivel de aprendizaje, se definen a continuación de manera rigurosa todos los componentes obligatorios de entrega estática en base de datos.
 

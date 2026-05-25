@@ -1030,6 +1030,20 @@ async def responder_fase2(
 
         await db.commit()
 
+        return Fase2ResultadoRespuesta(
+            es_correcta=es_correcta,
+            respuesta_correcta=respuesta_correcta_str,
+            aciertos_acumulados=progreso.aciertos_acumulados,
+            intentos_totales=progreso.intentos_totales,
+            porcentaje_actual=progreso.porcentaje_actual,
+            bloque_completado=bloque_completado,
+            fase_completada=fase_completada,
+            es_espejo=espejo,
+            intentos_espejo_actuales=intentos_espejo,
+            intentos_espejo_max=MAX_ESPEJO,
+            soporte_avanzado=soporte_avanzado,
+        )
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ENDPOINT 4.5 — Cerrar Rescate (Bypass sin anti-spam)
