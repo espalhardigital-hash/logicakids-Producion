@@ -1886,3 +1886,4 @@ async def run_fase2_seed():
 
 if __name__ == "__main__":
     asyncio.run(run_fase2_seed())
+

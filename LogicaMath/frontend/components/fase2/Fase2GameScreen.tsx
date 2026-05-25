@@ -250,7 +250,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         loadPregunta();
       }
     } else {
-      if (moduloId <= 3 && !isChallenge) {
+      if (isChallenge) { loadPregunta(); } else if (feedback.resultado?.es_espejo || feedback.resultado?.intentos_espejo_actuales !== undefined) {
         loadPregunta();
       } else {
         setRespuesta('');
@@ -1495,3 +1495,6 @@ function MOCK_RESULTADO(
 }
 
 export default Fase2GameScreen;
+
+
+

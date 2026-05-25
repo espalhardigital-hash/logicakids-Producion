@@ -1250,3 +1250,4 @@ async def graduate_fase2(
         "nueva_fase_id": fase3.id,
         "nueva_fase_nombre": fase3.nombre,
     }
+

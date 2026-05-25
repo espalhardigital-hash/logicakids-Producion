@@ -120,6 +120,27 @@ El modal de rendimiento debe mostrar:
 * tipos de error;
 * tiempo promedio de respuesta.
 
+Reglas de desafío:
+
+* Evalúa la respuesta sin Bucle Espejo.
+* Si expira el tiempo, computa error.
+* Si `errores_sesion >= max_errores`, retorna:
+
+```json
+{
+  "early_exit": true
+}
+```
+
+* Si `errores_sesion < max_errores`, actualiza `aciertos_acumulados`, calcula `porcentaje_actual` como `aciertos / cantidad_req * 100` (no familias), verifica si supera 90% de aprobación para `bloque_completado`, y retorna `Fase2ResultadoRespuesta` completo.
+
+> **Regla crítica de completitud de `return`:** El endpoint `responder` debe garantizar que **los tres caminos de ejecución** retornen siempre un objeto de respuesta válido:
+> 1. **Desafío + Early Exit:** retorna con `early_exit=True` y reseteo de progreso.
+> 2. **Desafío + No Early Exit:** retorna con aciertos, porcentaje y bloque_completado.
+> 3. **Práctica Libre:** retorna con porcentaje por familias intentadas y `es_espejo`.
+>
+> Si cualquier path termina sin `return`, FastAPI devuelve `None` y genera un `ResponseValidationError 500` antes de llegar al cliente. El frontend degradará silenciosamente al mock estático, causando contadores hardcodeados y Bucle Espejo inactivo.
+
 ---
 
 ## 5. Gestión Pedagógica Avanzada (`PedagogyTab.tsx`)
@@ -592,3 +613,7 @@ PUT /api/admin/teoria
 * El campo `seccion` debe calcularse de forma determinística.
 * **Dinero y Sanitización en Base de Datos:** Las preguntas con dinero deben usar centavos, no float. Cualquier entrada decimal de moneda ingresada por el administrador en la consola de edición (ej. `"2.50"`, `"5,00"`) se convertirá y guardará automáticamente como enteros en centavos (`250`, `500`) en la base de datos para preservar la precisión matemática exacta en el motor de juego.
 * **Explicación Sin Bloqueo:** La explicación profunda en Práctica Libre se concibe como un recurso pedagógico de desbloqueo, no de evaluación; por lo tanto, no debe condicionarse a un campo anti-spam de transcripción forzada en el cliente, asegurando la fluidez y continuidad del aprendizaje.
+* **UX de Feedback de Respuestas (Práctica Libre):**
+  * Respuesta **correcta** → checkmark verde inline + auto-advance automático en **500ms**.
+  * Respuesta **incorrecta** → cruz roja + `Era: X` inline indefinidamente. El alumno debe pulsar **Enter / botón `→`** para avanzar. Esto garantiza que analice el error antes de continuar al Bucle Espejo.
+  * El botón `→` del teclado numérico y `Enter` están mapeados como `handleSubmit → handleFeedbackClose → loadPregunta` cuando `feedback.visible = true`.
