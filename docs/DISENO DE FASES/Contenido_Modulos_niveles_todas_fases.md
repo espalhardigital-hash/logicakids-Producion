@@ -11,15 +11,6 @@ ARQUITECTURA COMPLETA DE NIVELES Y CONCEPTOS MATEMÁTICOS
 Propósito: Garantizar la comprensión del sistema decimal y la automatización y fluidez de las operaciones.
 ================================================================================
  │
- ├── [MÓDULO 0: La Arquitectura del Número] -> Tema: Sistema decimal, valor posicional y composición.
- │    ├── Nivel 1: [Clases y Órdenes] (Mecánica: Ábaco interactivo, identificación de unidades, decenas, centenas y millares)
- │    ├── Nivel 2: [Valor Absoluto vs. Relativo] (Mecánica: Selector de peso posicional, ej. "El valor del 4 en 4,512", sin tiempo)
- │    ├── Nivel 3: [Composición y Descomposición Multiplicativa] (Mecánica: Rompecabezas de bloques base 10, ej. 3x100 + 4x10)
- │    │
- │    ├── DESAFÍO 1: [Formación del número mayor/menor con dígitos dados] (Mecánica: El Filtro, >80% para continuar)
- │    ├── DESAFÍO 2: [La trampa de los ceros intercalados en lectura/escritura] (Mecánica: La Trampa, distractores visuales)
- │    └── DESAFÍO FINAL: [Desarmado estructural de cifras complejas] (Mecánica: El Candado, requiere ≥90%)
- │
  ├── [MÓDULO 1: Sumas] -> Tema: Algoritmo aditivo y fluidez.
  │    ├── Nivel 1: [Algoritmo tradicional de 1 a 3 cifras con acarreo] (Mecánica: Visual, guiado, sin tiempo)
  │    ├── Nivel 2: [Sumas encadenadas de tres o más sumandos] (Mecánica: Práctica estándar, Bucle Espejo)
