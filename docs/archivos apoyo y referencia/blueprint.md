@@ -1,120 +1,176 @@
-Blueprint de Implementación para Futuras Fases — LogicaKids
+Aquí tienes el archivo **`blueprint.md` completo, unificado y actualizado** con todas las correcciones estructurales, la validación del diccionario en la base de datos y la nueva lógica "Anti-Spam" para el bloque de rescate.
+
+Está listo para que lo copies y lo pegues directamente en tu documentación.
+
+```markdown
+# Blueprint de Implementación para Futuras Fases — LogicaKids
+
 Este documento sirve como guía maestra y plantilla técnica para la replicación y creación estandarizada de futuras fases en LogicaKids (Fase 3 en adelante). Dado que la arquitectura de aprendizaje sigue un patrón repetitivo altamente optimizado y robusto, cualquier nueva fase puede ser implementada siguiendo de forma precisa los pasos y la estructura descrita aquí.
 
-1. Arquitectura General de una Fase
+## 1. Arquitectura General de una Fase
+
 Cada fase se divide en dos componentes principales de juego:
 
-Práctica Libre (Niveles 1 a N): Enfocada en el aprendizaje paso a paso, utilizando el Bucle Espejo (Mirror Loop) para corregir errores recurrentes a través de variaciones de preguntas con la misma estructura pero diferentes valores.
-Zona de Desafíos (Niveles virtuales 11, 12, 13): Evaluaciones de alta intensidad, con cronómetro forzado y Salida Temprana (Early Exit) si el alumno acumula demasiados errores antes de completar la meta de aciertos.
-Mermaid diagram
-2. Paso 1: Definición del Modelo y Base de Datos
-Las tablas del core del backend (preguntas, alternativas, progreso_maestria, intentos, configuracion_progreso) son completamente polimórficas y genéricas. No requieren modificaciones físicas en cada fase, excepto si se define un modelo de teoría específico.
+* **Práctica Libre (Niveles 1 a N):** Enfocada en el aprendizaje paso a paso, utilizando el Bucle Espejo (Mirror Loop) para corregir errores recurrentes a través de variaciones de preguntas con la misma estructura pero diferentes valores.
+* **Zona de Desafíos (Niveles virtuales 11, 12, 13):** Evaluaciones de alta intensidad, con cronómetro forzado y Salida Temprana (Early Exit) si el alumno acumula demasiados errores antes de completar la meta de aciertos.
 
-Si se requiere extender o verificar la teoría:
+---
 
-Utilizar la tabla niveles_teoria_pool (definida en app/fase2/models.py o movida a app/models/sql_models.py en producción).
-Estructura de NivelTeoria:
-fase_id: ID numérico único de la fase.
-modulo_id: ID del módulo.
-nivel_id: ID del nivel.
-titulo: Nombre del concepto.
-texto_descubrimiento: Párrafo introductorio.
-diccionario: JSON con términos clave y sus definiciones.
-advertencia: Trampa común o tip pedagógico.
-ejemplos: JSON de ejemplos resueltos.
-interactivos: JSON de minipreguntas interactivas para teoría.
-3. Paso 2: Plantilla de Seeder (seed.py)
-El archivo seed.py de la fase debe crearse en app/fase{X}/seed.py y estructurarse en 5 secciones deterministas:
+## 2. Paso 1: Definición del Modelo y Base de Datos
 
-### Parte A: Textos de Teoría (Formato Flashcards Interactivas en 3 Pasos)
-Estructurar el archivo seed para inyectar en `nivel_teoria` (o su equivalente) un JSON que contenga los 3 componentes del Carrusel de Teoría:
-1.  **Paso 1 (Introducción):** `texto_descubrimiento` (narrativa y superpoder).
-2.  **Paso 2 (Modelado e Interactividad):**
-    *   `ejemplos`: Array de JSON con `enunciado` y `pasos` detallados (mínimo 2).
-    *   `interactivos`: Array de JSON con minipreguntas pre-evaluativas. Debe incluir `enunciado`, `pasos` (donde el último pide input ej. `= ?`), `respuesta` correcta, `feedback_acierto`, y `feedback_error`.
-3.  **Paso 3 (Consolidación):** `advertencia` o `diccionario` (el Tip Pedagógico para evitar errores comunes).
-Es crítico que cualquier error ocurrido durante la inserción en la base de datos (como violaciones de restricciones Not-Null, errores de clave foránea) **no sea silenciado**. Los bloques `try...except` en el seeder deben imprimir el _traceback_ completo y relanzar la excepción para que el contenedor de Docker falle explícitamente y el error sea visible en los logs.
+Las tablas del core del backend (preguntas, alternativas, progreso_maestria, intentos, configuracion_progreso) son completamente polimórficas y genéricas. No requieren modificaciones físicas en cada fase.
+
+### 2.1. Modelo de Teoría (`niveles_teoria_pool`)
+Toda la carga teórica se gestiona a través de la entidad relacional unificada en la base de datos:
+* `fase_id`: ID numérico único de la fase.
+* `modulo_id`: ID del módulo.
+* `nivel_id`: ID del nivel.
+* `titulo`: Nombre del concepto.
+* `bienvenida_superpoder`: Párrafo introductorio (narrativa y superpoder).
+* `cuerpo_teoria`: JSONB con términos clave y párrafos secuenciales.
+* `trampa_advertencia`: Trampa común o tip pedagógico.
+* `diccionario_nivel`: JSONB con la traducción de términos narrativos a operadores matemáticos.
+* `ejemplo_guiado`: JSONB de ejemplos resueltos paso a paso.
+* `interactivos_desbloqueo`: JSONB de minipreguntas interactivas para evocación obligatoria.
+
+### 2.2. Modelo de Preguntas (`preguntas_pool`)
+Para soportar el Bloque de Rescate pedagógico, el modelo ORM de preguntas debe incluir obligatoriamente el campo de explicación profunda:
+* `id`: UUID Primary Key.
+* `modulo_id`: ID del módulo.
+* `nivel_id`: ID del nivel.
+* `tipo_segmento`: Tipo de sección ('practica', 'desafio_1', 'desafio_2', 'desafio_final').
+* `estructura_padre_id`: ID que agrupa una pregunta original con sus variantes espejo.
+* `enunciado_visual`: Texto o fórmula que lee el alumno.
+* `respuesta_correcta`: Valor esperado (almacenado como String).
+* `explicacion_profunda`: Texto HTML/Markdown con la resolución paso a paso y colores de énfasis para el Bloque de Rescate.
+
+---
+
+## 3. Paso 2: Plantilla de Seeder (`seed.py`)
+
+El archivo `seed.py` de la fase debe crearse en `app/fase{X}/seed.py` y estructurarse en secciones deterministas. Cualquier error durante la inserción (violaciones Not-Null o de clave foránea) no debe silenciarse; los bloques `try...except` deben imprimir el *traceback* completo y relanzar la excepción para que el contenedor de Docker falle explícitamente.
+
+### Parte A: Textos de Teoría y Validación Estricta
+Para asegurar que el formato de los datos en `seed.py` coincide al 100% con las columnas relacionales de la base de datos antes del insert, el seeder debe parsear cada elemento a través de un esquema estricto de Pydantic. Si falta un campo o un nombre difiere, la compilación fallará de inmediato.
+
 ```python
 import traceback
+from pydantic import BaseModel
+from typing import List, Dict
 
-try:
-    # Lógica de sembrado
-    session.add(registro)
-    await session.commit()
-except Exception as e:
-    print(f"Error crítico durante el sembrado de Fase X: {str(e)}")
-    traceback.print_exc()
-    raise  # Detiene el arranque del contenedor
-```
+class NivelTeoriaSeederSchema(BaseModel):
+    modulo_id: int
+    nivel_id: int
+    titulo: str
+    bienvenida_superpoder: str
+    cuerpo_teoria: Dict[str, str]
+    trampa_advertencia: str
+    diccionario_nivel: Dict[str, str] # Obligatorio según Documento Rector
+    ejemplo_guiado: List[Dict]
+    interactivos_desbloqueo: List[Dict]
 
-python
-
-# app/faseX/seed.py
+# Diccionario unificado con el Documento Rector
 niveles_teoria = [
     {
         "modulo_id": 1,
         "nivel_id": 1,
         "titulo": "Título de Aprendizaje",
-        "texto_descubrimiento": "Explicación introductoria del concepto...",
-        "diccionario": {
-            "Concepto Clave": "Definición exacta."
+        "bienvenida_superpoder": "Explicación introductoria del concepto y declaración de tu superpoder...",
+        "cuerpo_teoria": {
+            "Concepto Clave": "Definición exacta del término matemático dentro de la narrativa."
         },
-        "advertencia": "¡Cuidado con esta trampa común!",
-        "ejemplos": [
+        "trampa_advertencia": "¡Cuidado con esta trampa común! El Monstruo del Desorden te acecha si no respetas el orden.",
+        "diccionario_nivel": {
+            "El doble": "× 2",
+            "El triple": "× 3"
+        },
+        "ejemplo_guiado": [
             {
-                "enunciado": "Ejemplo práctico guiado",
-                "pasos": [
-                    {"orden": 1, "texto": "Paso uno a realizar..."},
-                    {"orden": 2, "texto": "Paso dos..."}
+                "enunciado": "Ejemplo práctico guiado número 1",
+                "pasos_resolucion": [
+                    "Paso uno: identificar el operador con mayor jerarquía.",
+                    "Paso dos: resolver y sustituir."
                 ]
             }
         ],
-        "interactivos": [
+        "interactivos_desbloqueo": [
             {
-                "pregunta": "Pregunta rápida de autoevaluación",
-                "respuesta": "10",
-                "feedback_acierto": "¡Muy bien!",
-                "feedback_error": "Intenta recordar..."
+                "pregunta_id": "interactivo_fX_m1_l1_01",
+                "enunciado": "¿Qué operación se resuelve primero en: 5 + 4 × 2?",
+                "respuesta_correcta": "multiplicacion",
+                "feedback_acierto": "¡Excelente! La multiplicación manda.",
+                "feedback_error": "¡Piénsalo mejor! Recuerda que la multiplicación tiene el escudo de oro."
             }
         ]
     }
 ]
-Parte B: Configuración de Progreso
-Crear registros en configuraciones_progreso para cada nivel práctico y desafío virtual.
 
-python
+try:
+    for data in niveles_teoria:
+        objeto_validado = NivelTeoriaSeederSchema(**data)
+        registro = NivelTeoriaPool(**objeto_validado.model_dump())
+        session.add(registro)
+    await session.commit()
+except Exception as e:
+    print(f"Error crítico durante el sembrado de Teoría en Fase X: {str(e)}")
+    traceback.print_exc()
+    raise
 
+```
+
+### Parte B: Configuración de Progreso
+
+Crear registros en `configuraciones_progreso` para cada nivel práctico y desafío virtual.
+
+```python
 # Mapeo de configuraciones
+configs = []
+
 # Prácticas libres:
 configs.append({
     "seccion": modulo * 100 + nivel,
-    "operacion": "mixta", # o "suma"/"multiplicacion"
+    "operacion": "mixta", 
     "cantidad_requerida": 15,
-    "porcentaje_aprobacion": 80,
+    "porcentaje_aprobacion": 90, # 90% requerido por regla universal
     "usa_cronometro": False,
     "tiempo_default_segundos": 0,
     "tipo_feedback": "espejo"
 })
+
 # Desafíos (Virtuales 11, 12, 13):
 configs.append({
-    "seccion": modulo * 1000 + 11, # D1
+    "seccion": modulo * 1000 + 11, # Desafío 1
     "operacion": "mixta",
     "cantidad_requerida": 25,
     "porcentaje_aprobacion": 90,
     "usa_cronometro": True,
-    "tiempo_default_segundos": 25, # Tiempo por pregunta
+    "tiempo_default_segundos": 25, # Segundos por pregunta
     "tipo_feedback": "simple"
 })
-Parte C: Generación de Pool de Práctica (120 familias por nivel)
-Cada nivel debe poseer 120 familias para evitar la memorización. Cada familia tiene 1 pregunta original (variante 0, es_espejo=False) y 3 espejos (variantes 1, 2, 3, es_espejo=True), compartiendo el mismo estructura_padre_id:
 
-python
+```
+
+### Parte C: Generación de Pool de Práctica y Bloque de Rescate
+
+Cada nivel debe poseer 120 familias para evitar la memorización. Cada familia tiene 1 pregunta original (variante 0, `es_espejo=False`) y 3 espejos (variantes 1, 2, 3, `es_espejo=True`). Es obligatorio popular el campo `explicacion_profunda` con formato HTML enriquecido para pintar el modal del frontend en caso de rescate.
+
+```python
+import random
 
 for fam in range(1, 121):
     padre_id = f"f{FASE_ID}_m{modulo}_l{nivel}_fam_{fam:03d}"
+    
+    # Explicación estructurada con etiquetas HTML de colores para énfasis visual
+    explicacion_html = (
+        f"Recuerda: Primero resolvemos la <b>multiplicación</b> "
+        f"(marcada en <span style='color:#FF4D4D'>rojo</span>) y luego sumamos.<br><br>"
+        f"<b>Ejemplo 1:</b> 5 + <span style='color:#FF4D4D'>4 × 2</span> ➔ 5 + <span style='color:#FF4D4D'>8</span> = 13<br>"
+        f"<b>Ejemplo 2:</b> 3 + <span style='color:#FF4D4D'>2 × 3</span> ➔ 3 + <span style='color:#FF4D4D'>6</span> = 9"
+    )
+
     for var in range(4):
         es_espejo = (var > 0)
-        seed = FASE_ID * 100000 + modulo * 10000 + nivel * 1000 + fam * 10 + var
+        seed = FASE_ID * 100000 + modulo * 1000 + nivel * 100 + fam * 10 + var
         rng = random.Random(seed)
         q_data = generator(rng, fam, es_espejo, var)
         
@@ -124,28 +180,32 @@ for fam in range(1, 121):
             estructura_padre_id=padre_id,
             operacion=op,
             tipo_pregunta=TipoPreguntaEnum.RESPUESTA_NUMERICA,
-            enunciado=q_data["enunciado"],
+            enunciado_visual=q_data["enunciado"],
             respuesta_correcta=q_data["respuesta_correcta"],
             datos_numericos={"es_espejo": es_espejo, "variante": var, **q_data["valores"]},
+            explicacion_profunda=explicacion_html, # Resuelve la ausencia del campo
             estado=StatusEnum.ACTIVO
         )
         session.add(pregunta)
-Parte D: Generación de Pool de Desafíos (150 D1, 150 D2, 100 DFinal por módulo)
-Generar las preguntas de desafío con opciones múltiples e inyección automática de alternativas para D1 y D2:
 
-python
+```
 
+### Parte D: Generación de Pool de Desafíos
+
+Generar las preguntas de desafío con opciones múltiples e inyección automática de alternativas para Desafíos 1 y 2:
+
+```python
 # Desafíos Opción Múltiple
 pregunta = Pregunta(
     fase_id=FASE_ID,
     seccion=modulo * 1000 + 11,
     tipo_pregunta=TipoPreguntaEnum.MULTIPLE_OPCION,
-    enunciado=enunciado,
+    enunciado_visual=enunciado,
     respuesta_correcta=val_correcto,
     datos_numericos={"es_desafio": True, "tipo_interfaz": "opcion_multiple"},
     estado=StatusEnum.ACTIVO
 )
-# Distractores
+
 for idx, opt in enumerate(shuffled_options):
     alt = Alternativa(
         texto=opt["texto"],
@@ -154,114 +214,134 @@ for idx, opt in enumerate(shuffled_options):
         tipo_error=TipoErrorEnum.CALCULO if not opt["es_correcta"] else None
     )
     pregunta.alternativas.append(alt)
-4. Paso 3: Router del Backend (router.py)
-Crear app/fase{X}/router.py heredando los endpoints estándar de FastAPI.
+session.add(pregunta)
 
-### Optimización de Consultas de Base de Datos (Muy Importante)
-Para evitar la sobrecarga de consultas redundantes al motor de base de datos en peticiones HTTP frecuentes (por ejemplo, al renderizar el dashboard o al contestar preguntas), se debe implementar la optimización de sesión compartida:
-- **Query Única con Outerjoin**: El middleware o método `get_current_user` en `auth.py` debe realizar una única consulta que traiga tanto el `User` como el `Alumno` usando un `outerjoin(Alumno)`.
-- **Pre-carga en Contexto**: Almacenar la instancia del modelo de `Alumno` directamente en el diccionario de retorno de `get_current_user` bajo la clave `"alumno_obj"`.
-- **Reutilización**: Los métodos internos de resolución del router (ej. `_get_alumno`) y controladores afines deben buscar primero esta propiedad pre-cargada. Solo en caso de que esté ausente realizarán una consulta individual a la base de datos:
-  ```python
-  async def _get_alumno(db: AsyncSession, current_user: dict) -> Alumno:
-      alumno = current_user.get("alumno_obj")
-      if alumno:
-          return alumno
-      # ... fallback query ...
-  ```
+```
 
-Métodos Clave a Implementar:
-_seccion_operacion(modulo_id, nivel_id): Mapea los IDs al formato de base de datos (modulo_id * 1000 + nivel_id para desafíos; modulo_id * 100 + nivel_id para prácticas).
+---
 
-GET /dashboard: Construye la lista de módulos, niveles y desafíos virtuales. Verifica si el alumno tiene aprobada la práctica para habilitar los desafíos en cascada.
+## 4. Paso 3: Router del Backend (`router.py`)
 
-python
+Crear `app/fase{X}/router.py` heredando los endpoints estándar de FastAPI.
 
-# Verificación en Cascada de Desafíos
-all_practice_approved = all(n.estado == "dominado" for n in niveles)
-d1_unlocked = all_practice_approved
-d2_unlocked = d1_unlocked and d1_approved
-dfinal_unlocked = d2_unlocked and d2_approved
-GET /lectura/{modulo_id}/{nivel_id}: Retorna el guion directamente de NivelTeoria filtrando por fase_id = X.
+### 4.1. Optimización de Consultas de Base de Datos
 
-GET /pregunta (Bucle Espejo en Práctica):
+Para evitar sobrecarga de consultas en peticiones frecuentes, se debe implementar la optimización de sesión compartida:
 
-Si el último intento del alumno fue incorrecto, obtiene la familia (estructura_padre_id) de esa pregunta.
-Si lleva menos de MAX_ESPEJO intentos en esa familia, le sirve una pregunta del mismo estructura_padre_id con es_espejo: True que no haya respondido aún.
-De lo contrario, selecciona aleatoriamente una nueva pregunta original de una familia no dominada.
-POST /responder (Early Exit en Desafíos):
+* **Query Única con Outerjoin:** El middleware `get_current_user` en `auth.py` debe realizar una única consulta que traiga tanto el `User` como el `Alumno` usando `outerjoin(Alumno)`.
+* **Pre-carga en Contexto:** Almacenar la instancia del modelo de `Alumno` en el diccionario bajo la clave `"alumno_obj"`.
+* **Reutilización:** Los métodos del router deben buscar primero esta propiedad pre-cargada antes de realizar consultas individuales:
+```python
+async def _get_alumno(db: AsyncSession, current_user: dict) -> Alumno:
+    alumno = current_user.get("alumno_obj")
+    if alumno:
+        return alumno
+    # ... fallback query ...
 
-Si es desafío (nivel 11, 12 o 13), evalúa el histórico de intentos del bloque actual desde que empezó la sesión (donde el número de aciertos acumulados partió en 0).
-Cuenta los fallos en la sesión actual.
-Si errores_sesion >= max_errores (3 para D1/D2, 2 para DFinal):
-Reset de progreso: Pone aciertos acumulados, intentos totales y porcentaje del bloque a 0.
-Retorna early_exit = True.
-De lo contrario, actualiza los aciertos y evalúa si aprueba el nivel al llegar al 100%.
-POST /graduate: Exige que la cuenta de registros dominados en progreso_maestria para fase_id = X sea igual al total de niveles de la fase (ej: niveles_practica + desafios_virtuales).
+```
 
-5. Paso 4: Integración del Frontend (React/Vue/Flutter)
+
+
+### 4.2. Endpoints y Lógica del Bucle Espejo y Rescate (Práctica)
+
+* **GET /dashboard:** Construye el árbol de progresión. Verifica si la práctica libre está aprobada al 100% conceptual para habilitar el acceso a los desafíos en cascada.
+* **GET /pregunta:** * Si el último intento fue incorrecto, localiza el `estructura_padre_id`.
+* Si `fallas_consecutivas_bucle < 3`, sirve secuencialmente la siguiente variante espejo (`es_espejo: True`) disponible en el pool.
+
+
+* **POST /responder:**
+* Evalúa la respuesta del alumno. Si es incorrecta y se encuentra en Práctica Libre, incrementa `fallas_consecutivas_bucle`.
+* **Activación del Rescate (4ta Falla Consecutiva):** Si el contador llega a `4` (falla la pregunta original y sus 3 variantes espejo), el backend **NO** salta a otra pregunta ni penaliza restando progreso. El servidor debe retornar inmediatamente el payload:
+`{"activar_rescate": true, "explicacion_profunda": pregunta.explicacion_profunda}`.
+
+
+* **POST /cerrar-rescate:**
+* Endpoint invocado cuando el frontend confirma que el alumno leyó la explicación y **transcribió la respuesta correcta**. El payload debe incluir el valor transcrito para que el backend lo valide contra la base de datos. Solo si la transcripción es correcta, el servidor fuerza el estado de la pregunta a **completada con éxito**, incrementa la barra de progreso del alumno, resetea `fallas_consecutivas_bucle = 0` y libera una familia original de preguntas completamente nueva.
+
+
+
+### 4.3. Lógica de Evaluación (Early Exit en Desafíos)
+
+* **POST /responder (Zonas de Desafío):**
+* Evalúa el histórico de la sesión actual de examen.
+* Si `errores_sesion >= max_errores` (3 para Desafío 1 y 2; 2 para Desafío Final), el backend ejecuta inmediatamente la expulsión automática: destruye el progreso acumulado de la sesión, lo resetea a `0` y retorna `{"early_exit": true}`.
+
+
+
+---
+
+## 5. Paso 4: Integración del Frontend (React/Vue/Flutter)
+
 Al crear los componentes de la interfaz gráfica de la nueva fase:
 
-### Deduplicación de Peticiones Concurrentes
-Debido al comportamiento de re-renderizado / remount de componentes en librerías de UI como React, se pueden disparar múltiples peticiones API idénticas al mismo tiempo. Se debe implementar un deduplicador en la capa de servicios:
-- Mantener un mapa de promesas activas: `Map<string, Promise<any>>`.
-- Interceptar las peticiones `GET` (dashboard, lecturas, preguntas), sirviendo la promesa existente si ya hay una petición idéntica en vuelo y removiéndola una vez resuelta/fallida:
-  ```typescript
-  const activeRequests = new Map<string, Promise<any>>();
-  async function fetchDeduplicated<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
-    const existing = activeRequests.get(key);
-    if (existing) return existing;
-    const promise = fetchFn().finally(() => { activeRequests.delete(key); });
-    activeRequests.set(key, promise);
-    return promise;
-  }
-  ```
+### 5.1. Deduplicación de Peticiones Concurrentes
 
-### Consistencia de Tipos y Seguridad del Cliente
-- **No Exponer Datos Críticos**: Evitar incluir banderas del backend como `es_correcta` en el tipo de alternativa retornado al cliente (`Fase2AlternativaOut`).
-- **Compatibilidad en Mock Mode**: Al programar tests o mocks offline (`MOCK_RESULTADO`), el código del frontend debe usar aserciones de tipo (`(alt as any).es_correcta`) o comparar strings con `pregunta.respuesta_correcta` para evitar fallas en el validador TypeScript (`tsc`).
+Para mitigar re-renderizados accidentales de componentes que gatillan llamadas duplicadas, implementar un despachador en la capa de servicios API:
 
-### Definición Limpia de Animaciones (Framer Motion)
-Para animaciones complejas (como teclados virtuales o transiciones de feedback):
-- Evitar referencias a variables externas globales no declaradas.
-- Declarar siempre los objetos de transición (ej. `keypadVariants`, `keyVariants`) dentro del mismo archivo del componente o importarlos de un módulo compartido para evitar fallas de compilación.
+```typescript
+const activeRequests = new Map<string, Promise<any>>();
+async function fetchDeduplicated<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
+  const existing = activeRequests.get(key);
+  if (existing) return existing;
+  const promise = fetchFn().finally(() => { activeRequests.delete(key); });
+  activeRequests.set(key, promise);
+  return promise;
+}
 
-Consumo de Dashboard:
+```
 
-Mapear el grid usando el objeto modulos devuelto por el dashboard.
-Renderizar los niveles de práctica en un contenedor (ej: 4 columnas).
-Renderizar la Zona de Desafíos abajo, en tarjetas especiales con el badge de dificultad (estandar, avanzada, maestria).
-Controlador del Cronómetro:
+### 5.2. Consistencia de Tipos y Seguridad del Cliente
 
-Si la propiedad usa_cronometro o tiene_cronometro viene en True, el frontend debe forzar una cuenta regresiva visual y enviar automáticamente un responder incorrecto por expiración de tiempo si llega a 0.
-Visualización de Opción Múltiple:
+* **No Exponer Datos Críticos:** Evitar incluir banderas del backend como `es_correcta` en el JSON enviado al cliente.
+* **Animaciones (Framer Motion):** Declarar siempre los objetos de transición (ej. `keypadVariants`) dentro del mismo archivo del componente para mitigar fallas en la compilación estática.
 
-Si la pregunta es de tipo multiple_opcion, renderizar la lista de alternativas mezcladas como botones. Ocultar la caja de texto numérica tradicional.
-Modal de Early Exit:
+### 5.3. Componentes de Interfaz Obligatorios
 
-Escuchar la respuesta del endpoint /responder. Si early_exit es True, pausar el flujo, mostrar un modal interactivo informando que se superó el límite de fallas toleradas, y devolver al alumno al Dashboard con su progreso restablecido a 0%.
+* **Controlador del Cronómetro:** Si `usa_cronometro` es True (Desafíos), el frontend inicializa la cuenta regresiva visual por pregunta (25s, 40s o 50s). Al llegar a 0, envía de forma automática una petición `/responder` con valor vacío para computar el error por expiración.
+* **Modal de Early Exit:** Al recibir del backend `early_exit = true`, interrumpe el flujo, muestra la animación de expulsión informando que se superó el límite de fallas toleradas y redirige al alumno al Dashboard con su progreso en 0%.
+* **Ventana Emergente de Rescate Pedagógico (Filosofía Antifrustración y Anti-Spam):**
+* **Interrupción Prioritaria:** Al recibir `activar_rescate: true` en el payload de `/responder`, el frontend debe renderizar de inmediato una ventana emergente propia (Modal Overlay) bloqueando cualquier otra interacción en pantalla.
+* **Renderizado de Énfasis:** Debe inyectar el campo `explicacion_profunda` interpretando el código HTML, asegurando que se visualicen los textos resaltados.
+* **Candado Anti-Spam (NUEVO):** Debajo de la explicación, el modal **debe incluir un cuadro de texto (`input`)** que le exija al alumno transcribir la respuesta final mostrada en los ejemplos. El botón de continuidad debe estar deshabilitado hasta que se ingrese un valor.
+* **Botón de Continuidad:** Al presionar "¡Entendido, sigamos!", el frontend despacha la petición con el valor transcrito al endpoint `/cerrar-rescate`. Tras el éxito, desvanece el modal, anima la barra de progreso hacia adelante de forma visible y solicita la siguiente pregunta original.
 
-6. Configuración de Servidor e Infraestructura (Nginx)
-Para asegurar el correcto funcionamiento del ruteo en el Frontend (SPA) sin comprometer las respuestas de la API en archivos inexistentes:
-- **Restricción de Fallback**: Añadir un bloque de localización en Nginx para interceptar peticiones a archivos con extensiones. Si un recurso estático, script, o recurso dinámico inexistente es solicitado, debe responder `404 Not Found` en lugar de caer en el fallback del `index.html` de la SPA con un estado `200 OK`:
-  ```nginx
-  # Return 404 for any missing file with an extension, avoiding SPA index.html fallback
-  location ~ \.[a-zA-Z0-9]+$ {
-      try_files $uri =404;
-  }
-  ```
 
- 7. Checklist de Implementación
-  Definir el mapeo de módulos, niveles y desafíos de la Fase X.
-  Crear el script de migración SQL o Alembic si hay nuevos modelos relacionales.
-  Escribir app/faseX/seed.py inyectando teoría, configuraciones y los pools (práctica y desafíos).
-  Asegurar la propagación visible de errores en `seed.py` imprimiendo el _traceback_ y relanzando la excepción.
-  Escribir app/faseX/router.py con las reglas de Bucle Espejo, Early Exit y Dashboard.
-  Implementar optimización de consulta única (`outerjoin` + `alumno_obj`) en la lógica de resolución de Alumno.
-  Registrar las rutas en el archivo central de la aplicación (app/main.py).
-  Crear las pantallas en el Frontend interactuando con los nuevos endpoints de /faseX.
-  Integrar deduplicador de promesas concurrentes en los servicios del Frontend.
-  Verificar que el servidor Nginx responde con `404` para extensiones no mapeadas.
-  Verificar compilación local del backend (`python -m py_compile` o usando el Python de `venv`).
-  Verificar que la compilación de TypeScript en Frontend se ejecute sin errores (`npx tsc --noEmit`).
-  Correr pruebas automatizadas / funcionales de flujo completo.
+
+---
+
+## 6. Configuración de Servidor e Infraestructura (Nginx)
+
+Para asegurar el correcto funcionamiento del ruteo en la Single Page Application (SPA) evitando falsos fallbacks con estado 200 en recursos inexistentes:
+
+```nginx
+# Return 404 for any missing file with an extension, avoiding SPA index.html fallback
+location ~ \.[a-zA-Z0-9]+$ {
+    try_files $uri =404;
+}
+
+```
+
+---
+
+## 7. Checklist de Implementación
+
+* [ ] Definir el mapeo de módulos, niveles y desafíos de la nueva Fase.
+* [ ] Crear el script de migración SQL o Alembic en la base de datos PostgreSQL.
+* [ ] Escribir `app/faseX/seed.py` aplicando el esquema de validación Pydantic de la teoría.
+* [ ] Asegurar la inyección del campo `explicacion_profunda` con formato HTML en las 120 familias en `seed.py`.
+* [ ] Garantizar que los errores de clave o nulos en el seeder no se silencien (relanzar excepciones).
+* [ ] Implementar en `router.py` los endpoints `/pregunta` y `/responder` con soporte al Bucle Espejo.
+* [ ] Escribir la ruta `/cerrar-rescate` para aplicar el avance garantizado antifrustración a la 4ta falla.
+* [ ] Configurar las reglas de aborto fulminante (*Early Exit*) en las Zonas de Desafíos.
+* [ ] Aplicar la optimización de consulta única (`outerjoin` + `alumno_obj`) en la autenticación del router.
+* [ ] Desarrollar en el Frontend el componente de Ventana Emergente (Modal Overlay) de Rescate que interprete las etiquetas HTML de color.
+* [ ] Integrar el módulo de deduplicación de promesas concurrentes en los servicios de fetching.
+* [ ] Probar la compilación limpia del backend con `python -m py_compile`.
+* [ ] Validar la compilación estricta de TypeScript mediante `npx tsc --noEmit`.
+* [ ] Ejecutar una prueba de estrés simulando 4 errores intencionales en una familia para verificar el flujo completo de rescate, cierre y avance.
+* [ ] Añadir `diccionario_nivel` al esquema de validación Pydantic y asegurar su inserción en el `seed.py`.
+* [ ] Validar que el Modal de Rescate en el frontend exija transcribir la respuesta (Anti-Spam) antes de llamar a `/cerrar-rescate`.
+
+```
+
+```
