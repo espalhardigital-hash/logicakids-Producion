@@ -1,152 +1,251 @@
-# Plan Maestro de Implementación: Panel de Administrador (Superusuario)
+# Manual Técnico y de Arquitectura: Panel de Administrador (Superusuario)
 
-Este documento centraliza de forma definitiva la planificación, requerimientos, diseño de UI/UX, arquitectura de datos y el prompt maestro para el desarrollo del **Panel de Administrador (Dashboard)** en la plataforma **LogicaKids Pro**.
-
----
-
-## 1. PROMPT MAESTRO PARA GENERACIÓN DE UI GLOBAL
-
-Actúa como un desarrollador experto en React, Frontend y diseño UX/UI avanzado. Necesito que estructures, diseñes e implementes el Panel de Administración (Dashboard) para "LogicaKids Pro", una plataforma educativa de matemáticas para niños.
-
-Tu objetivo principal es desarrollar una interfaz administrativa de alta gama que permita a los educadores (superusuarios) gestionar el contenido pedagógico y monitorear la plataforma.
-
-### 1.1. Funciones y Privilegios del Administrador
-El administrador es el educador o gestor de la plataforma. El panel debe incluir las siguientes funcionalidades clave:
-
-*   **Gestión Pedagógica y Parámetros del Juego:** Ajustar el número de preguntas por fase, habilitar o deshabilitar cronómetros y modificar los tiempos límite exactos por nivel/bloque según el plan detallado en la Sección 2.
-*   **Monitoreo y Progreso (Estadísticas):** Dashboard analítico con métricas de desempeño de los estudiantes (progreso, aciertos, y las operaciones donde más fallan gracias al sistema de "tutoría invisible").
-*   **Control de Acceso (Privilegios):** Toda la interfaz administrativa debe ser de acceso restringido, comprobando que el usuario tenga el rol de `admin` o `superuser` antes de renderizar la vista.
-
-### 1.2. Configuración de la Interfaz y Estética (UX/UI)
-El panel debe mantener la identidad visual atractiva y gamificada de LogicaKids Pro, pero enfocada en la productividad del educador.
-
-*   **Estilo de Diseño (High-End & Glassmorphism):** El diseño debe sentirse premium. Utiliza técnicas de *Glassmorphism* (paneles semitransparentes, `backdrop-blur`, bordes sutiles y sombras suaves con fondos oscuros profundos y resplandores neón).
-*   **Stack Tecnológico:**
-    *   **Tailwind CSS v4:** Para todo el estilado, aprovechando la paleta de colores vibrantes pero armoniosa.
-    *   **Framer Motion:** Implementa micro-animaciones para interacciones (hovers en botones, apertura de modales, transiciones fluidas entre secciones).
-*   **Estructura y Navegación:**
-    *   Un *Sidebar* (menú lateral) plegable y responsivo con navegación fluida entre: **"Vista General"**, **"Configuración Pedagógica"**, y **"Rendimiento Estudiantil"**.
-    *   Tarjetas de estadísticas (*Cards*) para datos rápidos y formularios intuitivos para modificar los tiempos/preguntas.
-*   **Responsividad Total:** Debe adaptarse perfectamente tanto a computadoras de escritorio como a tablets (que suelen usar los educadores).
+Este documento detalla de forma definitiva el diseño, configuración, modelo de datos relacionales, lógica de resolución en cascada e implementación actual de la interfaz del **Panel de Administrador (Dashboard)** en la plataforma **LogicaKids Pro**. 
 
 ---
 
-## 2. ESTRATEGIA DE CONFIGURACIÓN PEDAGÓGICA AVANZADA (Fases, Módulos y Niveles)
+## 1. Stack Tecnológico, Estética y Ajustes del Panel de Administración
 
-Dado que el frontend se ha modularizado y consta de un **Viaje Matemático de 9 Fases**, la configuración pedagógica requiere un sistema granular que permita a los educadores personalizar el comportamiento de cada sección de forma independiente.
+El Panel de Administración (Superusuario) de LogicaKids Pro ha sido desarrollado bajo un enfoque centrado en la productividad del educador, incorporando una identidad visual premium y gamificada pero accesible y altamente configurable.
 
-### 2.1. El Desafío y el Modelo de Herencia (Cascada)
-Para evitar la incompatibilidad entre las dinámicas de las fases (ej. el calentamiento aritmético de la Fase 1 vs. los simulacros de examen de la Fase 9), se adopta una **arquitectura de herencia de configuraciones (Config Inheritance System)**. El juego resolverá los parámetros activos consultando la jerarquía de más específica a más general:
+### 1.1. Stack Tecnológico de UI
+*   **React (TypeScript):** Componentes altamente modularizados con tipado estricto.
+*   **Tailwind CSS:** Para toda la base de diseño responsivo y maquetación de componentes.
+*   **Framer Motion:** Implementación de micro-animaciones (hovers, sliders fluidos, transiciones suaves y aperturas de modales en `AnimatePresence`).
+*   **Lucide React:** Set de iconos limpios y modernos.
+
+### 1.2. Estética High-End & Glassmorphism
+El panel implementa las siguientes directrices estéticas premium:
+*   **Esquema de Color Profundo:** Fondos oscuros fluidos con `bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-gray-950 to-black`.
+*   **Resplandores Ambientales:** Luces de fondo dinámicas semitransparentes (`bg-blue-600/10` y `bg-purple-600/10`) con `blur-[120px]` y bordes difusos.
+*   **Capa Esmerilada de Cristal:** Paneles y modales con `backdrop-blur-2xl`, `bg-white/5`, y bordes sutiles de `border-white/10`.
+
+### 1.3. Ajustes de Interfaz Persistidos (Accesibilidad)
+El panel cuenta con un apartado en el Sidebar de "Ajustes Visuales" controlados por el Administrador que se guardan en el `localStorage` de forma automática:
+*   **Escala de Interfaz (`adminScale`):** Deslizador en rango del `80%` al `150%` que ajusta dinámicamente el tamaño de fuente global de la página (`document.documentElement.style.fontSize`), facilitando la lectura.
+*   **Tipo de Fuente (`adminFontFamily`):** Menú desplegable para cambiar la fuente tipográfica de todo el panel. Incluye opciones estándar como Outfit, Comic Sans, Monospace, Arial, Serif y **Alta Legibilidad (OpenDyslexic)** para personas con dificultades de lectura.
+
+---
+
+## 2. Estructura y Navegación del Panel de Administración
+
+La interfaz se divide en un *Sidebar* responsivo y plegable que gestiona la navegación de **4 pestañas unificadas** (`TabType = 'general' | 'pedagogy' | 'performance' | 'content'`):
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                              ADMIN PRO                                 │
+├───────────────┬────────────────────────────────────────────────────────┤
+│ 📊 Vista      │  📈 Tarjetas KPI (Usuarios, Partidas, Activos, Storage) │
+│    General    │  🔍 Buscador y Tabla de Gestión de Cuentas de Usuario   │
+├───────────────┼────────────────────────────────────────────────────────┤
+│ ⚙️ Config.    │  🌲 Árbol de Jerarquía (Globales vs Fases vs Módulos)   │
+│    Pedagógica │  🎛️ Formulario de Edición Contextual y Override Velo    │
+├───────────────┼────────────────────────────────────────────────────────┤
+│ 🛡️ Rendimiento│  🔍 Buscador de Alumnos y Estado de Fase Actual        │
+│    Estudiantil│  🗝️ Control de Maestría ("Liberar", "Aprobar", "Reset") │
+├───────────────┼────────────────────────────────────────────────────────┤
+│ 📖 Banco      │  📂 Selector de Fase/Módulo/Nivel                      │
+│    Preguntas  │  📝 Editor de Material Teórico vs CRUD de Preguntas     │
+└───────────────┴────────────────────────────────────────────────────────┘
+```
+
+### 2.1. Vista General (`GeneralTab.tsx`)
+Punto de control inicial que ofrece análisis rápidos y gestión completa de usuarios.
+*   **KPI Cards de Desempeño:**
+    *   **Usuarios:** Conteo total de registrados en la plataforma.
+    *   **Partidas:** Total de juegos/bloques completados. Al hacer clic, abre el modal de registros globales para auditar y borrar individualmente puntuaciones históricas.
+    *   **Activos:** Cantidad de estudiantes no bloqueados (`ACTIVE`).
+    *   **Storage:** Estado del almacenamiento (mostrado como `Cloud` o peso local).
+*   **Gestión de Usuarios (CRUD Completo):**
+    *   Buscador interactivo por nombre y correo.
+    *   Formulario para crear nuevos usuarios con roles (`ADMIN` o `USER`) y estados iniciales.
+    *   Edición de credenciales y datos básicos.
+    *   Baneo/Desbaneo instantáneo mediante interruptor de estado.
+    *   Cambio seguro de contraseñas mediante modal de clave mínima alfanumérica.
+    *   **Historial de Rendimiento Detallado por Alumno:** Modal que analiza la actividad de un estudiante en un listado ordenable por fecha o puntuación, mostrando la categoría, nivel de dificultad, aciertos (%) y el conteo de errores específicos.
+
+### 2.2. Gestión Pedagógica Avanzada (`PedagogyTab.tsx`)
+Configurador relacional donde el educador define el ritmo, volumen y comportamiento didáctico del alumno en la plataforma. Utiliza un menú de acordeón lateral (`ConfigTreeNav`) y un velo esmerilado de bloqueo para control de herencias.
+
+### 2.3. Rendimiento Estudiantil Avanzado (`PerformanceTab.tsx`)
+Herramienta de tutoría y control que permite a los administradores intervenir quirúrgicamente en el progreso académico de un estudiante:
+*   **Buscador Rápido:** Encuentra perfiles de alumnos y muestra su estado de fase actual.
+*   **Control de Maestría por Bloque:** Permite visualizar los niveles y desafíos por módulo agrupados por Fases 1 a 3. Para cada nivel, el administrador puede realizar overrides en tiempo real:
+    *   `Liberar` (Unlock): Desbloquea manualmente un nivel en estado `BLOQUEADO` para que el alumno pueda jugarlo.
+    *   `Aprobar` (Approve): Establece el estado del nivel a `APROBADO` con un 90% automático de aciertos, marcándolo con la bandera `aprobado_por_admin = True`.
+    *   `Restablecer` (Reset/Lock): Borra el progreso del alumno para ese bloque específico, bloqueándolo de nuevo.
+
+### 2.4. Banco de Preguntas y Teoría (`ContentTab.tsx`)
+Consola de administración de contenidos pedagógicos dividida en dos sub-pestañas operadas a través de selectores de Fase, Módulo y Nivel:
+1.  **Contenido Teórico (`theory`):** Editor WYSIWYG/Formulario reactivo para:
+    *   Título e introducción conceptual.
+    *   Texto de descubrimiento y tips pedagógicos/advertencias.
+    *   **Glosario:** Diccionario de vocabulario interactivo con claves y definiciones editables.
+    *   **Ejemplos Didácticos:** Flujos explicativos guiados paso a paso.
+    *   **Ejercicios Interactivos:** Definición de enunciados, pasos y respuestas exactas con feedbacks específicos de acierto y error.
+2.  **Banco de Preguntas (`questions`):** Buscador, paginador y CRUD de preguntas del bloque:
+    *   Edición de enunciados de pregunta y su tipo (numérico u opción múltiple).
+    *   Toggle de requerimiento de subrayado para tutorías.
+    *   Gestión de alternativas: Declaración de hasta 4 opciones, asignación de orden y marcado de la respuesta correcta.
+
+---
+
+## 3. Modelo de Datos de Configuración y Progreso
+
+La base de datos relacional (implementada en PostgreSQL y mapeada en SQLAlchemy en `backend/app/models/progreso.py`) estructura el backend de administración a través de cuatro modelos críticos:
+
+### 3.1. Tabla `configuracion_progreso`
+Almacena las reglas pedagógicas personalizadas por el administrador.
+*   `fase_id` (ForeignKey) $\rightarrow$ ID de la fase (1 a 9).
+*   `seccion` (Integer) $\rightarrow$ Mapea el módulo o nivel (se usa `0` para los valores por defecto de la Fase completa).
+*   `operacion` (Enum) $\rightarrow$ Operación matemática (`suma`, `resta`, `multiplicacion`, `division`, `mixta`).
+*   `cantidad_requerida` (Integer) $\rightarrow$ Número de preguntas que componen el bloque de juego.
+*   `porcentaje_aprobacion` (Integer) $\rightarrow$ Puntuación mínima (%) requerida para pasar de nivel (comúnmente 80% o 90%).
+*   `orden_desbloqueo` (Integer) $\rightarrow$ Secuencia de desbloqueo dentro de la sección.
+*   `tipo_feedback` (String) $\rightarrow$ `"simple"` (acierto/error) o `"detallado"` (tutoría explicativa con IA).
+*   `usa_cronometro` (Boolean) $\rightarrow$ Habilita o deshabilita el límite de tiempo.
+*   `tiempo_default_segundos` (Integer, Nullable) $\rightarrow$ Tiempo límite por pregunta o bloque global.
+*   `activo` (Boolean) $\rightarrow$ Estado de activación del override.
+
+### 3.2. Tabla `progreso_maestria`
+Registra el progreso académico individual de cada estudiante por bloque.
+*   `alumno_id` (ForeignKey) $\rightarrow$ Referencia al perfil del alumno.
+*   `fase_id` (ForeignKey) $\rightarrow$ Fase académica.
+*   `seccion` (Integer) & `operacion` (Enum) $\rightarrow$ Coordenadas del bloque.
+*   `estado` (Enum) $\rightarrow$ Estado actual (`BLOQUEADO`, `EN_PROGRESO` o `APROBADO`).
+*   `aciertos_acumulados` (Integer) & `intentos_totales` (Integer) $\rightarrow$ Desempeño métrico del bloque.
+*   `porcentaje_actual` (Integer) $\rightarrow$ Puntuación máxima obtenida.
+*   `aprobado_por_admin` (Boolean) $\rightarrow$ Registra si el bloque fue liberado manualmente por un profesor.
+
+### 3.3. Tabla `pool_asignado_alumno`
+Permite generar una experiencia de evaluación personalizada para el estudiante a partir de las preguntas cargadas por el administrador en la tabla `preguntas`.
+*   `respondida_correctamente` (Boolean) & `respondida_alguna_vez` (Boolean) $\rightarrow$ Seguimiento de la pregunta en el intento actual.
+*   `numero_intentos` (Integer) $\rightarrow$ Contador de repetición.
+
+### 3.4. Tabla `intentos`
+Bitácora de analítica de tutoría invisible que registra cada respuesta individual de los alumnos.
+*   `respuesta_dada` (String) & `es_correcta` (Boolean).
+*   `tiempo_respuesta_segundos` (Float) $\rightarrow$ Precisión en milisegundos para análisis de velocidad mental.
+*   `tipo_error` (Enum) $\rightarrow$ Categorización automática del fallo para activar feedbacks inteligentes.
+*   `feedback_mostrado` (Text) & `explicacion_mostrada` (JSONB) $\rightarrow$ Historial del soporte cognitivo entregado.
+
+---
+
+## 4. Estrategia de Configuración Pedagógica Jerárquica (Cascada)
+
+Para personalizar el comportamiento didáctico de cada bloque del mapa de progreso sin abrumar a los educadores con cientos de configuraciones individuales, LogicaKids Pro adopta una **arquitectura de herencia de configuraciones (Config Inheritance System)**.
+
+### 4.1. Árbol de Herencia (Cascada)
 
 ```mermaid
 graph TD
-    A[1. Nivel de Dificultad - Más Específico] -->|Si no está configurado, hereda de| B[2. Módulo / Categoría]
-    B -->|Si no está configurado, hereda de| C[3. Fase Pedagógica]
-    C -->|Si no está configurado, hereda de| D[4. Valores Globales de la Plataforma - Fallback]
+    A["1. Ajustes del Nivel/Módulo (Más Específico)"] -->|Si está inactivo / heredando, consulta| B["2. Parámetros por Defecto de Fase"]
+    B -->|Si está inactivo / heredando, consulta| C["3. Límites Globales de Plataforma (Fallback)"]
 ```
 
-### 2.2. Modelo de Datos e Integración con Postgres
-La lógica de negocio y los overrides se mapean de forma nativa en la tabla relacional `configuracion_progreso` (definida en `backend/app/models/progreso.py`), la cual está perfectamente equipada para este propósito:
-*   `fase_id` (ForeignKey) $\rightarrow$ Identifica la Fase (1 a 9).
-*   `seccion` (Integer) $\rightarrow$ Identifica el Módulo/Sección dentro de esa fase.
-*   `operacion` (Enum: SUMA, RESTA...) $\rightarrow$ Identifica la disciplina o categoría.
-*   `cantidad_requerida` $\rightarrow$ Cantidad de preguntas por bloque/sesión.
-*   `porcentaje_aprobacion` $\rightarrow$ Score mínimo de aprobación para desbloquear.
-*   `usa_cronometro` $\rightarrow$ Toggle para habilitar/deshabilitar la presión de tiempo.
-*   `tiempo_default_segundos` $\rightarrow$ Duración en segundos (por pregunta o global).
-*   `tipo_feedback` $\rightarrow$ Tipo de respuesta ("simple" o "detallada con IA").
+### 4.2. Mapeo del Árbol de Jerarquía Actual (Selectores)
+El backend del juego y el panel de administración estructuran el mapa de progreso en base a la configuración actual implementada:
+*   **Fase 1: Aritmética Básica**
+    *   *Módulo:* Operaciones Directas (Suma Directa, Resta Directa, Multiplicación Directa, División Directa).
+*   **Fase 2: Desarrollo Numérico**
+    *   *Módulo 1: Gimnasio Numérico Mental* (Nivel 1: Multiplicadores, Nivel 2: Jerarquía, Nivel 3: Traducción, Desafíos 11-13).
+    *   *Módulo 2: Tablas en Acción* (Nivel 1: Suma e Inversa, Nivel 2: Mult. e Inversa, Nivel 3: Número Faltante, Nivel 4: Gran Integración, Desafíos 11-13).
+    *   *Módulo 3: Tienda Matemática* (Nivel 1: Reconozco Dinero, Nivel 2: Pago y Cambio, Nivel 3: Carrito, Nivel 4: Comprador Inteligente, Desafíos 11-13).
+    *   *Módulo 4: Constructor de Soluciones* (Nivel 1: Dos Pasos, Nivel 2: Encadenamiento, Nivel 3: Error de Arrastre, Desafíos 11-13).
+*   **Fase 3: Problemas de Texto**
+    *   *Módulo 1: El Escáner de la Verdad* (Nivel 1: Lápiz Mágico, Nivel 2: Escudo Anti-Basura, Nivel 3: Laberinto Numérico, Desafíos 11-13).
+    *   *Módulo 2: La Máquina del Tiempo* (Nivel 1: Reloj Adelante, Nivel 2: Reloj Reversa, Nivel 3: Tiempo Multiplicado, Nivel 4: Laberinto del Tiempo, Desafíos 11-13).
+    *   *Módulo 3: El Ojo del Comerciante* (Nivel 1: Enigma Carritos, Nivel 2: Cruce de Datos, Nivel 3: Código Oculto, Desafíos 11-13).
+    *   *Módulo 4: El Maestro del Empaque* (Nivel 1: Reparto Perfecto, Nivel 2: Piezas Sobrantes, Nivel 3: Ciclo Infinito, Desafíos 11-13).
 
-### 2.3. Mapeo Pedagógico del Viaje de Aprendizaje
-
-Cada fase del mapa de progreso cuenta con dinámicas distintas que el panel de administración gestiona bajo reglas flexibles:
-
-| Fase | Nombre de la Fase | Módulos (Secciones) | Tipo de Temporizador | Parámetros Clave a Configurar |
-| :---: | :--- | :--- | :--- | :--- |
-| **1** | **Calentamiento Aritmético** | Sumas, Restas, Multiplicaciones, Divisiones, Desafío Mixto | **Por Pregunta** (3s - 60s) | Preguntas por bloque (10-100), Tiempo por Nivel (1-5), Porcentaje Aprobación (50-100%). |
-| **2** | **Desarrollo Numérico** | Cálculo mental, Sistema monetario, Lectura de problemas | **Por Pregunta** (5s - 90s) | Rango de números generados, Preguntas por bloque, Tiempo por dificultad. |
-| **3** | **Problemas de Texto** | Selección de datos, Elección de operación, Resolución multietapa | **Sin Tiempo / Libre** o **Por Pregunta Largo** | Tipo de feedback (IA Tutoría activada/desactivada), Intentos permitidos por ejercicio (1-3). |
-| **4** | **Fracciones y Gráficos** | Fracciones visuales, Porcentajes estructurados, Lectura de tablas | **Por Pregunta Medio** (10s - 60s) | Preguntas por bloque, Tolerancia de aproximación en gráficos. |
-| **5** | **Geometría Plana** | Figuras 2D, Área y Perímetro, Tangram interactivo | **Por Bloque Completo** (ej. 5 min total) | Número de piezas Tangram requeridas, Cronómetro total del rompecabezas, Porcentaje mínimo de coincidencia. |
-| **6** | **Geometría Espacial** | Visualización 3D, Conteo de bloques, Volumen de prismas | **Por Bloque Completo** | Número de figuras tridimensionales, Ayuda visual (rotación 360° libre o limitada). |
-| **7** | **Coordenadas** | Plano cartesiano, Pares ordenados, Direcciones | **Por Pregunta** (10s - 45s) | Tamaño del grid (5x5 a 20x20), Modo de juego (dar coordenadas vs. hacer clic en punto). |
-| **8** | **Probabilidad y Lógica** | Casos favorables/posibles, Combinatoria, Secuencias | **Por Pregunta Largo** (15s - 90s) | Complejidad de la secuencia, Número de opciones en combinatoria. |
-| **9** | **Simulados Pedro II** | Simulacros cortos por tema, Simulacro completo real | **Global por Examen** (30m - 120m) | Cantidad de preguntas del examen (10-30), Tiempo total en minutos, Bloqueo de navegación entre preguntas. |
-
-### 2.4. Comportamiento de Interfaz de Usuario de Alta Gama (UX/UI)
-Para evitar abrumar al administrador con cientos de controles individuales, la vista de configuración adoptará un **diseño de taladro (Drilldown Concept)** en una sola pantalla unificada:
-
-1.  **Navegador de Jerarquía Lateral (Panel Izquierdo):**
-    *   Un menú en árbol interactivo (`TreeView` / `Accordion`) que muestra el mapa de progreso colapsable de las Fases 1 a 9 y sus sub-módulos.
-    *   Al seleccionar una Fase o un Módulo, el panel derecho se actualiza instantáneamente con animaciones de *Framer Motion*.
-2.  **Panel de Configuración Contextual (Panel Derecho):**
-    *   **A) Vista Fase:** Permite configurar los parámetros por defecto de toda la fase (que heredarán todos sus módulos a menos que se sobrescriban).
-    *   **B) Vista Módulo (Sobrescritura "Override Parent"):** Cuenta con un interruptor toggle premium. Si está desactivado, el módulo heredará de forma transparente los parámetros de la Fase (con un velo de cristal esmerilado blur y lectura únicamente). Si se activa, se habilitan los controles y el administrador puede definir un volumen de preguntas, score de aprobación o tiempos exclusivos para este módulo.
+*Nota: Para las Fases 4 a 9, aunque el alumno las visualiza en su mapa global, el panel de control pedagógico de administración expone y gestiona la configuración de las Fases 1 a 3 que representan las áreas pedagógicas completamente construidas y configurables a nivel relacional.*
 
 ---
 
-## 3. LÓGICA DE RESOLUCIÓN EN CÓDIGO (Helper de Cascadas)
+## 5. Implementación Técnica de la Cascada de Resolución
 
-El cliente del juego (`GameScreen.tsx`) consumirá el siguiente selector para calcular en tiempo real los parámetros resueltos del nivel activo de forma eficiente:
+Cuando un estudiante inicia una partida en `GameScreen.tsx`, la interfaz resuelve dinámicamente los parámetros didácticos del juego mediante la siguiente lógica de cascada nativa:
 
 ```typescript
-interface ActiveGameConfig {
-  questionsCount: number;
-  useTimer: boolean;
-  timeLimitSeconds: number;
-  passingScore: number;
-  feedbackType: 'simple' | 'detailed';
-}
+const resolveActiveParams = () => {
+  const levelKeys = ['easy', 'easy_medium', 'medium', 'medium_hard', 'hard'];
+  const activeLevelKey = levelKeys.includes(difficulty) ? difficulty : 'medium';
 
-export function resolveGameConfig(
-  globalConfig: PedagogyConfig,             // PlatformSettings (Global)
-  phaseConfigs: ConfiguracionProgreso[],    // Listado de configuraciones de la BD
-  phaseId: number,
-  moduleId: number,
-  levelIndex: number                        // 0 a 4 (Nivel 1 a 5)
-): ActiveGameConfig {
-  
-  // 1. Buscar configuración específica para esta Fase y Módulo
-  const specificConfig = phaseConfigs.find(c => 
-    c.fase_id === phaseId && 
-    c.seccion === moduleId
-  );
+  // Paso 1: Configuración base por defecto desde los límites globales de plataforma
+  let resolvedQuestions = adminConfig?.questionsPerPhase || FALLBACK_TOTAL_QUESTIONS;
+  let resolvedUseTimer = adminConfig?.useTimer !== false;
+  let resolvedTimer = adminConfig?.timers?.[activeLevelKey as keyof typeof adminConfig.timers] || 12;
+  let resolvedPassing = adminConfig?.passingScore || 90;
+  let resolvedFeedback = 'simple';
 
-  // 2. Extraer tiempos específicos del nivel (si aplica)
-  const levelKeys: (keyof PedagogyConfig['timers'])[] = ['easy', 'easy_medium', 'medium', 'medium_hard', 'hard'];
-  const activeLevelKey = levelKeys[levelIndex] || 'medium';
-  
-  const globalTimerForLevel = globalConfig.timers[activeLevelKey];
+  const fId = faseId || 1;
+  const sec = seccion || 1;
+  const oper = category === 'addition' ? 'suma' : 
+               category === 'subtraction' ? 'resta' : 
+               category === 'multiplication' ? 'multiplicacion' : 
+               category === 'division' ? 'division' : 'mixta';
+
+  if (modularConfigs) {
+    // Paso 2: Sobrescribir con los valores por defecto de la Fase (si sección es 0 y el override está activo)
+    const phaseDefault = modularConfigs.find(
+      c => c.fase_id === fId && c.seccion === 0 && c.activo !== false
+    );
+    if (phaseDefault) {
+      resolvedQuestions = phaseDefault.cantidad_requerida;
+      resolvedUseTimer = phaseDefault.usa_cronometro;
+      resolvedTimer = phaseDefault.tiempo_default_segundos || resolvedTimer;
+      resolvedPassing = phaseDefault.porcentaje_aprobacion;
+      resolvedFeedback = phaseDefault.tipo_feedback;
+    }
+
+    // Paso 3: Sobrescribir con los valores específicos de Módulo (si existe un override activo)
+    const moduleConfig = modularConfigs.find(
+      c => c.fase_id === fId && c.seccion === sec && c.operacion === oper && c.activo !== false
+    );
+    if (moduleConfig) {
+      resolvedQuestions = moduleConfig.cantidad_requerida;
+      resolvedUseTimer = moduleConfig.usa_cronometro;
+      resolvedTimer = moduleConfig.tiempo_default_segundos || resolvedTimer;
+      resolvedPassing = moduleConfig.porcentaje_aprobacion;
+      resolvedFeedback = moduleConfig.tipo_feedback;
+    }
+  }
+
+  // Desactivación forzada del límite de tiempo si usa_cronometro se resuelve como falso
+  if (!resolvedUseTimer) {
+    resolvedTimer = 999;
+  }
 
   return {
-    questionsCount: specificConfig?.cantidad_requerida ?? globalConfig.questionsPerPhase,
-    useTimer: specificConfig?.usa_cronometro ?? globalConfig.useTimer,
-    timeLimitSeconds: specificConfig?.tiempo_default_segundos ?? globalTimerForLevel,
-    passingScore: specificConfig?.porcentaje_aprobacion ?? globalConfig.passingScore,
-    feedbackType: (specificConfig?.tipo_feedback as 'simple' | 'detailed') ?? 'simple'
+    questionsCount: resolvedQuestions,
+    useTimer: resolvedUseTimer,
+    timeLimitSeconds: resolvedTimer,
+    passingScore: resolvedPassing,
+    feedbackType: resolvedFeedback
   };
-}
+};
 ```
 
 ---
 
-## 4. QUÉ SE DEBE GENERAR EN LA IMPLEMENTACIÓN
+## 6. Endpoints de la API en el Backend (Administración)
 
-Basado en estas instrucciones unificadas, el código fuente definitivo de administración debe incluir:
+La sincronización entre el cliente Frontend y la Base de Datos PostgreSQL se realiza a través de los siguientes endpoints seguros de la API (conectados en `storageService.ts`):
 
-1.  **Layout principal del Dashboard:** Con Sidebar plegable y Header responsivo con soporte para rol de superusuario.
-2.  **Navegador Jerárquico en Árbol (`ConfigTreeNav`):** Panel lateral en acordeón para navegar entre Fases 1-9 y sus sub-módulos.
-3.  **Panel de Ajustes Contextual (`PedagogyTab` / `ModuleConfig`):** Con controles para volumen de preguntas, score de aprobación y tipo de feedback (Simple vs. Tutoría IA).
-4.  **Velo de Bloqueo Esmerilado (`OverrideWrapper`):** Capa de glassmorphism que restringe la edición de módulos si la opción de sobrescribir el padre está desactivada, indicando visualmente de dónde proceden los valores heredados.
-5.  **Sliders con Tooltips Flotantes (`SliderWithTooltip`):** Deslizadores con tooltips flotantes en tiempo real para configurar límites de tiempo y puntajes.
-6.  **Código Limpio e Integrado:** Todo perfectamente tipado en TypeScript, modularizado en `/components/admin/components/`, y conectado a los endpoints de la API en `storageService.ts` y al flujo de navegación de `App.tsx`.
-
----
-
-## 5. CRONOGRAMA DE IMPLEMENTACIÓN FUTURO
-
-El desarrollo se ejecutará bajo un enfoque secuencial y seguro en 4 etapas:
-
-*   **Fase A (API & Backend):** Optimizar los endpoints `GET /admin/configuracion` y `PUT /admin/configuracion/save-all` para permitir persistencia ágil de colecciones de overrides de una sola vez.
-*   **Fase B (Componentes de UI):** Construir en el frontend los componentes visuales de cristal (`ConfigTreeNav`, `OverrideWrapper` y sliders interactivos).
-*   **Fase C (Manejo de Estado):** Implementar la lógica del estado local "draft" para marcar visualmente en el árbol los nodos con cambios pendientes y habilitar el banner flotante de guardado.
-*   **Fase D (Migración e Integración):** Integrar el resolvedor de cascada en `mathService.ts` y en las pantallas del alumno para que consuman dinámicamente los parámetros de la base de datos.
+*   **Configuración Pedagógica:**
+    *   `GET /admin/settings` $\rightarrow$ Recupera los límites globales de plataforma (`PedagogyConfig`).
+    *   `PUT /admin/settings` $\rightarrow$ Guarda los límites globales actualizados.
+    *   `GET /admin/configuracion` o `GET /admin/configuracion?fase_id={fase_id}` $\rightarrow$ Colección de overrides de progreso.
+    *   `POST /admin/configuracion` $\rightarrow$ Crea un nuevo override para una fase o módulo.
+    *   `PATCH /admin/configuracion/{id}` $\rightarrow$ Modifica un override de progreso existente.
+*   **Gestión Académica de Alumnos:**
+    *   `GET /admin/alumnos/search?query={texto}` $\rightarrow$ Busca estudiantes por nombre o email.
+    *   `GET /admin/alumnos/{alumno_id}/progress` $\rightarrow$ Progreso de maestría por bloque del estudiante.
+    *   `POST /admin/alumnos/{alumno_id}/progress/override` $\rightarrow$ Ejecuta acciones de maestría (`approve`, `unlock`, `lock`).
+*   **Banco de Preguntas y Teoría:**
+    *   `GET /admin/preguntas?fase_id={fase_id}&seccion={seccion}&operacion={operacion}` $\rightarrow$ Listado de preguntas del nivel.
+    *   `POST /admin/preguntas` $\rightarrow$ Registra una nueva pregunta en el banco de datos.
+    *   `PATCH /admin/preguntas/{id}` $\rightarrow$ Actualiza una pregunta y sus alternativas.
+    *   `DELETE /admin/preguntas/{id}` $\rightarrow$ Elimina físicamente una pregunta.
+    *   `GET /admin/teoria?fase_id={fase_id}&modulo_id={modulo_id}&nivel_id={nivel_id}` $\rightarrow$ Teoría, ejemplos y glosario del nivel.
+    *   `PUT /admin/teoria` $\rightarrow$ Guarda el contenido didáctico teórico completo.

@@ -124,6 +124,7 @@ Todas las evaluaciones exigen un **90% de precisión**. Para evitar el "Bloqueo 
 * Sesión de **25** preguntas $\rightarrow$ Aborta al **3er error**.
 * Sesión de **50** preguntas $\rightarrow$ Aborta al **6º error**.
 
+> 💡 **Nota de Flexibilidad Operativa y Parametrización:** > Los valores de volumetría (cantidad de preguntas), límites de tiempo por pregunta, porcentajes de aprobación mínimos y umbrales de tolerancia para el *Early Exit* descritos en este documento representan la **configuración base y estándar estipulada pedagógicamente**. Sin embargo, la arquitectura del sistema está completamente parametrizada a través de la base de datos (`configuraciones_progreso`). Esto permite que un administrador pueda ajustar, balancear o modificar cualquiera de estos valores en tiempo real desde el Panel de Administración sin necesidad de alterar el código fuente ni realizar nuevos despliegues en el servidor.
 ---
 
 ## 6. Especificaciones Técnicas y de Base de Datos

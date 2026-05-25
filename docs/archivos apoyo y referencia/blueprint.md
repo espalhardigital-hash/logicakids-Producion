@@ -163,6 +163,8 @@ configs.append({
 })
 
 ```
+> ⚠️ **Nota de Implementación para el Desarrollador:**
+> Aunque los valores del seeder se inicializan con los estándares de la plataforma (ej. `porcentaje_aprobacion: 90` o `tiempo_default_segundos: 25`), toda la lógica del backend (calculadores de temporizador, validadores de aciertos y triggers de *Early Exit*) debe consumir estos parámetros **dinámicamente desde la base de datos** en cada petición y no de forma estática (hardcoded). El modelo debe permitir la edición libre de estos campos desde el panel administrativo, garantizando que el sistema sea completamente dirigido por datos (*Data-Driven*).
 
 ### Parte C: Generación de Pool de Práctica y Bloque de Rescate
 
