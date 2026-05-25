@@ -943,7 +943,62 @@ async def responder_fase2(
                         Intento.id != intento.id
                     ))
                 )
-         # 3.2 MODO PRÁCTICA LIBRE (1-10) -> Bucle Espejo (Mirror Loop)
+                if result_previo.scalar_one_or_none():
+                    ya_resuelta = True
+
+            if es_correcta and not ya_resuelta:
+                progreso.aciertos_acumulados += 1
+
+            if config:
+                cantidad_req    = config.cantidad_requerida
+                porc_aprobacion = config.porcentaje_aprobacion
+            else:
+                global_cfg = await _get_global_config(db)
+                des_cfg = global_cfg.get("desafios", {})
+                cantidad_req    = des_cfg.get("cantidad_requerida", 10 if nivel_id == 13 else 25)
+                porc_aprobacion = des_cfg.get("porcentaje_aprobacion", 90)
+
+            # Progreso en desafío: ratio aciertos / cantidad_req (no familias)
+            progreso.porcentaje_actual = (
+                min(100, int((progreso.aciertos_acumulados / cantidad_req) * 100))
+                if cantidad_req > 0 else 0
+            )
+
+            bloque_completado = False
+            fase_completada   = False
+
+            if progreso.porcentaje_actual >= porc_aprobacion:
+                if progreso.estado != EstadoProgresoEnum.APROBADO:
+                    progreso.estado = EstadoProgresoEnum.APROBADO
+                    progreso.fecha_aprobacion = datetime.utcnow()
+                bloque_completado = True
+
+                await db.flush()
+                res_aprob = await db.execute(
+                    select(func.count(ProgresoMaestria.id)).where(and_(
+                        ProgresoMaestria.alumno_id == alumno.id,
+                        ProgresoMaestria.fase_id == FASE2_ID,
+                        ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO,
+                    ))
+                )
+                if res_aprob.scalar() >= 26:
+                    fase_completada = True
+
+            await db.commit()
+
+            return Fase2ResultadoRespuesta(
+                es_correcta=es_correcta,
+                respuesta_correcta=respuesta_correcta_str,
+                aciertos_acumulados=progreso.aciertos_acumulados,
+                intentos_totales=progreso.intentos_totales,
+                porcentaje_actual=progreso.porcentaje_actual,
+                bloque_completado=bloque_completado,
+                fase_completada=fase_completada,
+                errores_sesion=errores_sesion,
+                max_errores_tolerados=max_errores,
+            )
+
+
     else:
         progreso.intentos_totales += 1
         ya_resuelta = False
