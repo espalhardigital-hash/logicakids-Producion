@@ -1,6 +1,6 @@
-Aquí tienes el archivo **`blueprint.md` completo, unificado y actualizado** con todas las correcciones estructurales, la validación del diccionario en la base de datos y la nueva lógica "Anti-Spam" para el bloque de rescate.
+Aquí tienes el archivo **`blueprint.md`** completo y definitivo. He incluido explícitamente el bloque de código con la corrección matemática en la sección 4.2 (`GET /pregunta`), documentando el "Antes" y el "Después" para evitar confusiones futuras en el equipo de desarrollo.
 
-Está listo para que lo copies y lo pegues directamente en tu documentación.
+También verifiqué que la inserción de `texto_opcion` en la Parte D esté intacta. Puedes copiar y reemplazar tu archivo con este texto:
 
 ```markdown
 # Blueprint de Implementación para Futuras Fases — LogicaKids
@@ -22,6 +22,7 @@ Las tablas del core del backend (preguntas, alternativas, progreso_maestria, int
 
 ### 2.1. Modelo de Teoría (`niveles_teoria_pool`)
 Toda la carga teórica se gestiona a través de la entidad relacional unificada en la base de datos:
+* `id`: UUID Primary Key.
 * `fase_id`: ID numérico único de la fase.
 * `modulo_id`: ID del módulo.
 * `nivel_id`: ID del nivel.
@@ -34,12 +35,15 @@ Toda la carga teórica se gestiona a través de la entidad relacional unificada 
 * `interactivos_desbloqueo`: JSONB de minipreguntas interactivas para evocación obligatoria.
 
 ### 2.2. Modelo de Preguntas (`preguntas_pool`)
-Para soportar el Bloque de Rescate pedagógico, el modelo ORM de preguntas debe incluir obligatoriamente el campo de explicación profunda:
+Para soportar el Bloque de Rescate pedagógico y analíticas, el modelo ORM de preguntas debe incluir los siguientes campos:
 * `id`: UUID Primary Key.
-* `modulo_id`: ID del módulo.
-* `nivel_id`: ID del nivel.
+* `fase_id`: ID numérico único de la fase.
+* `seccion`: Código matemático de sección (modulo * 100 + nivel).
+* `modulo_id`: ID analítico del módulo (opcional).
+* `nivel_id`: ID analítico del nivel (opcional).
 * `tipo_segmento`: Tipo de sección ('practica', 'desafio_1', 'desafio_2', 'desafio_final').
 * `estructura_padre_id`: ID que agrupa una pregunta original con sus variantes espejo.
+* `operacion`: Tipo de operación matemática ('mixta', 'suma', 'multiplicacion', etc.).
 * `enunciado_visual`: Texto o fórmula que lee el alumno.
 * `respuesta_correcta`: Valor esperado (almacenado como String).
 * `explicacion_profunda`: Texto HTML/Markdown con la resolución paso a paso y colores de énfasis para el Bloque de Rescate.
@@ -59,6 +63,7 @@ from pydantic import BaseModel
 from typing import List, Dict
 
 class NivelTeoriaSeederSchema(BaseModel):
+    fase_id: int
     modulo_id: int
     nivel_id: int
     titulo: str
@@ -72,6 +77,7 @@ class NivelTeoriaSeederSchema(BaseModel):
 # Diccionario unificado con el Documento Rector
 niveles_teoria = [
     {
+        "fase_id": 1,
         "modulo_id": 1,
         "nivel_id": 1,
         "titulo": "Título de Aprendizaje",
@@ -179,11 +185,12 @@ for fam in range(1, 121):
             seccion=modulo * 100 + nivel,
             estructura_padre_id=padre_id,
             operacion=op,
+            tipo_segmento="practica",
             tipo_pregunta=TipoPreguntaEnum.RESPUESTA_NUMERICA,
             enunciado_visual=q_data["enunciado"],
             respuesta_correcta=q_data["respuesta_correcta"],
             datos_numericos={"es_espejo": es_espejo, "variante": var, **q_data["valores"]},
-            explicacion_profunda=explicacion_html, # Resuelve la ausencia del campo
+            explicacion_profunda=explicacion_html,
             estado=StatusEnum.ACTIVO
         )
         session.add(pregunta)
@@ -192,16 +199,19 @@ for fam in range(1, 121):
 
 ### Parte D: Generación de Pool de Desafíos
 
-Generar las preguntas de desafío con opciones múltiples e inyección automática de alternativas para Desafíos 1 y 2:
+Generar las preguntas de desafío con opciones múltiples e inyección automática de alternativas para Desafíos 1 y 2, garantizando cumplir con los campos Not-Null de la base de datos (como `texto_opcion`):
 
 ```python
 # Desafíos Opción Múltiple
 pregunta = Pregunta(
     fase_id=FASE_ID,
     seccion=modulo * 1000 + 11,
+    operacion="mixta",
+    tipo_segmento="desafio_1",
     tipo_pregunta=TipoPreguntaEnum.MULTIPLE_OPCION,
     enunciado_visual=enunciado,
     respuesta_correcta=val_correcto,
+    explicacion_profunda="Para este desafío, recuerda aplicar correctamente la jerarquía de operaciones.",
     datos_numericos={"es_desafio": True, "tipo_interfaz": "opcion_multiple"},
     estado=StatusEnum.ACTIVO
 )
@@ -209,6 +219,7 @@ pregunta = Pregunta(
 for idx, opt in enumerate(shuffled_options):
     alt = Alternativa(
         texto=opt["texto"],
+        texto_opcion=opt["texto"],  # Sincronización obligatoria para evitar IntegrityError
         es_correcta=opt["es_correcta"],
         orden=idx + 1,
         tipo_error=TipoErrorEnum.CALCULO if not opt["es_correcta"] else None
@@ -231,6 +242,7 @@ Para evitar sobrecarga de consultas en peticiones frecuentes, se debe implementa
 * **Query Única con Outerjoin:** El middleware `get_current_user` en `auth.py` debe realizar una única consulta que traiga tanto el `User` como el `Alumno` usando `outerjoin(Alumno)`.
 * **Pre-carga en Contexto:** Almacenar la instancia del modelo de `Alumno` en el diccionario bajo la clave `"alumno_obj"`.
 * **Reutilización:** Los métodos del router deben buscar primero esta propiedad pre-cargada antes de realizar consultas individuales:
+
 ```python
 async def _get_alumno(db: AsyncSession, current_user: dict) -> Alumno:
     alumno = current_user.get("alumno_obj")
@@ -240,19 +252,28 @@ async def _get_alumno(db: AsyncSession, current_user: dict) -> Alumno:
 
 ```
 
-
-
 ### 4.2. Endpoints y Lógica del Bucle Espejo y Rescate (Práctica)
 
 * **GET /dashboard:** Construye el árbol de progresión. Verifica si la práctica libre está aprobada al 100% conceptual para habilitar el acceso a los desafíos en cascada.
 * **GET /pregunta:** * Si el último intento fue incorrecto, localiza el `estructura_padre_id`.
-* Si `fallas_consecutivas_bucle < 3`, sirve secuencialmente la siguiente variante espejo (`es_espejo: True`) disponible en el pool.
+* Sirve secuencialmente la siguiente variante espejo (`es_espejo: True`) disponible en el pool verificando el límite:
+
+
+```python
+# Corrección para evitar el error "Limbo" antes del Rescate Pedagógico
+# Antes:
+# if fallas_consecutivas_bucle < 3:
+
+# Después:
+if fallas_consecutivas_bucle < 4:
+    # Entregar la variante espejo correspondiente
+
+```
 
 
 * **POST /responder:**
 * Evalúa la respuesta del alumno. Si es incorrecta y se encuentra en Práctica Libre, incrementa `fallas_consecutivas_bucle`.
-* **Activación del Rescate (4ta Falla Consecutiva):** Si el contador llega a `4` (falla la pregunta original y sus 3 variantes espejo), el backend **NO** salta a otra pregunta ni penaliza restando progreso. El servidor debe retornar inmediatamente el payload:
-`{"activar_rescate": true, "explicacion_profunda": pregunta.explicacion_profunda}`.
+* **Activación del Rescate (4ta Falla Consecutiva):** Si el contador llega a `4` (falla la pregunta original y sus 3 variantes espejo), el backend **NO** salta a otra pregunta ni penaliza restando progreso. El servidor debe retornar inmediatamente el payload: `{"activar_rescate": true, "explicacion_profunda": pregunta.explicacion_profunda}`.
 
 
 * **POST /cerrar-rescate:**
@@ -330,7 +351,7 @@ location ~ \.[a-zA-Z0-9]+$ {
 * [ ] Escribir `app/faseX/seed.py` aplicando el esquema de validación Pydantic de la teoría.
 * [ ] Asegurar la inyección del campo `explicacion_profunda` con formato HTML en las 120 familias en `seed.py`.
 * [ ] Garantizar que los errores de clave o nulos en el seeder no se silencien (relanzar excepciones).
-* [ ] Implementar en `router.py` los endpoints `/pregunta` y `/responder` con soporte al Bucle Espejo.
+* [ ] Implementar en `router.py` los endpoints `/pregunta` y `/responder` con soporte al Bucle Espejo (límite < 4).
 * [ ] Escribir la ruta `/cerrar-rescate` para aplicar el avance garantizado antifrustración a la 4ta falla.
 * [ ] Configurar las reglas de aborto fulminante (*Early Exit*) en las Zonas de Desafíos.
 * [ ] Aplicar la optimización de consulta única (`outerjoin` + `alumno_obj`) en la autenticación del router.
@@ -341,6 +362,7 @@ location ~ \.[a-zA-Z0-9]+$ {
 * [ ] Ejecutar una prueba de estrés simulando 4 errores intencionales en una familia para verificar el flujo completo de rescate, cierre y avance.
 * [ ] Añadir `diccionario_nivel` al esquema de validación Pydantic y asegurar su inserción en el `seed.py`.
 * [ ] Validar que el Modal de Rescate en el frontend exija transcribir la respuesta (Anti-Spam) antes de llamar a `/cerrar-rescate`.
+* [ ] Asegurar la inyección redundante de `texto` en `texto_opcion` dentro del modelo `Alternativa` para evitar fallos de integridad SQL.
 
 ```
 

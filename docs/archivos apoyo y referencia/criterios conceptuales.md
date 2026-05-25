@@ -1,3 +1,10 @@
+Aquí tienes el documento **`criterios conceptuales.md` completo y corregido**. He actualizado y unificado los bloques de código SQL en las secciones 6.1 y 6.2 para que coincidan exactamente con la arquitectura estricta del backend (incorporando los ENUMs, cambiando `estructura_padre_id` a `VARCHAR`, y añadiendo las columnas obligatorias como `fase_id`, `titulo`, `seccion`, `operacion` y `tipo_error`).
+
+También corregí algunos errores de formato Markdown (hashtags faltantes) que tenía el texto original en los subtítulos de la sección 6.
+
+Puedes copiar este bloque y reemplazar tu archivo actual:
+
+```markdown
 # Documento Rector para la Creación de Fases — LogicaKids Pro
 
 ## 1. Principios Arquitectónicos y Pool de Preguntas
@@ -125,55 +132,82 @@ Para que los nuevos módulos se acoplen a la API FastAPI y a PostgreSQL sin romp
 
 ### 6.1. Creación de Tablas para el Pool Estático (Estructura Base)
 
-Las preguntas de la Batería Libre y Desafíos se gestionan mediante las siguientes entidades relacionales en la base de datos:
+Las preguntas de la Batería Libre y Desafíos se gestionan mediante las siguientes entidades relacionales unificadas en la base de datos:
 
 ```sql
+-- Creación de Tipos (Enums) para asegurar integridad de datos
+CREATE TYPE tipo_pregunta_enum AS ENUM ('RESPUESTA_NUMERICA', 'MULTIPLE_OPCION', 'EVOCACION_PURA');
+CREATE TYPE estado_enum AS ENUM ('ACTIVO', 'INACTIVO', 'ARCHIVADO');
+CREATE TYPE tipo_error_enum AS ENUM ('CALCULO', 'PROCEDIMIENTO', 'JERARQUIA', 'PROBLEMA_INCOMPLETO', 'SPAM');
+
 CREATE TABLE preguntas_pool (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    modulo_id INT NOT NULL,
-    nivel_id INT NOT NULL,
-    tipo_segmento VARCHAR(50) NOT NULL,  -- 'practica', 'desafio_1', 'desafio_2', 'desafio_final'
-    estructura_padre_id UUID NULL,       -- Agrupa una pregunta original con sus variantes espejo
-    enunciado_visual TEXT NOT NULL,      -- Lo que el niño lee (ej: '4 + 3 × 4')
-    respuesta_correcta TEXT NOT NULL,    -- Almacenada como string para soportar enteros o tokens
-    explicacion_profunda TEXT NOT NULL,  -- Bloque pedagógico para el recuadro interactivo o rescate
+    fase_id INT NOT NULL,                          -- Mapeado dinámico con el seeder
+    modulo_id INT NULL,                            -- Opcional/Calculado para analítica
+    nivel_id INT NULL,                             -- Opcional/Calculado para analítica
+    seccion INT NOT NULL,                          -- Código matemático de sección (ej: modulo * 100 + nivel)
+    tipo_segmento VARCHAR(50) NOT NULL DEFAULT 'practica', -- 'practica', 'desafio_1', 'desafio_2', 'desafio_final'
+    estructura_padre_id VARCHAR(100) NULL,         -- Agrupa original con variantes espejo (String, no UUID)
+    operacion VARCHAR(50) NOT NULL,                -- Tipo de operación ('mixta', 'suma', etc.)
+    tipo_pregunta tipo_pregunta_enum NOT NULL,     -- Tipado fuerte
+    enunciado_visual TEXT NOT NULL,                -- Lo que el niño lee (ej: '4 + 3 × 4')
+    respuesta_correcta TEXT NOT NULL,              -- Almacenada como string para soportar enteros o tokens
+    datos_numericos JSONB NOT NULL DEFAULT '{}',   -- Parámetros numéricos generados aleatoriamente y flags
+    explicacion_profunda TEXT NOT NULL,            -- Bloque pedagógico para el recuadro interactivo o rescate
+    estado estado_enum NOT NULL DEFAULT 'ACTIVO',  -- Control de visualización en la batería
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- NUEVA TABLA: Almacena las opciones precalculadas para los Desafíos 1 y 2
+-- Tabla unificada para las alternativas de los Desafíos
 CREATE TABLE alternativas_pool (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pregunta_id UUID REFERENCES preguntas_pool(id) ON DELETE CASCADE,
-    texto_opcion TEXT NOT NULL,          -- El valor visual de la alternativa (ej: '16', '21')
+    texto TEXT NOT NULL,                           -- Sincronizado con el ORM / Seeder
+    texto_opcion TEXT NOT NULL,                    -- Mantenido para compatibilidad de esquemas
     es_correcta BOOLEAN NOT NULL DEFAULT FALSE,
-    orden_sugerido INT NULL,             -- Orden de inyección inicial (opcional)
+    orden INT NOT NULL,                            -- Sincronizado con el ORM / Seeder
+    orden_sugerido INT NULL,                       -- Mantenido para compatibilidad de esquemas
+    tipo_error tipo_error_enum NULL,               -- Caracterización pedagógica del distractor
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE respuestas_erroneas_jsonb (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pregunta_id UUID REFERENCES preguntas_pool(id) ON DELETE CASCADE,
-    mapeo_errores JSONB NOT NULL         -- Almacena heurística de errores previstos en Práctica Libre
+    mapeo_errores JSONB NOT NULL,                  -- Almacena heurística de errores previstos en Práctica Libre
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-6.2. Tabla de Base de Datos para Contenido Teórico
-Para soportar el contenido explicativo y estructurado de la Sección 3.1:
+```
 
+### 6.2. Tabla de Base de Datos para Contenido Teórico
+
+Para soportar el contenido explicativo y estructurado de la Sección 3.1, con todos los campos requeridos por la validación del seeder:
+
+```sql
 CREATE TABLE niveles_teoria_pool (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    fase_id INT NOT NULL,                -- Requerido para aislamiento
     modulo_id INT NOT NULL,
     nivel_id INT NOT NULL,
+    titulo VARCHAR(255) NOT NULL,        -- Requerido para encabezados
     bienvenida_superpoder TEXT NOT NULL,
     cuerpo_teoria JSONB NOT NULL,        -- Contiene los párrafos fragmentados secuenciales
     trampa_advertencia TEXT NOT NULL,
     diccionario_nivel JSONB NOT NULL,    -- Traducción de términos narrativos a operadores matemáticos
     ejemplo_guiado JSONB NOT NULL,       -- { "enunciado": "...", "pasos_resolucion": ["p1", "p2"] }
     interactivos_desbloqueo JSONB NOT NULL, -- Array con las 3 preguntas, respuestas y feedbacks de destello
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_fase_modulo_nivel UNIQUE (fase_id, modulo_id, nivel_id)
 );
 
-6.3. Esquemas JSONB para Tutoría e Interactivos
-Ejemplo JSONB para mapeo_errores (Práctica/Desafíos):
+```
+
+### 6.3. Esquemas JSONB para Tutoría e Interactivos
+
+Ejemplo JSONB para `mapeo_errores` (Práctica/Desafíos):
+
+```json
 {
   "respuestas_erroneas": [
     {
@@ -183,7 +217,12 @@ Ejemplo JSONB para mapeo_errores (Práctica/Desafíos):
     }
   ]
 }
-Ejemplo JSONB para interactivos_desbloqueo (Teoría):
+
+```
+
+Ejemplo JSONB para `interactivos_desbloqueo` (Teoría):
+
+```json
 [
   {
     "pregunta_id": "interactivo_1",
@@ -194,31 +233,38 @@ Ejemplo JSONB para interactivos_desbloqueo (Teoría):
   }
 ]
 
-6.4. Reglas de Protección y Anti-Trampas (Edge Cases)
-Fallo de Punto Flotante (IEEE 754): El backend y la DB jamás deben operar con tipo Float para dinero. Todo se almacena como enteros (centavos).
+```
 
-Ejemplo: R$ 2,50 se procesa internamente en el backend y base de datos como 250 centavos.
+### 6.4. Reglas de Protección y Anti-Trampas (Edge Cases)
 
-Protección del Estado de Sesión: Si el alumno actualiza el navegador (F5), el frontend hidrata el estado desde la API para evitar que burle el Early Exit o el contador de fallas_consecutivas_bucle.
+* **Fallo de Punto Flotante (IEEE 754):** El backend y la DB jamás deben operar con tipo Float para dinero. Todo se almacena como enteros (centavos).
+* *Ejemplo:* R$ 2,50 se procesa internamente en el backend y base de datos como 250 centavos.
 
-Tokenización de Textos (Evitar falsos negativos): En preguntas donde el alumno interactúa con el texto, el frontend envía un array de IDs, no texto crudo.
 
-Ejemplo Aplicado (Módulo 4 - Subrayado): En la oración "Lucas tiene 5 manzanas rojas", el texto "5 manzanas rojas" es el token ID: 2 con el rol "dato_util". El frontend solo envía {"tokens_seleccionados": [2]}.
+* **Protección del Estado de Sesión:** Si el alumno actualiza el navegador (F5), el frontend hidrata el estado desde la API para evitar que burle el *Early Exit* o el contador de `fallas_consecutivas_bucle`.
+* **Tokenización de Textos (Evitar falsos negativos):** En preguntas donde el alumno interactúa con el texto, el frontend envía un array de IDs, no texto crudo.
+* *Ejemplo Aplicado (Módulo 4 - Subrayado):* En la oración "Lucas tiene 5 manzanas rojas", el texto "5 manzanas rojas" es el token ID: 2 con el rol "dato_util". El frontend solo envía `{"tokens_seleccionados": [2]}`.
 
-6.5. Sincronización de Progreso (Compatibilidad)
-El sistema utiliza la tabla ProgresoMaestria como la principal fuente de verdad autoritativa para el progreso por bloques y módulos. Sin embargo, para mantener compatibilidad con ciertos componentes del frontend (como el Dashboard de la Fase 1) que dependen de la lectura del perfil de configuración del usuario (user.settings["unlockedLevels"]), el backend aplica una lógica de sincronización espejo inalterable en todas las fases.
 
-Cada vez que un administrador aprueba, bloquea o interviene manualmente un progreso (mediante el endpoint /progress/override), el servidor mapea automáticamente la operación (suma, resta, multiplicacion, division, mixta) a su clave correspondiente en inglés (addition, subtraction, multiplication, division, challenge) y sobrescribe el nivel en el diccionario unlockedLevels del usuario. Esto garantiza que cualquier cambio de estado se refleje de forma visual e instantánea en la interfaz gráfica del alumno, independientemente de si la fase lee los datos de la tabla relacional o del JSON de ajustes del usuario.
 
-7. Checklist de Creación para Nuevas Fases
+### 6.5. Sincronización de Progreso (Compatibilidad)
+
+El sistema utiliza la tabla `ProgresoMaestria` como la principal fuente de verdad autoritativa para el progreso por bloques y módulos. Sin embargo, para mantener compatibilidad con ciertos componentes del frontend (como el Dashboard de la Fase 1) que dependen de la lectura del perfil de configuración del usuario (`user.settings["unlockedLevels"]`), el backend aplica una lógica de sincronización espejo inalterable en todas las fases.
+
+Cada vez que un administrador aprueba, bloquea o interviene manualmente un progreso (mediante el endpoint `/progress/override`), el servidor mapea automáticamente la operación (`suma`, `resta`, `multiplicacion`, `division`, `mixta`) a su clave correspondiente en inglés (`addition`, `subtraction`, `multiplication`, `division`, `challenge`) y sobrescribe el nivel en el diccionario `unlockedLevels` del usuario. Esto garantiza que cualquier cambio de estado se refleje de forma visual e instantánea en la interfaz gráfica del alumno, independientemente de si la fase lee los datos de la tabla relacional o del JSON de ajustes del usuario.
+
+---
+
+## 7. Checklist de Creación para Nuevas Fases
+
 Cuando el equipo pedagógico y técnico comience el diseño de una nueva fase, debe entregar de forma obligatoria:
 
-[ ] Documento de Diseño Lógico: Definición del propósito de los módulos y las trampas conceptuales.
+* [ ] **Documento de Diseño Lógico:** Definición del propósito de los módulos y las trampas conceptuales.
+* [ ] **Guion de Textos:** Lecturas de entrada, diccionarios/analogías, mensajes de superpoder y los textos de feedback para aciertos/errores de los interactivos.
+* [ ] **Población del Pool Estático (Base de datos):** Mínimo 150 preguntas agrupadas estructuralmente mediante `estructura_padre_id` (para asegurar suficientes variantes espejo por cada nivel de práctica y ítems para desafíos).
+* [ ] **Scripts Inyectores (Python):** Scripts automatizados que calculen respuestas correctas, estructuren los esquemas JSONB de errores y realicen el INSERT masivo de manera limpia en PostgreSQL.
+* [ ] **Mapeo de Errores (JSONB):** Definición explícita de los distractores y las respuestas del Tutor Invisible asociados a cada ítem del pool de práctica.
 
-[ ] Guion de Textos: Lecturas de entrada, diccionarios/analogías, mensajes de superpoder y los textos de feedback para aciertos/errores de los interactivos.
+```
 
-[ ] Población del Pool Estático (Base de datos): Mínimo 150 preguntas agrupadas estructuralmente mediante estructura_padre_id (para asegurar suficientes variantes espejo por cada nivel de práctica y ítems para desafíos).
-
-[ ] Scripts Inyectores (Python): Scripts automatizados que calculen respuestas correctas, estructuren los esquemas JSONB de errores y realicen el INSERT masivo de manera limpia en PostgreSQL.
-
-[ ] Mapeo de Errores (JSONB): Definición explícita de los distractores y las respuestas del Tutor Invisible asociados a cada ítem del pool de práctica.
+```
