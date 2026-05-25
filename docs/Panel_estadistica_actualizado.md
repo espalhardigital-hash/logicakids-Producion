@@ -20,7 +20,9 @@ La fuente de verdad del progreso académico es `ProgresoMaestria`. La bitácora 
 
 El sistema reconoce dos vías de avance académico:
 
-1. **Avance automático por desempeño:** El backend aprueba o desbloquea bloques cuando el alumno cumple las reglas pedagógicas configuradas (porcentaje de precisión ≥90% y completitud al 100%).
+1. **Avance automático por desempeño:** El backend aprueba o desbloquea bloques automáticamente basándose en las reglas pedagógicas de cada etapa:
+   * **En Práctica Libre (Entrenamiento Antifrustración):** Se aprueba y desbloquea el siguiente nivel de forma automática cuando el alumno alcanza el **100% de completitud** en la batería de práctica, independientemente de los errores cometidos o de los bypasses explicativos activados. La precisión de referencia (90%) sirve exclusivamente para diagnóstico y reportería estadística.
+   * **En Zona de Desafíos (Evaluación Estricta):** El avance automático exige de forma rígida cumplir tanto el **100% de completitud** como un **porcentaje de precisión ≥90%** (sin haber incurrido en Early Exit).
 2. **Intervención manual por administrador (Override):** Un administrador autorizado (Superusuario/Tutor) puede liberar (`unlock`), aprobar (`approve`) o bloquear/restablecer (`reset`/`lock`) módulos, niveles o desafíos específicos para un alumno concreto.
 
 El Panel de Estadísticas ("Mi Progreso") debe reflejar ambas situaciones con absoluta claridad visual y transparencia. Los bloques superados por desempeño ordinario lucirán una aureola dorada, mientras que los bloques intervenidos por administración mostrarán marcos cromáticos cian, distintivos especiales e información detallada de la tutoría (motivo, fecha y firma del autorizador), garantizando la transparencia para los padres y tutores.
@@ -109,7 +111,9 @@ Cada bloque debe mostrar:
 * `fase_id`, `modulo_id`, `nivel_id`, `desafio_id` y `seccion` como metadatos técnicos internos;
 * precisión (`porcentaje_actual`);
 * completitud (`completitud_actual`);
-* estado (`BLOQUEADO`, `EN_PROGRESO`, `APROBADO`);
+* estado (`BLOQUEADO`, `EN_PROGRESO`, `APROBADO`):
+  * En Práctica Libre, el estado pasa a `APROBADO` al alcanzar el **100% de completitud**, independientemente de la precisión obtenida.
+  * En Zona de Desafíos, exige alcanzar el **100% de completitud Y precisión ≥90%** sin haber sido expulsado por Early Exit.
 * origen del estado: automático, liberado por admin, aprobado por admin, bloqueado por admin o restablecido por admin;
 * fecha de última actividad;
 * indicadores visuales de Bucle Espejo, Rescate o Early Exit si aplican.
@@ -121,12 +125,13 @@ Cuando un bloque es intervenido de forma manual por un administrador, el Panel d
 #### Estructura Visual del Acordeón para Bloques Intervenidos:
 * **Brillo de Borde:** En lugar del brillo verde (en progreso) o dorado (aprobado ordinario), el bloque interactivo muestra un resplandor ambiental y borde **cian/azul neón** (`border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)]`).
 * **Badge de Estado:** Se renderiza una etiqueta en color cian con el texto:
-  * *"APROBADO POR EL TUTOR"* (en caso de `approve`).
+  * *"APROBADO POR EL TUTOR"* (en caso de `approve` directo).
   * *"HABILITADO POR EL TUTOR"* (en caso de `unlock`).
+  * *"APROBADO EN CASCADA RETRÓGRADA"* (para los niveles precedentes aprobados automáticamente por retro-aprobación).
 * **Cuerpo de Detalle (Desplegable del Acordeón):**
   Al expandir la fila del bloque, se despliega una tarjeta de diseño esmerilado (`backdrop-blur-md bg-cyan-950/20 border-cyan-500/10`) que detalla los metadatos de auditoría:
   * **Origen / Autor: ** `Autorizado por: Dirección Académica LogicaKids (Superusuario)`
-  * **Motivo Pedagógico: ** Se renderiza textualmente el campo `override_motivo` (ej. *"Estudiante avanzado de 5º grado, demuestra dominio inicial en diagnóstico presencial"*).
+  * **Motivo Pedagógico: ** Se renderiza textualmente la justificación. Para niveles retro-aprobados, muestra: *"Aprobado de forma retrógrada en cascada debido a la liberación/aprobación del bloque superior [Nombre de Bloque Superior]."*
   * **Fecha de Registro: ** Se muestra la fecha y hora local formateada proveniente de `override_fecha`.
 
 Esto evita confundir una aprobación manual con una aprobación obtenida por ejecución estándar dentro de la plataforma y celebra la flexibilidad curricular de la escuela o tutor.
@@ -145,6 +150,8 @@ El historial se alimenta de la tabla `intentos` y de resúmenes derivados del ba
 * tipo de error;
 * feedback mostrado;
 * tiempo de respuesta del estudiante;
+* **Vía de Finalización de la Familia (Exclusivo Práctica Libre):** Indicación explícita de si la familia de preguntas se completó mediante éxito ordinario (resolución correcta de la original o de alguna variante espejo) o a través del `"Bypass de Explicación"` (activado tras la cuarta falla consecutiva de la misma familia, es decir, al errar la variante espejo 3). Registrar este metadato de manera precisa es indispensable para evitar sesgos en el análisis cognitivo y pedagógico realizado por el Tutor IA.
+* **Sin Registro de Transcripción Anti-Spam:** Al haberse removido por completo el bloqueo de transcripción obligatoria para avanzar tras el rescate, no se registrarán ni computarán métricas de escritura o tipeado anti-spam en el historial de intentos ni en el panel analítico.
 * **Metadatos de Calibración Activos:** Límite de tiempo configurado en la sesión (`tiempo_limite_activo`) y total de preguntas del bloque (`total_preguntas_activo`). Esto permite congelar en el historial las condiciones operativas de la prueba al momento de ser ejecutada por el alumno, evitando distorsiones si el superusuario edita los parámetros globales posteriormente.
 
 El alumno no debe poder eliminar físicamente registros académicos. Si se permite ocultar un intento en la vista del alumno, debe usarse una marca visual como `oculto_para_alumno = true`, sin borrar `intentos` ni `ProgresoMaestria`.
@@ -159,14 +166,14 @@ Muestra feedback inmediato al finalizar una sesión de práctica o desafío. Deb
 
 La pantalla debe contemplar:
 
-* `APROBADO`: mostrar trofeo, resumen positivo y botón para continuar al bloque indicado por backend.
-* `NO_APROBADO`: mostrar refuerzo, errores principales y opción de reintentar.
-* `EN_PROGRESO`: mostrar avance parcial, completitud y continuar.
-* `EARLY_EXIT`: mostrar interrupción por límite de errores y regreso seguro al dashboard.
-* `RESCATE_COMPLETADO`: mostrar avance de entrenamiento sin tratarlo como evaluación estricta.
-* `BLOQUEADO`: mostrar que el bloque no está disponible.
-* `ADMIN_UNLOCK`: mostrar que el bloque fue liberado por administrador.
-* `ADMIN_APPROVE`: mostrar que el bloque fue aprobado por administrador.
+* `APROBADO`: mostrar trofeo, resumen positivo y botón para continuar al bloque indicado por el backend.
+* `NO_APROBADO`: mostrar refuerzo pedagógico, errores principales identificados y opción de reintentar el bloque.
+* `EN_PROGRESO`: mostrar avance parcial y porcentaje de completitud. En Práctica Libre, si el alumno decidió pausar o salir voluntariamente de la sesión, se conserva el progreso parcial. Las finalizaciones de familias mediante `"Bypass de Explicación"` contribuyen con total fluidez al avance acumulado (completitud) y no se consideran fallas de sesión activas que bloqueen la progresión o impidan avanzar al siguiente bloque cuando se cumpla la completitud requerida.
+* `EARLY_EXIT`: mostrar pantalla de interrupción por límite de errores acumulados y permitir un regreso seguro y motivacional al dashboard. (Exclusivo de la Zona de Desafíos, no aplicable en Práctica Libre).
+* `RESCATE_COMPLETADO`: mostrar el resumen de finalización del entrenamiento del bloque de Práctica Libre donde se usaron explicaciones profundas, presentándolo como un logro de aprendizaje activo e informativo, y **bajo ninguna circunstancia** tratar los bypasses explicativos como una condición de bloqueo o de evaluación de error estricto. La pantalla celebrará el esfuerzo y la asimilación conceptual sin penalizaciones visuales, y **no debe exigir ni registrar métricas de transcripción anti-spam**.
+* `BLOQUEADO`: mostrar que el bloque no está disponible para su ejecución.
+* `ADMIN_UNLOCK`: mostrar que el bloque fue liberado por un administrador para libre exploración.
+* `ADMIN_APPROVE`: mostrar que el bloque fue aprobado manualmente por decisión del tutor/administrador.
 
 ### 4.2. Métricas de sesión
 
@@ -420,6 +427,8 @@ Debe analizar:
 * si hubo Early Exit;
 * si el bloque fue liberado o aprobado por administrador.
 
+En caso de finalizaciones de familias de preguntas mediante `"Bypass de Explicación"`, el Tutor IA debe interpretar este evento como un indicador valioso de diagnóstico conceptual (identificando la necesidad de repasar el tema teórico específico en sesiones subsiguientes) y no como un error insalvable o una métrica de fracaso, adaptando sus recomendaciones pedagógicas de forma empática y constructiva, y manteniéndose totalmente libre de la computación de penalizaciones por transcripción.
+
 Cuando el progreso proviene de intervención manual, el Tutor IA debe evitar decir que el alumno "jugó y aprobó". Debe comunicar que el bloque fue habilitado o aprobado por decisión pedagógica del administrador.
 
 ---
@@ -431,8 +440,10 @@ Cuando el progreso proviene de intervención manual, el Tutor IA debe evitar dec
 * El frontend del alumno no gradúa fases.
 * El frontend del alumno no elimina físicamente registros académicos.
 * El frontend solo muestra estados devueltos por el backend.
-* `ProgresoMaestria` es la fuente de verdad del progreso.
-* `intentos` es la fuente de verdad del histórico de respuestas.
+* `ProgresoMaestria` es la fuente de verdad del progreso global.
+* `intentos` es la fuente de verdad del histórico de respuestas global.
+* **Coherencia Relacional de Segmentación:** Aunque los pools de preguntas se encuentran físicamente segmentados en tablas por fase (`fase{X}_...`), las tablas de progreso (`progreso_maestria`) e histórico de intentos (`intentos`) se conservan globales a nivel de base de datos para garantizar agregación veloz de KPIs y analíticas del Tutor IA mediante claves foráneas sencillas.
+* **Segmentación de Claves Legacy:** El objeto de compatibilidad `user.settings["unlockedLevels"]` debe consumirse y guardarse de forma segmentada por Phase ID (`"fase1"`, `"fase2"`, etc.) para evitar cruces o colisiones visuales entre diferentes fases en pantallas compartidas del cliente.
 * Las intervenciones manuales del administrador deben mostrarse con origen, motivo y fecha.
 * Los botones de continuidad solo navegan hacia rutas o bloques indicados por el backend.
 * Las métricas visuales pueden calcularse localmente solo para animaciones, pero no para modificar progreso real.

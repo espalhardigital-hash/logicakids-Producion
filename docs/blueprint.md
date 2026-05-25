@@ -22,18 +22,22 @@ Cada fase se divide en tres componentes pedagógicos principales:
 2. **Práctica Libre:** Entrenamiento con Bucle Espejo, Tutor Invisible y Bloque de Rescate.
 3. **Zona de Desafíos:** Evaluación estricta con temporizador y Early Exit.
 
-### 2.1. Práctica Libre
+### 2.1. Práctica Libre (Entrenamiento sin Frustración)
 
-La práctica libre está enfocada en el aprendizaje paso a paso. Utiliza Bucle Espejo para corregir errores recurrentes mediante variaciones de preguntas con la misma estructura y diferentes valores.
+La práctica libre está enfocada en el aprendizaje activo y paso a paso. No lleva temporizador (cronómetro) y no evalúa al alumno; busca que afiance el concepto microestructural. Utiliza la metodología de **Bucle Espejo** para corregir errores recurrentes de manera pedagógica y sin bloquear al estudiante:
+
+* Si el alumno se equivoca en la pregunta original o variantes, el sistema **revela automáticamente la respuesta que era correcta** en pantalla y entrega la siguiente variante espejo.
+* El bucle tiene una tolerancia máxima de **3 variantes espejo consecutivas**.
+* Si se comete un error en la Variante Espejo 3 (4º error consecutivo de la familia), se activa la **Explicación Profunda** y el alumno avanza a la siguiente familia de preguntas de forma fluida.
 
 Cada nivel práctico debe tener:
 
 * 120 familias de preguntas;
 * cada familia con 1 pregunta original y 3 variantes espejo;
-* explicación profunda obligatoria;
+* explicación profunda obligatoria en el banco;
 * mapeo heurístico de errores para el Tutor Invisible;
 * completitud estándar de 100%;
-* precisión mínima estándar de 90%.
+* sin requisito de precisión mínima (la completitud al 100% de la batería asignada es el único requisito para avanzar y desbloquear la siguiente lección).
 
 ### 2.2. Zona de Desafíos
 
@@ -47,15 +51,15 @@ Cada desafío debe contar con un mínimo de 150 preguntas independientes precarg
 
 ---
 
-## 3. Paso 1: Definición del Modelo y Base de Datos
+## 3. Paso 1: Definición del Modelo y Base de Datos (Pools Segmentados por Fase)
 
-Para garantizar aislamiento de lógicas, rendimiento y evitar campos nulos innecesarios, el sistema descarta el uso de una tabla maestra polimórfica única. Cada fase se mapea mediante **tres tablas independientes**.
+Para garantizar aislamiento absoluto de lógicas, rendimiento e independencia en el mantenimiento de contenidos, el sistema descarta el uso de tablas maestras globales y monolíticas para las preguntas. **Cada Fase `X` se mapea mediante su propio conjunto físico e independiente de tablas segmentadas**, prefijadas con el identificador de la fase (ej: `fase{X}_...`).
 
-> Regla de identificación: La fuente semántica de ubicación es `fase_id`, `modulo_id`, `nivel_id` o `desafio_id`. El campo `seccion` es un código derivado para compatibilidad, filtros rápidos y sincronización con configuraciones de progreso.
+> Regla de identificación: La fuente semántica de ubicación es `fase_id`, `modulo_id`, `nivel_id` o `desafio_id`. El campo `seccion` es un código de compatibilidad, filtros rápidos y sincronización de progreso. Las tablas se nombran físicamente como `fase{X}_teoria_pool`, `fase{X}_practica_pool` y `fase{X}_desafios_pool`.
 
-### 3.1. Modelo de Teoría (`niveles_teoria_pool`)
+### 3.1. Modelo de Teoría y Evocación (`fase{X}_teoria_pool`)
 
-Toda la carga teórica se gestiona mediante una entidad relacional dedicada para contenido pre-renderizado.
+Toda la carga teórica y los interactivos de evocación se gestionan mediante una entidad relacional dedicada para contenido pre-renderizado e independiente por fase.
 
 Campos:
 
@@ -69,12 +73,12 @@ Campos:
 * `trampa_advertencia`: Trampa común o tip pedagógico.
 * `diccionario_nivel`: JSONB con traducción de términos narrativos a operadores matemáticos.
 * `ejemplo_guiado`: JSONB de ejemplos resueltos paso a paso.
-* `interactivos_desbloqueo`: JSONB de minipreguntas interactivas para evocación obligatoria.
+* `interactivos_desbloqueo`: JSONB de minipreguntas interactivas para evocación obligatoria (retos sin tiempo).
 * `estado`: Estado del registro.
 
-### 3.2. Modelo de Práctica Libre (`practica_libre_pool`)
+### 3.2. Modelo de Práctica Libre (`fase{X}_practica_pool`)
 
-Tabla especializada en Bucle Espejo. No maneja opciones múltiples en la práctica estándar y requiere siempre explicación de rescate.
+Tabla especializada en Bucle Espejo y asistencia del Tutor Invisible por fase.
 
 Campos:
 
@@ -87,7 +91,7 @@ Campos:
 * `operacion`: Tipo de operación matemática (`suma`, `resta`, `multiplicacion`, `division`, `mixta`).
 * `enunciado_visual`: Texto, fórmula o estructura que lee el alumno.
 * `respuesta_correcta`: Valor esperado almacenado como String.
-* `explicacion_profunda`: Texto HTML/Markdown con resolución paso a paso.
+* `explicacion_profunda`: Texto HTML/Markdown con resolución de rescate paso a paso.
 * `datos_numericos`: JSONB con flags de control espejo.
 * `modo_interaccion`: Enum de interfaz (`INPUT_NUMERICO`, `MULTIPLE_OPCION`, `SUBRAYADO_TOKENS`).
 * `requiere_subrayado`: Booleano para indicar selección obligatoria de tokens.
@@ -104,9 +108,9 @@ Ejemplo de `tokens_texto`:
 ]
 ```
 
-### 3.3. Modelo de Desafíos (`desafios_pool`)
+### 3.3. Modelo de Desafíos (`fase{X}_desafios_pool`)
 
-Tabla desvinculada de la lógica de asistencia, diseñada para exámenes de alta intensidad con temporizador.
+Tabla desvinculada de la lógica de asistencia, diseñada para exámenes de alta intensidad con temporizador, aislada por fase.
 
 Campos:
 
@@ -126,30 +130,30 @@ Campos:
 * `tokens_correctos`: JSONB nullable cuando aplique.
 * `estado`: Estado del registro.
 
-### 3.4. Tabla Auxiliar de Alternativas (`alternativas_desafios_pool`)
+### 3.4. Tabla Auxiliar de Alternativas (`fase{X}_alternativas_desafios_pool`)
 
-Para desafíos de opción múltiple.
+Para desafíos de opción múltiple, vinculada mediante clave foránea a `fase{X}_desafios_pool`.
 
 Campos:
 
 * `id`: UUID Primary Key.
-* `desafio_id`: ForeignKey hacia `desafios_pool`.
+* `desafio_id`: ForeignKey hacia `fase{X}_desafios_pool`.
 * `texto`: Texto mostrado.
-* `texto_opcion`: Campo espejo obligatorio para compatibilidad con validaciones existentes.
+* `texto_opcion`: Campo espejo obligatorio para compatibilidad.
 * `es_correcta`: Booleano interno.
 * `orden`: Orden de presentación.
 * `tipo_error`: Tipo de error asociado si la alternativa es incorrecta.
 
 El frontend jamás debe recibir `es_correcta`.
 
-### 3.5. Tabla Auxiliar de Errores (`respuestas_erroneas`)
+### 3.5. Tabla Auxiliar de Errores (`fase{X}_respuestas_erroneas`)
 
-Para el Tutor Invisible.
+Para el Tutor Invisible, vinculada mediante clave foránea a `fase{X}_practica_pool`.
 
 Campos:
 
 * `id`: UUID Primary Key.
-* `pregunta_id`: ForeignKey hacia `practica_libre_pool`.
+* `pregunta_id`: ForeignKey hacia `fase{X}_practica_pool`.
 * `mapeo_errores`: JSONB con respuestas incorrectas previstas, tipo de error y feedback específico.
 
 Ejemplo:
@@ -457,21 +461,28 @@ Construye el árbol de progresión de la fase. Para determinar la disponibilidad
 1. **Lógica de Aprobación por Override (`aprobado_por_admin == true`):**
    * El backend omite el cálculo estándar de respuestas correctas e intentos.
    * Considera automáticamente el nivel/módulo como `APROBADO` con 100% de completitud y 90% de precisión simulada.
+   * **Regla de Aprobación Retrógada (Retro-Approval):** Al estar este bloque aprobado, la base de datos ya habrá ejecutado la cascada hacia atrás, de modo que todos los bloques anteriores correspondientes a esta fase también se resuelven y retornan automáticamente con el estado `APROBADO`.
    * Retorna información adicional: `intervenido: true`, `override_motivo`, `override_fecha` y la firma del administrador.
    * Habilita automáticamente el desbloqueo del bloque siguiente en la cascada de progresión.
 2. **Lógica de Desbloqueo por Override (`desbloqueado_por_admin == true`):**
-   * El backend fuerza el estado del bloque a `EN_PROGRESO` (desbloqueado y activo), permitiendo al alumno consumirlo de inmediato, incluso si los prerrequisitos anteriores no están aprobados.
+   * El backend fuerza el estado del bloque a `EN_PROGRESO` (desbloqueado y activo), permitiendo al alumno consumirlo de inmediato. (Nota: Al desbloquearse de forma aislada, el administrador no forzó la aprobación retrospectiva, por lo que el alumno puede cursar este bloque saltando los precedentes bloqueados).
 3. **Lógica de Avance Automático Estándar (si no hay override activo):**
-   * El backend evalúa si el alumno cumple ambas condiciones basadas en su desempeño:
-     1. `completitud_requerida`: el alumno completó el 100% de la batería asignada del bloque.
-     2. `precision_minima`: el alumno alcanzó el `porcentaje_aprobacion`, por defecto 90%.
-   * Solo cuando ambas se cumplen, el backend habilita el acceso al siguiente bloque o desafíos en cascada.
+   * El backend evalúa si el alumno cumple con las condiciones basadas en su desempeño según la etapa pedagógica:
+     * **En Práctica Libre (Entrenamiento Antifrustración):**
+       * El *único* requisito para habilitar el acceso al siguiente bloque es alcanzar la completitud requerida (`completitud_actual >= completitud_requerida`, es decir, 100%).
+       * No se requiere alcanzar ningún umbral de precisión (`porcentaje_aprobacion`); la precisión real (`porcentaje_actual`) se registra en la base de datos de manera estadística y de diagnóstico para el Tutor IA, sin actuar jamás como un bloqueo de avance.
+     * **En la Zona de Desafíos (Evaluación Estricta):**
+       * El backend exige estrictamente el cumplimiento de ambas condiciones basadas en su desempeño:
+         1. `completitud_requerida`: el alumno completó el 100% de la batería asignada del desafío.
+         2. `precision_minima`: el alumno alcanzó el `porcentaje_aprobacion` (por defecto 90%).
+       * Solo cuando ambas condiciones se cumplen sin haber provocado un `early_exit`, el backend habilita el acceso al siguiente bloque o desafíos en cascada.
 
 ### 5.4. `GET /api/fases/{fase_id}/pregunta`
 
 Reglas:
 
-* Si no existe sesión activa, crea o hidrata una sesión desde la base de datos.
+* **Control de Hidratación y Recarga en Práctica:** Si es una batería de Práctica Libre (Etapa 2) y el backend detecta una recarga de página o reinicio de sesión activa, **reinicia el progreso de la práctica a 0**. El alumno debe contestar desde el inicio toda la batería de `cantidad_requerida` preguntas.
+* Si no existe sesión activa, crea una sesión en blanco desde la base de datos.
 * Si el último intento fue incorrecto, localiza el `estructura_padre_id`.
 * Si `fallas_consecutivas_bucle < 4`, entrega la variante espejo correspondiente.
 * Si no hay falla activa, entrega una nueva pregunta original.
@@ -490,17 +501,20 @@ else:
 Reglas de práctica libre:
 
 * Evalúa la respuesta del alumno.
-* Si es correcta, actualiza progreso, resetea `fallas_consecutivas_bucle` y solicita nueva familia.
-* Si es incorrecta, incrementa `fallas_consecutivas_bucle`.
-* Si el contador llega a 4, retorna:
-
-```json
-{
-  "activar_rescate": true,
-  "explicacion_profunda": "<html o markdown de rescate>",
-  "requiere_transcripcion": true
-}
-```
+* Si es correcta, actualiza progreso, resetea `fallas_consecutivas_bucle = 0` y solicita una nueva familia de preguntas independiente.
+* Si es incorrecta:
+  * Incrementa `fallas_consecutivas_bucle`.
+  * **Revelación Inmediata de Respuesta Correcta:** Si el contador es menor que 4, el backend retorna en su payload `es_correcta = false` junto con la clave `respuesta_correcta` (el valor esperado sanitizado) y el `feedback` del Tutor Invisible para que la UI los muestre inmediatamente.
+  * Si el contador llega a 4 (Variante Espejo 3 errada), el backend retorna:
+    ```json
+    {
+      "activar_rescate": true,
+      "explicacion_profunda": "<html o markdown explicativo paso a paso y el porqué>",
+      "requiere_transcripcion": false,
+      "bypass_avance": true
+    }
+    ```
+    (Nota: El cliente no forzará transcripción anti-spam. Al hacer clic en continuar, llamará a `/cerrar-rescate` el cual limpia el contador `fallas_consecutivas_bucle = 0` y avanza a la siguiente familia de preguntas).
 
 Reglas de desafío:
 
@@ -514,22 +528,29 @@ Reglas de desafío:
 }
 ```
 
-#### Regla Crítica de Sincronización Legacy:
-Ante cualquier evento que modifique el estado de progreso en `ProgresoMaestria` (ya sea por avance de desempeño del alumno o por override administrativo directo), el backend **debe sincronizar de forma inmediata** la clave de visualización legacy `user.settings["unlockedLevels"]` (ej: asignando `6` al estar aprobado, `1` al estar desbloqueado y `0` al bloquearse) para evitar desajustes visuales entre componentes nuevos y antiguos en el cliente.
+#### Regla Crítica de Sincronización Legacy y Segmentación Multicapa:
+Ante cualquier evento que modifique el estado de progreso en `ProgresoMaestria` (ya sea por desempeño del alumno, override manual o por la cascada de aprobación retrógrada), el backend **debe sincronizar de forma inmediata** el estado en `user.settings["unlockedLevels"]`. 
+* Para evitar colisiones visuales de progreso entre fases, la clave se almacena de forma segmentada namespaced por Phase ID (ej. `user.settings["unlockedLevels"]["fase1"] = 6`, `user.settings["unlockedLevels"]["fase2"] = 1`).
+* En caso de **Aprobación Retrógada**, la sincronización debe actualizar en reversa todas las claves de las sub-fases anteriores en `user.settings["unlockedLevels"]` asignándoles el valor `6`.
+
+#### Regla de Aprobación Retrógada (Retro-Approval Action):
+Cuando el router procesa un override `approve` en la base de datos, inicia una transacción de base de datos que:
+1. Pone el bloque solicitado en estado `APROBADO`, `aprobado_por_admin = true`.
+2. Actualiza en reversa (`UPDATE progreso_maestria SET estado = 'APROBADO', completado = true, porcentaje_precision = 90 WHERE alumno_id = :alumno_id AND fase_id = :fase_id AND seccion < :seccion_actual`).
+3. Sincroniza en reversa el objeto `user.settings["unlockedLevels"]` para todos los niveles correspondientes.
 
 ### 5.6. `POST /api/fases/{fase_id}/cerrar-rescate`
 
-Endpoint invocado cuando el frontend confirma que el alumno leyó la explicación y transcribió la respuesta solicitada.
+Endpoint invocado cuando el frontend confirma que el alumno leyó y asimiló la explicación del Bloque de Rescate para avanzar de forma fluida.
 
 Reglas:
 
-* El payload debe incluir el valor transcrito.
-* El backend valida la transcripción contra la respuesta esperada de rescate.
-* Solo si la transcripción es correcta:
-  * marca la pregunta como completada con éxito;
-  * incrementa la barra de progreso;
-  * resetea `fallas_consecutivas_bucle = 0`;
-  * libera una familia original nueva.
+* **Sin Bloqueo de Transcripción:** Al haberse eliminado la transcripción anti-spam de la Práctica Libre, el frontend no envía ningún valor de texto transcrito en el payload; solo envía una confirmación de lectura y asimilación conceptual.
+* Al recibir este cierre, el backend:
+  * Registra en la bitácora de intentos que la familia de preguntas actual se completó a través de la vía de `"Bypass de Explicación"` (marcando este metadato en la base de datos para no distorsionar las analíticas cognitivas del Tutor IA).
+  * Incrementa la barra de completitud de la práctica libre de manera ordinaria (100% de completitud para esta familia) para no frustrar al alumno.
+  * Resetea el contador de fallas consecutivas a cero (`fallas_consecutivas_bucle = 0`).
+  * Libera la siguiente familia de preguntas original de forma inmediata en el flujo de la sesión.
 
 ---
 
@@ -562,16 +583,16 @@ async function fetchDeduplicated<T>(
 
 * El frontend debe determinar su layout exclusivamente a partir de `tipo_pregunta` y `modo_interaccion`.
 * El frontend debe ignorar flags frágiles o redundantes en JSONB.
-* El backend no debe enviar `es_correcta`.
-* El backend no debe enviar `respuesta_correcta`, salvo dentro del flujo controlado del Bloque de Rescate cuando corresponda a la transcripción anti-spam.
+* El backend no debe enviar `es_correcta` en payloads de preguntas activas.
+* El backend no debe enviar `respuesta_correcta` en la evaluación estándar de desafíos, pero en Práctica Libre **sí debe enviarla obligatoriamente** cuando el alumno cometa un error para permitir la revelación inmediata contiguous en pantalla.
 * En preguntas tokenizadas, el frontend envía `tokens_seleccionados`, no texto crudo.
 
 ### 6.3. Componentes Obligatorios
 
 * **Controlador del Cronómetro:** Si `usa_cronometro` es true, inicializa cuenta regresiva por pregunta.
-* **Modal de Early Exit:** Al recibir `early_exit = true`, interrumpe el flujo, muestra expulsión y redirige al dashboard.
-* **Modal de Rescate:** Al recibir `activar_rescate = true`, bloquea la pantalla y muestra `explicacion_profunda`.
-* **Input Anti-Spam:** El rescate exige transcribir el valor final solicitado.
+* **Modal de Early Exit:** Al recibir `early_exit = true`, interrumpe el flujo, muestra expulsión y redirige al dashboard (exclusivo de la Zona de Desafíos).
+* **Modal de Rescate:** Al recibir `activar_rescate = true`, bloquea la pantalla y muestra `explicacion_profunda` junto con el botón prioritario de bypass `"¡Entendido, continuar!"` (exclusivo de Práctica Libre).
+* **Sin Entrada de Texto Anti-Spam:** El modal de rescate **no debe renderizar campos de entrada de texto** ni exigir transcripciones para desbloquear el botón de continuación, asegurando un avance rápido y fluido.
 * **Subrayado por Tokens:** En interacciones textuales, el frontend selecciona IDs de tokens.
 
 ---

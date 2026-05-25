@@ -102,63 +102,57 @@ Ejemplo:
 ```
 
 Esta regla debe mapearse técnicamente en las tablas de práctica y/o desafíos mediante campos como `tokens_texto` y `tokens_correctos`, evitando que el backend compare texto libre que puede generar falsos negativos.
+### 4.2. Sistema de Tutoría Avanzada: Bucle Espejo Progresivo (Exclusivo de Práctica Libre)
 
-### 4.2. Sistema de Tutoría Avanzada: Bucle Espejo Progresivo
-
-Cuando el alumno comete un error, el avance en la barra de progreso se congela por completo y el servidor activa un bucle de aprendizaje estructurado con tolerancia máxima de hasta 3 variantes espejo consecutivas antes del rescate profundo.
+La Práctica Libre es un entorno de **entrenamiento y afianzamiento de conceptos**, no de evaluación. Por ello, **no lleva temporizador** y el alumno no debe ser bloqueado ni frustrado ante el error. Si el alumno responde incorrectamente, el sistema activa un bucle de aprendizaje dinámico de hasta 3 variantes espejo consecutivas y revela de forma inmediata la respuesta esperada:
 
 1. **Primera Falla: Pregunta Original → Variante Espejo 1**  
-   El servidor congela el progreso, identifica el tipo de error, muestra feedback del Tutor Invisible e inyecta la Variante Espejo 1 con la misma estructura y números diferentes.
-
+   El servidor congela el avance de la barra, registra el intento fallido, **muestra automáticamente la respuesta que era correcta** en pantalla y entrega feedback del Tutor Invisible. Inmediatamente inyecta la **Variante Espejo 1** (misma situación y estructura sintáctica, pero con números o enunciados ligeramente diferentes).
 2. **Segunda Falla: Variante Espejo 1 → Variante Espejo 2**  
-   Si el alumno vuelve a fallar, el sistema no cambia de tema. Envía un feedback más directo e inyecta la Variante Espejo 2.
-
+   Si el alumno vuelve a fallar en la primera variante, se repite el proceso: **se revela la respuesta que era correcta**, se muestra el feedback visual del Tutor Invisible e inyecta la **Variante Espejo 2**.
 3. **Tercera Falla: Variante Espejo 2 → Variante Espejo 3**  
-   Si el error persiste, se le da una última oportunidad con la Variante Espejo 3, acompañada de un mensaje de alerta motivacional.
-
-4. **Cuarta Falla: Activación del Bloque de Rescate**  
-   Si el alumno falla la pregunta original y sus 3 variantes espejo, el servidor activa el Bloque de Rescate Pedagógico.
+   Si el error persiste, se le muestra nuevamente la respuesta que era correcta y se le otorga una última oportunidad con la **Variante Espejo 3**.
+4. **Cuarta Falla Consecutiva (Variante Espejo 3 Errada): Activación de la Explicación y Bypass de Avance**  
+   Si el alumno falla por cuarta vez dentro de la misma familia, el sistema asume un bloqueo conceptual severo. En ese instante, se activa el **Bloque de Rescate y Explicación Teórica** en pantalla. Tras visualizar el porqué y cómo de la resolución, el alumno hace clic en "Continuar" y **avanza inmediatamente a la siguiente familia de preguntas**, disolviendo toda frustración sin atascarlo con el mismo reto.
 
 ### 4.3. Filosofía de la Variante Espejo
 
-Ante un error, el alumno jamás debe ser castigado con un problema completamente nuevo que le exija reiniciar su mapa mental. La variante espejo lo enfrenta al mismo concepto, con la misma estructura gramatical o sintáctica y la misma secuencia de operaciones.
+Ante un error en la práctica, el alumno jamás debe ser castigado con un problema de estructura completamente nueva que le exija reiniciar su mapa mental. La variante espejo lo enfrenta al mismo concepto, con la misma estructura gramatical o sintáctica y la misma secuencia de operaciones.
 
-Al mantener una estructura casi idéntica, el alumno se familiariza con el patrón visual del problema, reduce la carga cognitiva y enfoca su energía en aplicar el feedback recibido.
+Al mantener una estructura casi idéntica, el alumno se familiariza con el patrón visual del problema, reduce la carga cognitiva, procesa la respuesta correcta revelada y enfoca su energía en aplicar el feedback recibido en el siguiente intento inmediato.
 
 ---
 
-## 5. Bloque de Rescate Pedagógico
+## 5. Bloque de Rescate Explicativo (Bypass Conceptual)
 
-Si el alumno se equivoca por cuarta vez consecutiva, el sistema asume que existe un bloqueo conceptual específico con esa arquitectura de pregunta. En ese instante, la batería se congela temporalmente y el frontend despliega de forma obligatoria el **Bloque de Rescate**.
+Si el alumno se equivoca por cuarta vez consecutiva (fallando la pregunta original y sus 3 variantes espejo), la batería de práctica despliega de forma obligatoria el **Bloque de Rescate**.
 
 ### 5.1. Reglas del Bloque de Rescate
 
-* El bloque toma el control de la pantalla mediante un modal prioritario.
-* Debe mostrar una explicación profunda con visualización paso a paso.
-* Debe presentar 3 ejercicios o ejemplos resueltos con la misma lógica.
-* Debe exigir una acción anti-spam antes de continuar.
-* El alumno debe transcribir la respuesta correcta final demostrada en los ejemplos.
-* El backend valida esa transcripción.
-* Si la transcripción es correcta, el backend considera superada la pregunta, resetea `fallas_consecutivas_bucle = 0` y permite continuar.
-* No se penaliza ni se destruye el progreso de la práctica libre.
+* Toma el control de la pantalla mediante un modal prioritario o recuadro prioritario esmerilado (`glassmorphic`).
+* **Revelación y Explicación Profunda:** Muestra la explicación teórica del concepto, el desglose paso a paso de la resolución de la pregunta y el *porqué* se llega a esa respuesta correcta.
+* **Bypass de Avance Fluido:** **No exige una transcripción anti-spam ni una acción compleja de escritura**. El objetivo es la asimilación del error. El alumno lee la demostración conceptual, hace clic en el botón de confirmación `"¡Entendido, continuar!"` y el backend registra el bloque explicativo como leído, desbloqueando el avance inmediato a una nueva familia de preguntas independiente.
+* No se destruye el progreso acumulado en la barra de práctica libre del alumno.
 
-### 5.2. Filosofía Antifrustración
+### 5.2. Filosofía Antifrustración de la Práctica
 
-La meta de la práctica libre no es exigir perfección rígida, sino construir dominio. Tras pasar por 4 errores consecutivos y recibir la explicación profunda, el alumno ya ha procesado el patrón visual. Por eso el sistema no debe retroceder la barra ni castigarlo: debe asegurar continuidad pedagógica con una acción mínima de atención activa.
+La meta de la práctica libre no es exigir perfección rígida, sino construir dominio. Tras pasar por 4 errores consecutivos y recibir la explicación profunda y la respuesta demostrada, el alumno ya ha procesado el patrón visual. Por eso el sistema no debe retroceder la barra ni castigarlo: debe asegurar continuidad pedagógica con una acción mínima de atención activa.
 
-### 5.3. Ejemplo Aplicado del Flujo Completo
+### 5.3. Ejemplo Aplicado del Flujo Completo en Práctica
 
-* Pregunta Original: `4 + 3 × 4` → el alumno escribe `28`.
-* Variante Espejo 1: `5 + 2 × 3` → el alumno escribe `21`.
-* Variante Espejo 2: `2 + 4 × 5` → el alumno escribe `30`.
-* Variante Espejo 3: `6 + 3 × 2` → el alumno escribe `18`.
-* Acción del Servidor: activa el Bloque de Rescate con explicación profunda de la prioridad de la multiplicación. Tras transcribir la respuesta solicitada, el alumno avanza a una nueva familia de preguntas.
+* Pregunta Original: `4 + 3 × 4` → alumno escribe `28` (Error). El sistema marca rojo, **revela la respuesta correcta (`16`)** y muestra el feedback de prioridad de operadores.
+* Variante Espejo 1: `5 + 2 × 3` → alumno escribe `21` (Error). Marca rojo, **revela la respuesta correcta (`11`)**.
+* Variante Espejo 2: `2 + 4 × 5` → alumno escribe `30` (Error). Marca rojo, **revela la respuesta correcta (`22`)**.
+* Variante Espejo 3: `6 + 3 × 2` → alumno escribe `18` (Error). Marca rojo, **revela la respuesta correcta (`12`)** y activa el Bloque de Rescate.
+* Acción de Cierre: Se despliega la explicación detallada de por qué se multiplica antes de sumar. Al hacer clic en "Entendido", el alumno avanza a la siguiente familia de preguntas.
 
 ---
 
-## 6. Zona de Evaluación: Desafíos
+## 6. Zona de Evaluación: Desafíos (Evaluación Estricta sin Asistencia)
 
-Al terminar los niveles de práctica, el alumno transita de un entorno de **Entrenamiento** a un entorno de **Evaluación Estricta**. Aquí no existe Bucle Espejo, no hay Bloque de Rescate y el progreso no está garantizado.
+Al terminar los niveles de práctica, el alumno transita de un entorno de **Entrenamiento** a un entorno de **Evaluación Estricta**. Aquí **se elimina por completo el Bucle Espejo y no existe el Bloque de Rescate**. 
+
+Ante un error en la zona de desafíos, la respuesta incorrecta se computa directamente, no se dan variantes espejo de segunda oportunidad y el temporizador sigue corriendo de forma implacable. El alumno debe demostrar su dominio bajo presión de tiempo y cumplir con el porcentaje de precisión mínima estándar (90%) para poder aprobar, enfrentando la expulsión por **Early Exit** si supera el umbral máximo de errores permitidos.
 
 Todo módulo debe contener exactamente estos 3 desafíos indexados en el pool estático:
 
@@ -183,28 +177,31 @@ Los tiempos (temporizadores) y la cantidad de preguntas de cada bloque estipulad
 Durante las fases de desarrollo, pruebas de campo e investigación activa, los tiempos óptimos y la fatiga del alumno son variables experimentales. Por ello, el sistema pedagógico de LogicaKids Pro habilita la **Calibración en Caliente**:
 * Desde el Panel de Administración, el Superusuario tiene la autoridad para modificar en tiempo real el número de preguntas (`cantidad_requerida`), activar/desactivar temporizadores (`usa_cronometro`) y alterar la duración de los mismos (`tiempo_default_segundos`) para cualquier nivel de práctica libre, desafío, módulo o fase.
 * Esto permite adaptar la presión temporal del juego a diferentes metodologías escolares, ritmos grupales o necesidades experimentales de investigación sin alterar la base de datos de manera estática ni requerir despliegues de código nuevos.
-
 ---
 
 ## 7. Reglas Universales de Aprobación, Completitud y Early Exit
 
-Para evitar contradicciones entre práctica y evaluación, LogicaKids Pro separa dos conceptos:
+Para evitar contradicciones entre práctica y evaluación, LogicaKids Pro separa dos conceptos y los aplica según la etapa pedagógica:
 
-* **Completitud requerida:** porcentaje de la batería asignada que el alumno debe completar. En práctica libre, el estándar es 100%.
-* **Precisión mínima:** porcentaje mínimo de aciertos requerido. El estándar general es 90%.
+* **Completitud requerida:** porcentaje de la batería asignada que el alumno debe completar. En Práctica Libre, el estándar es 100%.
+* **Precisión mínima:** porcentaje mínimo de aciertos requerido. El estándar general para Desafíos es 90%.
 
-### 7.1. Práctica Libre
+### 7.1. Práctica Libre (Entrenamiento Antifrustración)
 
-La práctica libre se considera aprobada cuando cumple ambas condiciones:
+La práctica libre se considera aprobada y se desbloquea el siguiente nivel cuando cumple la única condición de:
 
 1. `completitud_requerida = 100%` de la batería asignada.
+
+**No existe un umbral mínimo de precisión** para aprobar la Práctica Libre. El alumno puede cometer múltiples errores en sus respuestas o activar bypasses de rescate explicativos; el backend aprobará de forma fluida el bloque al completar el 100% de la batería para garantizar una práctica sin frustración. El porcentaje de precisión obtenido se almacena únicamente con fines de diagnóstico y visualización en el Panel del Tutor.
+
+### 7.2. Desafíos (Evaluación Estricta)
+
+Para superar y aprobar un Desafío, el alumno debe cumplir estrictamente ambas condiciones:
+
+1. `completitud_requerida = 100%` de las preguntas resueltas.
 2. `precision_minima = porcentaje_aprobacion`, por defecto 90%.
 
-Solo cuando ambas condiciones se cumplen, el backend habilita los desafíos del módulo.
-
-### 7.2. Desafíos
-
-Todas las evaluaciones exigen por defecto 90% de precisión. El servidor debe abortar la sesión automáticamente si el alumno alcanza un número de errores que vuelve matemáticamente imposible aprobar.
+El servidor debe abortar la sesión automáticamente (Early Exit) si el alumno alcanza un número de errores que vuelve matemáticamente imposible alcanzar el 90% de precisión.
 
 ### 7.3. Tabla Maestra de Tolerancia
 
@@ -220,16 +217,21 @@ Todas las evaluaciones exigen por defecto 90% de precisión. El servidor debe ab
 
 ### 7.4. Flexibilidad Pedagógica y Vías de Avance (Anulación Manual / Override)
 
-El criterio estándar de aprobación del **90% de precisión** y **100% de completitud** en la Práctica Libre es un **estándar relativo y estadístico**. Dado que los estudiantes de LogicaKids Pro ingresan con diferentes conocimientos previos, ritmos de aprendizaje o necesidades de nivelación inmediata, obligar a una ruta lineal rígida puede generar desmotivación en alumnos avanzados o retrasos innecesarios en casos particulares.
+El sistema pedagógico de **LogicaKids Pro** está estructurado para diferenciar rigurosamente la etapa de entrenamiento de la etapa de evaluación:
+
+1. **En Práctica Libre (Entrenamiento Antifrustración):** El objetivo exclusivo es que el estudiante practique y asimile activamente los microconceptos. **No se exige ningún umbral o porcentaje de precisión mínima para aprobar**. El estudiante aprueba de forma automática y desbloquea el siguiente nivel con solo alcanzar el **100% de completitud** de la batería asignada, independientemente de si responde correctamente o comete errores y avanza a través de los bypasses explicativos. La precisión real (con un estándar sugerido de 90%) se registra e informa **exclusivamente con fines estadísticos y de diagnóstico pedagógico para el Tutor IA y el Panel del Administrador**, sin actuar jamás como un bloqueo para el avance del alumno.
+2. **En la Zona de Desafíos (Evaluación Estricta):** El avance automático exige de forma rígida cumplir tanto el **100% de completitud** como alcanzar una precisión real **igual o superior al porcentaje de aprobación (90%)**, además de superar el cronómetro y no incurrir en expulsión por Early Exit.
 
 Por tanto, el sistema pedagógico implementa dos vías legítimas y paralelas para el avance de un estudiante:
 
 1. **Avance Automático por Desempeño (Regla Pedagógica Estándar):**
-   * El backend evalúa si el alumno cumple dinámicamente con los requisitos cuantitativos (precisión y completitud) definidos para el nivel o módulo.
+   * El backend evalúa si el alumno cumple dinámicamente con los requisitos cuantitativos definidos para cada bloque (completitud de 100% para Práctica Libre; completitud de 100% y precisión de ≥90% para Desafíos).
 2. **Override Administrativo Manual (Intervención Pedagógica Directa):**
    * Un tutor o superusuario, desde el Panel de Administrador, tiene la autoridad pedagógica de anular el flujo estándar para un alumno en específico, aplicando una de las siguientes tres acciones de override:
      * **Liberar (`unlock`):** Cambia manualmente el estado de un nivel o módulo a `EN_PROGRESO` sin obligar al alumno a completar las etapas o niveles precedentes. Esto le permite saltar contenidos ya dominados y acceder directamente al material.
-     * **Aprobar (`approve`):** Declara manualmente un nivel o módulo como `APROBADO` sin que el alumno complete la práctica o los desafíos. El backend simula un **100% de completitud** y un **90% de porcentaje de precisión**, marcando la bandera `aprobado_por_admin = true`, y guardando de forma obligatoria un *Motivo pedagógico* y la *Fecha* de intervención. Esta aprobación desencadena la cascada de desbloqueo para el siguiente nivel de forma inmediata.
+     * **Aprobar (`approve`):** Declara manualmente un nivel o módulo como `APROBADO` sin que el alumno complete la práctica o los desafíos. El backend simula un **100% de completitud** y un **90% de porcentaje de precisión**, marcando la bandera `aprobado_por_admin = true`, y guardando de forma obligatoria un *Motivo pedagógico* y la *Fecha* de intervención.
+        * **Regla Crítica de Aprobación Retrógada (Retro-Approval):** Para evitar colisiones lógicas al activar desafíos y garantizar la integridad de la progresión lineal, **la aprobación manual de un bloque aprueba automáticamente todos los niveles y módulos anteriores de esa fase**. El backend actualiza en reversa el estado de todos los prerrequisitos anteriores a `APROBADO` en `ProgresoMaestria` (simulando 100% completitud y 90% precisión).
+        * Esta aprobación en reversa desencadena la cascada estándar para habilitar el bloque inmediatamente posterior de forma segura.
      * **Restablecer o Bloquear (`lock` o `reset`):** Regresa un nivel o módulo al estado `BLOQUEADO` o reinicializa su progreso a cero (limpiando contadores de fallas consecutivas y reiniciando barras de avance), obligando al estudiante a cursarlo de nuevo.
 
 #### Regla Crítica de Integridad y Sincronización de Datos:
@@ -336,6 +338,11 @@ Ejemplo:
 }
 ```
 
+### 8.6. Algoritmo de Recirculación y Reciclaje de Preguntas
+
+Si el superusuario configura una `cantidad_requerida` de preguntas en un nivel que excede el pool físico de familias únicas precargadas en `fase{X}_practica_pool`, el backend activa un mecanismo automático de **recirculación**:
+* Al agotarse las preguntas inéditas, el backend no causará fallos de carga. Limpiará automáticamente la bandera `respondida_alguna_vez` del pool asignado del estudiante (`pool_asignado_alumno`) empezando por las más antiguas en fecha, permitiéndole reutilizarlas secuencialmente hasta completar la batería de práctica requerida.
+
 ---
 
 ## 9. Reglas de Protección y Anti-Trampas
@@ -350,9 +357,15 @@ Ejemplo:
 R$ 2,50 = 250 centavos
 ```
 
-### 9.2. Protección del Estado de Sesión
+### 9.2. Protección del Estado de Sesión y Reinicio de Práctica por Reload
 
-Si el alumno actualiza el navegador, el frontend debe hidratar el estado desde la API. Esto evita que burle el Early Exit, el contador `fallas_consecutivas_bucle` o el estado de rescate.
+Para garantizar la seguridad académica y coherencia didáctica, el sistema aplica dos reglas diferenciadas de estado ante cierres o recargas (`F5`):
+
+1. **En Práctica Libre (Etapa de Aprendizaje):**
+   * **Reinicio Obligatorio:** Dado que la práctica es un proceso de entrenamiento y asimilación de microconceptos, **las sesiones de Práctica Libre no persistirán su progreso si el alumno sale del juego o recarga la página**.
+   * Si el estudiante recarga estando en la pregunta 10 de 15, la barra de progreso se reinicia por completo a `0`, forzándolo a resolver de forma continua toda la batería de `cantidad_requerida` preguntas para asegurar que no queden lagunas conceptuales.
+2. **En Desafíos (Etapa de Evaluación Estricta):**
+   * **Persistencia Segura (Anti-Trampa):** En evaluaciones con cronómetro, el frontend debe hidratar obligatoriamente el estado exacto de la sesión desde la API. Si el alumno recarga para intentar burlar el Early Exit o el contador de errores, el backend le restituye la misma pregunta activa y sus contadores de fallas acumulados, impidiendo trampas y bloqueando accesos duplicados.
 
 ### 9.3. Tokenización de Textos
 

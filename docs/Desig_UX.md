@@ -67,9 +67,9 @@ Ruta de fase:
 
 Los nombres `faseId`, `moduloId` y `nivelId` deben usarse de forma consistente para evitar ambigüedad con `id`.
 
-### 3.2. API Canónica de Juego
+### 3.2. API Canónica de Juego y Enrutamiento de Pools Segmentados
 
-El motor de juego consulta endpoints server-authoritative normalizados:
+El motor de juego del cliente interactúa exclusivamente con endpoints server-authoritative normalizados y estructurados por fase:
 
 ```text
 GET  /api/fases/{fase_id}/dashboard
@@ -77,6 +77,9 @@ GET  /api/fases/{fase_id}/pregunta
 POST /api/fases/{fase_id}/responder
 POST /api/fases/{fase_id}/cerrar-rescate
 ```
+
+#### Transparencia de Pools en Frontend:
+Bajo esta arquitectura de aislamiento, el enrutador del backend intercepta el `{fase_id}` de la URL y dirige internamente la consulta a las tablas físicas segmentadas correspondientes (ej: `fase{fase_id}_practica_pool`). Esta separación física es enteramente transparente para el cliente frontend, el cual procesa los payloads estandarizados y unificados sin conocer los detalles de particionamiento subyacentes.
 
 No se deben usar endpoints sueltos como `/pregunta`, `/responder`, `/cerrar-rescate` o `/pedagogia` como rutas oficiales. Si existen en código heredado, deben considerarse rutas legacy y migrarse al patrón `/api/fases/{fase_id}/...`.
 
@@ -111,38 +114,49 @@ src/
 
 ## 5. Guía de Interacción y Comportamiento UX
 
-### 5.1. Bucle Espejo
+### 5.1. Bucle Espejo (Exclusivo de Práctica Libre)
 
-Para evitar frustración, el sistema implementa una lógica de rescate automatizada.
+Para garantizar la asimilación activa de conceptos sin atascar al estudiante, el sistema implementa una lógica de Bucle Espejo en la Práctica Libre:
 
-1. **Intentos 1 a 3:** Si el niño falla, el sistema no revela la respuesta final. Se activa un feedback del Tutor Invisible y se permite un nuevo intento con Variante Espejo.
-2. **Intento 4:** Si falla la pregunta original y 3 variantes espejo, el backend activa el Bloque de Rescate.
-3. **Bloque de Rescate:** El modal exige transcribir la respuesta correcta final demostrada para desbloquear el avance y llamar a `/api/fases/{fase_id}/cerrar-rescate`.
+1. **Error (Pregunta Original o Variantes):** El frontend tiñe el borde de rojo, emite el sonido de error y **revela de inmediato la respuesta que era correcta** en un panel informativo. Se inyecta la siguiente Variante Espejo (misma estructura, diferentes números) de forma consecutiva (hasta un máximo de 3 variantes).
+2. **Variante Espejo 3 Errada (4º Falla Consecutiva):** El backend activa el **Bloque de Rescate Explicativo** para resolver la laguna cognitiva mediante teoría y demostración visual profunda.
+3. **Avance Sin Bloqueo:** El alumno lee la explicación, presiona el botón `"¡Entendido, ir al siguiente reto!"` y el backend lo mueve inmediatamente a la siguiente familia de preguntas, liberándolo del atasco.
 
-### 5.2. Feedback Visual
+#### 5.1.1. UX ante Cierre o Recarga de Página (Reload Reset)
+
+El comportamiento de la interfaz ante un cierre de pestaña o recarga accidental/intencional (`F5`) se divide estrictamente según la etapa pedagógica:
+
+* **En Práctica Libre (Entrenamiento):**
+  * **Reinicio Visual de Progreso:** Al recargar o reingresar al nivel, la barra de progreso circular se reinicia explícitamente a `0%` y el contador de preguntas vuelve a comenzar desde `0` de `cantidad_requerida`.
+  * **Mensaje de Orientación:** Se despliega un banner superior flotante motivador que recuerda al estudiante: *"¡Entrenamiento reiniciado! Completa la batería sin interrupciones para consolidar tu superpoder"* para mitigar la frustración.
+* **En Desafíos (Evaluación):**
+  * **Restauración del Estado:** Se reanuda la evaluación en la pregunta exacta y tiempo restante en que se encontraba, sin penalizar el progreso pero manteniendo inalterados los errores acumulados (hidratación desde API).
+
+### 5.2. Feedback Visual de Error
 
 En una respuesta incorrecta:
 
-* borde rojo;
+* borde rojo en input;
 * fondo rojo suave;
 * badge de error;
 * resplandor ambiental rojo;
+* **Revelación de Respuesta Correcta (Práctica Libre):** Un panel informativo contiguo muestra de forma inmediata: *"La respuesta correcta era: [Respuesta]"*;
 * feedback textual del Tutor Invisible;
-* bloqueo de avance hasta la siguiente acción autorizada por backend.
+* bloqueo de avance hasta que el alumno presiona el botón `"Siguiente Variante Espejo"`.
 
-El sistema no debe revelar la respuesta final durante los intentos 1 a 3.
+El sistema revela la respuesta correcta de inmediato tras cada error en Práctica Libre para guiar el aprendizaje activo. En la Zona de Desafíos, no se revela la respuesta correcta y se avanza directamente descontando vidas/tiempo.
 
-### 5.3. Bloque de Rescate
+### 5.3. Bloque de Rescate Explicativo
 
 El Bloque de Rescate debe:
 
-* abrirse como Modal Overlay prioritario;
-* bloquear la interacción con el fondo;
-* mostrar explicación profunda;
+* abrirse como Modal Overlay prioritario o sección prioritario esmerilada (`glassmorphism`);
+* bloquear la interacción con el fondo de la pantalla;
+* mostrar la explicación teórica, la resolución detallada paso a paso y el *porqué* conceptual de la respuesta;
 * renderizar énfasis visual en HTML/Markdown controlado;
-* incluir input anti-spam;
-* mantener el botón de continuidad deshabilitado hasta que el alumno escriba el valor solicitado;
-* enviar la transcripción a `/api/fases/{fase_id}/cerrar-rescate`.
+* **no incluir ningún input de transcripción forzada ni bloqueos anti-spam**;
+* habilitar un botón prioritario reactivo de color cian *"¡Entendido, ir al siguiente reto!"*;
+* al hacer clic, llamar a `/api/fases/{fase_id}/cerrar-rescate` y avanzar fluidamente a la siguiente familia de preguntas independiente.
 
 ### 5.4. Early Exit
 
@@ -182,7 +196,9 @@ Cada nodo del mapa estelar refleja visualmente su estado calculado en el backend
   * **Estética:** Nodo rodeado por una órbita animada pulsante con gradiente dinámico.
   * **Comportamiento:** Invita activamente al alumno a hacer clic mediante micro-rebotes y pulsos de luz cíclicos.
 * **Aprobado (Progresión Automática Ordinaria):**
-  * **Estética:** Resplandor de aureola **dorada premium** (`gold glow`), indicando que el alumno alcanzó el ≥90% de precisión y completitud por su propio desempeño.
+  * **Estética:** Resplandor de aureola **dorada premium** (`gold glow`), indicando que el bloque ha sido superado con éxito por el desempeño del alumno:
+    * **En Práctica Libre:** El alumno completó el 100% de la batería asignada (independientemente del porcentaje de errores o bypasses). Su perseverancia es recompensada.
+    * **En Zona de Desafíos:** El alumno completó el 100% y alcanzó un porcentaje real de precisión ≥90%.
   * **Comportamiento:** Despliega estrellas doradas en una animación explosiva de partículas al momento de aprobarse.
 * **Aprobado por Decreto Administrativo (Override Manual de Aprobación):**
   * **Estética:** Resplandor de aureola **cian/azul neón distintivo** (`cyan/neon glow`) en lugar de dorado. Esto diferencia inmediatamente un bloque aprobado de manera ordinaria de uno intervenido.
@@ -301,6 +317,7 @@ La interfaz de overrides de rendimiento debe cumplir con los siguientes estánda
 * **Modal de Confirmación Destructiva y Justificación:**
   * Al hacer clic en cualquier override, la UI despliega un modal prioritario con desenfoque del fondo (`backdrop-blur-md`).
   * Muestra una advertencia explícita sobre el impacto didáctico y el desencadenamiento automático de la cascada de desbloqueos.
+  * **Alerta Crítica de Aprobación Retrógada (Retro-Approval Warning):** Si la acción seleccionada es `approve`, el modal desplegará un banner de alerta de color naranja esmerilado con la advertencia: *"¡ATENCIÓN! Aprobar manualmente este nivel declarará automáticamente aprobados todos los niveles anteriores de esta fase para conservar la consistencia"*.
   * **Campo de Texto Reactivo:** Área de entrada de texto para registrar el *Motivo del Override*. El botón de confirmación se habilita únicamente si el texto ingresado tiene al menos 10 caracteres, evitando registros de auditoría vacíos o de spam (como "ok" o "123").
 * **Indicadores Visuales de Override Activo:**
   * Al completarse la petición de override, la UI del administrador aplica un resplandor cian/azul neón en el renglón o celda del alumno, con un badge con el texto *"INTERVENIDO POR ADMIN"* que permite identificar rápidamente qué alumnos tienen rutas personalizadas y por qué.

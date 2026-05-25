@@ -183,8 +183,9 @@ La interfaz expone para cada bloque tres controles críticos de anulación pedag
 2. **Aprobar (`approve`):**
    * **Propósito:** Aprobar de forma directa y por decreto pedagógico el bloque seleccionado (por ejemplo, para alumnos con conocimientos avanzados previos).
    * **Efecto DB:** El backend establece el estado del bloque en `APROBADO` en `ProgresoMaestria`, coloca `aprobado_por_admin = true`, simula un `porcentaje_precision = 90` y `completado = true`.
-   * **Cascada Automática:** El motor del backend calcula inmediatamente el siguiente bloque en la secuencia lineal del mapa y lo cambia al estado `EN_PROGRESO` (`desbloqueado = true`), abriendo la cascada estándar de avance.
-   * **Espejo Legacy:** Sincroniza `user.settings["unlockedLevels"]` asignándole el valor `6` para el nivel correspondiente.
+   * **Regla de Aprobación Retrógada (Retro-Approval):** Al aplicar la aprobación manual, el motor del backend **actualizará y aprobará automáticamente todos los niveles y módulos anteriores de esa fase** para ese estudiante, resguardando la integridad lineal del avance y eliminando colisiones al habilitar los desafíos.
+   * **Cascada Automática:** El motor del backend calcula inmediatamente el bloque siguiente lineal y lo cambia al estado `EN_PROGRESO` (`desbloqueado = true`), abriendo la cascada estándar de avance.
+   * **Espejo Legacy:** Sincroniza `user.settings["unlockedLevels"]` asignándole el valor `6` para el nivel correspondiente (e integrando en reversa el valor `6` para todas las claves namespaced de los niveles anteriores de esa fase).
 3. **Restablecer / Bloquear (`reset` / `lock`):**
    * **Propósito:** Limpiar todo el progreso de un alumno en un nivel o bloquear su acceso para obligarlo a reevaluarse o repetir la práctica.
    * **Efecto DB:** El backend reinicia todos los contadores de progreso (`aciertos_acumulados = 0`, `intentos_totales = 0`, `fallas_consecutivas_bucle = 0`, `completado = false`), establece el estado a `BLOQUEADO` y limpia las banderas `aprobado_por_admin` y `desbloqueado_por_admin`.
@@ -197,6 +198,7 @@ Para evitar intervenciones accidentales y mantener un registro riguroso de las d
 1. **Selección del Bloque e Intervención:** El administrador hace clic en el botón de la acción deseada (`unlock`, `approve`, o `reset`).
 2. **Modal de Confirmación e Ingreso de Motivo:**
    * La UI despliega un modal esmerilado (`glassmorphic`) con advertencias sobre el impacto pedagógico y la cascada de desbloqueos.
+   * **Advertencia de Aprobación Retrógada:** Si la acción es `approve`, el modal debe advertir de forma explícita y resaltada: *"¡IMPORTANTE! Esta acción declarará como aprobados automáticamente todos los niveles y módulos anteriores de esta fase para mantener la consistencia lineal"*.
    * **Registro Obligatorio de Motivo:** El modal contiene un área de texto obligatoria donde el administrador debe detallar el motivo didáctico (ej. *"Estudiante avanzado de 5º grado, demuestra dominio inicial"*, *"Nivelación acelerada por retraso en currículo"*). El botón "Confirmar" permanece deshabilitado hasta que se ingrese un texto descriptivo de mínimo 10 caracteres.
 3. **Petición Segura a la API (`POST /api/admin/alumnos/{alumno_id}/progress/override`):**
    * El cliente envía la solicitud estructurada al backend con los siguientes parámetros:
@@ -217,7 +219,7 @@ Para evitar intervenciones accidentales y mantener un registro riguroso de las d
 
 ## 7. Banco de Preguntas y Teoría (`ContentTab.tsx`)
 
-Consola de administración de contenidos pedagógicos dividida en subpestañas.
+Consola de administración de contenidos pedagógicos dividida en subpestañas. Para mantener el aislamiento y escalabilidad de la base de datos, cada fase cuenta con sus propias tablas segmentadas (`fase{X}_...`). El panel del administrador gestiona este contenido mediante consultas dinámicas: al seleccionar la Fase activa en la UI, el backend mapea dinámicamente el modelo ORM correspondiente a la tabla relacional de esa fase específica (`fase{fase_id}_teoria_pool`, `fase{fase_id}_practica_pool`, etc.). Esto permite que la consola de administración mantenga una interfaz uniforme, fluida y unificada sin importar la separación física de los datos.
 
 ### 7.1. Contenido Teórico (`theory`)
 
@@ -237,11 +239,11 @@ Editor para:
 Editor para:
 
 * práctica libre;
-* familias del Bucle Espejo;
-* desafíos;
+* familias del Bucle Espejo (1 original + 3 variantes espejo);
+* desafíos (evaluación formal sin asistencia espejo);
 * alternativas;
 * feedback del Tutor Invisible;
-* explicación profunda;
+* explicación profunda (recurso educativo explicativo de la resolución y el porqué, mostrado al fallar la Variante Espejo 3 para habilitar el bypass fluido del alumno);
 * modo de interacción;
 * tokenización de textos.
 
@@ -280,7 +282,9 @@ Campos:
 * `operacion`: Enum (`suma`, `resta`, `multiplicacion`, `division`, `mixta`).
 * `cantidad_requerida`: Número de preguntas que componen el bloque.
 * `completitud_requerida`: Porcentaje de avance requerido para terminar el bloque. Valor estándar: `100`.
-* `porcentaje_aprobacion`: Precisión mínima requerida. Valor estándar: `90`.
+* `porcentaje_aprobacion`: Precisión mínima de aprobación. Valor estándar: `90`.
+  * **Comportamiento en Práctica Libre:** Funciona exclusivamente como un umbral estadístico y de diagnóstico pedagógico sugerido para reportes y recomendaciones del Tutor IA. **No actúa como un bloqueo de software**, permitiendo que el alumno apruebe de forma fluida el bloque con solo alcanzar el 100% de completitud.
+  * **Comportamiento en Desafíos:** Es una regla estricta de base de datos. El alumno debe alcanzar este porcentaje real de precisión en sus aciertos para superar y aprobar el desafío.
 * `orden_desbloqueo`: Secuencia de desbloqueo.
 * `tipo_feedback`: `"simple"` o `"detallado"`.
 * `modo_tutoria`: `"normal"`, `"bucle_espejo"` o `"rescate"`.
@@ -344,13 +348,13 @@ Campos:
 
 ---
 
-## 9. Modelo de Datos de Contenido Pedagógico
+## 9. Modelo de Datos de Contenido Pedagógico (Tablas Segmentadas `fase{X}_...`)
 
-Además de configuración y progreso, el panel administra contenido pedagógico en tablas especializadas.
+Además de configuración y progreso, el panel administra contenido pedagógico en tablas físicas independientes y aisladas para cada Fase `X`.
 
-### 9.1. Tabla `niveles_teoria_pool`
+### 9.1. Tabla `fase{X}_teoria_pool`
 
-Almacena contenido teórico pre-renderizado.
+Almacena contenido teórico pre-renderizado e interactivos de evocación para la Fase `X`.
 
 Campos:
 
@@ -365,9 +369,9 @@ Campos:
 * `ejemplo_guiado`;
 * `interactivos_desbloqueo`.
 
-### 9.2. Tabla `practica_libre_pool`
+### 9.2. Tabla `fase{X}_practica_pool`
 
-Almacena preguntas de entrenamiento con Bucle Espejo.
+Almacena preguntas de entrenamiento con Bucle Espejo y Tutor Invisible para la Fase `X`.
 
 Campos:
 
@@ -386,9 +390,9 @@ Campos:
 * `tokens_texto`;
 * `tokens_correctos`.
 
-### 9.3. Tabla `desafios_pool`
+### 9.3. Tabla `fase{X}_desafios_pool`
 
-Almacena preguntas de evaluación.
+Almacena preguntas de evaluación cronometrada para la Fase `X`.
 
 Campos:
 
@@ -406,9 +410,9 @@ Campos:
 * `tokens_texto`;
 * `tokens_correctos`.
 
-### 9.4. Tabla `alternativas_desafios_pool`
+### 9.4. Tabla `fase{X}_alternativas_desafios_pool`
 
-Almacena alternativas de opción múltiple.
+Almacena alternativas de opción múltiple para desafíos, vinculada a `fase{X}_desafios_pool`.
 
 Campos:
 
@@ -419,9 +423,9 @@ Campos:
 * `orden`;
 * `tipo_error`.
 
-### 9.5. Tabla `respuestas_erroneas`
+### 9.5. Tabla `fase{X}_respuestas_erroneas`
 
-Almacena mapeos heurísticos para Tutor Invisible.
+Almacena mapeos heurísticos para el Tutor Invisible, vinculada a `fase{X}_practica_pool`.
 
 Campos:
 
@@ -586,4 +590,5 @@ PUT /api/admin/teoria
 * Toda intervención de administrador debe impactar `ProgresoMaestria`.
 * Las configuraciones deben consumirse desde base de datos en cada sesión.
 * El campo `seccion` debe calcularse de forma determinística.
-* Las preguntas con dinero deben usar centavos, no float.
+* **Dinero y Sanitización en Base de Datos:** Las preguntas con dinero deben usar centavos, no float. Cualquier entrada decimal de moneda ingresada por el administrador en la consola de edición (ej. `"2.50"`, `"5,00"`) se convertirá y guardará automáticamente como enteros en centavos (`250`, `500`) en la base de datos para preservar la precisión matemática exacta en el motor de juego.
+* **Explicación Sin Bloqueo:** La explicación profunda en Práctica Libre se concibe como un recurso pedagógico de desbloqueo, no de evaluación; por lo tanto, no debe condicionarse a un campo anti-spam de transcripción forzada en el cliente, asegurando la fluidez y continuidad del aprendizaje.
