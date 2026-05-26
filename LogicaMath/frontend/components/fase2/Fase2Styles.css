@@ -2320,3 +2320,76 @@
     margin: 0 auto;
   }
 }
+
+/* ── MODAL DE PREGUNTAS ESPEJO (MIRROR MODAL) ── */
+
+.mirror-modal-overlay {
+  background: rgba(10, 11, 14, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.f2-mirror-modal-card {
+  background: rgba(255, 255, 255, 0.02) !important;
+  backdrop-filter: blur(40px) !important;
+  border-radius: 40px !important;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  overflow: hidden;
+}
+
+.f2-mirror-reveal-box {
+  animation: slideDownFade 0.5s ease-out;
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.f2-mirror-modal-card h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.f2-status-badge.correct {
+  background: #10B981;
+  color: white;
+}
+
+.f2-status-badge.incorrect {
+  background: #EF4444;
+  color: white;
+}
+
+.f2-era-pill {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  margin-right: 10px;
+}
+
+/* Animación para el botón de siguiente variante */
+.f2-mirror-modal-card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsivo para el modal */
+@media (max-width: 768px) {
+  .f2-mirror-modal-card {
+    padding: 20px !important;
+    border-radius: 30px !important;
+  }
+  
+  .f2-mirror-modal-card .flex-col.md:flex-row {
+    gap: 20px !important;
+  }
+  
+  .f2-mirror-modal-card h2 {
+    font-size: 1.5rem !important;
+  }
+}
+

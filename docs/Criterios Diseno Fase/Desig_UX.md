@@ -118,9 +118,13 @@ src/
 
 Para garantizar la asimilación activa de conceptos sin atascar al estudiante, el sistema implementa una lógica de Bucle Espejo en la Práctica Libre:
 
-1. **Error (Pregunta Original o Variantes):** El frontend tiñe el borde de rojo, emite el sonido de error y **revela de inmediato la respuesta que era correcta** en un panel informativo. Se inyecta la siguiente Variante Espejo (misma estructura, diferentes números) de forma consecutiva (hasta un máximo de 3 variantes).
-2. **Variante Espejo 3 Errada (4º Falla Consecutiva):** El backend activa el **Bloque de Rescate Explicativo** para resolver la laguna cognitiva mediante teoría y demostración visual profunda.
-3. **Avance Sin Bloqueo:** El alumno lee la explicación, presiona el botón `"¡Entendido, ir al siguiente reto!"` y el backend lo mueve inmediatamente a la siguiente familia de preguntas, liberándolo del atasco.
+1. **Error (Pregunta Original o Variantes):** El sistema **activa un Modal Emergente (Mirror Modal)** que se superpone a la batería principal de preguntas.
+2. **Revelación y Variante:** En este modal, el frontend tiñe el borde de rojo, emite el sonido de error y **revela de inmediato la respuesta que era correcta** de la pregunta fallida. Acto seguido, entrega la siguiente Variante Espejo (misma estructura, diferentes números) para ser resuelta dentro del mismo modal.
+3. **Persistencia del Bucle:** El modal permanece activo hasta que el alumno responda correctamente o agote las 3 variantes permitidas.
+4. **Variante Espejo 3 Errada (4º Falla Consecutiva):** Dentro del mismo flujo emergente, el backend activa el **Bloque de Rescate Explicativo** (Explicación Profunda).
+5. **Avance y Cierre:** El alumno lee la explicación, presiona el botón `"¡Entendido, ir al siguiente reto!"`, el modal se cierra y la interfaz principal lo mueve inmediatamente a la siguiente familia de preguntas original.
+
+Este flujo garantiza que la batería principal se "pause" mientras el alumno resuelve su laguna cognitiva en un espacio dedicado y enfocado (el modal).
 
 #### 5.1.1. UX ante Cierre o Recarga de Página (Reload Reset)
 

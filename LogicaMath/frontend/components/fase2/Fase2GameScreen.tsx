@@ -11,6 +11,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import './Fase2Styles.css';
 import { getFase2Question, submitFase2Answer, getFase2Reading, closeFase2Rescate } from './Fase2Service';
 import { Fase2TheoryModal } from './Fase2TheoryModal';
+import { Fase2MirrorModal } from './Fase2MirrorModal';
 import type {
   Fase2Pregunta,
   Fase2AnswerResult,
@@ -167,6 +168,12 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [readingData, setReadingData] = useState<Fase2Lectura | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | undefined>(undefined);
   const [showRescate, setShowRescate] = useState(false);
+  
+  // Estados para Bucle Espejo en Modal
+  const [showMirrorModal, setShowMirrorModal] = useState(false);
+  const [mirrorPregunta, setMirrorPregunta] = useState<Fase2Pregunta | null>(null);
+  const [lastCorrectAnswer, setLastCorrectAnswer] = useState<string | undefined>(undefined);
+
   const navigate = useNavigate();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -194,15 +201,30 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   // ── Cargar pregunta ─────────────────────────────────────────────────────
 
   const loadPregunta = useCallback(async (isFirstLoad: boolean = false) => {
-    setLoading(true);
+    // Si no es el primer load, no mostramos el spinner global para no parpadear
+    if (isFirstLoad) setLoading(true);
+    
     setRespuesta('');
     setTokensSeleccionados([]);
     setSelectedAltId(null);
     setPaso(1);
     setPaso1Valor(null);
+    
     try {
       const data = await getFase2Question(moduloId, nivelId, isFirstLoad);
+      
+      // Si la pregunta recibida es un espejo, la mandamos al modal
+      if (data.datos_numericos?.es_espejo) {
+        setMirrorPregunta(data);
+        setShowMirrorModal(true);
+        setLoading(false);
+        return;
+      }
+
+      // Si no es espejo, es una pregunta normal
       setPregunta(data);
+      setShowMirrorModal(false);
+      setMirrorPregunta(null);
       setIsMockMode(false);
       
       if (isChallenge) {
@@ -331,6 +353,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       } else if (isChallenge) { 
         loadPregunta(); 
       } else if (feedback.resultado?.es_espejo) {
+        setLastCorrectAnswer(feedback.resultado?.respuesta_correcta);
         loadPregunta();
       } else {
         setRespuesta('');
@@ -1207,6 +1230,47 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               }
               setShowRescate(false);
               loadPregunta();
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Modal de Pregunta Espejo ── */}
+      <AnimatePresence>
+        {showMirrorModal && mirrorPregunta && (
+          <Fase2MirrorModal
+            pregunta={mirrorPregunta}
+            moduleColor={moduleColor}
+            lastCorrectAnswer={lastCorrectAnswer}
+            onClose={(result) => {
+              if (result) {
+                // Actualizar progreso con el resultado del espejo
+                setProgreso({
+                  aciertos: result.aciertos_acumulados,
+                  intentos: result.intentos_totales,
+                  porcentaje: result.porcentaje_actual,
+                });
+                
+                if (result.soporte_avanzado) {
+                  setFeedback({ visible: true, esCorrecta: false, resultado: result });
+                  setShowRescate(true);
+                  setShowMirrorModal(false);
+                } else if (result.es_correcta) {
+                  // Si acertó el espejo, cerramos y cargamos la siguiente original
+                  setShowMirrorModal(false);
+                  loadPregunta();
+                } else if (result.es_espejo) {
+                  // Si falló y hay más espejos, cargamos el siguiente espejo
+                  // loadPregunta detectará que es espejo y actualizará mirrorPregunta
+                  loadPregunta();
+                } else {
+                  // Caso por defecto (p.ej. error normal sin más espejos)
+                  setShowMirrorModal(false);
+                  loadPregunta();
+                }
+              } else {
+                setShowMirrorModal(false);
+              }
             }}
           />
         )}
