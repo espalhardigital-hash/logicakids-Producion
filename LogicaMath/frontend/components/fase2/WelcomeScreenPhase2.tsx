@@ -301,7 +301,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
                 Niveles De {selectedModule.nombre}
               </h1>
               <p className="f2-levels-subtitle">
-                Supera cada nivel con al menos <span className="highlight">90%</span> para desbloquear el siguiente.
+                Completa el <span className="highlight">100%</span> de cada nivel de práctica para desbloquear el siguiente.
               </p>
             </div>
 

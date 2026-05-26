@@ -553,7 +553,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     <div className="f2-question-text-box"><div className={(pregunta.enunciado || '').length < 25 ? "f2-question-text short" : "f2-question-text"}>{pregunta.enunciado}</div></div>
                     <div className="f2-numeric-input-wrap">
                       <div className={`f2-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`} onClick={() => inputRef.current?.focus()}>
-                        <input ref={inputRef} type="text" value={respuesta} onChange={e => !feedback.visible && /^[0-9,\-]*$/.test(e.target.value) && setRespuesta(e.target.value)} onKeyDown={handleKeyDown} className="f2-hidden-input" autoFocus autoComplete="off" inputMode="none" />
+                        <input ref={inputRef} type="text" value={respuesta} onChange={e => !feedback.visible && /^[0-9,.\-]*$/.test(e.target.value) && setRespuesta(e.target.value)} onKeyDown={handleKeyDown} className="f2-hidden-input" autoFocus autoComplete="off" inputMode="none" />
                         <span className="f2-input-value-text">{feedback.visible ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) : (respuesta || '?')}</span>
                         {feedback.visible && (
                           <div className="f2-input-status-elements">
@@ -564,6 +564,27 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                         )}
                       </div>
                     </div>
+
+                    {/* Botón de Confirmar / Continuar inline en la tarjeta */}
+                    <button 
+                      className="f2-submit-btn mt-6 w-full" 
+                      onClick={handleSubmit} 
+                      disabled={!feedback.visible && !respuesta.trim()} 
+                      style={{ 
+                        background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`, 
+                        padding: '16px', 
+                        borderRadius: '16px', 
+                        color: '#fff', 
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      {feedback.visible ? 'Continuar →' : 'Confirmar'}
+                    </button>
+
                     {!isChallenge && <div className="f2-scores-container"><div className="f2-score-box correct"><span className="f2-score-label">CORRECTAS</span><span className="f2-score-value">{progreso.aciertos}</span></div><div className="f2-score-box incorrect"><span className="f2-score-label">ERRORES</span><span className="f2-score-value">{feedback.resultado?.errores_sesion ?? (progreso.intentos - progreso.aciertos)}</span></div></div>}
                   </div>
                 )}
@@ -586,8 +607,172 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                      </button>
                   </div>
                 )}
+                {pregunta.tipo_pregunta === 'constructor_soluciones_chained' && (
+                  <div className="flex flex-col h-full justify-between gap-4">
+                    <div className="f2-question-text-box">
+                      <div className="f2-question-text">{pregunta.enunciado}</div>
+                    </div>
+
+                    <div className="flex flex-col gap-4 my-2">
+                      {/* Paso 1 */}
+                      <div 
+                        className={`p-4 rounded-2xl border transition-all duration-300 ${
+                          paso === 1 
+                            ? 'bg-white/5 border-pink-500/30 shadow-[0_0_15px_rgba(236,72,153,0.1)]' 
+                            : 'bg-green-500/5 border-green-500/20'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span 
+                            className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${
+                              paso === 1 
+                                ? 'bg-pink-500/20 text-pink-400' 
+                                : 'bg-green-500/20 text-green-400'
+                            }`}
+                          >
+                            Paso 1: {pregunta.pasos_encadenados?.[0]?.titulo || 'Cálculo Inicial'}
+                          </span>
+                          {paso > 1 && (
+                            <span className="flex items-center gap-1 text-green-400 text-xs font-bold">
+                              ✓ Completado
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-white/80 text-sm mb-3">
+                          {pregunta.pasos_encadenados?.[0]?.descripcion || 'Resuelve el primer paso.'}
+                        </p>
+                        
+                        {paso === 1 ? (
+                          <div className={`f2-custom-input-box focused ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : ''}`} onClick={() => inputRef.current?.focus()}>
+                            <input 
+                              ref={inputRef} 
+                              type="text" 
+                              value={respuesta} 
+                              onChange={e => !feedback.visible && /^[0-9,.\-]*$/.test(e.target.value) && setRespuesta(e.target.value)} 
+                              onKeyDown={handleKeyDown} 
+                              className="f2-hidden-input" 
+                              autoFocus 
+                              autoComplete="off" 
+                              inputMode="none" 
+                            />
+                            <span className="f2-input-value-text">{feedback.visible ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) : (respuesta || '?')}</span>
+                            {feedback.visible && (
+                              <div className="f2-input-status-elements">
+                                {feedback.esCorrecta ? (
+                                  <div className="f2-status-badge correct">
+                                    <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="f2-era-pill">Era: {feedback.resultado?.respuesta_correcta}</span>
+                                    <div className="f2-status-badge incorrect">
+                                      <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="f2-custom-input-box correct opacity-80 pointer-events-none">
+                            <span className="f2-input-value-text">{paso1Valor}</span>
+                            <div className="f2-input-status-elements">
+                              <div className="f2-status-badge correct">
+                                <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Paso 2 */}
+                      <div 
+                        className={`p-4 rounded-2xl border transition-all duration-300 ${
+                          paso === 2 
+                            ? 'bg-white/5 border-pink-500/30 shadow-[0_0_15px_rgba(236,72,153,0.1)]' 
+                            : 'bg-white/5 border-white/5 opacity-40 select-none pointer-events-none'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span 
+                            className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${
+                              paso === 2 
+                                ? 'bg-pink-500/20 text-pink-400 font-black' 
+                                : 'bg-white/10 text-white/40'
+                            }`}
+                          >
+                            Paso 2: {pregunta.pasos_encadenados?.[1]?.titulo || 'Resultado Final'}
+                          </span>
+                          {paso === 1 && (
+                            <span className="flex items-center gap-1 text-white/30 text-xs font-bold">
+                              🔒 Bloqueado
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-white/80 text-sm mb-3">
+                          {pregunta.pasos_encadenados?.[1]?.descripcion || 'Resuelve el paso final.'}
+                        </p>
+
+                        {paso === 2 && (
+                          <div className={`f2-custom-input-box focused ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : ''}`} onClick={() => inputRef.current?.focus()}>
+                            <input 
+                              ref={inputRef} 
+                              type="text" 
+                              value={respuesta} 
+                              onChange={e => !feedback.visible && /^[0-9,.\-]*$/.test(e.target.value) && setRespuesta(e.target.value)} 
+                              onKeyDown={handleKeyDown} 
+                              className="f2-hidden-input" 
+                              autoFocus 
+                              autoComplete="off" 
+                              inputMode="none" 
+                            />
+                            <span className="f2-input-value-text">{feedback.visible ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) : (respuesta || '?')}</span>
+                            {feedback.visible && (
+                              <div className="f2-input-status-elements">
+                                {feedback.esCorrecta ? (
+                                  <div className="f2-status-badge correct">
+                                    <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="f2-era-pill">Era: {feedback.resultado?.respuesta_correcta}</span>
+                                    <div className="f2-status-badge incorrect">
+                                      <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Botón de Confirmar / Continuar inline en la tarjeta */}
+                    <button 
+                      className="f2-submit-btn mt-6 w-full" 
+                      onClick={handleSubmit} 
+                      disabled={!feedback.visible && !respuesta.trim()} 
+                      style={{ 
+                        background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`, 
+                        padding: '16px', 
+                        borderRadius: '16px', 
+                        color: '#fff', 
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      {feedback.visible ? 'Continuar →' : 'Confirmar'}
+                    </button>
+
+                    {!isChallenge && <div className="f2-scores-container"><div className="f2-score-box correct"><span className="f2-score-label">CORRECTAS</span><span className="f2-score-value">{progreso.aciertos}</span></div><div className="f2-score-box incorrect"><span className="f2-score-label">ERRORES</span><span className="f2-score-value">{feedback.resultado?.errores_sesion ?? (progreso.intentos - progreso.aciertos)}</span></div></div>}
+                  </div>
+                )}
                 {/* Fallback */}
-                {['constructor_soluciones_chained', 'subrayado_tokens'].includes(pregunta.tipo_pregunta) && (
+                {pregunta.tipo_pregunta === 'subrayado_tokens' && (
                    <div className="flex flex-col h-full items-center justify-center p-10 text-center">
                      <p className="text-xl font-bold mb-4">Módulo en Construcción</p>
                      <p className="opacity-70">El tipo {pregunta.tipo_pregunta} estará disponible en la próxima actualización.</p>
@@ -597,20 +782,20 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               </motion.div>
 
               {/* Teclado Numérico */}
-              {(pregunta.tipo_pregunta === 'respuesta_numerica') && (
-                <motion.div variants={keypadVariants} initial="hidden" animate="show" className="hidden md:block w-[320px] shrink-0 z-10">
+              {(pregunta.tipo_pregunta === 'respuesta_numerica' || pregunta.tipo_pregunta === 'constructor_soluciones_chained') && (
+                <motion.div variants={keypadVariants} initial="hidden" animate="show" className="w-full max-w-[320px] md:w-[320px] shrink-0 z-10 mx-auto md:mx-0 mt-4 md:mt-0">
                   <div className="flex flex-col gap-4 p-7 glass-card rounded-[3rem]">
-                    <div className="grid grid-cols-3 gap-4">
-                      {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
-                        <button key={num} onClick={() => handleKeypadInput(num.toString())} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">{num}</button>
-                      ))}
-                      <button onClick={() => handleKeypadInput(',')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">,</button>
-                      <button onClick={() => handleKeypadInput('0')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">0</button>
-                      <button onClick={handleBackspace} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-red-500/10 text-red-400 flex items-center justify-center"><Delete size={28} /></button>
-                    </div>
-                    <button onClick={handleSubmit} disabled={!feedback.visible && !respuesta.trim()} className="w-full py-4 rounded-[1.5rem] bg-blue-600 text-white flex items-center justify-center font-bold text-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
-                      {feedback.visible ? 'Continuar' : 'Confirmar'} <ArrowRight size={24} className="ml-2"/>
-                    </button>
+                     <div className="grid grid-cols-3 gap-4">
+                       {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
+                         <button key={num} onClick={() => handleKeypadInput(num.toString())} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">{num}</button>
+                       ))}
+                       <button onClick={() => handleKeypadInput('.')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">.</button>
+                       <button onClick={() => handleKeypadInput('0')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">0</button>
+                       <button onClick={handleBackspace} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-red-500/10 text-red-400 flex items-center justify-center"><Delete size={28} /></button>
+                     </div>
+                     <button onClick={handleSubmit} disabled={!feedback.visible && !respuesta.trim()} className="w-full py-4 rounded-[1.5rem] bg-blue-600 text-white flex items-center justify-center font-bold text-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
+                       {feedback.visible ? 'Continuar' : 'Confirmar'} <ArrowRight size={24} className="ml-2"/>
+                     </button>
                   </div>
                 </motion.div>
               )}

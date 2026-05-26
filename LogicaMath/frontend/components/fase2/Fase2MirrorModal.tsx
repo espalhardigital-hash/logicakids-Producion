@@ -154,7 +154,7 @@ export const Fase2MirrorModal: React.FC<Props> = ({
                     ref={inputRef}
                     type="text"
                     value={respuesta}
-                    onChange={e => !feedback.visible && /^[0-9,\-]*$/.test(e.target.value) && setRespuesta(e.target.value)}
+                    onChange={e => !feedback.visible && /^[0-9,.\-]*$/.test(e.target.value) && setRespuesta(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                     className="f2-hidden-input"
                     autoFocus
@@ -214,10 +214,10 @@ export const Fase2MirrorModal: React.FC<Props> = ({
                 ))}
                 <button 
                   key="comma" 
-                  onClick={() => handleKeypadInput(',')}
+                  onClick={() => handleKeypadInput('.')}
                   className="aspect-square rounded-2xl bg-white/10 text-white text-xl font-black flex items-center justify-center hover:bg-white/20 transition-colors"
                 >
-                  ,
+                  .
                 </button>
                 <button 
                   key="0" 

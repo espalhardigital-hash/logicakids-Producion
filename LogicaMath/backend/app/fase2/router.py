@@ -486,6 +486,40 @@ async def get_pregunta_fase2(
 
     # 1. MODO DESAFÍO (modulo_id == 99 o nivel_id en 11, 12, 13)
     if modulo_id == 99 or nivel_id in (11, 12, 13):
+        progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
+        if reload:
+            # Borrar los intentos de la tabla general `Intento` para esta sección de desafío
+            await db.execute(
+                delete(Intento).where(and_(
+                    Intento.alumno_id == alumno.id,
+                    Intento.fase_id == FASE2_ID,
+                    Intento.seccion == seccion
+                ))
+            )
+            
+            # Borrar los intentos de la tabla `IntentoPregunta` si aplica
+            result_q_ids = await db.execute(
+                select(Pregunta.id).where(and_(
+                    Pregunta.fase_id == FASE2_ID,
+                    Pregunta.seccion == seccion
+                ))
+            )
+            q_ids = result_q_ids.scalars().all()
+            if q_ids:
+                await db.execute(
+                    delete(IntentoPregunta).where(and_(
+                        IntentoPregunta.alumno_id == alumno.id,
+                        IntentoPregunta.pregunta_id.in_(q_ids)
+                    ))
+                )
+            
+            # Restablecer el progreso de maestría a 0%
+            progreso.aciertos_acumulados = 0
+            progreso.intentos_totales = 0
+            progreso.porcentaje_actual = 0
+            progreso.estado = EstadoProgresoEnum.EN_PROGRESO
+            await db.commit()
+
         # Obtener preguntas del desafío que el alumno ya aprobó
         result = await db.execute(
             select(Intento.pregunta_id)
@@ -542,8 +576,6 @@ async def get_pregunta_fase2(
 
         if not tiene_crono:
             tiempo_lim = None
-
-        progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
 
         return Fase2PreguntaParaAlumno(
             id=pregunta_elex.id,
@@ -910,6 +942,32 @@ async def responder_fase2(
             progreso.porcentaje_actual = 0
             progreso.intentos_totales = 0
             progreso.estado = EstadoProgresoEnum.EN_PROGRESO
+            
+            # Borrar los intentos acumulados para evitar colisiones en la próxima sesión
+            await db.execute(
+                delete(Intento).where(and_(
+                    Intento.alumno_id == alumno.id,
+                    Intento.fase_id == FASE2_ID,
+                    Intento.seccion == seccion
+                ))
+            )
+            
+            # Borrar los intentos de la tabla `IntentoPregunta` si aplica
+            result_q_ids = await db.execute(
+                select(Pregunta.id).where(and_(
+                    Pregunta.fase_id == FASE2_ID,
+                    Pregunta.seccion == seccion
+                ))
+            )
+            q_ids = result_q_ids.scalars().all()
+            if q_ids:
+                await db.execute(
+                    delete(IntentoPregunta).where(and_(
+                        IntentoPregunta.alumno_id == alumno.id,
+                        IntentoPregunta.pregunta_id.in_(q_ids)
+                    ))
+                )
+            
             await db.commit()
             
             return Fase2ResultadoRespuesta(
