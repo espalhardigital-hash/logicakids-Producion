@@ -1,4 +1,4 @@
-﻿"""
+"""
 Router FastAPI — Fase 3: Problemas de Texto y Sistemas Simples (Refactorizado)
 ==============================================================================
 Prefijo: /fase3
@@ -705,15 +705,17 @@ async def responder_fase3(
 
     if nivel_id in (11, 12):
         if not payload.alternativa_id:
-            raise HTTPException(status_code=400, detail="alternativa_id es requerido.")
-        
-        alternativa_elegida = next((a for a in pregunta.alternativas if a.id == payload.alternativa_id), None)
-        if not alternativa_elegida:
-            raise HTTPException(status_code=404, detail="Alternativa no encontrada.")
-        
-        es_correcta = alternativa_elegida.es_correcta
-        correct_alt = next((a for a in pregunta.alternativas if a.es_correcta), None)
-        respuesta_correcta_str = correct_alt.texto if correct_alt else pregunta.respuesta_correcta
+            es_correcta = False
+            correct_alt = next((a for a in pregunta.alternativas if a.es_correcta), None)
+            respuesta_correcta_str = correct_alt.texto if correct_alt else pregunta.respuesta_correcta
+        else:
+            alternativa_elegida = next((a for a in pregunta.alternativas if a.id == payload.alternativa_id), None)
+            if not alternativa_elegida:
+                raise HTTPException(status_code=404, detail="Alternativa no encontrada.")
+            
+            es_correcta = alternativa_elegida.es_correcta
+            correct_alt = next((a for a in pregunta.alternativas if a.es_correcta), None)
+            respuesta_correcta_str = correct_alt.texto if correct_alt else pregunta.respuesta_correcta
     else:
         resp_dada = (payload.respuesta_dada or "").strip().lower().replace(",", ".").replace("r$ ", "")
         resp_corr = respuesta_correcta_str.strip().lower().replace(",", ".").replace("r$ ", "")
