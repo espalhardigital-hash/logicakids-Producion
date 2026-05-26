@@ -21,12 +21,13 @@ from sqlalchemy import select, and_, func
 from sqlalchemy.orm import selectinload
 
 from ..db.session import get_db
-from ..auth import get_current_user
+from ..auth import get_current_user, get_current_student
 from ..models.sql_models import (
     Alumno, Fase, Pregunta, ConfiguracionProgreso,
     ProgresoMaestria, Intento,
     StatusEnum, EstadoProgresoEnum, PlatformSettings
 )
+from ..utils.math_utils import normalize_response
 # Reutilizamos modelos y schemas base (o los de fase2 adaptados si es necesario)
 from ..fase2.models import NivelTeoria
 from ..fase2.schemas import (
@@ -93,19 +94,6 @@ NIVELES_META = {
 # HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
 
-async def _get_alumno(db: AsyncSession, current_user: dict) -> Alumno:
-    alumno = current_user.get("alumno_obj")
-    if alumno:
-        return alumno
-    alumno_id = current_user.get("alumno_id")
-    if not alumno_id:
-        raise HTTPException(status_code=400, detail="El usuario no tiene perfil de alumno.")
-    result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
-    alumno = result.scalar_one_or_none()
-    if not alumno:
-        raise HTTPException(status_code=404, detail="Perfil de alumno no encontrado.")
-    return alumno
-
 def _seccion_operacion(modulo_id: int, nivel_id: int) -> tuple:
     if nivel_id in (11, 12, 13):
         seccion = modulo_id * 1000 + nivel_id
@@ -113,6 +101,7 @@ def _seccion_operacion(modulo_id: int, nivel_id: int) -> tuple:
     else:
         seccion = modulo_id * 100 + nivel_id
         return seccion, "mixta"
+
 
 async def _get_global_config(db: AsyncSession) -> dict:
     """Obtiene la configuración pedagógica global de la plataforma desde PlatformSettings."""

@@ -373,30 +373,30 @@ async def seed_teoria_niveles(session: AsyncSession):
                 "1 moneda de 0,25": "25 centavos.",
                 "1 moneda de 0,50": "50 centavos (o dos de 0,25).",
                 "1 moneda de 0,75": "75 centavos (o tres de 0,25).",
-                "1,00 peso": "100 centavos (cuatro de 0,25 o dos de 0,50)."
+                "1,00 real": "100 centavos (cuatro de 0,25 o dos de 0,50)."
             },
-            "advertencia": "No te asustes al ver la coma decimal. Leer 1,50 es exactamente igual a decir: 'Tengo un peso entero con una moneda de cincuenta centavos'.",
+            "advertencia": "No te asustes al ver la coma decimal. Leer 1,50 es exactamente igual a decir: 'Tengo un real entero con una moneda de cincuenta centavos'.",
             "ejemplos": [
                 {
                     "enunciado": "¿Cuánto dinero suman 3 monedas de 0,50?",
                     "pasos": [
-                        {"orden": 1, "texto": "Dos monedas de 0,50 forman un peso entero (1,00)."},
+                        {"orden": 1, "texto": "Dos monedas de 0,50 forman un real entero (1,00)."},
                         {"orden": 2, "texto": "Agregamos la tercera moneda de 0,50."},
-                        {"orden": 3, "texto": "Obtenemos en total 1,50 pesos."}
+                        {"orden": 3, "texto": "Obtenemos en total 1,50 reais."}
                     ]
                 }
             ],
             "interactivos": [
                 {
-                    "pregunta": "Si tengo dos monedas de 0,50 centavos, ¿cuántos pesos enteros he acumulado?",
+                    "pregunta": "Si tengo dos monedas de 0,50 centavos, ¿cuántos reais enteros he acumulado?",
                     "respuesta": "1,00",
-                    "feedback_acierto": "¡Muy bien! 0,50 + 0,50 = 1,00 peso completo.",
-                    "feedback_error": "Recuerda que dos monedas de 50 centavos forman 100 centavos, lo que equivale a 1 peso entero. La respuesta es 1,00."
+                    "feedback_acierto": "¡Muy bien! 0,50 + 0,50 = 1,00 real completo.",
+                    "feedback_error": "Recuerda que dos monedas de 50 centavos forman 100 centavos, lo que equivale a 1 real entero. La respuesta es 1,00."
                 },
                 {
-                    "pregunta": "¿Cuánto dinero tengo en total si junto un billete de 5,00 pesos y una moneda de 0,25 centavos?",
+                    "pregunta": "¿Cuánto dinero tengo en total si junto un billete de 5,00 reais y una moneda de 0,25 centavos?",
                     "respuesta": "5,25",
-                    "feedback_acierto": "¡Excelente! Sumaste el entero con los centavos para obtener 5,25 pesos.",
+                    "feedback_acierto": "¡Excelente! Sumaste el entero con los centavos para obtener 5,25 reais.",
                     "feedback_error": "Solo junta la parte entera con los centavos: escribe la suma del billete de 5 y la moneda de 0,25, que se representa como 5,25."
                 },
                 {

@@ -50,28 +50,6 @@ async def startup_event():
             await conn.run_sync(Base.metadata.create_all)
             print("✅ Tablas de base de datos verificadas/creadas exitosamente.")
 
-            # --- SAFE MIGRATIONS ---
-            # create_all does NOT add new columns to existing tables.
-            # These ALTER TABLE statements are idempotent (IF NOT EXISTS).
-            migrations = [
-                ("avatar", "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR"),
-                ("unlocked_level", "ALTER TABLE users ADD COLUMN IF NOT EXISTS unlocked_level INTEGER DEFAULT 0"),
-                ("settings", "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb"),
-                ("last_login", "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ"),
-                ("payload_tokenizado", "ALTER TABLE preguntas ADD COLUMN IF NOT EXISTS payload_tokenizado JSONB"),
-                ("estructura_padre_id", "ALTER TABLE preguntas ADD COLUMN IF NOT EXISTS estructura_padre_id VARCHAR(255)"),
-                ("idx_preguntas_estructura_padre_id", "CREATE INDEX IF NOT EXISTS idx_preguntas_estructura_padre_id ON preguntas(estructura_padre_id)"),
-                ("aprobado_por_admin", "ALTER TABLE progreso_maestria ADD COLUMN IF NOT EXISTS aprobado_por_admin BOOLEAN DEFAULT FALSE"),
-            ]
-            from sqlalchemy import text
-            for col_name, migration in migrations:
-                try:
-                    await conn.execute(text(migration))
-                except Exception as col_err:
-                    # Gracefully handle if columns already exist or if user has insufficient privilege
-                    print(f"ℹ️ Verificación de columna/índice '{col_name}': ya existente o sin privilegios de alteración. (Omitido de forma segura)")
-            print("✅ Migraciones de columnas e índices verificadas.")
-
     except Exception as e:
         print(f"❌ Error al verificar/crear tablas: {e}")
 

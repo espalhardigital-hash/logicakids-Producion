@@ -115,6 +115,26 @@ async def get_admin_user(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
+async def get_current_student(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Alumno:
+    """Helper unificado para obtener el objeto Alumno del usuario actual."""
+    alumno = current_user.get("alumno_obj")
+    if alumno:
+        return alumno
+        
+    alumno_id = current_user.get("alumno_id")
+    if not alumno_id:
+        raise HTTPException(status_code=400, detail="El usuario no tiene perfil de alumno.")
+        
+    result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
+    alumno = result.scalar_one_or_none()
+    if not alumno:
+        raise HTTPException(status_code=404, detail="Perfil de alumno no encontrado.")
+    return alumno
+
+
 async def authenticate_user(db: AsyncSession, email: str, password: str):
     """Verify user credentials and return user if valid."""
     result = await db.execute(select(User).where(User.email == email))

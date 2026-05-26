@@ -24,7 +24,7 @@ from sqlalchemy import select, and_, or_, func, delete
 from sqlalchemy.orm import selectinload
 
 from ..db.session import get_db
-from ..auth import get_current_user
+from ..auth import get_current_user, get_current_student
 from ..models.sql_models import (
     Alumno, Fase, Pregunta, ConfiguracionProgreso,
     ProgresoMaestria, Intento, PoolAsignadoAlumno,
@@ -32,6 +32,7 @@ from ..models.sql_models import (
     OperacionEnum, TipoPreguntaEnum, TipoErrorEnum,
     PlatformSettings, User,
 )
+from ..utils.math_utils import normalize_response
 from .models import NivelTeoria, IntentoPregunta, IntentoPaso
 from .schemas import (
     Fase2Dashboard, Fase2ModuloInfo, Fase2NivelInfo,
@@ -45,33 +46,6 @@ router = APIRouter(prefix="/fase2", tags=["fase2"])
 
 FASE2_ID = 2
 MAX_ESPEJO = 3  # Intentos máximos en Bucle Espejo
-
-# ─────────────────────────────────────────────────────────────────────────────
-# HELPER DE NORMALIZACIÓN DE RESPUESTAS (MONEDA Y ENTEROS)
-# ─────────────────────────────────────────────────────────────────────────────
-def normalize_response(val: str, is_money: bool = False) -> str:
-    if not val:
-        return ""
-    # Limpieza básica
-    cleaned = val.strip().lower().replace("r$", "").replace("$", "").replace(" ", "").replace("reais", "").replace("real", "")
-    
-    # Si contiene separadores decimales o es modo moneda
-    if is_money or "," in cleaned or "." in cleaned:
-        cleaned_num = cleaned.replace(",", ".")
-        try:
-            val_float = float(cleaned_num)
-            if is_money:
-                # Modo moneda: siempre a centavos enteros para evitar líos de flotantes
-                return str(round(val_float * 100))
-            else:
-                # Modo numérico general: normalizar a entero si no hay decimales reales
-                if val_float == int(val_float):
-                    return str(int(val_float))
-                return str(val_float)
-        except ValueError:
-            pass
-    
-    return cleaned.replace(",", ".")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPER DE SINCRONIZACIÓN CON CONFIGURACIONES HEREDADAS (unlockedLevels)
@@ -152,20 +126,6 @@ NIVELES_META = {
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPERS DE NAVEGACIÓN Y ACCESO
 # ─────────────────────────────────────────────────────────────────────────────
-
-async def _get_alumno(db: AsyncSession, current_user: dict) -> Alumno:
-    alumno = current_user.get("alumno_obj")
-    if alumno:
-        return alumno
-    alumno_id = current_user.get("alumno_id")
-    if not alumno_id:
-        raise HTTPException(status_code=400, detail="El usuario no tiene perfil de alumno.")
-    result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
-    alumno = result.scalar_one_or_none()
-    if not alumno:
-        raise HTTPException(status_code=404, detail="Perfil de alumno no encontrado.")
-    return alumno
-
 
 def _seccion_operacion(modulo_id: int, nivel_id: int) -> tuple:
     """Mapea (módulo, nivel) → (sección, operación) para ConfiguracionProgreso."""

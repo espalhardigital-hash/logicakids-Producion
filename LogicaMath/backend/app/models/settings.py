@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, JSON, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 from ..db.base import Base
 
@@ -11,7 +12,7 @@ class PlatformSettings(Base):
 
     id = Column(Integer, primary_key=True, default=1)
     key = Column(String(100), unique=True, nullable=False, index=True)
-    value = Column(JSON, nullable=False)
+    value = Column(JSONB, nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     def __repr__(self):
