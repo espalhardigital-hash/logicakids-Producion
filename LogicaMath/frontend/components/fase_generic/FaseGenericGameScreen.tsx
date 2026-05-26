@@ -434,6 +434,14 @@ export default function FaseGenericGameScreen() {
             </span>
             <span className="fg-badge-divider">|</span>
             <span className="fg-badge-level">
+              FASE {faseId}
+            </span>
+            <span className="fg-badge-divider">|</span>
+            <span className="fg-badge-level">
+              MÓDULO {moduloId === 99 ? 'MAESTRÍA' : moduloId}
+            </span>
+            <span className="fg-badge-divider">|</span>
+            <span className="fg-badge-level">
               NIVEL {nivelId}
             </span>
             <span className="fg-badge-divider">|</span>

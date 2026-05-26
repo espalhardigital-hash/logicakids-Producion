@@ -283,6 +283,16 @@ Para evitar discrepancias entre la calibración pedagógica y el comportamiento 
   * Si `usa_cronometro` es `true`, renderiza la barra circular de progreso temporal e inicializa la cuenta regresiva con base en los segundos devueltos por `tiempo_limite_segundos`.
 * Esta reactividad garantiza que cualquier calibración del superusuario en caliente impacte inmediatamente la experiencia del estudiante de forma fluida y sin redespliegue.
 
+### 8.6. Cabecera Premium y Temporizador Visual Estandarizado (Header & Timer Standard)
+
+Para asegurar una alta consistencia de UI/UX a lo largo de todas las fases del juego:
+* **Píldora Informativa Estandarizada (`badge-pill`):**
+  * La fuente interna de la píldora informativa principal del cabecera debe tener un tamaño mínimo de `0.95rem` a `1rem` para garantizar legibilidad.
+  * La información del nivel debe incluir la ubicación didáctica completa en el formato: `FASE {fase_id} | MÓDULO {modulo_id} | NIVEL {nivel_id}` en lugar de mostrar únicamente `"NIVEL X"`.
+* **Barra de Tiempo Fluida de la Pregunta:**
+  * En todas las fases, cuando una pregunta requiera tiempo límite (`timer !== null`), el frontend debe renderizar una barra de progreso de tiempo horizontal delgada en el borde inferior del cabecera.
+  * Esta barra se calculará dinámicamente con la proporción `(timer / maxTimer) * 100` y cambiará a color rojo vibrante con una animación pulsante de advertencia cuando resten menos de 5 segundos.
+
 ---
 
 ## 9. Mapeo General de Fases

@@ -629,6 +629,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [progreso, setProgreso]   = useState({ aciertos: 0, intentos: 0, porcentaje: 0 });
   const [shaking, setShaking]     = useState(false);
   const [timer, setTimer]         = useState<number | null>(null);
+  const [maxTimer, setMaxTimer]   = useState<number>(1);
   const [showReading, setShowReading] = useState(false);
   const [isInitialReading, setIsInitialReading] = useState(true);
   const [readingData, setReadingData] = useState<Fase2Lectura | null>(null);
@@ -715,8 +716,10 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       if (isChallenge) {
         const limit = moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
         setTimer(limit);
+        setMaxTimer(limit);
       } else if (data.tiene_cronometro && data.tiempo_limite_segundos) {
         setTimer(data.tiempo_limite_segundos);
+        setMaxTimer(data.tiempo_limite_segundos);
       } else {
         setTimer(null);
       }
@@ -727,6 +730,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       if (isChallenge) {
         const limit = moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
         setTimer(limit);
+        setMaxTimer(limit);
       } else {
         setTimer(null);
       }
@@ -1002,6 +1006,10 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               <div className="f2-header-badge-pill">
                 <span className="f2-badge-module" style={{ color: moduleColor }}>{moduleName.toUpperCase()}</span>
                 <span className="f2-badge-divider">|</span>
+                <span className="f2-badge-level">FASE 2</span>
+                <span className="f2-badge-divider">|</span>
+                <span className="f2-badge-level">MÓDULO {moduloId === 99 ? 'MAESTRÍA' : moduloId}</span>
+                <span className="f2-badge-divider">|</span>
                 <span className="f2-badge-level">NIVEL {nivelId}</span>
                 <span className="f2-badge-divider">|</span>
                 <span className="f2-badge-challenge">{isChallenge ? 'DESAFÍO' : 'PROGRESO'} {progreso.aciertos}/{maxAciertos}</span>
@@ -1013,6 +1021,11 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             <div className="f2-full-width-progress-bar">
               <div className="f2-full-width-progress-fill" style={{ width: `${barWidth}%`, background: `linear-gradient(90deg, ${moduleColor}80, ${moduleColor})` }} />
             </div>
+            {timer !== null && (
+              <div className="f2-timer-progress-bar" style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '3px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                <div className="f2-full-width-progress-fill" style={{ width: `${(timer / maxTimer) * 100}%`, background: timer <= 5 ? '#EF4444' : 'linear-gradient(90deg, #3B82F6, #10B981)', height: '100%' }} />
+              </div>
+            )}
           </header>
 
           <main className="f2-game-body">
@@ -1099,7 +1112,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 {pregunta.tipo_pregunta === 'constructor_soluciones_chained' && (
                   <div className="flex flex-col h-full justify-between gap-4">
                     <div className="f2-question-text-box">
-                      <div className="f2-question-text">{pregunta.enunciado}</div>
+                      <div className="f2-question-text">{cleanEnunciado(pregunta.enunciado)}</div>
                     </div>
 
                     <div className="flex flex-col gap-4 my-2">
@@ -1175,34 +1188,19 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                       </div>
 
                       {/* Paso 2 */}
-                      <div 
-                        className={`p-4 rounded-2xl border transition-all duration-300 ${
-                          paso === 2 
-                            ? 'bg-white/5 border-pink-500/30 shadow-[0_0_15px_rgba(236,72,153,0.1)]' 
-                            : 'bg-white/5 border-white/5 opacity-40 select-none pointer-events-none'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span 
-                            className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${
-                              paso === 2 
-                                ? 'bg-pink-500/20 text-pink-400 font-black' 
-                                : 'bg-white/10 text-white/40'
-                            }`}
-                          >
-                            Paso 2: {pregunta.pasos_encadenados?.[1]?.titulo || 'Resultado Final'}
-                          </span>
-                          {paso === 1 && (
-                            <span className="flex items-center gap-1 text-white/30 text-xs font-bold">
-                              🔒 Bloqueado
+                      {paso === 2 && (
+                        <div 
+                          className="p-4 rounded-2xl border border-pink-500/30 bg-white/5 shadow-[0_0_15px_rgba(236,72,153,0.1)] transition-all duration-300"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 font-black">
+                              Paso 2: {pregunta.pasos_encadenados?.[1]?.titulo || 'Resultado Final'}
                             </span>
-                          )}
-                        </div>
-                        <p className="text-white/80 text-sm mb-3">
-                          {pregunta.pasos_encadenados?.[1]?.descripcion || 'Resuelve el paso final.'}
-                        </p>
+                          </div>
+                          <p className="text-white/80 text-sm mb-3">
+                            {pregunta.pasos_encadenados?.[1]?.descripcion || 'Resuelve el paso final.'}
+                          </p>
 
-                        {paso === 2 && (
                           <div className={`f2-custom-input-box focused ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : ''}`} onClick={() => inputRef.current?.focus()}>
                             <input 
                               ref={inputRef} 
@@ -1233,8 +1231,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                               </div>
                             )}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Botón de Confirmar / Continuar inline en la tarjeta */}
@@ -1346,6 +1344,18 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 };
 
 // ── Helpers de Desarrollo ──────────────────────────────────────────────────
+
+function cleanEnunciado(enunciado: string): string {
+  const qIndex = enunciado.lastIndexOf('¿');
+  if (qIndex !== -1) {
+    let cleanText = enunciado.substring(0, qIndex).trim();
+    if (cleanText.endsWith(',')) {
+      cleanText = cleanText.substring(0, cleanText.length - 1) + '.';
+    }
+    return cleanText;
+  }
+  return enunciado;
+}
 
 function MOCK_LECTURA(moduloId: number, nivelId: number): Fase2Lectura {
   return { modulo_id: moduloId, nivel_id: nivelId, titulo: `Nivel ${nivelId}`, parrafos: ["Cargando contenido..."], tip_pedagogico: "Atención al enunciado." };
