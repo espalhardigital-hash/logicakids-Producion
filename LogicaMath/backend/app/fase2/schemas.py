@@ -70,6 +70,11 @@ class Fase2PreguntaParaAlumno(BaseModel):
     # Legado: tokens (no se usa en la Fase 2 refactorizada)
     payload_tokenizado: Optional[List[Fase2Token]] = None
 
+    # Estado de progreso actual (para sincronización instantánea)
+    aciertos_acumulados: int = 0
+    intentos_totales: int = 0
+    porcentaje_actual: int = 0
+
 
 # ============================================================
 # RESPUESTA DEL ALUMNO (Fase 2)

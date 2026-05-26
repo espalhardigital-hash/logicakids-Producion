@@ -249,13 +249,12 @@ def _is_desafio_unlocked(progresos: dict, modulo_id: int, desafio_id: int, all_p
 @router.get("/dashboard", response_model=Fase2Dashboard)
 async def get_fase2_dashboard(
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
     """
     Devuelve el estado completo de los 4 módulos de Fase 2 para el alumno,
     incluyendo niveles de práctica libre y desafíos.
     """
-    alumno = await _get_alumno(db, current_user)
 
     # Cargar progresos en Fase 2
     result = await db.execute(
@@ -433,7 +432,7 @@ async def get_lectura_fase2(
     modulo_id: int,
     nivel_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
     """Devuelve el contenido de lectura/teoría de un nivel específico desde la base de datos."""
     result = await db.execute(
@@ -475,14 +474,13 @@ async def get_pregunta_fase2(
     nivel_id: int,
     reload: bool = False,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
     """
     Devuelve la siguiente pregunta para un módulo y nivel (o desafío) dados.
     Cargado dinámicamente desde el pool pre-sembrado en la base de datos.
     Soporta Bucle Espejo en práctica libre y selección aleatoria en desafíos.
     """
-    alumno = await _get_alumno(db, current_user)
     seccion, operacion = _seccion_operacion(modulo_id, nivel_id)
     config = await _get_config(db, seccion, operacion)
 
@@ -545,6 +543,8 @@ async def get_pregunta_fase2(
         if not tiene_crono:
             tiempo_lim = None
 
+        progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
+
         return Fase2PreguntaParaAlumno(
             id=pregunta_elex.id,
             modulo_id=modulo_id,
@@ -555,10 +555,15 @@ async def get_pregunta_fase2(
             tiempo_limite_segundos=tiempo_lim,
             alternativas=alts_out,
             datos_numericos=pregunta_elex.datos_numericos,
+            aciertos_acumulados=progreso.aciertos_acumulados,
+            intentos_totales=progreso.intentos_totales,
+            porcentaje_actual=progreso.porcentaje_actual,
         )
 
     # 2. MODO PRÁCTICA LIBRE (1-10)
     else:
+        progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
+        
         if reload:
             # 1. Borrar los intentos de la tabla general `Intento` para esta sección
             await db.execute(
@@ -586,7 +591,6 @@ async def get_pregunta_fase2(
                 )
             
             # 3. Restablecer el progreso de maestría a 0%
-            progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
             progreso.aciertos_acumulados = 0
             progreso.intentos_totales = 0
             progreso.porcentaje_actual = 0
@@ -613,7 +617,7 @@ async def get_pregunta_fase2(
         # Lógica Bucle Espejo (solo si el último intento fue fallido y no fue bypass)
         if latest_attempt and not latest_attempt.es_correcta and latest_attempt.respuesta_dada != "BYPASS_EXPLICACION":
             result_q = await db.execute(
-                select(Pregunta).options(selectinload(Pregunta.alternativas)).options(selectinload(Pregunta.alternativas)).where(Pregunta.id == latest_attempt.pregunta_id)
+                select(Pregunta).options(selectinload(Pregunta.alternativas)).where(Pregunta.id == latest_attempt.pregunta_id)
             )
             failed_pregunta = result_q.scalar_one_or_none()
             
@@ -731,6 +735,9 @@ async def get_pregunta_fase2(
             pasos_encadenados=pasos_encadenados,
             alternativas=alts_out,
             datos_numericos=pregunta_elex.datos_numericos,
+            aciertos_acumulados=progreso.aciertos_acumulados,
+            intentos_totales=progreso.intentos_totales,
+            porcentaje_actual=progreso.porcentaje_actual,
         )
 
 
@@ -742,14 +749,13 @@ async def get_pregunta_fase2(
 async def responder_fase2(
     payload: Fase2ResponderPregunta,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
     """
     Valida la respuesta del alumno, calcula aciertos, e implementa:
     - Bucle Espejo (Mirror Loop) en modo Práctica Libre (1-10).
     - Lógica de Salida Temprana (Early Exit) en modo Desafío (11-13) con reinicio de progreso.
     """
-    alumno = await _get_alumno(db, current_user)
     modulo_id = payload.modulo_id
     nivel_id = payload.nivel_id
     seccion, operacion = _seccion_operacion(modulo_id, nivel_id)
@@ -1220,12 +1226,11 @@ async def cerrar_rescate_fase2(
 @router.post("/graduate")
 async def graduate_fase2(
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
     """
     Gradúa al alumno de Fase 2 a Fase 3 si todos los 26 niveles (14 práctica + 12 desafíos) están dominados.
     """
-    alumno = await _get_alumno(db, current_user)
 
     result = await db.execute(
         select(func.count(ProgresoMaestria.id)).where(and_(

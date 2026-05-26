@@ -151,6 +151,7 @@ const Fase2RescateModal: React.FC<{
 // ─── Componente Principal ─────────────────────────────────────────────────
 
 const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBack }) => {
+  const [showSplash, setShowSplash] = useState(true);
   const [pregunta, setPregunta]   = useState<Fase2Pregunta | null>(null);
   const [loading, setLoading]     = useState(true);
   const [respuesta, setRespuesta] = useState('');
@@ -186,6 +187,14 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const moduleName  = MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
   const moduleColor = MODULE_COLORS[moduloId] ?? '#10B981';
 
+  // Lógica de Splash
+  useEffect(() => {
+    if (showSplash) {
+      const timer = setTimeout(() => setShowSplash(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash]);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -202,7 +211,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   // ── Cargar pregunta ─────────────────────────────────────────────────────
 
-  const loadPregunta = useCallback(async (isFirstLoad: boolean = false) => {
+  const loadPregunta = useCallback(async (isFirstLoad: boolean = false, resetProgress: boolean = false) => {
     // Si no es el primer load, no mostramos el spinner global para no parpadear
     if (isFirstLoad) setLoading(true);
     
@@ -213,8 +222,15 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     setPaso1Valor(null);
     
     try {
-      const data = await getFase2Question(moduloId, nivelId, isFirstLoad);
+      const data = await getFase2Question(moduloId, nivelId, resetProgress);
       
+      // Sincronizar progreso desde la carga de la pregunta
+      setProgreso({
+        aciertos: data.aciertos_acumulados,
+        intentos: data.intentos_totales,
+        porcentaje: data.porcentaje_actual,
+      });
+
       // Si la pregunta recibida es un espejo, la mandamos al modal
       if (data.datos_numericos?.es_espejo) {
         setMirrorPregunta(data);
@@ -230,7 +246,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       setIsMockMode(false);
       
       if (isChallenge) {
-        const limit = nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50;
+        const limit = moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
         setTimer(limit);
       } else if (data.tiene_cronometro && data.tiempo_limite_segundos) {
         setTimer(data.tiempo_limite_segundos);
@@ -295,6 +311,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       } else if (isChallenge) { 
         loadPregunta(); 
       } else if (feedback.resultado?.es_espejo) {
+        // DETECCIÓN DE ESPEJO: Si el backend dice que hay espejo, cargamos la siguiente
+        // loadPregunta() detectará si el backend mandó un objeto con es_espejo: true
         setLastCorrectAnswer(feedback.resultado?.respuesta_correcta);
         loadPregunta();
       } else {
@@ -435,7 +453,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     if (e.key === 'Enter') handleSubmit();
   };
 
-  useEffect(() => { loadPregunta(true); }, [loadPregunta]);
+  useEffect(() => { loadPregunta(true, false); }, [loadPregunta]);
 
   const handleOpenReading = useCallback(async () => {
     if (isChallenge) return;
