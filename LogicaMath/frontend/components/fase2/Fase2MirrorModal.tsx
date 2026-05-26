@@ -10,6 +10,7 @@ interface Props {
   onClose: (result?: Fase2AnswerResult) => void;
   lastCorrectAnswer?: string;
   lastQuestionEnunciado?: string;
+  lastWrongAnswer?: string;
 }
 
 export const Fase2MirrorModal: React.FC<Props> = ({ 
@@ -17,7 +18,8 @@ export const Fase2MirrorModal: React.FC<Props> = ({
   moduleColor, 
   onClose,
   lastCorrectAnswer,
-  lastQuestionEnunciado
+  lastQuestionEnunciado,
+  lastWrongAnswer
 }) => {
   const [respuesta, setRespuesta] = useState('');
   const [feedback, setFeedback] = useState<{
@@ -122,6 +124,11 @@ export const Fase2MirrorModal: React.FC<Props> = ({
             {lastQuestionEnunciado && (
               <div className="text-white/60 text-sm mb-2 italic">
                 Pregunta anterior: "{lastQuestionEnunciado}"
+              </div>
+            )}
+            {lastWrongAnswer && (
+              <div className="text-red-400 text-sm mb-2">
+                Tú respondiste: <span className="font-bold line-through">{lastWrongAnswer}</span>
               </div>
             )}
             <span className="text-white text-lg">La respuesta correcta era: <strong>{lastCorrectAnswer}</strong></span>

@@ -174,6 +174,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [mirrorPregunta, setMirrorPregunta] = useState<Fase2Pregunta | null>(null);
   const [lastCorrectAnswer, setLastCorrectAnswer] = useState<string | undefined>(undefined);
   const [lastQuestionEnunciado, setLastQuestionEnunciado] = useState<string | undefined>(undefined);
+  const [lastWrongAnswer, setLastWrongAnswer] = useState<string | undefined>(undefined);
 
   // 23: Navigation
   const navigate = useNavigate();
@@ -378,6 +379,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         setFeedback({ visible: true, esCorrecta: false, resultado });
         if (!isChallenge && resultado.es_espejo) {
           setLastQuestionEnunciado(pregunta.enunciado);
+          setLastWrongAnswer(respuesta || String(selectedAltId || ''));
         }
         if (isChallenge) {
           setTimeout(() => handleFeedbackClose(), 1500);
@@ -474,7 +476,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     <div className="f2-game-screen">
       {/* SplashScreen */}
       <AnimatePresence>
-        {showSplash && !loading && (
+        {showSplash && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
             className="f2-start-splash-overlay" onClick={() => setShowSplash(false)}
@@ -528,7 +530,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 <span className="f2-badge-divider">|</span>
                 <span className="f2-badge-level">NIVEL {nivelId}</span>
                 <span className="f2-badge-divider">|</span>
-                <span className="f2-badge-challenge">{isChallenge ? 'DESAFÍO' : 'PREGUNTA'} {progreso.aciertos}/{maxAciertos}</span>
+                <span className="f2-badge-challenge">{isChallenge ? 'DESAFÍO' : 'PROGRESO'} {progreso.aciertos}/{maxAciertos}</span>
                 {timer !== null && (
                   <><span className="f2-badge-divider">|</span><span className="f2-badge-timer" style={{ color: timer <= 5 ? '#EF4444' : '#ffffff' }}>{timer}S</span></>
                 )}
@@ -624,7 +626,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
           }} />
         )}
         {showMirrorModal && mirrorPregunta && (
-          <Fase2MirrorModal pregunta={mirrorPregunta} moduleColor={moduleColor} lastCorrectAnswer={lastCorrectAnswer} lastQuestionEnunciado={lastQuestionEnunciado} onClose={(res) => {
+          <Fase2MirrorModal pregunta={mirrorPregunta} moduleColor={moduleColor} lastCorrectAnswer={lastCorrectAnswer} lastQuestionEnunciado={lastQuestionEnunciado} lastWrongAnswer={lastWrongAnswer} onClose={(res) => {
             if (res) {
               setProgreso({ aciertos: res.aciertos_acumulados, intentos: res.intentos_totales, porcentaje: res.porcentaje_actual });
               if (res.soporte_avanzado) { setFeedback({ visible: true, esCorrecta: false, resultado: res }); setShowRescate(true); setShowMirrorModal(false); }
