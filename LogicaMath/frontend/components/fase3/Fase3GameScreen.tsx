@@ -2,11 +2,13 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DetectiveNotebook } from './DetectiveNotebook';
 import { OperationBuilder } from './OperationBuilder';
-import { getFase3Question, submitFase3Answer } from './Fase3Service';
-import { Fase3Pregunta, Fase3AnswerResult } from './Fase3Types';
+import { getFase3Question, submitFase3Answer, getFase3Reading } from './Fase3Service';
+import { Fase3Pregunta, Fase3AnswerResult, Fase3Lectura } from './Fase3Types';
 import { CustomKeyboard } from '../common/CustomKeyboard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BookOpen } from 'lucide-react';
+import { getCurrentUserFull } from '../../services/storageService';
+import { Fase3TheoryModal } from './Fase3TheoryModal';
 import './Fase3Styles.css';
 
 const MODULE_NAMES: Record<number, string> = {
@@ -60,6 +62,58 @@ export const Fase3GameScreen: React.FC = () => {
   
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const [showReading, setShowReading] = useState(false);
+  const [isInitialReading, setIsInitialReading] = useState(true);
+  const [readingData, setReadingData] = useState<Fase3Lectura | null>(null);
+  const [userAvatar, setUserAvatar] = useState<string | undefined>(undefined);
+  const [studentName, setStudentName] = useState('Estudiante');
+
+  // Load User Details
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUserFull();
+        if (user?.username) setStudentName(user.username);
+        if (user?.avatar) setUserAvatar(user.avatar);
+      } catch (e) {
+        console.error("Error loading user profile:", e);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Automatic Theory Modal Loading
+  useEffect(() => {
+    if (isChallenge) {
+      setShowReading(false);
+      return;
+    }
+    const check = async () => {
+      setIsInitialReading(true);
+      try {
+        const data = await getFase3Reading(moduloId, nivelId);
+        setReadingData(data);
+        setShowReading(true);
+      } catch (err) {
+        console.error("Error loading theory:", err);
+      }
+    };
+    check();
+  }, [moduloId, nivelId, isChallenge]);
+
+  // Manual Theory Opener
+  const handleOpenReading = useCallback(async () => {
+    if (isChallenge) return;
+    setIsInitialReading(false);
+    try {
+      const data = await getFase3Reading(moduloId, nivelId);
+      setReadingData(data);
+      setShowReading(true);
+    } catch (err) {
+      console.error("Error loading theory:", err);
+    }
+  }, [moduloId, nivelId, isChallenge]);
+
   useEffect(() => {
     loadNextQuestion();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,10 +126,13 @@ export const Fase3GameScreen: React.FC = () => {
     setAvailableNumbers([]);
     try {
       const q = await getFase3Question(moduloId, nivelId);
+      if (q && q.tipo_pregunta) {
+        q.tipo_pregunta = q.tipo_pregunta.toLowerCase() as any;
+      }
       setPregunta(q);
       
       if (q.tiene_cronometro && q.tiempo_limite_segundos) {
-        setTimer(q.tiempo_limite_segundos);
+        setTimer(q.tiene_cronometro && !showReading ? q.tiempo_limite_segundos : null);
         setMaxTimer(q.tiempo_limite_segundos);
       } else {
         setTimer(null);
@@ -100,11 +157,11 @@ export const Fase3GameScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    if (timer === null) return;
+    if (timer === null || showReading) return;
     if (timer <= 0) { handleSubmit(); return; }
     timerRef.current = setInterval(() => setTimer(t => (t !== null ? t - 1 : null)), 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [timer]);
+  }, [timer, showReading]);
 
   const stopTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -246,6 +303,16 @@ export const Fase3GameScreen: React.FC = () => {
         </button>
 
         <div className="f3-header-right-group">
+          {!isChallenge && (
+            <button 
+              className="flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 border border-blue-500/20 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm text-blue-400 font-sans text-xs font-black mr-2 animate-pulse" 
+              onClick={handleOpenReading} 
+              title="Ver teoría"
+            >
+              <BookOpen size={14} />
+              <span>TEORÍA</span>
+            </button>
+          )}
           <div className="f3-header-badge-pill">
             <span className="f3-badge-module" style={{ color: moduleColor }}>{moduleName.toUpperCase()}</span>
             <span className="f3-badge-divider">|</span>
@@ -372,6 +439,19 @@ export const Fase3GameScreen: React.FC = () => {
           )}
         </div>
       </main>
+
+      <AnimatePresence>
+        {showReading && readingData && (
+          <Fase3TheoryModal 
+            readingData={readingData} 
+            moduleColor={moduleColor} 
+            onClose={() => setShowReading(false)} 
+            onAbort={() => isInitialReading ? navigate('/welcome-fase3') : setShowReading(false)} 
+            isInitialReading={isInitialReading} 
+            userAvatar={userAvatar} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
