@@ -1,4 +1,4 @@
-"""
+﻿"""
 fase3_setup_db.py — Setup and Seeding Script for Phase 3
 =========================================================
 This script:

@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 import math
 import sys
 import random
