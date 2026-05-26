@@ -542,11 +542,54 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   if (!pregunta) return null;
 
-  const maxAciertos = isChallenge ? (nivelId === 13 ? 10 : 25) : 15;
-  const barWidth = Math.min(100, (progreso.aciertos / maxAciertos) * 100);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    if (showSplash) {
+      const timer = setTimeout(() => setShowSplash(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash]);
 
   return (
     <div className="f2-game-screen">
+      {/* ── SplashScreen de Inicio de Nivel ── */}
+      <AnimatePresence>
+        {showSplash && !loading && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+            className="f2-start-splash-overlay"
+            onClick={() => setShowSplash(false)}
+          >
+            <motion.div 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="f2-splash-content"
+            >
+              <div className="f2-splash-badge" style={{ color: moduleColor }}>
+                {isChallenge ? 'DESAFÍO ESPECIAL' : 'ENTRENAMIENTO LIBRE'}
+              </div>
+              <h1 className="f2-splash-title">
+                {moduloId === 99 ? 'MAESTRÍA FINAL' : moduleName}
+              </h1>
+              <div className="f2-splash-level" style={{ background: `${moduleColor}20`, borderColor: `${moduleColor}40` }}>
+                {moduloId === 99 ? 'FASE 2' : `NIVEL ${nivelId}`}
+              </div>
+              <motion.div 
+                animate={{ scale: [1, 1.1, 1], opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="f2-splash-hint"
+              >
+                Toca para comenzar
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Glow ambiental de feedback */}
       <AnimatePresence>
         {feedback.visible && feedback.esCorrecta && (
@@ -569,9 +612,12 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
       {/* ── Header Rediseñado ── */}
       <header className="f2-game-header-modern">
-        <button className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-red-500/20 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm text-red-400 font-sans" onClick={onBack} title="Salir del nivel">
-          <IconArrowLeft size={18} />
-          <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">SALIR DEL NIVEL</span>
+        <button 
+          className="f2-header-abort-btn" 
+          onClick={onBack} 
+          title="Salir del nivel"
+        >
+          <IconArrowLeft />
         </button>
 
         <div className="f2-header-right-group">

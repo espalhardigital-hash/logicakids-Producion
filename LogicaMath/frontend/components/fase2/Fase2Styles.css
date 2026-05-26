@@ -2006,9 +2006,72 @@
   transform: scale(0.95);
 }
 
-/* =========================================================================
-   ESTILOS PREMIUM DE LA CABECERA DE JUEGO (MODERNA Y UNIFICADA)
-   ========================================================================= */
+/* ── SPLASH SCREEN DE INICIO DE NIVEL ── */
+
+.f2-start-splash-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 15, 26, 0.98);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+
+.f2-splash-content {
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+}
+
+.f2-splash-badge {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  letter-spacing: 4px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.f2-splash-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+}
+
+.f2-splash-level {
+  display: inline-block;
+  padding: 10px 30px;
+  border-radius: 99px;
+  border: 1px solid;
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.f2-splash-hint {
+  font-family: 'Outfit', sans-serif;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .f2-splash-title {
+    font-size: 2.5rem;
+  }
+}
 
 .f2-game-header-modern {
   position: relative;
