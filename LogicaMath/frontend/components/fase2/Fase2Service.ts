@@ -93,6 +93,20 @@ export async function submitFase2Answer(
 }
 
 /**
+ * Cierra el bloque de rescate y avanza.
+ */
+export async function closeFase2Rescate(
+  moduloId: number, nivelId: number, preguntaId: number
+): Promise<Fase2AnswerResult> {
+  const res = await fetch(`${API_URL}/fase2/cerrar-rescate`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ modulo_id: moduloId, nivel_id: nivelId, pregunta_id: preguntaId }),
+  });
+  return handleResponse<Fase2AnswerResult>(res);
+}
+
+/**
  * Obtiene el contenido de lectura/teoría de un nivel.
  */
 export async function getFase2Reading(

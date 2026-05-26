@@ -9,7 +9,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import './Fase2Styles.css';
-import { getFase2Question, submitFase2Answer, getFase2Reading } from './Fase2Service';
+import { getFase2Question, submitFase2Answer, getFase2Reading, closeFase2Rescate } from './Fase2Service';
 import { Fase2TheoryModal } from './Fase2TheoryModal';
 import type {
   Fase2Pregunta,
@@ -72,6 +72,81 @@ const keyVariants = {
   show: { opacity: 1, y: 0 }
 };
 
+// ─── Componente: Modal de Rescate (Explicación Profunda) ──────────────────
+
+const Fase2RescateModal: React.FC<{
+  explicacion: any;
+  moduleColor: string;
+  onClose: () => void;
+}> = ({ explicacion, moduleColor, onClose }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      className="f2-feedback-overlay"
+      style={{ zIndex: 1000 }}
+    >
+      <motion.div 
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="f2-feedback-card rescate glass-card"
+        style={{ 
+          maxWidth: '550px', 
+          width: '90%', 
+          padding: '40px',
+          borderTop: `6px solid ${moduleColor}`
+        }}
+      >
+        <div className="f2-feedback-emoji" style={{ fontSize: '3rem', marginBottom: '20px' }}>💡</div>
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', marginBottom: '10px' }}>
+          {explicacion.titulo || '¡Vamos a repasar!'}
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '30px', fontSize: '1.1rem' }}>
+          No te preocupes, el Bucle Espejo está aquí para ayudarte a entender el concepto.
+        </p>
+
+        <div className="f2-rescate-pasos" style={{ textAlign: 'left', marginBottom: '40px' }}>
+          {explicacion.pasos?.map((p: any, idx: number) => (
+            <div key={idx} style={{ 
+              display: 'flex', 
+              gap: '15px', 
+              marginBottom: '15px', 
+              background: 'rgba(255,255,255,0.03)',
+              padding: '15px',
+              borderRadius: '12px',
+              borderLeft: `4px solid ${moduleColor}80`
+            }}>
+              <span style={{ fontWeight: 900, color: moduleColor }}>{p.orden || (idx + 1)}.</span>
+              <span style={{ color: '#fff', lineHeight: 1.4 }}>{p.texto}</span>
+            </div>
+          ))}
+        </div>
+
+        <button
+          className="f2-submit-btn"
+          onClick={onClose}
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: '18px',
+            borderRadius: '20px',
+            background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`,
+            color: 'white',
+            border: 'none',
+            fontWeight: 800,
+            fontSize: '1.1rem',
+            cursor: 'pointer',
+            boxShadow: `0 8px 24px ${moduleColor}30`
+          }}
+        >
+          ¡Entendido, continuar! →
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 // ─── Componente Principal ─────────────────────────────────────────────────
 
 const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBack }) => {
@@ -91,6 +166,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [isInitialReading, setIsInitialReading] = useState(true);
   const [readingData, setReadingData] = useState<Fase2Lectura | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | undefined>(undefined);
+  const [showRescate, setShowRescate] = useState(false);
   const navigate = useNavigate();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -250,7 +326,11 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         loadPregunta();
       }
     } else {
-      if (isChallenge) { loadPregunta(); } else if (feedback.resultado?.es_espejo) {
+      if (feedback.resultado?.soporte_avanzado) {
+        setShowRescate(true);
+      } else if (isChallenge) { 
+        loadPregunta(); 
+      } else if (feedback.resultado?.es_espejo) {
         loadPregunta();
       } else {
         setRespuesta('');
@@ -259,7 +339,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         setTimeout(() => inputRef.current?.focus(), 100);
       }
     }
-  }, [feedback, onBack, onComplete, pregunta, paso, loadPregunta, moduloId, isChallenge]);
+  }, [feedback, onBack, onComplete, pregunta, paso, loadPregunta, isChallenge]);
 
   // ── Envío de respuesta ──────────────────────────────────────────────────
 
@@ -1107,6 +1187,27 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             }}
             isInitialReading={isInitialReading}
             userAvatar={userAvatar}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Modal de Rescate (Explicación Profunda) ── */}
+      <AnimatePresence>
+        {showRescate && feedback.resultado?.explicacion && (
+          <Fase2RescateModal
+            explicacion={feedback.resultado.explicacion}
+            moduleColor={moduleColor}
+            onClose={async () => {
+              if (pregunta?.id) {
+                try {
+                  await closeFase2Rescate(moduloId, nivelId, pregunta.id);
+                } catch (e) {
+                  console.error("Error al cerrar rescate:", e);
+                }
+              }
+              setShowRescate(false);
+              loadPregunta();
+            }}
           />
         )}
       </AnimatePresence>

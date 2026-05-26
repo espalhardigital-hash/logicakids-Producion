@@ -20,7 +20,7 @@ from typing import Optional, List, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func, delete
+from sqlalchemy import select, and_, or_, func, delete
 from sqlalchemy.orm import selectinload
 
 from ..db.session import get_db
@@ -709,7 +709,7 @@ async def get_pregunta_fase2(
             if not originales:
                 originales = preguntas
 
-            # Buscar familias ya aprobadas
+            # Buscar familias ya tratadas (correctas o con bypass de explicación)
             res_solved = await db.execute(
                 select(Pregunta.estructura_padre_id)
                 .join(Intento, Intento.pregunta_id == Pregunta.id)
@@ -717,7 +717,10 @@ async def get_pregunta_fase2(
                     Intento.alumno_id == alumno.id,
                     Intento.fase_id == FASE2_ID,
                     Intento.seccion == seccion,
-                    Intento.es_correcta == True
+                    or_(
+                        Intento.es_correcta == True,
+                        Intento.respuesta_dada == "BYPASS_EXPLICACION"
+                    )
                 ))
             )
             solved_families = set(res_solved.scalars().all())
@@ -1092,13 +1095,14 @@ async def responder_fase2(
             intentos_espejo = len(family_attempts)
             
             espejo = intentos_espejo > 0
-            soporte_avanzado = intentos_espejo >= MAX_ESPEJO
+            soporte_avanzado = intentos_espejo >= (MAX_ESPEJO + 1)
 
         await db.commit()
 
         return Fase2ResultadoRespuesta(
             es_correcta=es_correcta,
             respuesta_correcta=respuesta_correcta_str,
+            explicacion=pregunta.explicacion_paso_a_paso if (not es_correcta and soporte_avanzado) else None,
             aciertos_acumulados=progreso.aciertos_acumulados,
             intentos_totales=progreso.intentos_totales,
             porcentaje_actual=progreso.porcentaje_actual,
