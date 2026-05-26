@@ -1,4 +1,4 @@
-/* Fase3Styles.css - Estética Cyberpunk para LogicaKids Pro Fase 3 */
+﻿/* Fase3Styles.css - Estética Cyberpunk para LogicaKids Pro Fase 3 */
 
 :root {
   --f3-bg-deep: #020617; /* slate-950 */
@@ -67,9 +67,9 @@
   gap: 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--f3-border);
-  padding: 10px 22px;
+  padding: 8px 20px;
   border-radius: 100px;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.5px;
 }

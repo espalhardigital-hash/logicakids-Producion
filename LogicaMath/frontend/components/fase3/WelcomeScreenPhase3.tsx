@@ -1,4 +1,4 @@
-/**
+﻿/**
  * WelcomeScreenPhase3.tsx
  * ─────────────────────────────────────────────────────────────
  * Hub de selección de módulos para la Fase 3: Problemas de Texto y Sistemas Simples.

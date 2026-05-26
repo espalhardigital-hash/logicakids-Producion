@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+﻿import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DetectiveNotebook } from './DetectiveNotebook';
 import { OperationBuilder } from './OperationBuilder';
@@ -53,7 +53,6 @@ export const Fase3GameScreen: React.FC = () => {
   const [availableNumbers, setAvailableNumbers] = useState<number[]>([]);
 
   const [timer, setTimer] = useState<number | null>(null);
-  const [maxTimer, setMaxTimer] = useState<number>(1);
   const [progreso, setProgreso] = useState({ aciertos: 0, intentos: 0, porcentaje: 0 });
   const [feedback, setFeedback] = useState<FeedbackState>({ visible: false, esCorrecta: false });
   const [shaking, setShaking] = useState(false);
@@ -76,7 +75,6 @@ export const Fase3GameScreen: React.FC = () => {
       
       if (q.tiene_cronometro && q.tiempo_limite_segundos) {
         setTimer(q.tiempo_limite_segundos);
-        setMaxTimer(q.tiempo_limite_segundos);
       } else {
         setTimer(null);
       }
@@ -249,10 +247,6 @@ export const Fase3GameScreen: React.FC = () => {
           <div className="f3-header-badge-pill">
             <span className="f3-badge-module" style={{ color: moduleColor }}>{moduleName.toUpperCase()}</span>
             <span className="f3-badge-divider">|</span>
-            <span className="f3-badge-level">FASE 3</span>
-            <span className="f3-badge-divider">|</span>
-            <span className="f3-badge-level">MÓDULO {moduloId === 99 ? 'MAESTRÍA' : moduloId}</span>
-            <span className="f3-badge-divider">|</span>
             <span className="f3-badge-level">NIVEL {nivelId}</span>
             <span className="f3-badge-divider">|</span>
             <span className="f3-badge-challenge">{isChallenge ? 'DESAFÍO' : 'PREGUNTA'} {progreso.aciertos}/{maxAciertos}</span>
@@ -268,11 +262,6 @@ export const Fase3GameScreen: React.FC = () => {
         <div className="f3-full-width-progress-bar">
           <div className="f3-full-width-progress-fill" style={{ width: `${barWidth}%`, background: `linear-gradient(90deg, ${moduleColor}80, ${moduleColor})` }} />
         </div>
-        {timer !== null && (
-          <div className="f3-timer-progress-bar" style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '3px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
-            <div className="f3-full-width-progress-fill" style={{ width: `${(timer / maxTimer) * 100}%`, background: timer <= 5 ? '#EF4444' : 'linear-gradient(90deg, #3B82F6, #10B981)', height: '100%' }} />
-          </div>
-        )}
       </header>
 
       <main className="f3-game-body" style={{ padding: '20px' }}>
