@@ -560,15 +560,6 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   if (!pregunta) return null;
 
-  const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    if (showSplash) {
-      const timer = setTimeout(() => setShowSplash(false), 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [showSplash]);
-
   return (
     <div className="f2-game-screen">
       {/* ── SplashScreen de Inicio de Nivel ── */}

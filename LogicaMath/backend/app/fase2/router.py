@@ -1114,13 +1114,12 @@ async def responder_fase2(
 async def cerrar_rescate_fase2(
     payload: Fase2CerrarRescate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
     """
     Cierra la explicación del bloque de rescate y registra un intento virtual 'BYPASS_EXPLICACION'.
     Esto incrementa la completitud del alumno y resetea el bucle espejo de forma fluida.
     """
-    alumno = await _get_alumno(db, current_user)
     modulo_id = payload.modulo_id
     nivel_id = payload.nivel_id
     seccion, operacion = _seccion_operacion(modulo_id, nivel_id)

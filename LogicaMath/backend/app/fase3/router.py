@@ -203,9 +203,8 @@ def _is_desafio_unlocked(progresos: dict, modulo_id: int, desafio_id: int, all_p
 @router.get("/dashboard", response_model=Fase3Dashboard)
 async def get_fase3_dashboard(
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
-    alumno = await _get_alumno(db, current_user)
 
     result = await db.execute(
         select(ProgresoMaestria).where(and_(
@@ -379,9 +378,8 @@ async def get_pregunta_fase3(
     modulo_id: int,
     nivel_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
-    alumno = await _get_alumno(db, current_user)
     seccion, operacion = _seccion_operacion(modulo_id, nivel_id)
     config = await _get_config(db, seccion, operacion)
 
@@ -567,9 +565,8 @@ async def get_pregunta_fase3(
 async def responder_fase3(
     payload: Fase3ResponderPregunta,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
-    alumno = await _get_alumno(db, current_user)
     modulo_id = payload.modulo_id
     nivel_id = payload.nivel_id
     seccion, operacion = _seccion_operacion(modulo_id, nivel_id)
@@ -833,7 +830,7 @@ async def get_lectura_fase3(
     modulo_id: int,
     nivel_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
     result = await db.execute(
         select(NivelTeoria).where(and_(
@@ -868,12 +865,11 @@ async def get_lectura_fase3(
 @router.post("/graduate")
 async def graduate_fase3(
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    alumno: Alumno = Depends(get_current_student),
 ):
     """
     Gradúa al alumno de Fase 3 a Fase 4 si todos los 25 niveles (13 práctica + 12 desafíos) están dominados.
     """
-    alumno = await _get_alumno(db, current_user)
 
     result = await db.execute(
         select(func.count(ProgresoMaestria.id)).where(and_(
