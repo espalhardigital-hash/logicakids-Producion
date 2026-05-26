@@ -123,6 +123,16 @@ Ante un error en la práctica, el alumno jamás debe ser castigado con un proble
 
 Al mantener una estructura casi idéntica, el alumno se familiariza con el patrón visual del problema, reduce la carga cognitiva, procesa la respuesta correcta revelada y enfoca su energía en aplicar el feedback recibido en el siguiente intento inmediato.
 
+### 4.4. Soporte Unificado para Entrada de Decimales
+En los módulos y niveles que involucren operaciones monetarias, fracciones o valores de coma flotante, los sistemas de entrada de datos (tanto el teclado físico como los teclados virtuales en pantalla) deben dar soporte de compatibilidad absoluto para los separadores decimales:
+* **Entrada de datos flexible:** Los cuadros de texto e inputs de respuestas deben aceptar tanto el punto decimal (`.`) como la coma decimal (`,`) de forma fluida. La expresión de validación regular en JS/TS recomendada es `/^[0-9,.\-]*$/`.
+* **Teclado en pantalla coherente:** Las teclas de separadores en los teclados numéricos virtuales deben mostrar de manera unificada el punto (`.`) en lugar de la coma, facilitando la familiarización de los estudiantes con las notaciones numéricas universales.
+
+### 4.5. Botón de Confirmación Inline Obligatorio
+Para asegurar consistencia visual y accesibilidad táctil, se prohíbe depender únicamente de la tecla del teclado virtual o del teclado físico para enviar respuestas:
+* **Botón en la Tarjeta:** Toda tarjeta de pregunta (`.f2-question-card` o equivalente) debe contener un botón inline visible de **"Confirmar"** que cambia a **"Continuar"** una vez procesada la respuesta.
+* **Visibilidad Absoluta:** Las hojas de estilo globales no deben ocultar por defecto la clase de los botones confirmadores (`.f2-submit-btn` o equivalente) a través de propiedades `display: none` genéricas. Si un teclado numérico inyecta su propio botón, los botones de otros tipos de preguntas (como opción múltiple) deben seguir mostrándose de forma explícita y bella con interacciones fluidas en la tarjeta.
+
 ---
 
 ## 5. Bloque de Rescate Explicativo (Bypass Conceptual)
@@ -179,6 +189,14 @@ Los tiempos (temporizadores) y la cantidad de preguntas de cada bloque estipulad
 Durante las fases de desarrollo, pruebas de campo e investigación activa, los tiempos óptimos y la fatiga del alumno son variables experimentales. Por ello, el sistema pedagógico de LogicaKids Pro habilita la **Calibración en Caliente**:
 * Desde el Panel de Administración, el Superusuario tiene la autoridad para modificar en tiempo real el número de preguntas (`cantidad_requerida`), activar/desactivar temporizadores (`usa_cronometro`) y alterar la duración de los mismos (`tiempo_default_segundos`) para cualquier nivel de práctica libre, desafío, módulo o fase.
 * Esto permite adaptar la presión temporal del juego a diferentes metodologías escolares, ritmos grupales o necesidades experimentales de investigación sin alterar la base de datos de manera estática ni requerir despliegues de código nuevos.
+
+### 6.3. Interfaz y Flujo de Salida Temprana (Early Exit Modal)
+El fin abrupto e inesperado de una sesión de evaluación es perjudicial para la concentración y la retención del estudiante. Por tanto, ante un escenario de *Early Exit* por acumulación de errores, el flujo visual debe responder bajo las siguientes reglas conceptuales:
+* **Pantalla de Error Final:** El estudiante debe ver primero el feedback visual (rojo) indicando que su respuesta fue incorrecta, cerrándolo por sí mismo mediante el botón confirmador.
+* **Modal Informativo de Salida Temprana:** Al cerrar el banner de error, en lugar de retornar abruptamente al menú, el juego debe abrir un modal prioritario con estética *glassmorphic* premium y un borde superior rojo neón (`#EF4444`) conteniendo el escudo protector (`🛡️`).
+* **Enfoque Pedagógico Positivo:** El texto del modal debe tener un tono motivador e instructivo. Debe explicar claramente que el intento actual no puede alcanzar el 90% mínimo de aprobación debido a las fallas acumuladas, pero le invita con entusiasmo a no rendirse, a practicar en los niveles de entrenamiento y a iniciar un nuevo intento cuando se sienta listo.
+* **Retorno Controlado:** Al pulsar el botón "Entendido, volver a intentar", la interfaz redirige limpiamente al dashboard de selección de niveles, liberando de forma segura la sesión y los intentos en la base de datos para iniciar de cero.
+
 ---
 
 ## 7. Reglas Universales de Aprobación, Completitud y Early Exit
@@ -238,6 +256,16 @@ Por tanto, el sistema pedagógico implementa dos vías legítimas y paralelas pa
 
 #### Regla Crítica de Integridad y Sincronización de Datos:
 Cualquier intervención manual de override que cambie el estado de un bloque o nivel en la tabla autoritativa `ProgresoMaestria` **debe disparar obligatoriamente una sincronización inmediata con el espejo de compatibilidad** `user.settings["unlockedLevels"]` (por ejemplo, asignando el valor `6` en caso de aprobación total, `1` en caso de liberación activa, o `0` en caso de bloqueo). Esto garantiza que el frontend heredado visualice coherentemente el estado administrativo sin desajustes de interfaz.
+
+### 7.5. Flujo de Celebración de Logros (Completion Achievements Modal)
+Para reforzar el impacto del progreso, la finalización exitosa de cualquier nivel de práctica o desafío no debe cerrar la pantalla de juego de manera tosca. Se debe gatillar un flujo de celebración premium:
+* **Modal de Logros Interactivo:** Una vez aprobados los requisitos de completitud y precisión en `handleFeedbackClose`, el juego suspende la interfaz principal y despliega un modal prioritario con estética *glass-card* premium e íconos animados de éxito (`🏆`, `⭐`).
+* **Estadísticas de la Sesión:** El modal presentará tres tarjetas detalladas de logros en tiempo real:
+  1. **Aciertos:** Número de respuestas correctas logradas.
+  2. **Precisión:** Porcentaje (%) de exactitud en las respuestas dadas.
+  3. **Puntos Ganados:** Recompensa de puntuación para gamificación (`+100` en prácticas, `+250` en desafíos).
+* **Motor Lógico de Recomendaciones:** El sistema incluye una caja que evalúa el nivel superado y sugiere con precisión pedagógica el siguiente reto que debe afrontar el alumno (ej: *"Ir al Nivel X+1"*, *"Iniciar Desafío 1"*, *"Siguiente Módulo"*, *"Avanzar a Fase X+1"*).
+* **Botón Progresivo:** El botón principal adopta el color del módulo y el texto sugerido por el recomendador pedagógico para llevar al estudiante directamente al mapa o al hub con su progreso guardado.
 
 ---
 

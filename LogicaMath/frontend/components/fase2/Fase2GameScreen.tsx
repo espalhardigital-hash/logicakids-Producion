@@ -19,7 +19,7 @@ import type {
   Fase2Lectura,
 } from './Fase2Types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Delete, ArrowRight } from 'lucide-react';
+import { BookOpen, Delete, ArrowRight, Trophy, Star, Target, Award } from 'lucide-react';
 import { getCurrentUserFull } from '../../services/storageService';
 import { useNavigate } from 'react-router-dom';
 
@@ -148,6 +148,266 @@ const Fase2RescateModal: React.FC<{
   );
 };
 
+// ─── Componente: Modal de Salida Temprana (Early Exit) ─────────────────────
+
+const Fase2EarlyExitModal: React.FC<{
+  moduleColor: string;
+  onClose: () => void;
+}> = ({ moduleColor, onClose }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      className="f2-feedback-overlay"
+      style={{ zIndex: 1000 }}
+    >
+      <motion.div 
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="f2-feedback-card early-exit glass-card"
+        style={{ 
+          maxWidth: '500px', 
+          width: '90%', 
+          padding: '40px',
+          borderTop: '6px solid #EF4444',
+          textAlign: 'center'
+        }}
+      >
+        <div className="f2-feedback-emoji" style={{ fontSize: '3.5rem', marginBottom: '24px' }}>🛡️</div>
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
+          ¡Desafío Incompleto!
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.85)', marginBottom: '20px', fontSize: '1.1rem', lineHeight: 1.5 }}>
+          Dado el número de errores acumulados, ya no es posible alcanzar el puntaje mínimo de aprobación (90%) para este desafío.
+        </p>
+        <p style={{ color: 'rgba(255,255,255,0.65)', marginBottom: '30px', fontSize: '1rem', lineHeight: 1.5 }}>
+          ¡No te preocupes! Los errores son una excelente oportunidad para aprender y mejorar. Repasa la teoría, practica un poco más en los niveles de entrenamiento y ¡vuelve a intentarlo! Tú puedes lograrlo. 💪🚀
+        </p>
+
+        <button
+          className="f2-submit-btn"
+          onClick={onClose}
+          style={{
+            display: 'flex',
+            width: '100%',
+            padding: '18px',
+            borderRadius: '20px',
+            background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`,
+            color: 'white',
+            border: 'none',
+            fontWeight: 800,
+            fontSize: '1.1rem',
+            cursor: 'pointer',
+            boxShadow: `0 8px 24px ${moduleColor}30`,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          Entendido, volver a intentar 👍
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// ─── Componente: Modal de Logros / Nivel Completado (Completion Modal) ───
+
+const Fase2CompletionModal: React.FC<{
+  moduloId: number;
+  nivelId: number;
+  isChallenge: boolean;
+  moduleColor: string;
+  progreso: { aciertos: number; intentos: number; porcentaje: number };
+  onClose: () => void;
+}> = ({ moduloId, nivelId, isChallenge, moduleColor, progreso, onClose }) => {
+  const precision = progreso.intentos > 0 ? Math.round((progreso.aciertos / progreso.intentos) * 100) : 100;
+  
+  const rec = useMemo(() => {
+    if (moduloId === 99) {
+      return {
+        titulo: '¡Héroe de la Fase 2! 🎉',
+        mensaje: '¡Has dominado por completo todos los desafíos de la Fase 2! Tu agilidad de cálculo y razonamiento numérico son extraordinarios. ¡Prepárate para la Fase 3!',
+        accion: 'Avanzar a Fase 3 🚀'
+      };
+    }
+    
+    if (isChallenge) {
+      if (nivelId === 13) {
+        return {
+          titulo: '¡Módulo Dominado! 🏆',
+          mensaje: '¡Increíble! Has superado el Desafío de Maestría y dominado el módulo al 100%. Sigue demostrando tu ingenio en el siguiente módulo de la Fase.',
+          accion: 'Siguiente Módulo 🚀'
+        };
+      } else {
+        return {
+          titulo: '¡Desafío Superado! ⭐',
+          mensaje: `¡Excelente precisión! Lograste superar este desafío con gran destreza. Prepárate para desbloquear la siguiente dificultad.`,
+          accion: `Desafío ${nivelId - 9} 🚀`
+        };
+      }
+    } else {
+      const totalLevels = (moduloId === 2 || moduloId === 3) ? 4 : 3;
+      if (nivelId === totalLevels) {
+        return {
+          titulo: '¡Práctica Finalizada! 💪',
+          mensaje: '¡Batería de entrenamiento completada al 100%! Ya estás listo para el reto supremo: superar la zona de desafíos del módulo.',
+          accion: 'Ir a Desafío 1 🚀'
+        };
+      } else {
+        return {
+          titulo: '¡Siguiente Nivel Desbloqueado! 🚀',
+          mensaje: `¡Buen entrenamiento! Has completado con éxito este nivel y el Nivel ${nivelId + 1} ya está disponible para ti.`,
+          accion: `Ir al Nivel ${nivelId + 1} 🚀`
+        };
+      }
+    }
+  }, [moduloId, nivelId, isChallenge]);
+
+  const levelText = isChallenge 
+    ? (nivelId === 13 ? 'Desafío Final: Maestría' : `Desafío ${nivelId - 10}`) 
+    : `Nivel ${nivelId}`;
+
+  const moduleText = MODULE_NAMES[moduloId] || `Módulo ${moduloId}`;
+
+  // Framer Motion variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      className="f2-feedback-overlay"
+      style={{ zIndex: 1100 }}
+    >
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="f2-feedback-card completion glass-card"
+        style={{ 
+          maxWidth: '550px', 
+          width: '92%', 
+          padding: '40px',
+          borderTop: `6px solid ${moduleColor}`,
+          textAlign: 'center'
+        }}
+      >
+        {/* Corona / Trofeo Animado */}
+        <motion.div 
+          variants={itemVariants}
+          animate={{ rotate: [0, -10, 10, -10, 10, 0], scale: [1, 1.1, 1.1, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
+          className="f2-feedback-emoji" 
+          style={{ fontSize: '4.5rem', marginBottom: '20px' }}
+        >
+          🏆
+        </motion.div>
+
+        <motion.h2 
+          variants={itemVariants}
+          style={{ fontSize: '2.1rem', fontWeight: 900, color: '#fff', marginBottom: '8px' }}
+        >
+          {isChallenge ? '¡Desafío Superado!' : '¡Nivel Completado!'}
+        </motion.h2>
+
+        <motion.p 
+          variants={itemVariants}
+          style={{ fontSize: '1.1rem', color: moduleColor, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '24px', fontWeight: 700 }}
+        >
+          {moduleText} — {levelText}
+        </motion.p>
+
+        {/* Grid de Logros */}
+        <motion.div 
+          variants={itemVariants}
+          style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(3, 1fr)', 
+            gap: '12px', 
+            marginBottom: '32px' 
+          }}
+        >
+          {/* Card 1: Aciertos */}
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '16px 8px' }}>
+            <Award size={24} style={{ color: '#F59E0B', margin: '0 auto 8px' }} />
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginBottom: '4px' }}>Aciertos</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fff' }}>{progreso.aciertos}</div>
+          </div>
+
+          {/* Card 2: Precisión */}
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '16px 8px' }}>
+            <Target size={24} style={{ color: '#10B981', margin: '0 auto 8px' }} />
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginBottom: '4px' }}>Precisión</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fff' }}>{precision}%</div>
+          </div>
+
+          {/* Card 3: Puntos */}
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '16px 8px' }}>
+            <Star size={24} style={{ color: '#8B5CF6', margin: '0 auto 8px' }} />
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginBottom: '4px' }}>Puntos</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fbbf24' }}>+{isChallenge ? '250' : '100'}</div>
+          </div>
+        </motion.div>
+
+        {/* Caja de Recomendación */}
+        <motion.div 
+          variants={itemVariants}
+          style={{ 
+            background: 'rgba(255,255,255,0.02)', 
+            borderLeft: `4px solid ${moduleColor}`, 
+            borderRadius: '12px', 
+            padding: '20px', 
+            textAlign: 'left', 
+            marginBottom: '32px' 
+          }}
+        >
+          <div style={{ fontWeight: 800, color: '#fff', fontSize: '1.1rem', marginBottom: '6px' }}>{rec.titulo}</div>
+          <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.95rem', lineHeight: 1.45 }}>{rec.mensaje}</div>
+        </motion.div>
+
+        {/* Botón de Continuación */}
+        <motion.button
+          variants={itemVariants}
+          className="f2-submit-btn"
+          onClick={onClose}
+          style={{
+            display: 'flex',
+            width: '100%',
+            padding: '18px',
+            borderRadius: '20px',
+            background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`,
+            color: 'white',
+            border: 'none',
+            fontWeight: 800,
+            fontSize: '1.1rem',
+            cursor: 'pointer',
+            boxShadow: `0 8px 24px ${moduleColor}30`,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          {rec.accion}
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 // ─── Componente Principal ─────────────────────────────────────────────────
 
 const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBack }) => {
@@ -175,6 +435,9 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [lastCorrectAnswer, setLastCorrectAnswer] = useState<string | undefined>(undefined);
   const [lastQuestionEnunciado, setLastQuestionEnunciado] = useState<string | undefined>(undefined);
   const [lastWrongAnswer, setLastWrongAnswer] = useState<string | undefined>(undefined);
+  const [showEarlyExit, setShowEarlyExit] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [isFaseCompletada, setIsFaseCompletada] = useState(false);
 
   // 23: Navigation
   const navigate = useNavigate();
@@ -270,7 +533,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const handleFeedbackClose = useCallback(() => {
     if (feedback.resultado?.early_exit) {
       setFeedback({ visible: false, esCorrecta: false });
-      onBack();
+      setShowEarlyExit(true);
       return;
     }
 
@@ -280,17 +543,18 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       return;
     }
 
-    setFeedback({ visible: false, esCorrecta: false });
-    
-    if (feedback.resultado?.fase_completada) {
-      alert("¡Felicidades! Has dominado todos los niveles y desafíos de la Fase 2. ¡Fase 3 desbloqueada!");
-      navigate('/map');
+    if (feedback.resultado?.fase_completada || feedback.resultado?.bloque_completado) {
+      if (feedback.resultado?.fase_completada) {
+        setIsFaseCompletada(true);
+      }
+      setFeedback({ visible: false, esCorrecta: false });
+      setShowCompletion(true);
       return;
     }
 
-    if (feedback.resultado?.bloque_completado) {
-      onComplete();
-    } else if (feedback.esCorrecta) {
+    setFeedback({ visible: false, esCorrecta: false });
+
+    if (feedback.esCorrecta) {
       if (pregunta?.tipo_pregunta === 'constructor_soluciones_chained') {
         if (feedback.resultado?.paso_aprobado === 2 || feedback.resultado?.paso_approved === 2) {
           loadPregunta();
@@ -315,7 +579,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         setTimeout(() => inputRef.current?.focus(), 100);
       }
     }
-  }, [feedback, onBack, onComplete, pregunta, paso, loadPregunta, isChallenge, navigate]);
+  }, [feedback, onBack, onComplete, pregunta, paso, loadPregunta, isChallenge, navigate, setShowEarlyExit, setShowCompletion, setIsFaseCompletada]);
 
   // 31: stopTimer
   const stopTimer = useCallback(() => {
@@ -838,6 +1102,30 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               else { setShowMirrorModal(false); loadPregunta(); }
             } else setShowMirrorModal(false);
           }} />
+        )}
+        {showEarlyExit && (
+          <Fase2EarlyExitModal moduleColor={moduleColor} onClose={() => { setShowEarlyExit(false); onBack(); }} />
+        )}
+        {showCompletion && (
+          <Fase2CompletionModal 
+            moduloId={moduloId}
+            nivelId={nivelId}
+            isChallenge={isChallenge}
+            moduleColor={moduleColor}
+            progreso={{
+              aciertos: progreso.aciertos,
+              intentos: progreso.intentos,
+              porcentaje: progreso.porcentaje
+            }}
+            onClose={() => {
+              setShowCompletion(false);
+              if (isFaseCompletada) {
+                navigate('/map');
+              } else {
+                onComplete();
+              }
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

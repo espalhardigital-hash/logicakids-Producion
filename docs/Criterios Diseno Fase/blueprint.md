@@ -199,7 +199,7 @@ Campos obligatorios:
 
 ## 4. Estándares Visuales y Motivacionales
 
-Para reducir la carga cognitiva y aumentar la sensación de logro, toda transición entre la teoría y la práctica debe incluir componentes visuales dinámicos.
+Para reducir la carga cognitiva y aumentar la sensación de logro, toda transición, finalización y salida de flujos debe incorporar componentes visuales dinámicos de alta fidelidad.
 
 ### 4.1. Animaciones de Transición (Ready Screen)
 
@@ -208,6 +208,25 @@ Al finalizar el carrusel de teoría (Paso 3), antes de que el alumno inicie la p
 * **Emoji Vectorial Animado:** Un icono representativo del avance (ej: 🚀 para Fase 2) con movimiento de flotación (y-axis) y rotación aleatoria suave.
 * **Efecto de Celebración:** Partículas o destellos (✨) pulsantes para reforzar el éxito del aprendizaje teórico.
 * **Botón de Acción Pulsante:** El botón final ("¡Entendido, empezar!") debe tener una animación de pulso (glow) y efectos de escala al pasar el mouse para incentivar el clic de inicio.
+
+### 4.2. Modal de Salida Temprana (Early Exit Modal)
+Ante una expulsión de la zona de desafíos, el frontend no debe cerrar la pantalla abruptamente. Debe seguir la siguiente directriz técnica:
+* **Estructura del Componente:** Modal prioritario sobre `AnimatePresence` de `framer-motion`. Utiliza una tarjeta esmerilada con `glass-card` con un grosor de borde superior destacado de `6px solid #EF4444` (rojo neón de advertencia).
+* **Elementos Visuales:** Icono representativo de escudo protector (`🛡️`) en tamaño destacado (`3.5rem` / `56px`), título en negrita (`fontWeight: 900`) y copia motivacional con emojis para inspirar resiliencia.
+* **Acción de Cierre:** Botón principal de tamaño completo con un degradado en la tonalidad cromática del módulo (`moduleColor`) que llama a `onBack()` para liberar la sesión limpiamente.
+
+### 4.3. Modal de Celebración de Logros (Completion Achievements Modal)
+Al terminar exitosamente un nivel o desafío, el frontend debe suspender temporalmente el flujo y gatillar un modal interactivo que premie la persistencia:
+* **Estructura:** Montado en un overlay prioritario (`zIndex: 1100`) con `AnimatePresence`. Tarjeta principal con borde superior de color del módulo actual (`6px solid ${moduleColor}`).
+* **Efecto de Corona:** Un trofeo animado (`🏆`) con animaciones periódicas de rotación y escalamiento (`rotate: [0, -10, 10, -10, 10, 0]`, `scale: [1, 1.1, 1.1, 1]`) mediante variables de transición infinitas.
+* **Grid de Logros:** Un contenedor flexible de 3 columnas para mostrar tarjetas secundarias (Aciertos, Precisión % y Puntos) con Lucide Icons (`Award`, `Target`, `Star`) de colores temáticos para jerarquía de información.
+* **Caja de Recomendación Pedagógica:** Caja con fondo semi-transparente y borde izquierdo destacado que muestra una recomendación inteligente basada en el nivel actual para guiar al estudiante a su próximo paso didáctico.
+* **Botón de Continuidad Dinámico:** Botón de confirmación destacado cuyo texto se calcula en caliente (ej: *"Ir al Nivel X+1 🚀"*, *"Siguiente Módulo 🚀"*) y que al pulsarse redirige de forma segura al dashboard.
+
+### 4.4. Botones de Confirmación Inline Obligatorios
+Todo tipo de interacción y pregunta (numérica, opción múltiple o pasos encadenados) debe contar con su botón de acción inline (`Confirmar` / `Continuar`) directamente integrado en la tarjeta de juego para consistencia táctil en móviles y tabletas:
+* **Especificaciones del Botón:** Clase `.f2-submit-btn` con `display: flex; align-items: center; justify-content: center; width: 100%; border: none; cursor: pointer; transition: all 0.2s ease;`.
+* **Micro-interacciones CSS:** Al pasar el cursor (`:hover`), el botón debe escalar suavemente (`transform: translateY(-2px)`), brillar (`filter: brightness(1.15)`) y proyectar una sombra suave (`box-shadow: 0 6px 20px rgba(0,0,0,0.3)`). Al presionarse (`:active`), debe retornar a su posición original (`transform: translateY(0)`). Si está deshabilitado (`:disabled`), se reduce su opacidad a `0.5` y cambia el cursor a `not-allowed`.
 
 ---
 
