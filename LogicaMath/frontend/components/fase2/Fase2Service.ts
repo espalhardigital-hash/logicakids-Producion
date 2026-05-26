@@ -68,7 +68,7 @@ export async function getFase2Dashboard(): Promise<Fase2Dashboard> {
  */
 export async function getFase2Question(
   moduloId: number, nivelId: number, reload: boolean = false): Promise<Fase2Pregunta> {
-  const key = `question-${moduloId}-${nivelId}`;
+  const key = `question-${moduloId}-${nivelId}-${reload}`;
   return fetchDeduplicated(key, async () => {
     const res = await fetch(
       `${API_URL}/fase2/modulo/${moduloId}/nivel/${nivelId}/pregunta?reload=${reload}`,

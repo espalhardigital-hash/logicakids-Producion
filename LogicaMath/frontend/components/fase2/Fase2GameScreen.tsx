@@ -254,71 +254,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     }
   }, [moduloId, nivelId, isChallenge]);
 
-  useEffect(() => { loadPregunta(true); }, [loadPregunta]);
-
-  const handleOpenReading = useCallback(async () => {
-    if (isChallenge) return;
-    setIsInitialReading(false);
-    try {
-      const data = await getFase2Reading(moduloId, nivelId);
-      setReadingData(data);
-      setShowReading(true);
-    } catch {
-      const fallback = MOCK_LECTURA(moduloId, nivelId);
-      setReadingData(fallback);
-      setShowReading(true);
-    }
-  }, [moduloId, nivelId, isChallenge]);
-
-  useEffect(() => {
-    if (isChallenge) {
-      setShowReading(false);
-      return;
-    }
-    const checkAndShowReading = async () => {
-      setIsInitialReading(true);
-      try {
-        const data = await getFase2Reading(moduloId, nivelId);
-        setReadingData(data);
-        setShowReading(true);
-      } catch {
-        const fallback = MOCK_LECTURA(moduloId, nivelId);
-        setReadingData(fallback);
-        setShowReading(true);
-      }
-    };
-    checkAndShowReading();
-  }, [moduloId, nivelId, isChallenge]);
-
-  // ── Temporizador ────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    if (timer === null) return;
-    if (timer <= 0) { 
-      // Timeout: submit automatically with empty response/no selection
-      handleSubmit(); 
-      return; 
-    }
-    timerRef.current = setInterval(() => setTimer(t => (t !== null ? t - 1 : null)), 1000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [timer, handleSubmit]);
-
-  const stopTimer = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = null;
-  };
-
-  // ── Selección de tokens (mód 4) ─────────────────────────────────────────
-
-  const toggleToken = (token: Fase2Token) => {
-    setTokensSeleccionados(prev =>
-      prev.includes(token.id)
-        ? prev.filter(id => id !== token.id)
-        : [...prev, token.id]
-    );
-  };
-
-  // ── Envío de respuesta ──────────────────────────────────────────────────
+  // ── Envío de respuesta y retroalimentación ──────────────────────────────
 
   const handleFeedbackClose = useCallback(() => {
     if (feedback.resultado?.early_exit) {
@@ -369,8 +305,6 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       }
     }
   }, [feedback, onBack, onComplete, pregunta, paso, loadPregunta, isChallenge]);
-
-  // ── Envío de respuesta ──────────────────────────────────────────────────
 
   const handleSubmit = useCallback(async () => {
     if (!pregunta) return;
@@ -500,6 +434,72 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSubmit();
   };
+
+  useEffect(() => { loadPregunta(true); }, [loadPregunta]);
+
+  const handleOpenReading = useCallback(async () => {
+    if (isChallenge) return;
+    setIsInitialReading(false);
+    try {
+      const data = await getFase2Reading(moduloId, nivelId);
+      setReadingData(data);
+      setShowReading(true);
+    } catch {
+      const fallback = MOCK_LECTURA(moduloId, nivelId);
+      setReadingData(fallback);
+      setShowReading(true);
+    }
+  }, [moduloId, nivelId, isChallenge]);
+
+  useEffect(() => {
+    if (isChallenge) {
+      setShowReading(false);
+      return;
+    }
+    const checkAndShowReading = async () => {
+      setIsInitialReading(true);
+      try {
+        const data = await getFase2Reading(moduloId, nivelId);
+        setReadingData(data);
+        setShowReading(true);
+      } catch {
+        const fallback = MOCK_LECTURA(moduloId, nivelId);
+        setReadingData(fallback);
+        setShowReading(true);
+      }
+    };
+    checkAndShowReading();
+  }, [moduloId, nivelId, isChallenge]);
+
+  // ── Temporizador ────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (timer === null) return;
+    if (timer <= 0) { 
+      // Timeout: submit automatically with empty response/no selection
+      handleSubmit(); 
+      return; 
+    }
+    timerRef.current = setInterval(() => setTimer(t => (t !== null ? t - 1 : null)), 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [timer, handleSubmit]);
+
+  const stopTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
+  };
+
+  // ── Selección de tokens (mód 4) ─────────────────────────────────────────
+
+  const toggleToken = (token: Fase2Token) => {
+    setTokensSeleccionados(prev =>
+      prev.includes(token.id)
+        ? prev.filter(id => id !== token.id)
+        : [...prev, token.id]
+    );
+  };
+
+
 
   const handleKeypadInput = (num: string) => {
     if (feedback.visible) return;
@@ -1030,68 +1030,98 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
             {/* ─ Constructor de Soluciones / Subrayado de Tokens (Módulo 4 - Niveles 3 y 4) ─ */}
             {pregunta.tipo_pregunta === 'subrayado_tokens' && (
-              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between', gap: '20px' }}>
                 <div className="f2-question-text-box">
-                  <div className={pregunta.enunciado.length < 25 ? "f2-question-text short" : "f2-question-text"}>
-                    {pregunta.enunciado}
+                  <div className="f2-question-text text-sm md:text-base opacity-80" style={{ marginBottom: '15px' }}>
+                    Selecciona las palabras o cantidades que contienen datos numéricos relevantes para resolver el problema:
                   </div>
                 </div>
-                
-                <div className="f2-numeric-input-wrap">
-                  <div 
-                    className={`f2-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`}
-                    onClick={() => inputRef.current?.focus()}
+
+                <div className="f2-tokens-flex-wrap" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', justifyContent: 'center' }}>
+                  {pregunta.payload_tokenizado?.map((token) => {
+                    const isSelected = tokensSeleccionados.includes(token.id);
+                    
+                    let bg = 'rgba(255,255,255,0.03)';
+                    let border = '1px solid rgba(255,255,255,0.08)';
+                    let color = '#ffffff';
+
+                    if (isSelected) {
+                      bg = `${moduleColor}25`;
+                      border = `2px solid ${moduleColor}`;
+                    }
+
+                    if (feedback.visible) {
+                      const isCorrectSelection = token.es_dato_relevante;
+                      if (isCorrectSelection) {
+                        bg = 'rgba(16, 185, 129, 0.15)';
+                        border = '2px solid var(--f2-correct)';
+                        color = 'var(--f2-correct)';
+                      } else if (isSelected) {
+                        bg = 'rgba(239, 68, 68, 0.15)';
+                        border = '2px solid var(--f2-error)';
+                        color = 'var(--f2-error)';
+                      }
+                    }
+
+                    return (
+                      <motion.button
+                        key={token.id}
+                        whileHover={!feedback.visible ? { scale: 1.05, backgroundColor: 'rgba(255,255,255,0.08)' } : {}}
+                        whileTap={!feedback.visible ? { scale: 0.95 } : {}}
+                        disabled={feedback.visible}
+                        onClick={() => toggleToken(token)}
+                        style={{
+                          padding: '10px 18px',
+                          borderRadius: '14px',
+                          background: bg,
+                          border: border,
+                          color: color,
+                          fontWeight: isSelected || (feedback.visible && token.es_dato_relevante) ? 800 : 500,
+                          fontSize: '1rem',
+                          cursor: feedback.visible ? 'default' : 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        {token.texto}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ marginTop: '20px' }}>
+                  <motion.button
+                    whileHover={!feedback.visible && tokensSeleccionados.length > 0 ? { scale: 1.02 } : {}}
+                    whileTap={!feedback.visible && tokensSeleccionados.length > 0 ? { scale: 0.98 } : {}}
+                    className="f2-submit-btn"
+                    onClick={handleSubmit}
+                    disabled={tokensSeleccionados.length === 0 && !feedback.visible}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '16px',
+                      borderRadius: '16px',
+                      background: tokensSeleccionados.length === 0 && !feedback.visible
+                        ? 'rgba(255, 255, 255, 0.03)' 
+                        : feedback.visible
+                          ? feedback.esCorrecta
+                            ? 'linear-gradient(135deg, var(--f2-correct)cc, var(--f2-correct))'
+                            : 'linear-gradient(135deg, var(--f2-error)cc, var(--f2-error))'
+                          : `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`,
+                      color: tokensSeleccionados.length === 0 && !feedback.visible ? 'rgba(255, 255, 255, 0.2)' : 'white',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: '1rem',
+                      cursor: tokensSeleccionados.length === 0 && !feedback.visible ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: tokensSeleccionados.length > 0 && !feedback.visible 
+                        ? `0 8px 24px ${moduleColor}30` 
+                        : 'none'
+                    }}
                   >
-                    {/* Hidden input to capture physical keyboard keys */}
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={respuesta}
-                      onChange={e => {
-                        if (!feedback.visible) {
-                          const val = e.target.value;
-                          if (/^[0-9,\-]*$/.test(val)) {
-                            setRespuesta(val);
-                          }
-                        }
-                      }}
-                      onKeyDown={handleKeyDown}
-                      className="f2-hidden-input"
-                      autoFocus
-                      autoComplete="off"
-                      inputMode="none"
-                    />
-                    
-                    <span className="f2-input-value-text">
-                      {feedback.visible 
-                        ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) 
-                        : (respuesta || '?')}
-                    </span>
-                    
-                    {feedback.visible && (
-                      <div className="f2-input-status-elements">
-                        {feedback.esCorrecta ? (
-                          <div className="f2-status-badge correct">
-                            <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          </div>
-                        ) : (
-                          <>
-                            <span className="f2-era-pill">
-                              Era: {feedback.resultado?.respuesta_correcta}
-                            </span>
-                            <div className="f2-status-badge incorrect">
-                              <svg className="f2-status-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                              </svg>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                    {feedback.visible 
+                      ? (feedback.esCorrecta ? 'Siguiente Pregunta →' : (isChallenge ? 'Continuar →' : 'Intentar de nuevo ↺')) 
+                      : 'Confirmar Selección'}
+                  </motion.button>
                 </div>
 
                 {!isChallenge && (
@@ -1130,7 +1160,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
           </motion.div>
 
           {/* Teclado Numérico Virtual (3x4 Layout) */}
-          {(pregunta.tipo_pregunta === 'respuesta_numerica' || pregunta.tipo_pregunta === 'constructor_soluciones_chained' || pregunta.tipo_pregunta === 'subrayado_tokens') && (
+          {(pregunta.tipo_pregunta === 'respuesta_numerica' || pregunta.tipo_pregunta === 'constructor_soluciones_chained') && (
             <motion.div 
               variants={keypadVariants}
               initial="hidden"

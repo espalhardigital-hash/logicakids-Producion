@@ -705,7 +705,7 @@ async def get_pregunta_fase2(
             if not preguntas:
                 raise HTTPException(status_code=404, detail="No hay preguntas en el pool para este nivel.")
 
-            originales = [q for q in preguntas if q.datos_numericos and q.datos_numericos.get("es_espejo") is False]
+            originales = [q for q in preguntas if not q.datos_numericos or q.datos_numericos.get("es_espejo") is not True]
             if not originales:
                 originales = preguntas
 
@@ -1040,7 +1040,7 @@ async def responder_fase2(
             if result_previo.scalar_one_or_none():
                 ya_resuelta = True
 
-        if es_correcta and not ya_resuelta and not es_variante_espejo:
+        if es_correcta and not ya_resuelta:
             progreso.aciertos_acumulados += 1
 
         if config:
@@ -1052,19 +1052,23 @@ async def responder_fase2(
             cantidad_req = pl_cfg.get("cantidad_requerida", 15)
             porc_aprobacion = pl_cfg.get("porcentaje_aprobacion", 80)
 
-        # NUEVO CÁLCULO DE PROGRESO POR COMPLETITUD (Familias únicas intentadas)
-        res_fam_intentadas = await db.execute(
+        # NUEVO CÁLCULO DE PROGRESO POR COMPLETITUD (Familias únicas resueltas con éxito o bypass)
+        res_fam_resueltas = await db.execute(
             select(func.count(func.distinct(Pregunta.estructura_padre_id)))
             .join(Intento, Intento.pregunta_id == Pregunta.id)
             .where(and_(
                 Intento.alumno_id == alumno.id,
                 Intento.fase_id == FASE2_ID,
-                Intento.seccion == seccion
+                Intento.seccion == seccion,
+                or_(
+                    Intento.es_correcta == True,
+                    Intento.respuesta_dada == "BYPASS_EXPLICACION"
+                )
             ))
         )
-        familias_intentadas = res_fam_intentadas.scalar() or 0
+        familias_resueltas = res_fam_resueltas.scalar() or 0
         
-        progreso.porcentaje_actual = min(100, int((familias_intentadas / cantidad_req) * 100)) if cantidad_req > 0 else 0
+        progreso.porcentaje_actual = min(100, int((familias_resueltas / cantidad_req) * 100)) if cantidad_req > 0 else 0
 
         bloque_completado = False
         fase_completada = False
@@ -1181,19 +1185,23 @@ async def cerrar_rescate_fase2(
         pl_cfg = global_cfg.get("practica_libre", {})
         cantidad_req = pl_cfg.get("cantidad_requerida", 15)
 
-    # Calcular progreso por completitud (familias intentadas)
-    res_fam_intentadas = await db.execute(
+    # Calcular progreso por completitud (familias resueltas con éxito o bypass)
+    res_fam_resueltas = await db.execute(
         select(func.count(func.distinct(Pregunta.estructura_padre_id)))
         .join(Intento, Intento.pregunta_id == Pregunta.id)
         .where(and_(
             Intento.alumno_id == alumno.id,
             Intento.fase_id == FASE2_ID,
-            Intento.seccion == seccion
+            Intento.seccion == seccion,
+            or_(
+                Intento.es_correcta == True,
+                Intento.respuesta_dada == "BYPASS_EXPLICACION"
+            )
         ))
     )
-    familias_intentadas = res_fam_intentadas.scalar() or 0
+    familias_resueltas = res_fam_resueltas.scalar() or 0
     
-    progreso.porcentaje_actual = min(100, int((familias_intentadas / cantidad_req) * 100)) if cantidad_req > 0 else 0
+    progreso.porcentaje_actual = min(100, int((familias_resueltas / cantidad_req) * 100)) if cantidad_req > 0 else 0
 
     bloque_completado = False
     fase_completada = False
