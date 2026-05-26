@@ -173,6 +173,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [showMirrorModal, setShowMirrorModal] = useState(false);
   const [mirrorPregunta, setMirrorPregunta] = useState<Fase2Pregunta | null>(null);
   const [lastCorrectAnswer, setLastCorrectAnswer] = useState<string | undefined>(undefined);
+  const [lastQuestionEnunciado, setLastQuestionEnunciado] = useState<string | undefined>(undefined);
 
   const navigate = useNavigate();
 
@@ -430,6 +431,10 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         setShaking(true);
         setTimeout(() => setShaking(false), 450);
         setFeedback({ visible: true, esCorrecta: false, resultado });
+        
+        if (!isChallenge && resultado.es_espejo) {
+          setLastQuestionEnunciado(pregunta.enunciado);
+        }
       }
     } catch (error: any) {
       if (isMockMode) {
@@ -1242,6 +1247,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             pregunta={mirrorPregunta}
             moduleColor={moduleColor}
             lastCorrectAnswer={lastCorrectAnswer}
+            lastQuestionEnunciado={lastQuestionEnunciado}
             onClose={(result) => {
               if (result) {
                 // Actualizar progreso con el resultado del espejo

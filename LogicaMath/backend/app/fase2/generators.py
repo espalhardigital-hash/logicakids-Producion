@@ -30,6 +30,11 @@ def _rnd(seed: int) -> random.Random:
     return r
 
 
+def _struct_rnd(seed: int) -> random.Random:
+    """Crea una instancia de Random para elecciones estructurales (misma para toda la familia)."""
+    return _rnd(seed // 10)
+
+
 def _centavos_validos() -> list:
     """Solo centavos pedagógicamente válidos en el sistema monetario brasileño."""
     return [0, 25, 50, 75]
@@ -51,9 +56,10 @@ def generate_modulo1_nivel1(seed: int) -> Dict[str, Any]:
     Nivel 1: Escalas y Proporciones.
     Pregunta el doble, la mitad o el triple de un número.
     """
-    r = _rnd(seed)
-    operacion = r.choice(["doble", "mitad", "triple"])
+    r_struct = _struct_rnd(seed)
+    operacion = r_struct.choice(["doble", "mitad", "triple"])
     
+    r = _rnd(seed)
     if operacion == "mitad":
         # Asegurar que sea par para resultado entero
         base = r.randint(2, 30) * 2
@@ -91,9 +97,10 @@ def generate_modulo1_nivel2(seed: int) -> Dict[str, Any]:
     Nivel 2: Orden de Operaciones (PEMDAS/BODMAS).
     Expresiones con suma, resta y multiplicación.
     """
-    r = _rnd(seed)
-    patron = r.choice(["a + b * c", "a * b + c", "a + b - c * d"])
+    r_struct = _struct_rnd(seed)
+    patron = r_struct.choice(["a + b * c", "a * b + c", "a + b - c * d"])
 
+    r = _rnd(seed)
     if patron == "a + b * c":
         a = r.randint(1, 20)
         b = r.randint(2, 10)
@@ -151,28 +158,34 @@ def generate_modulo1_nivel3(seed: int) -> Dict[str, Any]:
     Nivel 3: Problemas de texto que integran escalas y operaciones.
     Traduce palabras a operaciones matemáticas.
     """
-    r = _rnd(seed)
+    r_struct = _struct_rnd(seed)
     plantillas = [
         {
+            "id": 0,
             "gen": lambda r: (r.randint(3, 20), r.randint(2, 5)),
             "texto": lambda b, m: f"Ana tiene {b} canicas. Pedro tiene el {m} doble que ella. ¿Cuántas canicas tiene Pedro?",
             "calc": lambda b, m: b * m,
             "explicacion": lambda b, m: [f"Pedro tiene {m} veces las canicas de Ana.", f"{b} × {m} = {b * m}"],
         },
         {
+            "id": 1,
             "gen": lambda r: (r.randint(10, 50) * 2, None),
             "texto": lambda b, _: f"En una fiesta hay {b} globos. Al final de la fiesta se usó la mitad. ¿Cuántos globos quedaron?",
             "calc": lambda b, _: b // 2,
             "explicacion": lambda b, _: [f"La mitad de {b} es {b} ÷ 2 = {b // 2}"],
         },
         {
+            "id": 2,
             "gen": lambda r: (r.randint(5, 20), r.randint(2, 8)),
             "texto": lambda b, c: f"Una caja tiene {b} chocolates. Si compramos el triple de cajas, ¿cuántos chocolates tenemos en total?",
             "calc": lambda b, c: b * 3,
             "explicacion": lambda b, c: [f"Triple significa 3 veces.", f"{b} × 3 = {b * 3}"],
         },
     ]
-    t = r.choice(plantillas)
+    t_idx = r_struct.randint(0, len(plantillas) - 1)
+    t = plantillas[t_idx]
+    
+    r = _rnd(seed)
     vals = t["gen"](r)
     b, m = vals[0], vals[1]
     resultado = t["calc"](b, m)
@@ -200,11 +213,13 @@ def generate_modulo2_nivel1(seed: int) -> Dict[str, Any]:
     Nivel 1: Inversa de suma/resta.
     Dado a + b = c, pregunta c - b = ?
     """
+    r_struct = _struct_rnd(seed)
+    modo = r_struct.choice(["falta_a", "falta_b"])
+    
     r = _rnd(seed)
     a = r.randint(5, 40)
     b = r.randint(3, 30)
     c = a + b
-    modo = r.choice(["falta_a", "falta_b"])
 
     if modo == "falta_b":
         enunciado = f"Si {a} + ___ = {c}, ¿cuánto vale ___?"
@@ -235,11 +250,13 @@ def generate_modulo2_nivel2(seed: int) -> Dict[str, Any]:
     Nivel 2: Inversa de multiplicación/división.
     Dado a × b = c, pregunta c ÷ a = ?
     """
+    r_struct = _struct_rnd(seed)
+    modo = r_struct.choice(["falta_factor_b", "falta_factor_a"])
+    
     r = _rnd(seed)
     a = r.randint(2, 12)
     b = r.randint(2, 12)
     c = a * b
-    modo = r.choice(["falta_factor_b", "falta_factor_a"])
 
     if modo == "falta_factor_b":
         enunciado = f"Si {a} × ___ = {c}, ¿cuánto vale ___?"
@@ -269,9 +286,10 @@ def generate_modulo2_nivel3(seed: int) -> Dict[str, Any]:
     """
     Nivel 3: Número faltante con cualquier operación (mixta).
     """
+    r_struct = _struct_rnd(seed)
+    tipo = r_struct.choice(["suma_mixta", "resta_mixta", "mult_division"])
+    
     r = _rnd(seed)
-    tipo = r.choice(["suma_mixta", "resta_mixta", "mult_division"])
-
     if tipo == "suma_mixta":
         total = r.randint(15, 80)
         parte1 = r.randint(5, total - 5)
@@ -326,9 +344,11 @@ def generate_modulo3_nivel1(seed: int) -> Dict[str, Any]:
     Nivel 1: Reconocimiento de monedas y conversión a R$.
     Suma de monedas válidas (valores en centavos).
     """
+    r_struct = _struct_rnd(seed)
+    num_monedas = r_struct.randint(3, 6)
+    
     r = _rnd(seed)
     monedas_opciones = [5, 10, 25, 50, 100]  # centavos
-    num_monedas = r.randint(3, 6)
     monedas = [r.choice(monedas_opciones) for _ in range(num_monedas)]
     total = sum(monedas)
 
@@ -353,9 +373,16 @@ def generate_modulo3_nivel2(seed: int) -> Dict[str, Any]:
     """
     Nivel 2: Pago exacto — suma de precios de productos.
     """
-    r = _rnd(seed)
-    num_productos = r.randint(2, 4)
-    seleccionados = r.sample(PRODUCTOS, num_productos)
+    r_struct = _struct_rnd(seed)
+    num_productos = r_struct.randint(2, 4)
+    # Para sample necesitamos consistencia en la selección si queremos el mismo set de productos
+    # Pero aquí r.sample usará el seed de valores, así que cada variante tendrá productos distintos.
+    # Si queremos los mismos productos pero diferentes precios (no aplica aquí porque precios son fijos),
+    # o simplemente que sea "el mismo tipo de problema".
+    # Como los precios son fijos, si cambiamos los productos, cambiamos la respuesta.
+    # El usuario quiere "la misma pregunta con número o enunciado muy parecido".
+    # Entonces r_struct debe elegir los productos.
+    seleccionados = r_struct.sample(PRODUCTOS, num_productos)
     total = sum(p[1] for p in seleccionados)
 
     lista = ", ".join([f"{p[0]} ({_fmt_reais(p[1])})" for p in seleccionados])
@@ -379,9 +406,10 @@ def generate_modulo3_nivel3(seed: int) -> Dict[str, Any]:
     """
     Nivel 3: Cálculo de troco (cambio/vuelto).
     """
-    r = _rnd(seed)
-    num_productos = r.randint(1, 3)
-    seleccionados = r.sample(PRODUCTOS, num_productos)
+    r_struct = _struct_rnd(seed)
+    num_productos = r_struct.randint(1, 3)
+    seleccionados = r_struct.sample(PRODUCTOS, num_productos)
+    
     total_compra = sum(p[1] for p in seleccionados)
 
     # Calcular billete justo encima del total (50, 100, 200, 500, 1000 centavos = R$ 0.50, 1, 2, 5, 10)
@@ -420,8 +448,8 @@ def generate_modulo2_nivel4(seed: int) -> Dict[str, Any]:
     Nivel 4: Gran Integración.
     Combina de forma aleatoria inversa +/- (Nivel 1), inversa * / / (Nivel 2) y número faltante (Nivel 3).
     """
-    r = _rnd(seed)
-    sub = r.randint(1, 3)
+    r_struct = _struct_rnd(seed)
+    sub = r_struct.randint(1, 3)
     if sub == 1:
         return generate_modulo2_nivel1(seed)
     elif sub == 2:
@@ -436,13 +464,14 @@ def generate_modulo3_nivel4(seed: int) -> Dict[str, Any]:
     Dado un presupuesto (billete) y una lista de compras, calcula si sobra o falta dinero,
     y devuelve la cantidad exacta de diferencia formateada como R$ X,XX.
     """
-    r = _rnd(seed)
+    r_struct = _struct_rnd(seed)
     # Seleccionar presupuesto
-    billete = r.choice([500, 1000, 1500, 2000])  # R$ 5.00, R$ 10.00, R$ 15.00, R$ 20.00
+    billete = r_struct.choice([500, 1000, 1500, 2000])  # R$ 5.00, R$ 10.00, R$ 15.00, R$ 20.00
     
     # Seleccionar productos
-    num_productos = r.randint(1, 3)
-    seleccionados = r.sample(PRODUCTOS, num_productos)
+    num_productos = r_struct.randint(1, 3)
+    seleccionados = r_struct.sample(PRODUCTOS, num_productos)
+    
     total_compra = sum(p[1] for p in seleccionados)
     
     # Si la compra es igual al billete, ajustamos un producto

@@ -9,13 +9,15 @@ interface Props {
   moduleColor: string;
   onClose: (result?: Fase2AnswerResult) => void;
   lastCorrectAnswer?: string;
+  lastQuestionEnunciado?: string;
 }
 
 export const Fase2MirrorModal: React.FC<Props> = ({ 
   pregunta, 
   moduleColor, 
   onClose,
-  lastCorrectAnswer 
+  lastCorrectAnswer,
+  lastQuestionEnunciado
 }) => {
   const [respuesta, setRespuesta] = useState('');
   const [feedback, setFeedback] = useState<{
@@ -26,9 +28,13 @@ export const Fase2MirrorModal: React.FC<Props> = ({
   const [shaking, setShaking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Resetear estado cuando cambie la pregunta (para pasar a la siguiente variante)
   useEffect(() => {
+    setRespuesta('');
+    setFeedback({ visible: false, esCorrecta: false });
+    setShaking(false);
     setTimeout(() => inputRef.current?.focus(), 300);
-  }, []);
+  }, [pregunta.id]);
 
   const handleKeypadInput = (num: string) => {
     if (feedback.visible) return;
@@ -103,17 +109,22 @@ export const Fase2MirrorModal: React.FC<Props> = ({
 
         <div className="flex items-center gap-4 mb-2">
           <div className="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest">
-            MODO ESPEJO
+            ¡SEGUNDA OPORTUNIDAD!
           </div>
           <div className="text-white/40 text-xs font-bold">
-            Pausa pedagógica para reforzar el concepto
+            Vamos a repasar juntos el concepto
           </div>
         </div>
 
         {lastCorrectAnswer && (
           <div className="f2-mirror-reveal-box bg-green-500/10 border border-green-500/20 p-4 rounded-2xl mb-2">
             <span className="text-green-500 font-bold text-sm block mb-1">REPASO:</span>
-            <span className="text-white text-lg">La respuesta correcta anterior era: <strong>{lastCorrectAnswer}</strong></span>
+            {lastQuestionEnunciado && (
+              <div className="text-white/60 text-sm mb-2 italic">
+                Pregunta anterior: "{lastQuestionEnunciado}"
+              </div>
+            )}
+            <span className="text-white text-lg">La respuesta correcta era: <strong>{lastCorrectAnswer}</strong></span>
           </div>
         )}
 
@@ -176,7 +187,7 @@ export const Fase2MirrorModal: React.FC<Props> = ({
                   className="w-full mt-4 p-4 rounded-2xl bg-white/10 text-white font-bold hover:bg-white/20 transition-colors"
                   onClick={() => onClose(feedback.resultado)}
                 >
-                  Siguiente Variante Espejo →
+                  ¡Intentar de nuevo! →
                 </motion.button>
               )}
             </motion.div>
