@@ -129,7 +129,7 @@ NIVELES_META = {
 
 def _seccion_operacion(modulo_id: int, nivel_id: int) -> tuple:
     """Mapea (módulo, nivel) → (sección, operación) para ConfiguracionProgreso."""
-    if nivel_id in (11, 12, 13):
+    if modulo_id == 99 or nivel_id in (11, 12, 13):
         # Desafíos
         seccion = modulo_id * 1000 + nivel_id
         return seccion, "mixta"
@@ -500,13 +500,16 @@ async def get_pregunta_fase2(
         )
         correct_pregunta_ids = set(result.scalars().all())
 
-        # Si modulo_id == 99, traer preguntas de toda la fase 2
-        query = select(Pregunta).options(selectinload(Pregunta.alternativas)).options(selectinload(Pregunta.alternativas)).where(and_(
+        # Si modulo_id == 99, traer preguntas de toda la fase 2 (preferiblemente de nivel 13)
+        query = select(Pregunta).options(selectinload(Pregunta.alternativas)).where(and_(
             Pregunta.fase_id == FASE2_ID,
             Pregunta.estado == StatusEnum.ACTIVO
         ))
         
-        if modulo_id != 99:
+        if modulo_id == 99:
+            # Filtrar solo preguntas de nivel de maestría (desafío final de cada módulo)
+            query = query.where(func.mod(Pregunta.seccion, 100) == 13)
+        else:
             query = query.where(Pregunta.seccion == seccion)
 
         result = await db.execute(query)
@@ -531,13 +534,13 @@ async def get_pregunta_fase2(
 
         if config:
             tiene_crono = config.usa_cronometro
-            tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
+            tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
         else:
             global_cfg = await _get_global_config(db)
             des_cfg = global_cfg.get("desafios", {})
             tiene_crono = des_cfg.get("usa_cronometro", True)
             tiempo_key = f"tiempo_default_segundos_{nivel_id}"
-            tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
+            tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
 
         if not tiene_crono:
             tiempo_lim = None
@@ -858,9 +861,12 @@ async def responder_fase2(
 
     # 3. ACTUALIZAR PROGRESO Y LÓGICAS ESPECIALES
     
-    # 3.1 MODO DESAFÍO (11, 12, 13) -> Salida Temprana (Early Exit)
-    if nivel_id in (11, 12, 13):
-        max_errores = 2 if nivel_id == 13 else 3
+    # 3.1 MODO DESAFÍO (11, 12, 13 o Mod 99) -> Salida Temprana (Early Exit)
+    if modulo_id == 99 or nivel_id in (11, 12, 13):
+        if modulo_id == 99:
+            max_errores = 3 # 20 preguntas, 90% precisión = 18 aciertos, 3er error aborta
+        else:
+            max_errores = 2 if nivel_id == 13 else 3
         
         result_att = await db.execute(
             select(Intento)
@@ -935,7 +941,10 @@ async def responder_fase2(
             else:
                 global_cfg = await _get_global_config(db)
                 des_cfg = global_cfg.get("desafios", {})
-                cantidad_req    = des_cfg.get("cantidad_requerida", 10 if nivel_id == 13 else 25)
+                if modulo_id == 99:
+                    cantidad_req = 20
+                else:
+                    cantidad_req = des_cfg.get("cantidad_requerida", 10 if nivel_id == 13 else 25)
                 porc_aprobacion = des_cfg.get("porcentaje_aprobacion", 90)
 
             # Progreso en desafío: ratio aciertos / cantidad_req (no familias)
