@@ -371,9 +371,38 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
                     {currentSlide.data}
                   </div>
                 </div>
-                <div className="f2-ready-msg">
-                  ¡Excelente trabajo!<br />
-                  Estás listo para la práctica libre.
+
+                <div className="f2-ready-container">
+                  <motion.div 
+                    className="f2-ready-rocket"
+                    animate={{ 
+                      y: [0, -15, 0],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{ 
+                      duration: 3, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    🚀
+                  </motion.div>
+                  <div className="f2-ready-msg">
+                    ¡Excelente trabajo!<br />
+                    Estás listo para la práctica libre.
+                  </div>
+                  <div className="f2-ready-stars">
+                    {[...Array(5)].map((_, i) => (
+                      <motion.span 
+                        key={i}
+                        className="f2-ready-star"
+                        animate={{ opacity: [0.2, 1, 0.2], scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2 + i * 0.5, repeat: Infinity }}
+                      >
+                        ✨
+                      </motion.span>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             )}

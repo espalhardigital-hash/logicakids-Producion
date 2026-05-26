@@ -118,11 +118,11 @@ Campos:
 
 * `id`: UUID Primary Key.
 * `fase_id`: ID de la fase.
-* `modulo_id`: ID del módulo.
+* `modulo_id`: ID del módulo. Usar **modulo_id 99** para el Desafío Final de Maestría de la Fase completa.
 * `desafio_id`: Identificador del desafío (`1`, `2` o `3`).
-* `seccion`: Código derivado calculado como `modulo_id * 1000 + nivel_virtual`, donde los niveles virtuales son `11`, `12` y `13`.
-* `tipo_segmento`: Tipo de sección (`desafio_1`, `desafio_2`, `desafio_final`).
-* `tipo_pregunta`: Enum estricto (`MULTIPLE_OPCION` o `EVOCACION_PURA`). Es la única fuente de verdad para la interfaz.
+* `seccion`: Código derivado calculado como `modulo_id * 1000 + nivel_virtual`. Para el Desafío Final de Fase el código estándar es **99099**.
+* `tipo_segmento`: Tipo de sección (`desafio_1`, `desafio_2`, `desafio_final`, `maestria_fase`).
+* `tipo_pregunta`: Enum estricto (`MULTIPLE_OPCION` o `EVOCACION_PURA`). El Desafío Final (Módulo 99) debe ser siempre `EVOCACION_PURA`.
 * `enunciado_visual`: Texto, fórmula o problema.
 * `respuesta_correcta`: Valor esperado.
 * `datos_numericos`: JSONB configuracional de tiempos y flags.
@@ -197,7 +197,21 @@ Campos obligatorios:
 
 ---
 
-## 4. Paso 2: Plantilla de Seeder (`seed.py`)
+## 4. Estándares Visuales y Motivacionales
+
+Para reducir la carga cognitiva y aumentar la sensación de logro, toda transición entre la teoría y la práctica debe incluir componentes visuales dinámicos.
+
+### 4.1. Animaciones de Transición (Ready Screen)
+
+Al finalizar el carrusel de teoría (Paso 3), antes de que el alumno inicie la práctica libre, la interfaz debe presentar una **Pantalla de Lanzamiento** que incluya:
+
+* **Emoji Vectorial Animado:** Un icono representativo del avance (ej: 🚀 para Fase 2) con movimiento de flotación (y-axis) y rotación aleatoria suave.
+* **Efecto de Celebración:** Partículas o destellos (✨) pulsantes para reforzar el éxito del aprendizaje teórico.
+* **Botón de Acción Pulsante:** El botón final ("¡Entendido, empezar!") debe tener una animación de pulso (glow) y efectos de escala al pasar el mouse para incentivar el clic de inicio.
+
+---
+
+## 5. Paso 2: Plantilla de Seeder (`seed.py`)
 
 El archivo `seed.py` de la fase debe crearse en `app/fase{X}/seed.py` y estructurarse en secciones deterministas. Cualquier error durante la inserción no debe silenciarse. Los bloques `try/except` deben imprimir el traceback completo y relanzar la excepción para que el contenedor falle explícitamente.
 

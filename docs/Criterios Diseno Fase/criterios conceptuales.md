@@ -79,6 +79,7 @@ Toda la carga teórica de un nivel se almacena de forma pre-renderizada en base 
 
 * **Bloque de Advertencia:** Exposición explícita de la debilidad o error más común.
 * **Diccionario del Nivel:** Lista estructurada que traduce términos narrativos a operadores matemáticos.
+* **Pantalla de Lanzamiento (Launch Animation):** Momento de transición motivacional antes de la práctica. Debe incluir un **Emoji Vectorial Animado** (ej: 🚀) con movimiento de flotación, **Efecto de Celebración** con destellos pulsantes (✨) y un **Botón de Acción Pulsante**.
 * **Llamado a la Acción:** Botón final "¡Entendido, empezar!" que cierra el carrusel y libera la Batería de Práctica Libre.
 
 ---
