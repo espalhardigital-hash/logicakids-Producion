@@ -10,10 +10,19 @@ import { ArrowLeft } from 'lucide-react';
 import './Fase3Styles.css';
 
 const MODULE_NAMES: Record<number, string> = {
-  1: 'El Escáner de la Verdad',
-  2: 'La Máquina del Tiempo',
-  3: 'El Ojo del Comerciante',
-  4: 'El Maestro del Empaque',
+  1: 'Detective Literario',
+  2: 'Secuencia Temporal',
+  3: 'Deducción de Precios',
+  4: 'Reparto y Residuos',
+  5: 'Ciclos y Agrupaciones Máximas',
+};
+
+const MODULE_COLORS: Record<number, string> = {
+  1: '#F97316', // Orange
+  2: '#EAB308', // Yellow
+  3: '#3B82F6', // Blue
+  4: '#A855F7', // Purple
+  5: '#10B981', // Emerald Green
 };
 
 interface FeedbackState {
@@ -33,7 +42,7 @@ export const Fase3GameScreen: React.FC = () => {
   const isChallenge = moduloId === 99 || (nivelId >= 11 && nivelId <= 13);
   const maxAciertos = isChallenge ? (nivelId === 13 ? 10 : 20) : 15;
   const moduleName = MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
-  const moduleColor = '#F97316'; // Neon Orange
+  const moduleColor = MODULE_COLORS[moduloId] ?? '#F97316';
 
   const [pregunta, setPregunta] = useState<Fase3Pregunta | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,7 +112,7 @@ export const Fase3GameScreen: React.FC = () => {
   const handleFeedbackClose = useCallback(() => {
     if (feedback.resultado?.early_exit) {
       setFeedback({ visible: false, esCorrecta: false });
-      navigate('/dashboard');
+      navigate('/welcome-fase3');
       return;
     }
 
@@ -121,7 +130,7 @@ export const Fase3GameScreen: React.FC = () => {
     }
 
     if (feedback.resultado?.bloque_completado) {
-      navigate('/dashboard');
+      navigate('/welcome-fase3');
     } else if (feedback.esCorrecta) {
       loadNextQuestion();
     } else {
@@ -176,7 +185,7 @@ export const Fase3GameScreen: React.FC = () => {
             navigate('/map');
           }, 1500);
         } else if (resultado.bloque_completado) {
-          setTimeout(() => navigate('/dashboard'), 1500);
+          setTimeout(() => navigate('/welcome-fase3'), 1500);
         } else {
           setTimeout(() => {
             setFeedback({ visible: false, esCorrecta: false });
@@ -229,7 +238,7 @@ export const Fase3GameScreen: React.FC = () => {
       </AnimatePresence>
 
       <header className="f3-game-header-modern">
-        <button className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-red-500/20 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm text-red-400 font-sans" onClick={() => navigate('/dashboard')}>
+        <button className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-red-500/20 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm text-red-400 font-sans" onClick={() => navigate('/welcome-fase3')}>
           <ArrowLeft size={18} />
           <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">SALIR DEL NIVEL</span>
         </button>

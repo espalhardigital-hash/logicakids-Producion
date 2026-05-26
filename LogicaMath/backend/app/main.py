@@ -6,8 +6,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import auth_users, admin, pedagogia, ai
-from .fase2 import router as fase2_router
-from .fase3 import router as fase3_router
+from .fase2.router import router as fase2_router
+from .fase3.router import router as fase3_router
 from .config import settings
 
 app = FastAPI(title="LogicaKids Pro API", version="3.0.0")

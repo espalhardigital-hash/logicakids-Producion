@@ -391,7 +391,19 @@ const AppContent: React.FC = () => {
           } />
 
           <Route path="/welcome-fase3" element={
-            currentUser ? <WelcomeScreenPhase3 /> : <Navigate to="/login" replace />
+            currentUser ? (
+              <WelcomeScreenPhase3
+                studentName={currentUser.username}
+                userAvatar={currentUser.avatar}
+                userRole={currentUser.role}
+                onModuleSelect={(moduloId, nivelId) => {
+                  navigate('/fase3/play', { state: { moduloId, nivelId: nivelId || 1 } });
+                }}
+                onBack={() => navigate('/map')}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
           } />
 
           <Route path="/fase2/play" element={
