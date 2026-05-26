@@ -873,10 +873,10 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
     # ── MÓDULO 3: Deducción de Precios ───────────────────────────────────────
     elif modulo_id == 3:
         if nivel_id == 1: # Comparación de Carritos
-            lapices = rng.randint(2, 5)
-            gomas = rng.randint(1, 3)
-            precio_lapiz = rng.randint(2, 4)
-            precio_goma = rng.randint(4, 6)
+            lapices = rng.randint(2, 12)
+            gomas = rng.randint(1, 10)
+            precio_lapiz = rng.randint(2, 15)
+            precio_goma = rng.randint(4, 25)
             tot_a = lapices * precio_lapiz + gomas * precio_goma
             tot_b = tot_a + precio_goma
             ans = precio_goma
@@ -884,9 +884,9 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             feedback = "Deduce la diferencia: el Carrito B tiene exactamente una goma más y cuesta la diferencia de los precios totales."
             vals = {"lapices": lapices, "gomas": gomas, "tot_a": tot_a, "tot_b": tot_b}
         elif nivel_id == 2: # Grilla de Doble Entrada
-            precio_regla = rng.randint(2, 5)
-            precio_cuaderno = rng.randint(6, 10)
-            cant_cuadernos = rng.randint(2, 3)
+            precio_regla = rng.randint(2, 15)
+            precio_cuaderno = rng.randint(6, 30)
+            cant_cuadernos = rng.randint(2, 8)
             tot_a = cant_cuadernos * precio_cuaderno
             tot_b = tot_a + 2 * precio_regla
             ans = precio_regla
@@ -894,8 +894,8 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             feedback = "Sustituye el valor conocido de los cuadernos en la segunda cuenta, resta ese valor del total, y divide el sobrante entre las 2 reglas."
             vals = {"cuadernos": cant_cuadernos, "tot_a": tot_a, "tot_b": tot_b}
         else: # Álgebra Visual
-            total = rng.choice([20, 30, 40, 50, 60, 80, 100])
-            dif = rng.choice([4, 6, 8, 10, 12, 16, 20])
+            total = rng.randint(20, 250)
+            dif = rng.randint(2, 40)
             # Asegurar consistencia para evitar decimales extraños
             if (total - dif) % 2 != 0:
                 total += 1
@@ -932,26 +932,26 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
     # ── MÓDULO 5: Ciclos y Agrupaciones Máximas ──────────────────────────────
     else:
         if nivel_id == 1: # Visualización de Saltos y Empaques
-            salto = rng.choice([3, 4, 5, 6])
-            dist = salto * rng.randint(6, 15)
+            salto = rng.randint(3, 15)
+            dist = salto * rng.randint(6, 40)
             ans = dist // salto
             enunciado = f"{prefix}Una rana da saltos de {salto} metros de longitud en la recta numérica. ¿Cuántos saltos debe dar para llegar exactamente a los {dist} metros?"
             feedback = "Divide la distancia total que debe recorrer entre la longitud de cada uno de sus saltos."
             vals = {"salto": salto, "dist": dist}
         elif nivel_id == 2: # Encuentros Periódicos - MCM
-            a = rng.choice([3, 4, 5, 6])
-            b = rng.choice([4, 5, 6, 8])
+            a = rng.randint(3, 15)
+            b = rng.randint(4, 25)
             while a == b:
-                b = rng.choice([4, 5, 6, 8])
+                b = rng.randint(4, 25)
             ans = math.lcm(a, b)
             enunciado = f"{prefix}Un semáforo se enciende en verde cada {a} segundos, y otro semáforo lo hace cada {b} segundos. Si ambos se encienden juntos ahora, ¿en cuántos segundos volverán a coincidir?"
-            feedback = "Calcula el Mínimo Común Múltiplo (MCM) de ambos intervalos de tiempo. El menor múltiplo común es el punto de encuentro."
+            feedback = "Calcula el Mínimo Común Múltiplo (MCM) de ambos intervalos de tiempo. El menor múltiplo común es el point de encuentro."
             vals = {"a": a, "b": b}
         else: # División Máxima Exacta - MCD
-            a = rng.choice([12, 16, 20, 24, 30])
-            b = rng.choice([18, 24, 30, 36, 40])
+            a = rng.randint(10, 60)
+            b = rng.randint(12, 80)
             while a == b or math.gcd(a, b) < 2:
-                b = rng.choice([18, 24, 30, 36, 40])
+                b = rng.randint(12, 80)
             ans = math.gcd(a, b)
             enunciado = f"{prefix}Queremos cortar dos cuerdas de {a} metros y {b} metros en pedazos iguales lo más largos posible, sin que sobre nada. ¿De cuántos metros medirá cada pedazo?"
             feedback = "Calcula el Máximo Común Divisor (MCD) de las dos longitudes de cuerda para hallar el tamaño máximo de corte idéntico."
@@ -1039,7 +1039,7 @@ def generate_challenge_question(modulo_id: int, desafio_id: int, idx: int) -> Di
         ans = a - b + c
         enunciado = f"Un camión sale del patio con {a} cajas de frutas. Entrega {b} cajas en el supermercado y luego carga {c} cajas nuevas. ¿Cuántas cajas lleva?"
     elif modulo_id == 3:
-        p_item = rng.randint(3, 6)
+        p_item = rng.randint(3, 180)
         ans = p_item
         tot_a = 2 * p_item + 10
         tot_b = 3 * p_item + 10
@@ -1050,10 +1050,10 @@ def generate_challenge_question(modulo_id: int, desafio_id: int, idx: int) -> Di
         ans = tot % cap
         enunciado = f"Un panadero hizo {tot} panes y los agrupó en bolsas de {cap} panes cada una. ¿Cuántos panes quedaron sueltos fuera de las bolsas completas?"
     else: # Módulo 5
-        a = rng.choice([3, 4, 5])
-        b = rng.choice([6, 8, 10])
-        while a == b:
-            b = rng.choice([6, 8, 10])
+        a = rng.randint(3, 20)
+        b = rng.randint(4, 30)
+        while a == b or math.gcd(a, b) < 2:
+            b = rng.randint(4, 30)
         ans = math.lcm(a, b)
         enunciado = f"Un atleta corre en una pista y tarda {a} minutos por vuelta, y su compañero tarda {b} minutos. Si salen juntos, ¿en cuántos minutos se encuentran de nuevo?"
         
