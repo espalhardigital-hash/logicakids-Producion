@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import math
 import sys
 import random
@@ -19,6 +19,9 @@ from app.models.sql_models import (
     OperacionEnum,
     TipoPreguntaEnum,
     TipoErrorEnum,
+    Intento,
+    IntentoPregunta,
+    PoolAsignadoAlumno,
 )
 from app.fase2.models import NivelTeoria
 
@@ -38,12 +41,23 @@ class NivelTeoriaSeederSchema(BaseModel):
 
 async def clear_fase3_data(session: AsyncSession):
     print("Purging existing Fase 3 data for quick iteration (Overwrite)...")
-    await session.execute(delete(Alternativa).where(Alternativa.pregunta_id.in_(
-        select(Pregunta.id).where(Pregunta.fase_id == FASE3_ID)
-    )))
+    
+    # Get all question IDs for Phase 3
+    pregunta_ids = select(Pregunta.id).where(Pregunta.fase_id == FASE3_ID)
+    
+    # Delete references to prevent ForeignKeyViolationError
+    await session.execute(delete(Alternativa).where(Alternativa.pregunta_id.in_(pregunta_ids)))
+    await session.execute(delete(IntentoPregunta).where(IntentoPregunta.pregunta_id.in_(pregunta_ids)))
+    await session.execute(delete(Intento).where(Intento.pregunta_id.in_(pregunta_ids)))
+    await session.execute(delete(PoolAsignadoAlumno).where(PoolAsignadoAlumno.pregunta_id.in_(pregunta_ids)))
+    
+    # Delete main questions
     await session.execute(delete(Pregunta).where(Pregunta.fase_id == FASE3_ID))
+    
+    # Delete progress config and theory
     await session.execute(delete(ConfiguracionProgreso).where(ConfiguracionProgreso.fase_id == FASE3_ID))
     await session.execute(delete(NivelTeoria).where(NivelTeoria.fase_id == FASE3_ID))
+    
     await session.commit()
     print("Fase 3 data purged.")
 
