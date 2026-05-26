@@ -539,8 +539,9 @@ async def get_pregunta_fase2(
         ))
         
         if modulo_id == 99:
-            # Filtrar solo preguntas de nivel de maestría (desafío final de cada módulo)
-            query = query.where(func.mod(Pregunta.seccion, 100) == 13)
+            # Filtrar solo preguntas de nivel de maestría (Desafío Final: secciones 1013, 2013, 3013, 4013)
+            # Las secciones de desafíos se calculan como módulo*1000+nivel (ej: 1*1000+13=1013)
+            query = query.where(func.mod(Pregunta.seccion, 1000) == 13)
         else:
             query = query.where(Pregunta.seccion == seccion)
 
