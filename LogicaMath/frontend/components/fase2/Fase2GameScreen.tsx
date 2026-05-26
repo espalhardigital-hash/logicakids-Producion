@@ -231,6 +231,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       if (data.datos_numericos?.es_espejo) {
         setMirrorPregunta(data);
         setShowMirrorModal(true);
+        setPregunta(data); // <-- FIX: Set it to data so the background UI renders behind the modal
         setLoading(false);
         return;
       }
@@ -547,7 +548,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 {/* Contenido adaptativo */}
                 {pregunta.tipo_pregunta === 'respuesta_numerica' && (
                   <div className="flex flex-col h-full justify-between">
-                    <div className="f2-question-text-box"><div className={pregunta.enunciado.length < 25 ? "f2-question-text short" : "f2-question-text"}>{pregunta.enunciado}</div></div>
+                    <div className="f2-question-text-box"><div className={(pregunta.enunciado || '').length < 25 ? "f2-question-text short" : "f2-question-text"}>{pregunta.enunciado}</div></div>
                     <div className="f2-numeric-input-wrap">
                       <div className={`f2-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`} onClick={() => inputRef.current?.focus()}>
                         <input ref={inputRef} type="text" value={respuesta} onChange={e => !feedback.visible && /^[0-9,\-]*$/.test(e.target.value) && setRespuesta(e.target.value)} onKeyDown={handleKeyDown} className="f2-hidden-input" autoFocus autoComplete="off" inputMode="none" />
