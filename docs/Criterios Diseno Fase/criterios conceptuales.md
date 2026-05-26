@@ -107,7 +107,8 @@ Esta regla debe mapearse técnicamente en las tablas de práctica y/o desafíos 
 La Práctica Libre es un entorno de **entrenamiento y afianzamiento de conceptos**, no de evaluación. Por ello, **no lleva temporizador** y el alumno no debe ser bloqueado ni frustrado ante el error. Si el alumno responde incorrectamente, el sistema activa un bucle de aprendizaje dinámico de hasta 3 variantes espejo consecutivas y revela de forma inmediata la respuesta esperada:
 
 1. **Primera Falla: Pregunta Original → Variante Espejo 1**  
-   El servidor congela el avance de la barra, registra el intento fallido, **muestra automáticamente la respuesta que era correcta** en pantalla y entrega feedback del Tutor Invisible. Inmediatamente inyecta la **Variante Espejo 1** (misma situación y estructura sintáctica, pero con números o enunciados ligeramente diferentes).
+   El servidor congela el avance de la barra, registra el intento fallido, **muestra automáticamente la respuesta que era correcta** en pantalla y entrega feedback del Tutor Invisible. Inmediatamente inyecta la **Variante Espejo 1**.  
+   *Regla de Integridad de Datos:* Las fallas cometidas dentro de las variantes espejo **no penalizan el contador de errores visual ni reducen el porcentaje de precisión** del alumno; se consideran parte del proceso de aprendizaje seguro.
 2. **Segunda Falla: Variante Espejo 1 → Variante Espejo 2**  
    Si el alumno vuelve a fallar en la primera variante, se repite el proceso: **se revela la respuesta que era correcta**, se muestra el feedback visual del Tutor Invisible e inyecta la **Variante Espejo 2**.
 3. **Tercera Falla: Variante Espejo 2 → Variante Espejo 3**  

@@ -521,7 +521,8 @@ Reglas de práctica libre:
 Reglas de desafío:
 
 * Evalúa la respuesta sin Bucle Espejo.
-* Si expira el tiempo, computa error.
+* Si expira el tiempo, computa error automáticamente y avanza a la siguiente pregunta tras un breve feedback visual.
+* Ante una respuesta incorrecta, el sistema muestra feedback (rojo) por 1.5 segundos y realiza un **auto-avance fluido** a la siguiente pregunta para mantener el ritmo de evaluación.
 * Si `errores_sesion >= max_errores`, retorna:
 
 ```json

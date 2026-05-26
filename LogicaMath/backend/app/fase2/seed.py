@@ -46,7 +46,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 1,
             "nivel_id": 1,
             "titulo": "Conceptos de doble, triple, mitad y cuádruple",
-            "texto_descubrimiento": "¡Hola, atleta de la mente! Bienvenido al Gimnasio Numérico. Hoy vas a entrenar tus músculos lógicos con los Multiplicadores de Tamaño. Cuando doblas, triplicas o cuadruplicas un número, estás usando un rayo de crecimiento matemático. Si lo partes a la mitad, usas un rayo reductor.",
+            "texto_descubrimiento": "Comprender el doble, el triple o el cuádruple de una cantidad significa aplicar un factor de escala mediante la multiplicación. Cuando calculas el doble de un número, no estás simplemente sumando; estás tomando esa misma cantidad exacta dos veces. De manera similar, la mitad de un número es un proceso de partición equitativa: significa dividir la cantidad original en dos partes exactamente iguales. Dominar estas escalas te permitirá proyectar y reducir cantidades de forma rápida y mental, lo cual es la base del pensamiento proporcional.",
             "diccionario": {
                 "El Doble": "Multiplica por 2 (× 2).",
                 "El Triple": "Multiplica por 3 (× 3).",

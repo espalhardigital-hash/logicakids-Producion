@@ -179,6 +179,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoAdvanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Si el moduloId es 99, es un Desafío Mixto, que no usa teoría
   const isChallenge = moduloId === 99 || (nivelId >= 11 && nivelId <= 13);
@@ -293,10 +294,14 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   useEffect(() => {
     if (timer === null) return;
-    if (timer <= 0) { handleSubmit(); return; }
+    if (timer <= 0) { 
+      // Timeout: submit automatically with empty response/no selection
+      handleSubmit(); 
+      return; 
+    }
     timerRef.current = setInterval(() => setTimer(t => (t !== null ? t - 1 : null)), 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [timer]);
+  }, [timer, handleSubmit]);
 
   const stopTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -434,6 +439,13 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         
         if (!isChallenge && resultado.es_espejo) {
           setLastQuestionEnunciado(pregunta.enunciado);
+        }
+
+        if (isChallenge) {
+          // Auto advance on incorrect answer in challenge — 1500ms to see the error and correct answer
+          setTimeout(() => {
+            handleFeedbackClose();
+          }, 1500);
         }
       }
     } catch (error: any) {
@@ -826,7 +838,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     }}
                   >
                     {feedback.visible 
-                      ? (feedback.esCorrecta ? 'Siguiente Pregunta →' : 'Intentar de nuevo ↺') 
+                      ? (feedback.esCorrecta ? 'Siguiente Pregunta →' : (isChallenge ? 'Continuar →' : 'Intentar de nuevo ↺')) 
                       : 'Confirmar Respuesta'}
                   </motion.button>
                 </div>

@@ -135,6 +135,7 @@ El comportamiento de la interfaz ante un cierre de pestaña o recarga accidental
   * **Mensaje de Orientación:** Se despliega un banner superior flotante motivador que recuerda al estudiante: *"¡Entrenamiento reiniciado! Completa la batería sin interrupciones para consolidar tu superpoder"* para mitigar la frustración.
 * **En Desafíos (Evaluación):**
   * **Restauración del Estado:** Se reanuda la evaluación en la pregunta exacta y tiempo restante en que se encontraba, sin penalizar el progreso pero manteniendo inalterados los errores acumulados (hidratación desde API).
+  * **Auto-avance en Errores/Timeout:** Para mantener el ritmo de evaluación, ante un error o expiración del tiempo, el sistema muestra feedback visual (rojo) por 1.5 segundos y avanza automáticamente a la siguiente pregunta.
 
 ### 5.2. Feedback Visual de Error
 
@@ -149,6 +150,8 @@ En una respuesta incorrecta:
 * bloqueo de avance hasta que el alumno presiona el botón `"Siguiente Variante Espejo"`.
 
 El sistema revela la respuesta correcta de inmediato tras cada error en Práctica Libre para guiar el aprendizaje activo. En la Zona de Desafíos, no se revela la respuesta correcta y se avanza directamente descontando vidas/tiempo.
+
+*Regla de Score:* Las fallas cometidas en **Variantes Espejo** no se contabilizan en el marcador visual de "Errores" ni afectan la precisión estadística del alumno, reforzando el concepto de entrenamiento sin miedo.
 
 ### 5.3. Bloque de Rescate Explicativo
 

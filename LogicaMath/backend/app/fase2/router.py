@@ -819,18 +819,24 @@ async def responder_fase2(
 
     if tipo_pregunta == "multiple_opcion":
         if not payload.alternativa_id:
-            raise HTTPException(status_code=400, detail="alternativa_id es requerido para preguntas de opción múltiple.")
-        
-        alternativa_elegida = next((a for a in pregunta.alternativas if a.id == payload.alternativa_id), None)
-        if not alternativa_elegida:
-            raise HTTPException(status_code=404, detail="Alternativa elegida no encontrada.")
-        
-        es_correcta = alternativa_elegida.es_correcta
-        correct_alt = next((a for a in pregunta.alternativas if a.es_correcta), None)
-        respuesta_correcta_str = correct_alt.texto if correct_alt else pregunta.respuesta_correcta
-        if not es_correcta:
-            tipo_error = alternativa_elegida.tipo_error
-            feedback_mostrado = alternativa_elegida.feedback_error
+            # Caso de timeout o no selección: tratamos como error
+            es_correcta = False
+            alternativa_elegida = None
+            correct_alt = next((a for a in pregunta.alternativas if a.es_correcta), None)
+            respuesta_correcta_str = correct_alt.texto if correct_alt else pregunta.respuesta_correcta
+            tipo_error = TipoErrorEnum.CALCULO
+            feedback_mostrado = "¡Se acabó el tiempo! Intenta responder más rápido la próxima vez."
+        else:
+            alternativa_elegida = next((a for a in pregunta.alternativas if a.id == payload.alternativa_id), None)
+            if not alternativa_elegida:
+                raise HTTPException(status_code=404, detail="Alternativa elegida no encontrada.")
+            
+            es_correcta = alternativa_elegida.es_correcta
+            correct_alt = next((a for a in pregunta.alternativas if a.es_correcta), None)
+            respuesta_correcta_str = correct_alt.texto if correct_alt else pregunta.respuesta_correcta
+            if not es_correcta:
+                tipo_error = alternativa_elegida.tipo_error
+                feedback_mostrado = alternativa_elegida.feedback_error
 
     elif tipo_pregunta == "constructor_soluciones_chained":
         pasos = (pregunta.datos_numericos or {}).get("pasos", [])
@@ -1014,7 +1020,13 @@ async def responder_fase2(
 
 
     else:
-        progreso.intentos_totales += 1
+        # Práctica Libre (1-10): No contamos intentos ni aciertos si es una variante espejo 
+        # para no penalizar el "Score" visual del alumno en modo entrenamiento.
+        es_variante_espejo = (pregunta.datos_numericos and pregunta.datos_numericos.get("es_espejo"))
+        
+        if not es_variante_espejo:
+            progreso.intentos_totales += 1
+        
         ya_resuelta = False
         if es_correcta:
             result_previo = await db.execute(
@@ -1028,7 +1040,7 @@ async def responder_fase2(
             if result_previo.scalar_one_or_none():
                 ya_resuelta = True
 
-        if es_correcta and not ya_resuelta:
+        if es_correcta and not ya_resuelta and not es_variante_espejo:
             progreso.aciertos_acumulados += 1
 
         if config:
