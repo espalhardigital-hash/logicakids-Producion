@@ -19,7 +19,7 @@ import type {
   Fase2Lectura,
 } from './Fase2Types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Delete, ArrowRight, Trophy, Star, Target, Award } from 'lucide-react';
+import { BookOpen, Delete, ArrowRight, Trophy, Star, Target, Award, Compass } from 'lucide-react';
 import { getCurrentUserFull } from '../../services/storageService';
 import { useNavigate } from 'react-router-dom';
 
@@ -408,6 +408,210 @@ const Fase2CompletionModal: React.FC<{
   );
 };
 
+// ─── Componente: Modal de Graduación de Fase (Phase Graduation Modal) ──────
+
+const Fase2PhaseGraduationModal: React.FC<{
+  studentName: string;
+  onClose: () => void;
+}> = ({ studentName, onClose }) => {
+  // Framer motion variants
+  const containerVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    show: {
+      opacity: 1,
+      scale: 1,
+      transition: { staggerChildren: 0.15, duration: 0.5, type: 'spring' }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    show: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 200, damping: 20 } }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      className="f2-feedback-overlay"
+      style={{ zIndex: 1200, background: 'rgba(7, 11, 20, 0.95)' }}
+    >
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="f2-feedback-card graduation glass-card"
+        style={{ 
+          maxWidth: '650px', 
+          width: '92%', 
+          padding: '45px 35px',
+          borderTop: '6px solid #10B981',
+          textAlign: 'center',
+          boxShadow: '0 0 40px rgba(16, 185, 129, 0.15)',
+          overflowY: 'auto',
+          maxHeight: '90vh'
+        }}
+      >
+        <motion.div 
+          variants={itemVariants}
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 360, 360] }}
+          transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 }}
+          className="f2-feedback-emoji" 
+          style={{ fontSize: '5rem', marginBottom: '20px' }}
+        >
+          👑
+        </motion.div>
+
+        <motion.h1 
+          variants={itemVariants}
+          style={{ fontSize: '2.3rem', fontWeight: 900, color: '#fff', marginBottom: '10px', textShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}
+        >
+          ¡Felicidades, {studentName}! 🎉
+        </motion.h1>
+
+        <motion.p 
+          variants={itemVariants}
+          style={{ fontSize: '1.15rem', color: 'rgba(255, 255, 255, 0.75)', marginBottom: '35px', maxWidth: '500px', margin: '0 auto 35px' }}
+        >
+          ¡Has completado y dominado con éxito toda la **Fase 2: Desarrollo Numérico y Razonamiento**! Eres oficialmente un héroe matemático de LogicaKids Pro. 🛡️✨
+        </motion.p>
+
+        {/* Infografía: El Gran Viaje de Fase 2 */}
+        <motion.div 
+          variants={itemVariants}
+          style={{ 
+            background: 'rgba(255, 255, 255, 0.02)', 
+            border: '1px solid rgba(255, 255, 255, 0.05)', 
+            borderRadius: '24px', 
+            padding: '24px', 
+            marginBottom: '35px',
+            position: 'relative'
+          }}
+        >
+          <div style={{ fontWeight: 800, color: '#fff', fontSize: '1.1rem', marginBottom: '24px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Compass size={20} style={{ color: '#10B981' }} />
+            Tu Mapa de Ruta Conquistado
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', padding: '0 10px' }}>
+            {/* Línea Conectora */}
+            <div style={{ position: 'absolute', top: '24px', left: '40px', right: '40px', height: '4px', background: 'linear-gradient(90deg, #10B981, #8B5CF6, #F59E0B, #EC4899)', zIndex: 0, opacity: 0.6, borderRadius: '2px' }} />
+
+            {/* Nodo 1: Mód 1 */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, width: '22%' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, boxShadow: '0 0 15px rgba(16, 185, 129, 0.5)', border: '3px solid #fff' }}>
+                ✓
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff', marginTop: '10px', textAlign: 'center' }}>Módulo 1</span>
+              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: '2px' }}>Gimnasio Mental</span>
+            </div>
+
+            {/* Nodo 2: Mód 2 */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, width: '22%' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, boxShadow: '0 0 15px rgba(139, 92, 246, 0.5)', border: '3px solid #fff' }}>
+                ✓
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff', marginTop: '10px', textAlign: 'center' }}>Módulo 2</span>
+              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: '2px' }}>Tablas en Acción</span>
+            </div>
+
+            {/* Nodo 3: Mód 3 */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, width: '22%' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, boxShadow: '0 0 15px rgba(245, 158, 11, 0.5)', border: '3px solid #fff' }}>
+                ✓
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff', marginTop: '10px', textAlign: 'center' }}>Módulo 3</span>
+              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: '2px' }}>Tienda</span>
+            </div>
+
+            {/* Nodo 4: Mód 4 */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, width: '22%' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#EC4899', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, boxShadow: '0 0 15px rgba(236, 72, 153, 0.5)', border: '3px solid #fff' }}>
+                ✓
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff', marginTop: '10px', textAlign: 'center' }}>Módulo 4</span>
+              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: '2px' }}>Constructor</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Estadísticas Históricas del Logro */}
+        <motion.div 
+          variants={itemVariants}
+          style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(2, 1fr)', 
+            gap: '16px', 
+            marginBottom: '40px' 
+          }}
+        >
+          {/* Card 1: Niveles Superados */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '20px' }}>
+            <Award size={36} style={{ color: '#10B981' }} />
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>26 / 26</div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>Niveles Superados</div>
+            </div>
+          </div>
+
+          {/* Card 2: Módulos Dominados */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '20px' }}>
+            <Trophy size={36} style={{ color: '#F59E0B' }} />
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>4 / 4</div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>Módulos Dominados</div>
+            </div>
+          </div>
+
+          {/* Card 3: Ejercicios Resueltos */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '20px' }}>
+            <Star size={36} style={{ color: '#8B5CF6' }} />
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fbbf24' }}>300+</div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>Ejercicios Logrados</div>
+            </div>
+          </div>
+
+          {/* Card 4: Conceptos Dominados */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '20px' }}>
+            <Target size={36} style={{ color: '#EC4899' }} />
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>12+</div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>Conceptos Clave</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Botón de Lanzamiento de Fase 3 */}
+        <motion.button
+          variants={itemVariants}
+          className="f2-submit-btn"
+          onClick={onClose}
+          style={{
+            display: 'flex',
+            width: '100%',
+            padding: '20px',
+            borderRadius: '24px',
+            background: 'linear-gradient(135deg, #10B981cc, #10B981)',
+            color: 'white',
+            border: 'none',
+            fontWeight: 900,
+            fontSize: '1.25rem',
+            cursor: 'pointer',
+            boxShadow: '0 10px 30px rgba(16, 185, 129, 0.4)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px'
+          }}
+        >
+          ¡Avanzar al Siguiente Nivel / Fase 3! 🚀
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 // ─── Componente Principal ─────────────────────────────────────────────────
 
 const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBack }) => {
@@ -438,6 +642,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [showEarlyExit, setShowEarlyExit] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isFaseCompletada, setIsFaseCompletada] = useState(false);
+  const [studentName, setStudentName] = useState('Estudiante');
+  const [showGraduation, setShowGraduation] = useState(false);
 
   // 23: Navigation
   const navigate = useNavigate();
@@ -467,6 +673,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     const fetchUser = async () => {
       try {
         const user = await getCurrentUserFull();
+        if (user?.username) setStudentName(user.username);
         if (user?.avatar) setUserAvatar(user.avatar);
       } catch (e) { console.error(e); }
     };
@@ -543,10 +750,13 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       return;
     }
 
-    if (feedback.resultado?.fase_completada || feedback.resultado?.bloque_completado) {
-      if (feedback.resultado?.fase_completada) {
-        setIsFaseCompletada(true);
-      }
+    if (feedback.resultado?.fase_completada) {
+      setFeedback({ visible: false, esCorrecta: false });
+      setShowGraduation(true);
+      return;
+    }
+
+    if (feedback.resultado?.bloque_completado) {
       setFeedback({ visible: false, esCorrecta: false });
       setShowCompletion(true);
       return;
@@ -579,7 +789,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         setTimeout(() => inputRef.current?.focus(), 100);
       }
     }
-  }, [feedback, onBack, onComplete, pregunta, paso, loadPregunta, isChallenge, navigate, setShowEarlyExit, setShowCompletion, setIsFaseCompletada]);
+  }, [feedback, onBack, onComplete, pregunta, paso, loadPregunta, isChallenge, navigate, setShowEarlyExit, setShowCompletion, setIsFaseCompletada, setShowGraduation]);
 
   // 31: stopTimer
   const stopTimer = useCallback(() => {
@@ -1105,6 +1315,9 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         )}
         {showEarlyExit && (
           <Fase2EarlyExitModal moduleColor={moduleColor} onClose={() => { setShowEarlyExit(false); onBack(); }} />
+        )}
+        {showGraduation && (
+          <Fase2PhaseGraduationModal studentName={studentName} onClose={() => { setShowGraduation(false); navigate('/map'); }} />
         )}
         {showCompletion && (
           <Fase2CompletionModal 

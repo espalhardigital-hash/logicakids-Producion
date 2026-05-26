@@ -228,6 +228,18 @@ Todo tipo de interacción y pregunta (numérica, opción múltiple o pasos encad
 * **Especificaciones del Botón:** Clase `.f2-submit-btn` con `display: flex; align-items: center; justify-content: center; width: 100%; border: none; cursor: pointer; transition: all 0.2s ease;`.
 * **Micro-interacciones CSS:** Al pasar el cursor (`:hover`), el botón debe escalar suavemente (`transform: translateY(-2px)`), brillar (`filter: brightness(1.15)`) y proyectar una sombra suave (`box-shadow: 0 6px 20px rgba(0,0,0,0.3)`). Al presionarse (`:active`), debe retornar a su posición original (`transform: translateY(0)`). Si está deshabilitado (`:disabled`), se reduce su opacidad a `0.5` y cambia el cursor a `not-allowed`.
 
+### 4.5. Pantalla Monumental de Graduación de Fase (Phase Graduation Modal)
+Al completar exitosamente toda la fase (por ejemplo, superando la batería final de maestría de modulo 99), el frontend debe bloquear la pantalla y gatillar una interfaz conmemorativa espectacular:
+* **Estructura Técnica:** Overlay prioritario (`zIndex: 1200`) a pantalla completa esmerilada (`rgba(7, 11, 20, 0.95)`). Tarjeta principal destacada con borde superior de color de éxito (`6px solid #10B981`) y una gran sombra exterior (`box-shadow: 0 0 40px rgba(16, 185, 129, 0.15)`).
+* **Animaciones de la Corona:** Icono de corona real (`👑`) en tamaño monumental (`5rem` / `80px`) que ejecuta giros tridimensionales y escalados continuos periódicos mediante variables infinitas de Framer Motion.
+* **Infografía de Ruta Conquistada:** Contenedor con borde tenue que dibuja una línea horizontal o vertical con gradiente de colores neón representando la pista vial de la fase. Cada parada o nodo del módulo se representa por su círculo de color correspondiente con una marca animada de chequeo (`✓`), sirviendo como recuento dinámico.
+* **Estadísticas de Gran Impacto (Grid de 2x2):** Renderización en dos columnas de tarjetas de logros secundarios que muestran de forma estructurada con Lucide Icons (`Award`, `Trophy`, `Star`, `Target` en tamaño `36px` y colores de prioridad) las marcas históricas:
+  * **Niveles Superados:** ej: `26 / 26`
+  * **Módulos Dominados:** ej: `4 / 4`
+  * **Ejercicios Logrados:** ej: `300+`
+  * **Conceptos Clave:** ej: `12+`
+* **Botón de Enlace de Fase:** Botón de acción con degradado y sombreado luminoso destacado que llama al redireccionamiento inmediato hacia el mapamundi general (`/map`), promoviendo el inicio de la siguiente fase académica desbloqueada.
+
 ---
 
 ## 5. Paso 2: Plantilla de Seeder (`seed.py`)

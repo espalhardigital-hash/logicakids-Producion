@@ -267,6 +267,18 @@ Para reforzar el impacto del progreso, la finalización exitosa de cualquier niv
 * **Motor Lógico de Recomendaciones:** El sistema incluye una caja que evalúa el nivel superado y sugiere con precisión pedagógica el siguiente reto que debe afrontar el alumno (ej: *"Ir al Nivel X+1"*, *"Iniciar Desafío 1"*, *"Siguiente Módulo"*, *"Avanzar a Fase X+1"*).
 * **Botón Progresivo:** El botón principal adopta el color del módulo y el texto sugerido por el recomendador pedagógico para llevar al estudiante directamente al mapa o al hub con su progreso guardado.
 
+### 7.6. Pantalla Monumental de Graduación de Fase (Phase Graduation Modal)
+Completar una fase académica completa (ej: 26 niveles en la Fase 2) representa el máximo hito de esfuerzo e ingenio del alumno en la plataforma. Por ello, **se prohíbe el uso de alertas nativas de navegador u salidas simplistas**. El sistema debe gatillar un portal de graduación monumental y personalizado:
+* **Pantalla de Celebración Esmerilada:** Overlay inmersivo completo (`rgba(7, 11, 20, 0.95)`) con borde neón verde de éxito (`#10B981`) y una gran corona real (`👑`) animada tridimensionalmente.
+* **Personalización con Nombre de Alumno:** Integración obligatoria del nombre del alumno en un gran título de felicitación para incentivar la identidad y el orgullo pedagógico.
+* **Infografía de Ruta Conquistada:** Representación gráfica secuencial (estilo mapa vial) que conecta los módulos de la fase mediante una pista neón y badges de dominado (`✓`), sirviendo como recuento e infografía del viaje recorrido.
+* **Logros Históricos del Alumno:** Grid visual de cuatro bloques de información temáticos que resumen el volumen del esfuerzo del alumno en la fase:
+  1. **Niveles Superados:** Cantidad total de niveles aprobados en la fase (ej: `26 / 26`).
+  2. **Módulos Dominados:** Módulos completados (ej: `4 / 4`).
+  3. **Ejercicios Logrados:** Estimado global de preguntas resueltas exitosamente (ej: `300+`).
+  4. **Conceptos Clave:** Conceptos matemáticos clave asimilados (ej: `12+`).
+* **Lanzamiento de Siguiente Fase:** Un botón final destacado con sombreado luminoso que invita directamente al estudiante a avanzar en el mapamundi al primer nivel del bloque o fase posterior desbloqueada.
+
 ---
 
 ## 8. Especificaciones Técnicas y de Base de Datos (Pools Segmentados por Fase)
