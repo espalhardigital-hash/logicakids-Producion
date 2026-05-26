@@ -43,13 +43,16 @@ async def clear_fase3_data(session: AsyncSession):
     print("Purging existing Fase 3 data for quick iteration (Overwrite)...")
     
     # Get all question IDs for Phase 3
-    pregunta_ids = select(Pregunta.id).where(Pregunta.fase_id == FASE3_ID)
+    result = await session.execute(select(Pregunta.id).where(Pregunta.fase_id == FASE3_ID))
+    pregunta_ids_list = result.scalars().all()
     
-    # Delete references to prevent ForeignKeyViolationError
-    await session.execute(delete(Alternativa).where(Alternativa.pregunta_id.in_(pregunta_ids)))
-    await session.execute(delete(IntentoPregunta).where(IntentoPregunta.pregunta_id.in_(pregunta_ids)))
-    await session.execute(delete(Intento).where(Intento.pregunta_id.in_(pregunta_ids)))
-    await session.execute(delete(PoolAsignadoAlumno).where(PoolAsignadoAlumno.pregunta_id.in_(pregunta_ids)))
+    if pregunta_ids_list:
+        # Delete references to prevent ForeignKeyViolationError
+        await session.execute(delete(Alternativa).where(Alternativa.pregunta_id.in_(pregunta_ids_list)))
+        await session.execute(delete(IntentoPregunta).where(IntentoPregunta.pregunta_id.in_(pregunta_ids_list)))
+        
+    await session.execute(delete(Intento).where(Intento.fase_id == FASE3_ID))
+    await session.execute(delete(PoolAsignadoAlumno).where(PoolAsignadoAlumno.fase_id == FASE3_ID))
     
     # Delete main questions
     await session.execute(delete(Pregunta).where(Pregunta.fase_id == FASE3_ID))
