@@ -599,13 +599,18 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
               {/* Teclado Numérico */}
               {(pregunta.tipo_pregunta === 'respuesta_numerica') && (
                 <motion.div variants={keypadVariants} initial="hidden" animate="show" className="hidden md:block w-[320px] shrink-0 z-10">
-                  <div className="grid grid-cols-3 gap-4 p-7 glass-card rounded-[3rem]">
-                    {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
-                      <button key={num} onClick={() => handleKeypadInput(num.toString())} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">{num}</button>
-                    ))}
-                    <button onClick={handleBackspace} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-red-500/10 text-red-400 flex items-center justify-center"><Delete size={28} /></button>
-                    <button onClick={() => handleKeypadInput('0')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 text-4xl font-black text-white">0</button>
-                    <button onClick={handleSubmit} disabled={!feedback.visible && !respuesta.trim()} className="aspect-square rounded-[1.5rem] bg-blue-600 text-white flex items-center justify-center"><ArrowRight size={32} /></button>
+                  <div className="flex flex-col gap-4 p-7 glass-card rounded-[3rem]">
+                    <div className="grid grid-cols-3 gap-4">
+                      {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
+                        <button key={num} onClick={() => handleKeypadInput(num.toString())} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">{num}</button>
+                      ))}
+                      <button onClick={() => handleKeypadInput(',')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">,</button>
+                      <button onClick={() => handleKeypadInput('0')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">0</button>
+                      <button onClick={handleBackspace} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-red-500/10 text-red-400 flex items-center justify-center"><Delete size={28} /></button>
+                    </div>
+                    <button onClick={handleSubmit} disabled={!feedback.visible && !respuesta.trim()} className="w-full py-4 rounded-[1.5rem] bg-blue-600 text-white flex items-center justify-center font-bold text-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
+                      {feedback.visible ? 'Continuar' : 'Confirmar'} <ArrowRight size={24} className="ml-2"/>
+                    </button>
                   </div>
                 </motion.div>
               )}

@@ -201,28 +201,43 @@ export const Fase2MirrorModal: React.FC<Props> = ({
           </div>
 
           <div className="w-[280px] shrink-0">
-            <div className="grid grid-cols-3 gap-3 p-4 bg-white/5 rounded-[2rem]">
-              {[7, 8, 9, 4, 5, 6, 1, 2, 3, 'back', 0, 'go'].map((key) => {
-                if (key === 'back') return (
-                  <button key="back" onClick={handleBackspace} className="aspect-square rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition-colors">
-                    <Delete size={20} />
-                  </button>
-                );
-                if (key === 'go') return (
-                  <button key="go" onClick={handleSubmit} className="aspect-square rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors">
-                    <ArrowRight size={20} />
-                  </button>
-                );
-                return (
+            <div className="flex flex-col gap-3 p-4 bg-white/5 rounded-[2rem]">
+              <div className="grid grid-cols-3 gap-3">
+                {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
                   <button 
-                    key={key} 
-                    onClick={() => handleKeypadInput(key.toString())}
+                    key={num} 
+                    onClick={() => handleKeypadInput(num.toString())}
                     className="aspect-square rounded-2xl bg-white/10 text-white text-xl font-black flex items-center justify-center hover:bg-white/20 transition-colors"
                   >
-                    {key}
+                    {num}
                   </button>
-                );
-              })}
+                ))}
+                <button 
+                  key="comma" 
+                  onClick={() => handleKeypadInput(',')}
+                  className="aspect-square rounded-2xl bg-white/10 text-white text-xl font-black flex items-center justify-center hover:bg-white/20 transition-colors"
+                >
+                  ,
+                </button>
+                <button 
+                  key="0" 
+                  onClick={() => handleKeypadInput('0')}
+                  className="aspect-square rounded-2xl bg-white/10 text-white text-xl font-black flex items-center justify-center hover:bg-white/20 transition-colors"
+                >
+                  0
+                </button>
+                <button key="back" onClick={handleBackspace} className="aspect-square rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition-colors">
+                  <Delete size={20} />
+                </button>
+              </div>
+              <button 
+                key="go" 
+                onClick={handleSubmit} 
+                disabled={!respuesta.trim() || feedback.visible}
+                className="w-full py-4 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {feedback.visible ? 'Continuar' : 'Confirmar'} <ArrowRight size={20} className="ml-2" />
+              </button>
             </div>
           </div>
         </div>
