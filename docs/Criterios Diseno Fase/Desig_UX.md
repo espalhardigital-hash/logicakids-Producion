@@ -293,6 +293,16 @@ Para asegurar una alta consistencia de UI/UX a lo largo de todas las fases del j
   * En todas las fases, cuando una pregunta requiera tiempo límite (`timer !== null`), el frontend debe renderizar una barra de progreso de tiempo horizontal delgada en el borde inferior del cabecera.
   * Esta barra se calculará dinámicamente con la proporción `(timer / maxTimer) * 100` y cambiará a color rojo vibrante con una animación pulsante de advertencia cuando resten menos de 5 segundos.
 
+### 8.7. Preguntas de Pasos Encadenados (Constructor de Soluciones)
+
+Para las preguntas de tipo `constructor_soluciones_chained` (dos pasos encadenados), la experiencia de usuario debe seguir estas reglas estrictas en todas las fases:
+* **Enunciado Limpio:** El texto principal (enunciado general) de la pregunta NO debe contener interrogaciones o preguntas redundantes al final. Solo debe plantear el contexto y los datos. La pregunta específica corresponde a la descripción del Paso 1.
+  > [!IMPORTANT]
+  > **Ámbito de Aplicación:** La limpieza del enunciado principal (eliminar la pregunta redundante) se aplica **exclusivamente** a las preguntas de pasos encadenados (dos pasos). Si se aplicase a todas las preguntas ordinarias de la plataforma se quebraría la lógica conceptual, ya que las preguntas de un solo paso necesitan su pregunta dentro del enunciado principal.
+  > 
+  > **Ubicuidad de las Preguntas de Dos Pasos:** Esta lógica de enunciado limpio y ocultamiento condicional debe aplicarse rigurosamente **cada vez que aparezca una pregunta de dos pasos** en la plataforma, incluyendo el **Desafío Final de Módulo** y el **Desafío de la Fase 2** (donde también se instancian estas preguntas).
+* **Ocultamiento Condicional del Paso 2:** El Paso 2 de la pregunta (o paso subsiguiente) NO debe renderizarse, ni siquiera con opacidad baja, mientras el alumno esté resolviendo el Paso 1. El Paso 2 solo debe aparecer en pantalla una vez que el Paso 1 haya sido respondido correctamente, focalizando la atención del estudiante.
+
 ---
 
 ## 9. Mapeo General de Fases

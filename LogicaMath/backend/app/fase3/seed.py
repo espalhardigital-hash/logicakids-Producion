@@ -50,6 +50,8 @@ async def clear_fase3_data(session: AsyncSession):
         # Delete references to prevent ForeignKeyViolationError
         await session.execute(delete(Alternativa).where(Alternativa.pregunta_id.in_(pregunta_ids_list)))
         await session.execute(delete(IntentoPregunta).where(IntentoPregunta.pregunta_id.in_(pregunta_ids_list)))
+        await session.execute(delete(Intento).where(Intento.pregunta_id.in_(pregunta_ids_list)))
+        await session.execute(delete(PoolAsignadoAlumno).where(PoolAsignadoAlumno.pregunta_id.in_(pregunta_ids_list)))
         
     await session.execute(delete(Intento).where(Intento.fase_id == FASE3_ID))
     await session.execute(delete(PoolAsignadoAlumno).where(PoolAsignadoAlumno.fase_id == FASE3_ID))

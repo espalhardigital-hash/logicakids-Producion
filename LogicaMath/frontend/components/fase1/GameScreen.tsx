@@ -63,6 +63,18 @@ const keyVariants = {
   show: { opacity: 1, y: 0 }
 };
 
+const mapDifficultyToLevel = (diff: Difficulty): number => {
+  const mapping: Record<Difficulty, number> = {
+    easy: 1,
+    easy_medium: 2,
+    medium: 3,
+    medium_hard: 4,
+    hard: 5,
+    random_tables: 1
+  };
+  return mapping[diff] || 1;
+};
+
 const GameScreen: React.FC<Props> = ({ 
   category, difficulty, userSettings, adminConfig, 
   modularConfigs, faseId, seccion, onEndGame, onExit 
@@ -411,7 +423,7 @@ const GameScreen: React.FC<Props> = ({
       </AnimatePresence>
 
       {/* Top Controls */}
-      <div className="w-full max-w-5xl flex justify-between items-center mb-6 z-10">
+      <div className="w-full max-w-5xl flex justify-between items-center mb-4 z-10 relative">
         <motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
@@ -422,17 +434,38 @@ const GameScreen: React.FC<Props> = ({
           <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">Salir del Nivel</span>
         </motion.button>
 
-        <div className="flex flex-col items-end text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-          <div className="flex items-center space-x-3 glass-card px-5 py-3 rounded-2xl shadow-xl">
-            <span className="text-blue-600 dark:text-blue-400 font-bold font-display">{CATEGORY_LABELS[category] || 'Misión'}</span>
+        <div className="flex flex-col items-end text-slate-500 dark:text-slate-400">
+          <div className="flex items-center space-x-3 glass-card px-5 py-3 rounded-2xl shadow-xl text-sm sm:text-[0.95rem] md:text-base font-black font-sans">
+            <span className="text-blue-600 dark:text-blue-400 font-black font-display">{CATEGORY_LABELS[category]?.toUpperCase() || 'MISIÓN'}</span>
             <span className="text-slate-200 dark:text-slate-700">|</span>
-            <span className="text-purple-600 dark:text-purple-400 font-bold font-display">{DIFFICULTY_LABELS[difficulty]}</span>
+            <span className="text-slate-900 dark:text-white font-black">FASE {faseId || 1}</span>
+            <span className="text-slate-200 dark:text-slate-700">|</span>
+            <span className="text-slate-900 dark:text-white font-black">MÓDULO {seccion || 1}</span>
+            <span className="text-slate-200 dark:text-slate-700">|</span>
+            <span className="text-slate-900 dark:text-white font-black">NIVEL {mapDifficultyToLevel(difficulty)}</span>
             <span className="text-slate-200 dark:text-slate-700">|</span>
             <span className="text-slate-600 dark:text-slate-300 font-medium">DESAFÍO {Math.min(attempt + 1, totalQuestions)}/{totalQuestions}</span>
-            <span className="text-slate-900 dark:text-white font-black ml-1 text-base font-display">{timeLeft}s</span>
+            {activeParams.useTimer && timeLeft !== 999 && (
+              <>
+                <span className="text-slate-200 dark:text-slate-700">|</span>
+                <span className={`font-black ml-1 text-base font-display ${timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-slate-900 dark:text-white'}`}>{timeLeft}S</span>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Thin horizontal time progress bar at the bottom edge of the header */}
+      {activeParams.useTimer && timeLeft !== 999 && (
+        <div className="w-full max-w-5xl mb-6 h-1 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden shadow-inner relative z-10">
+          <motion.div
+            className={`h-full ${timeLeft <= 5 ? 'bg-red-500 animate-pulse' : 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500'}`}
+            initial={{ width: '100%' }}
+            animate={{ width: `${(timeLeft / maxTimeForQuestion) * 100}%` }}
+            transition={{ duration: 1, ease: 'linear' }}
+          />
+        </div>
+      )}
 
       {/* Progress Bar */}
       <div className="w-full max-w-5xl mb-8 z-10">

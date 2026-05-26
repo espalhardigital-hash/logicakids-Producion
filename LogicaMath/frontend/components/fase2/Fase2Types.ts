@@ -47,6 +47,9 @@ export interface Fase2Pregunta {
   pasos_encadenados?: Fase2PasoCadenado[];
   datos_numericos?: Record<string, any>;
   explicacion_referencia?: Record<string, any>;
+  aciertos_acumulados?: number;
+  intentos_totales?: number;
+  porcentaje_actual?: number;
 }
 
 // ─── Respuesta del alumno ──────────────────────────────────────────────────
