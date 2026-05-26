@@ -602,7 +602,22 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                          </button>
                        ))}
                      </div>
-                     <button className="f2-submit-btn mt-6" onClick={handleSubmit} disabled={!feedback.visible && selectedAltId === null} style={{ background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`, padding: '16px', borderRadius: '16px', color: '#fff', fontWeight: 800 }}>
+                     <button 
+                       className="f2-submit-btn mt-6 w-full" 
+                       onClick={handleSubmit} 
+                       disabled={!feedback.visible && selectedAltId === null} 
+                       style={{ 
+                         background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`, 
+                         padding: '16px', 
+                         borderRadius: '16px', 
+                         color: '#fff', 
+                         fontWeight: 800,
+                         display: 'flex',
+                         alignItems: 'center',
+                         justifyContent: 'center',
+                         gap: '8px'
+                       }}
+                     >
                         {feedback.visible ? 'Continuar →' : 'Confirmar'}
                      </button>
                   </div>

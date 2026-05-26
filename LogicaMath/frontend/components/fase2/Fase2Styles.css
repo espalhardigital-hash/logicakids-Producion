@@ -856,7 +856,28 @@
 }
 
 .f2-submit-btn {
-  display: none; /* Ocultamos el botón original gigante, ahora usamos el del teclado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.f2-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.f2-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.f2-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Modo Tokens (mód 4) */
