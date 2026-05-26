@@ -69,5 +69,6 @@ app.include_router(auth_users.router)
 app.include_router(admin.router)
 app.include_router(pedagogia.router)
 app.include_router(ai.router)
-app.include_router(fase2_router.router)
-app.include_router(fase3_router.router)
+app.include_router(fase2_router)
+app.include_router(fase3_router)
+
