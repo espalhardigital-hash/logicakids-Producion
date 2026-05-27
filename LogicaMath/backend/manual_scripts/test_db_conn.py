@@ -1,11 +1,23 @@
 import asyncio
+import sys
 import os
 from dotenv import load_dotenv
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-load_dotenv()
+# Add backend root directory to python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Load .env from backend root directory explicitly
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+load_dotenv(dotenv_path)
+
 original_url = os.getenv("DATABASE_URL")
+if not original_url:
+    print("WARNING: DATABASE_URL not found in environment or .env file.")
+    # Set a fallback/dummy so it doesn't crash on replace
+    original_url = "postgresql+asyncpg://user:pass@base_postgres_general:5432/db"
+
 vps_url = original_url.replace("base_postgres_general", "34.9.51.225")
 print("Trying VPS URL:", vps_url)
 

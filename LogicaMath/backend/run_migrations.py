@@ -45,7 +45,7 @@ async def main():
     print("=============================================")
     print("Creating Admin and Test Users...")
     print("=============================================")
-    from create_users import create_users
+    from manual_scripts.create_users import create_users
     try:
         await create_users()
         print("✅ User creation completed successfully.")
