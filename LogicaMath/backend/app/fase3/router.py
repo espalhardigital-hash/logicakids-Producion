@@ -562,7 +562,7 @@ async def get_pregunta_fase3(
                     Intento.fase_id == FASE3_ID,
                     Intento.seccion == seccion,
                 ))
-                .order_by(Intento.fecha.desc())
+                .order_by(Intento.fecha.desc(), Intento.id.desc())
                 .limit(1)
             )
             latest_attempt = result.scalar_one_or_none()
@@ -582,7 +582,7 @@ async def get_pregunta_fase3(
                         Intento.alumno_id == alumno.id,
                         Pregunta.estructura_padre_id == failed_pregunta.estructura_padre_id
                     ))
-                    .order_by(Intento.fecha.desc())
+                    .order_by(Intento.fecha.desc(), Intento.id.desc())
                 )
                 family_attempts = res_fam.scalars().all()
                 attempts_count = len(family_attempts)
@@ -745,7 +745,7 @@ async def responder_fase3(
                 Intento.fase_id == FASE3_ID,
                 Intento.seccion == seccion,
             ))
-            .order_by(Intento.fecha.desc())
+            .order_by(Intento.fecha.desc(), Intento.id.desc())
         )
         attempts = result_att.scalars().all()
         
@@ -756,17 +756,16 @@ async def responder_fase3(
         current_aciertos = progreso.aciertos_acumulados
         aciertos_found = 0
         
-        if current_aciertos > 0:
-            for att in attempts:
-                if att.id == intento.id:
-                    continue
-                if att.es_correcta:
-                    aciertos_found += 1
-                    if aciertos_found > current_aciertos:
-                        break
-                else:
-                    if aciertos_found <= current_aciertos:
-                        errores_sesion += 1
+        for att in attempts:
+            if att.id == intento.id:
+                continue
+            if att.es_correcta:
+                aciertos_found += 1
+                if aciertos_found > current_aciertos:
+                    break
+            else:
+                if aciertos_found <= current_aciertos:
+                    errores_sesion += 1
         
         if errores_sesion >= max_errores:
             progreso.aciertos_acumulados = 0
@@ -818,7 +817,7 @@ async def responder_fase3(
             bloque_completado = False
             fase_completada = False
             
-            if progreso.porcentaje_actual >= porc_aprobacion and progreso.aciertos_acumulados >= cantidad_req:
+            if progreso.porcentaje_actual >= porc_aprobacion:
                 if progreso.estado != EstadoProgresoEnum.APROBADO:
                     progreso.estado = EstadoProgresoEnum.APROBADO
                     progreso.fecha_aprobacion = datetime.utcnow()
@@ -932,7 +931,7 @@ async def responder_fase3(
                     Intento.alumno_id == alumno.id,
                     Pregunta.estructura_padre_id == pregunta.estructura_padre_id
                 ))
-                .order_by(Intento.fecha.desc())
+                .order_by(Intento.fecha.desc(), Intento.id.desc())
             )
             family_attempts = res_fam.scalars().all()
             intentos_espejo = len(family_attempts)

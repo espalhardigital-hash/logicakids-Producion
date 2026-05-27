@@ -2098,7 +2098,16 @@ async def run_fase2_seed():
     print("Iniciando inyección de datos semilla de Fase 2 (Refactorizada)...")
     print("=" * 60)
     
+    from app.seed import should_seed_phase, update_seed_version, SEED_VERSIONS
+    
     async with AsyncSessionLocal() as session:
+        # Check if we should seed
+        if not await should_seed_phase(session, "fase_2", FASE2_ID):
+            print("=" * 60)
+            print("¡Datos semilla de Fase 2 omitidos (ya está actualizada)!")
+            print("=" * 60)
+            return
+
         # 1. Asegurar existencia de Fase 2
         res = await session.execute(select(Fase).where(Fase.id == FASE2_ID))
         fase2 = res.scalar_one_or_none()
@@ -2128,6 +2137,8 @@ async def run_fase2_seed():
         # 4. Seed challenge pools
         await seed_desafios_pool(session)
         
+        # Update version in registry
+        await update_seed_version(session, "fase_2", SEED_VERSIONS["fase_2"])
         await session.commit()
         
     print("=" * 60)

@@ -63,8 +63,50 @@ docker compose exec backend python tests/test_db_connection.py
 1. **Frontend**: Accede a `https://<DOMINIO>` → Pantalla de inicio de sesión Premium Glassmorphism.
 2. **Backend API (Docs)**: Accede a `https://<DOMINIO>/api/docs` → Documentación Swagger interactiva. Traefik remueve automáticamente el prefijo `/api` hacia el backend.
 
+## Smart Seeding (Sembrado Inteligente)
+
+A partir de esta versión, el sistema utiliza **sembrado condicional** para evitar reconstruir las preguntas en cada deploy o reinicio. El mecanismo funciona así:
+
+### Cómo funciona
+- Al iniciar el backend, cada fase compara su **versión de sembrado** registrada en la tabla `platform_settings` (clave `database_seed_versions`) con la versión objetivo definida en el código (`app/seed.py`).
+- Si las versiones coinciden **y** ya existen preguntas en la base de datos, el sembrado se **omite automáticamente**.
+- Si la versión difiere (nueva fase o corrección de preguntas) o la tabla está vacía, el sembrado se **ejecuta**.
+
+### Cuándo el sembrado se ejecuta automáticamente
+1. **Primera instalación**: La base de datos está vacía → sembrado completo.
+2. **Nueva versión de preguntas**: Se actualizó `SEED_VERSIONS` en `app/seed.py` → sembrado de la fase afectada.
+
+### Forzar el sembrado manualmente (correcciones de emergencia)
+Si es necesario reconstruir las preguntas de una o más fases (por ejemplo, para corregir errores detectados en producción), se puede forzar el sembrado completo usando la variable de entorno `FORCE_SEED=true`:
+
+```bash
+# Opción 1: Restart con variable de entorno (sin rebuild)
+FORCE_SEED=true docker compose restart backend
+
+# Opción 2: Via .env (temporal)
+# Agregar FORCE_SEED=true al .env, reiniciar el backend,
+# y LUEGO quitar FORCE_SEED o ponerlo en false para evitar
+# que se re-ejecute en cada reinicio posterior.
+```
+
+> ⚠️ **IMPORTANTE**: `FORCE_SEED=true` borrará y recreará todas las preguntas de las fases afectadas. El progreso de los alumnos (intentos, resultados) se preserva, pero los pools asignados se limpian.
+
+### Actualizar la versión de sembrado tras correcciones
+Si se modifica el contenido de las preguntas (enunciados, alternativas, teoría), actualiza el valor correspondiente en `SEED_VERSIONS` dentro de `app/seed.py` antes de hacer el deploy:
+
+```python
+SEED_VERSIONS = {
+    "fase_1": "1.0",
+    "fase_2": "20260527_v2",  # ← Cambiar versión para forzar re-sembrado
+    "fase_3": "20260527_v1",
+}
+```
+
+---
+
 ## Solución de Problemas Frecuentes
 
 - **Error de Conexión a DB ("UndefinedTableError")**: Verifica que la base de datos exista en PostgreSQL y que el contenedor esté en la red compartida (`internal_services`). Si el problema persiste, reinicia el backend para que se re-ejecute la creación automática: `docker compose restart backend`.
 - **Problemas de CORS / Fallo en inicio de sesión**: Confirma que el dominio configurado en `VITE_API_URL` durante la fase de build es exacto. Si lo cambiaste en el `.env`, es **obligatorio** reconstruir la imagen del frontend: `docker compose up -d --build frontend`.
 - **Errores de SSL / Certificado Inseguro**: Revisa los logs de Traefik (`docker logs traefik`) para validar que tiene permisos de resolver certificados Let's Encrypt y que los puertos 80 y 443 estén expuestos y públicos.
+- **Sembrado omitido pero preguntas incorrectas**: Si las preguntas de una fase necesitan actualizarse, incrementa su versión en `SEED_VERSIONS` (`app/seed.py`) y haz deploy. El sistema detectará la nueva versión y regenerará sólo esa fase.

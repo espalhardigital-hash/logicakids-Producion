@@ -23,6 +23,13 @@ from app.auth import get_password_hash
 # ============================================================
 # DATOS: PLATFORM SETTINGS (Pedagogy Config)
 # ============================================================
+SEED_VERSIONS_KEY = "database_seed_versions"
+SEED_VERSIONS = {
+    "fase_1": "1.0",
+    "fase_2": "20260527_v1",
+    "fase_3": "20260527_v1"
+}
+
 PEDAGOGY_CONFIG_KEY = "pedagogy_config"
 DEFAULT_PEDAGOGY_CONFIG = {
     "questionsPerPhase": 50,
@@ -613,6 +620,55 @@ async def create_admin_user(session: AsyncSessionLocal) -> str:
         
     return admin_user.id
 
+async def should_seed_phase(session, fase_key: str, fase_id: int) -> bool:
+    import os
+    if os.getenv("FORCE_SEED", "false").lower() == "true":
+        print(f"  [FORCE_SEED] Seeding is forced for '{fase_key}'.")
+        return True
+
+    # Check if any questions exist for this phase
+    result_q = await session.execute(
+        select(Pregunta.id).where(Pregunta.fase_id == fase_id).limit(1)
+    )
+    if not result_q.scalar_one_or_none():
+        print(f"  No questions found for Phase {fase_id} ('{fase_key}'). Seeding required.")
+        return True
+
+    # Check versions registry
+    result_settings = await session.execute(
+        select(PlatformSettings).where(PlatformSettings.key == SEED_VERSIONS_KEY)
+    )
+    settings = result_settings.scalar_one_or_none()
+    if not settings:
+        print(f"  Seed registry not found in database. Seeding required for '{fase_key}'.")
+        return True
+
+    db_versions = settings.value or {}
+    db_version = db_versions.get(fase_key)
+    target_version = SEED_VERSIONS.get(fase_key)
+
+    if db_version != target_version:
+        print(f"  Version mismatch for '{fase_key}': DB={db_version}, Target={target_version}. Seeding required.")
+        return True
+
+    print(f"  [SKIP] Phase '{fase_key}' is up to date (version {db_version}).")
+    return False
+
+async def update_seed_version(session, fase_key: str, version: str):
+    result_settings = await session.execute(
+        select(PlatformSettings).where(PlatformSettings.key == SEED_VERSIONS_KEY)
+    )
+    settings = result_settings.scalar_one_or_none()
+    if not settings:
+        settings = PlatformSettings(key=SEED_VERSIONS_KEY, value={})
+        session.add(settings)
+        await session.flush()
+
+    current_val = dict(settings.value or {})
+    current_val[fase_key] = version
+    settings.value = current_val
+    print(f"  Updated database seed version registry: '{fase_key}' -> {version}")
+
 # ============================================================
 # MAIN SEEDER EXECUTION
 # ============================================================
@@ -634,8 +690,10 @@ async def run_seed():
         # 4. Progress configs
         await seed_configuracion_progreso(session)
         
-        # 5. Example questions
-        await seed_preguntas_ejemplo(session, admin_id)
+        # 5. Example questions (Fase 1)
+        if await should_seed_phase(session, "fase_1", 1):
+            await seed_preguntas_ejemplo(session, admin_id)
+            await update_seed_version(session, "fase_1", SEED_VERSIONS["fase_1"])
         
         await session.commit()
 

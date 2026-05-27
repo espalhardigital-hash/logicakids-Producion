@@ -1144,7 +1144,16 @@ async def seed_preguntas_desafios(session: AsyncSession):
 
 
 async def run_fase3_seed():
+    from app.seed import should_seed_phase, update_seed_version, SEED_VERSIONS
+    
     async with AsyncSessionLocal() as session:
+        # Check if we should seed
+        if not await should_seed_phase(session, "fase_3", FASE3_ID):
+            print("=============================================")
+            print("¡Datos semilla de Fase 3 omitidos (ya está actualizada)!")
+            print("=============================================")
+            return
+
         try:
             # Flujo determinista
             await clear_fase3_data(session)
@@ -1152,6 +1161,10 @@ async def run_fase3_seed():
             await seed_configuracion_progreso(session)
             await seed_preguntas_practica(session)
             await seed_preguntas_desafios(session)
+            
+            # Update version in registry
+            await update_seed_version(session, "fase_3", SEED_VERSIONS["fase_3"])
+            await session.commit()
             print("✅ Sembrado de Fase 3 completado exitosamente.")
         except Exception as e:
             await session.rollback()

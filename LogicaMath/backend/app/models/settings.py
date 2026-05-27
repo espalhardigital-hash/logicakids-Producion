@@ -10,7 +10,7 @@ class PlatformSettings(Base):
     """
     __tablename__ = "platform_settings"
 
-    id = Column(Integer, primary_key=True, default=1)
+    id = Column(Integer, primary_key=True)
     key = Column(String(100), unique=True, nullable=False, index=True)
     value = Column(JSONB, nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

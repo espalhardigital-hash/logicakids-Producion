@@ -640,7 +640,7 @@ async def get_pregunta_fase2(
                     Intento.fase_id == FASE2_ID,
                     Intento.seccion == seccion,
                 ))
-                .order_by(Intento.fecha.desc())
+                .order_by(Intento.fecha.desc(), Intento.id.desc())
                 .limit(1)
             )
             latest_attempt = result.scalar_one_or_none()
@@ -663,7 +663,7 @@ async def get_pregunta_fase2(
                         Intento.alumno_id == alumno.id,
                         Pregunta.estructura_padre_id == failed_pregunta.estructura_padre_id
                     ))
-                    .order_by(Intento.fecha.desc())
+                    .order_by(Intento.fecha.desc(), Intento.id.desc())
                 )
                 family_attempts = res_fam.scalars().all()
                 attempts_count = len(family_attempts)
@@ -970,7 +970,7 @@ async def responder_fase2(
                 Intento.fase_id == FASE2_ID,
                 Intento.seccion == seccion,
             ))
-            .order_by(Intento.fecha.desc())
+            .order_by(Intento.fecha.desc(), Intento.id.desc())
         )
         attempts = result_att.scalars().all()
         
@@ -1196,7 +1196,7 @@ async def responder_fase2(
                     Intento.alumno_id == alumno.id,
                     Pregunta.estructura_padre_id == pregunta.estructura_padre_id
                 ))
-                .order_by(Intento.fecha.desc())
+                .order_by(Intento.fecha.desc(), Intento.id.desc())
             )
             family_attempts = res_fam.scalars().all()
             intentos_espejo = len(family_attempts)
