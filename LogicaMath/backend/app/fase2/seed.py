@@ -2,7 +2,7 @@ import asyncio
 import sys
 import random
 import json
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
@@ -17,8 +17,10 @@ from app.models.sql_models import (
     OperacionEnum,
     TipoPreguntaEnum,
     TipoErrorEnum,
+    Intento,
+    PoolAsignadoAlumno,
 )
-from app.fase2.models import NivelTeoria
+from app.fase2.models import NivelTeoria, IntentoPregunta, IntentoPaso
 
 # ID de la Fase 2 en la base de datos
 FASE2_ID = 2
@@ -33,6 +35,40 @@ class NivelTeoriaSeederSchema(BaseModel):
     advertencia: str
     ejemplos: List[Dict[str, Any]]
     interactivos: List[Dict[str, Any]] = Field(..., min_items=3, max_items=3)
+
+async def clear_fase2_data(session: AsyncSession):
+    print("Purging existing Fase 2 data for a clean overwrite...")
+    
+    # Get all question IDs for Phase 2
+    result = await session.execute(select(Pregunta.id).where(Pregunta.fase_id == FASE2_ID))
+    pregunta_ids_list = result.scalars().all()
+    
+    if pregunta_ids_list:
+        # Delete references to prevent ForeignKeyViolationError
+        await session.execute(delete(Alternativa).where(Alternativa.pregunta_id.in_(pregunta_ids_list)))
+        
+        # Get attempt questions IDs
+        res_int_q = await session.execute(select(IntentoPregunta.id).where(IntentoPregunta.pregunta_id.in_(pregunta_ids_list)))
+        int_q_ids = res_int_q.scalars().all()
+        if int_q_ids:
+            await session.execute(delete(IntentoPaso).where(IntentoPaso.intento_pregunta_id.in_(int_q_ids)))
+            await session.execute(delete(IntentoPregunta).where(IntentoPregunta.id.in_(int_q_ids)))
+            
+        await session.execute(delete(Intento).where(Intento.pregunta_id.in_(pregunta_ids_list)))
+        await session.execute(delete(PoolAsignadoAlumno).where(PoolAsignadoAlumno.pregunta_id.in_(pregunta_ids_list)))
+        
+    await session.execute(delete(Intento).where(Intento.fase_id == FASE2_ID))
+    await session.execute(delete(PoolAsignadoAlumno).where(PoolAsignadoAlumno.fase_id == FASE2_ID))
+    
+    # Delete main questions
+    await session.execute(delete(Pregunta).where(Pregunta.fase_id == FASE2_ID))
+    
+    # Delete progress config and theory
+    await session.execute(delete(ConfiguracionProgreso).where(ConfiguracionProgreso.fase_id == FASE2_ID))
+    await session.execute(delete(NivelTeoria).where(NivelTeoria.fase_id == FASE2_ID))
+    
+    await session.commit()
+    print("Fase 2 data purged.")
 
 # ==============================================================================
 # PART A: SEED NIVEL TEORIA (14 Levels)
@@ -1229,8 +1265,8 @@ def _gen_m2l4(rng, fam, es_espejo, var):
         return _gen_m2l3(rng, fam, es_espejo, var)
 
 def _gen_m3l1(rng, fam, es_espejo, var):
-    n50 = rng.randint(1, 6)
-    n25 = rng.randint(1, 6)
+    n50 = rng.randint(1, 15)
+    n25 = rng.randint(1, 15)
     total_cents = n50 * 50 + n25 * 25
     reais = total_cents / 100.0
     enunciado = f"¿Cuánto dinero tienes en total si juntas {n50} monedas de 0,50 y {n25} de 0,25?"
@@ -1265,10 +1301,11 @@ def _gen_m3l1(rng, fam, es_espejo, var):
     }
 
 def _gen_m3l2(rng, fam, es_espejo, var):
-    precios = [1.25, 1.50, 1.75, 2.25, 2.50, 2.75, 3.25, 3.50, 3.75, 4.25, 4.50, 4.75]
-    precio = rng.choice(precios)
-    pagos = [2.00, 3.00, 4.00, 5.00, 10.00]
-    pago = rng.choice([p for p in pagos if p > precio])
+    # Widen parameters to avoid duplicates (thousands of possible combinations)
+    precio = rng.randint(1, 15) + rng.choice([0.25, 0.50, 0.75])
+    pago = rng.choice([5.00, 10.00, 20.00, 50.00])
+    while pago <= precio:
+        pago += 10.00
     
     cambio = pago - precio
     ans_str = f"{cambio:.2f}".replace(".", ",")
@@ -1303,10 +1340,10 @@ def _gen_m3l2(rng, fam, es_espejo, var):
     }
 
 def _gen_m3l3(rng, fam, es_espejo, var):
-    precios = [0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 2.00, 2.25, 2.50]
-    p1 = rng.choice(precios)
-    p2 = rng.choice(precios)
-    p3 = rng.choice(precios)
+    # Widen parameters to avoid duplicates (thousands of possible combinations)
+    p1 = rng.randint(1, 10) + rng.choice([0.00, 0.25, 0.50, 0.75])
+    p2 = rng.randint(1, 10) + rng.choice([0.00, 0.25, 0.50, 0.75])
+    p3 = rng.randint(1, 10) + rng.choice([0.00, 0.25, 0.50, 0.75])
     
     total = p1 + p2 + p3
     ans_str = f"{total:.2f}".replace(".", ",")
@@ -1341,16 +1378,18 @@ def _gen_m3l3(rng, fam, es_espejo, var):
 
 def _gen_m3l4(rng, fam, es_espejo, var):
     tipo = rng.choice(["alcanza", "falta"])
-    costo = rng.choice([2.25, 2.50, 2.75, 3.25, 3.50, 3.75, 4.25, 4.50, 4.75, 5.25, 5.50])
+    costo = rng.randint(3, 20) + rng.choice([0.00, 0.25, 0.50, 0.75])
     respuestas_erroneas = []
     
     if tipo == "alcanza":
-        presupuesto = rng.choice([6.00, 7.00, 8.00, 10.00])
+        presupuesto = costo + rng.randint(1, 15) + rng.choice([0.00, 0.25, 0.50, 0.75])
         ans_str = "1"
         enunciado = f"Tienes {presupuesto:.2f} pesos de presupuesto. Tu carrito de compras suma {costo:.2f} pesos. ¿Te alcanza el dinero? (Escribe 1 para SÍ, 2 para NO)"
         expl = f"Como el presupuesto ({presupuesto:.2f}) es mayor o igual al costo ({costo:.2f}), sí te alcanza (1)."
     else:
-        presupuesto = rng.choice([1.00, 1.50, 2.00])
+        presupuesto = costo - rng.randint(1, 4) - rng.choice([0.25, 0.50, 0.75])
+        if presupuesto <= 0:
+            presupuesto = 1.00
         falta = costo - presupuesto
         ans_str = f"{falta:.2f}".replace(".", ",")
         enunciado = f"Llevas {presupuesto:.2f} pesos en el bolsillo. Si tu carrito cuesta {costo:.2f} pesos, ¿cuánto dinero te hace falta para pagar?"
@@ -1621,21 +1660,21 @@ def _gen_desafio_pregunta(rng, mod, lvl_id, sub_dif):
     elif mod == 2:
         # Tablas en Acción
         if sub_dif == "estandar":
-            a = rng.randint(5, 12)
-            ans = rng.randint(4, 12)
+            a = rng.randint(5, 25)
+            ans = rng.randint(4, 25)
             b = a * ans
             enunciado = f"Halla la incógnita: Y × {a} = {b}"
             expl = f"Dividimos ambos lados entre {a}: Y = {b} ÷ {a} = {ans}."
         elif sub_dif == "avanzada":
-            a = rng.randint(15, 60)
-            b = rng.randint(50, 100)
+            a = rng.randint(15, 100)
+            b = rng.randint(120, 250)
             ans = b - a
             enunciado = f"Completa la casilla vacía: {a} + [ ] = {b}"
             expl = f"Restamos para despejar: {b} - {a} = {ans}."
         else: # maestria
-            a = rng.randint(2, 5)
-            b = rng.randint(3, 10)
-            ans = rng.randint(2, 10)
+            a = rng.randint(2, 8)
+            b = rng.randint(3, 20)
+            ans = rng.randint(2, 15)
             c = a * ans + b
             enunciado = f"Despeja la incógnita paso a paso: {a} × X + {b} = {c}"
             expl = f"Restamos primero: {a} × X = {c} - {b} = {a*ans}. Luego dividimos entre {a}: X = {ans}."
@@ -1643,32 +1682,30 @@ def _gen_desafio_pregunta(rng, mod, lvl_id, sub_dif):
     elif mod == 3:
         # Tienda Matemática
         if sub_dif == "estandar":
-            precio = rng.choice([2.50, 3.75, 4.25, 5.50])
-            pago = rng.choice([5.00, 10.00])
+            precio = 0.25 * rng.randint(4, 38)
+            pago = rng.choice([10.00, 20.00, 50.00])
+            while pago <= precio:
+                pago = rng.choice([10.00, 20.00, 50.00])
             cambio = pago - precio
             enunciado = f"Pagas un artículo de {precio:.2f} pesos con un billete de {pago:.2f} pesos. ¿Cuánto cambio recibes?"
             ans = cambio
             expl = f"Restamos el precio al billete: {pago:.2f} - {precio:.2f} = {cambio:.2f} pesos."
         elif sub_dif == "avanzada":
-            p1 = rng.choice([1.25, 2.50, 3.75])
-            p2 = rng.choice([1.50, 2.75, 4.50])
+            p1 = 0.25 * rng.randint(4, 20)
+            p2 = 0.25 * rng.randint(4, 30)
             total = p1 + p2
-            presupuesto = rng.choice([5.00, 10.00])
-            if presupuesto > total:
-                cambio = presupuesto - total
-                enunciado = f"Llevas un billete de {presupuesto:.2f} pesos. Compras dos artículos que cuestan {p1:.2f} y {p2:.2f} pesos. ¿Cuánto cambio te queda?"
-                ans = cambio
-                expl = f"Sumamos costo de compra: {p1:.2f} + {p2:.2f} = {total:.2f} pesos. Restamos al billete: {presupuesto:.2f} - {total:.2f} = {cambio:.2f} pesos."
-            else:
-                falta = total - presupuesto
-                enunciado = f"Quieres comprar dos artículos de {p1:.2f} y {p2:.2f} pesos, pero solo tienes {presupuesto:.2f} pesos. ¿Cuánto dinero te falta?"
-                ans = falta
-                expl = f"Sumamos costo de compra: {p1:.2f} + {p2:.2f} = {total:.2f} pesos. Restamos tu presupuesto: {total:.2f} - {presupuesto:.2f} = {falta:.2f} pesos."
+            presupuesto = rng.choice([10.00, 20.00, 50.00])
+            while presupuesto <= total:
+                presupuesto = rng.choice([10.00, 20.00, 50.00])
+            cambio = presupuesto - total
+            enunciado = f"Llevas un billete de {presupuesto:.2f} pesos. Compras dos artículos que cuestan {p1:.2f} y {p2:.2f} pesos. ¿Cuánto cambio te queda?"
+            ans = cambio
+            expl = f"Sumamos costo de compra: {p1:.2f} + {p2:.2f} = {total:.2f} pesos. Restamos al billete: {presupuesto:.2f} - {total:.2f} = {cambio:.2f} pesos."
         else: # maestria
-            p1 = rng.choice([0.75, 1.50, 2.25])
-            n = rng.randint(2, 4)
+            p1 = 0.25 * rng.randint(2, 12)
+            n = rng.randint(2, 6)
             total = p1 * n
-            presupuesto = rng.choice([5.00, 10.00])
+            presupuesto = rng.choice([10.00, 20.00, 50.00])
             if presupuesto >= total:
                 ans = presupuesto - total
                 enunciado = f"Compras {n} pasteles de {p1:.2f} pesos cada uno. Pagas con un billete de {presupuesto:.2f} pesos. ¿Cuánto cambio te queda?"
@@ -1681,24 +1718,24 @@ def _gen_desafio_pregunta(rng, mod, lvl_id, sub_dif):
     else:
         # Constructor de Soluciones
         if sub_dif == "estandar":
-            cajas = rng.randint(3, 5)
-            lapices = rng.randint(6, 12)
-            rotos = rng.randint(2, 10)
+            cajas = rng.randint(3, 12)
+            lapices = rng.randint(6, 20)
+            rotos = rng.randint(2, 25)
             ans = cajas * lapices - rotos
             enunciado = f"Un carpintero fabrica {cajas} cajas y mete {lapices} tornillos en cada una. Si gasta {rotos} tornillos sueltos en otro mueble, ¿cuántos le quedan en las cajas?"
             expl = f"Total en cajas = {cajas} × {lapices} = {cajas*lapices}. Restamos los usados: {cajas*lapices} - {rotos} = {ans}."
         elif sub_dif == "avanzada":
-            rojas = rng.randint(10, 30)
-            distractor = rng.randint(5, 15) # distractor
-            perdidas = rng.randint(3, 8)
+            rojas = rng.randint(10, 60)
+            distractor = rng.randint(5, 30) # distractor
+            perdidas = rng.randint(3, 15)
             ans = (rojas - perdidas) * 3
             enunciado = f"Enzo tiene {rojas} canicas rojas y {distractor} lápices amarillos. Jugando pierde {perdidas} canicas rojas. Luego, triplica las canicas rojas que le quedan. ¿Cuántas canicas tiene ahora?"
             expl = f"Ignoramos los {distractor} lápices (dato basura). Restamos canicas: {rojas} - {perdidas} = {rojas-perdidas}. Triplicamos: {rojas-perdidas} × 3 = {ans}."
         else: # maestria
-            cajas = rng.randint(3, 5)
-            libros = rng.randint(5, 10)
+            cajas = rng.randint(3, 12)
+            libros = rng.randint(5, 25)
             tot_lib = cajas * libros
-            cajones = rng.choice([2, 3, 5])
+            cajones = rng.choice([2, 3, 4, 5, 6, 8])
             tot_lib_cajon = tot_lib // cajones
             if tot_lib % cajones != 0:
                 tot_lib_cajon = tot_lib // 2
@@ -1880,6 +1917,9 @@ async def run_fase2_seed():
             )
             session.add(fase2)
             await session.flush()
+            
+        # 1.5. Limpiar datos de Fase 2 para evitar duplicados e inactivos
+        await clear_fase2_data(session)
             
         # 2. Seed theory and configs
         await seed_teoria_niveles(session)

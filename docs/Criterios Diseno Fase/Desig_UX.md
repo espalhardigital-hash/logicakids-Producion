@@ -302,6 +302,7 @@ Para las preguntas de tipo `constructor_soluciones_chained` (dos pasos encadenad
   > 
   > **Ubicuidad de las Preguntas de Dos Pasos:** Esta lógica de enunciado limpio y ocultamiento condicional debe aplicarse rigurosamente **cada vez que aparezca una pregunta de dos pasos** en la plataforma, incluyendo el **Desafío Final de Módulo** y el **Desafío de la Fase 2** (donde también se instancian estas preguntas).
 * **Ocultamiento Condicional del Paso 2:** El Paso 2 de la pregunta (o paso subsiguiente) NO debe renderizarse, ni siquiera con opacidad baja, mientras el alumno esté resolviendo el Paso 1. El Paso 2 solo debe aparecer en pantalla una vez que el Paso 1 haya sido respondido correctamente, focalizando la atención del estudiante.
+* **Calificación Aislada por Pasos:** Para asegurar que el avance de completitud visual del alumno en la interfaz refleje correctamente su progreso didáctico real, la API y el frontend se sincronizan de forma aislada. Cuando el alumno responde correctamente al Paso 1, el backend retorna `es_correcta = True` en el JSON para que el frontend marque visualmente el Paso 1 como resuelto con éxito y libere de forma interactiva el Paso 2 (ocultando el resto para mantener la focalización cognitiva). Sin embargo, el progreso real del nivel y la maestría se mantienen bloqueados en la base de datos (registrando `es_correcta = False` en el intento general) hasta que el alumno resuelva exitosamente el paso final de la secuencia, garantizando una transición libre de errores de avance prematuros.
 
 ---
 

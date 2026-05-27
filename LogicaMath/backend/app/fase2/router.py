@@ -863,6 +863,8 @@ async def responder_fase2(
         resp_corr = normalize_response(respuesta_correcta_str, is_money)
         es_correcta = resp_dada == resp_corr
 
+    es_correcta_intento = es_correcta
+
     # 2. DETECTAR ERRORES COGNITIVOS EN PREGUNTAS ABIERTAS
     if not es_correcta and tipo_pregunta != "multiple_opcion":
         if pregunta.errores_previstos and isinstance(pregunta.errores_previstos, dict):
@@ -881,12 +883,66 @@ async def responder_fase2(
                 tipo_error = TipoErrorEnum.CALCULO
                 feedback_mostrado = pregunta.errores_previstos.get("calculo", "Revisa tus cálculos e inténtalo de nuevo.")
 
+    # INTEGRACIÓN DE INTENTOPREGUNTA E INTENTOPASO (MÓDULO 4 CONSTRUCTOR)
+    es_variante_espejo = (pregunta.datos_numericos and pregunta.datos_numericos.get("es_espejo"))
+    if tipo_pregunta == "constructor_soluciones_chained":
+        # Buscar o crear IntentoPregunta
+        result_ip = await db.execute(
+            select(IntentoPregunta).where(and_(
+                IntentoPregunta.alumno_id == alumno.id,
+                IntentoPregunta.pregunta_id == pregunta.id
+            ))
+        )
+        intento_preg = result_ip.scalar_one_or_none()
+        if not intento_preg:
+            intento_preg = IntentoPregunta(
+                alumno_id=alumno.id,
+                pregunta_id=pregunta.id,
+                aprobada_completa=False,
+                intentos_totales=0,
+                tiempo_total=0.0
+            )
+            db.add(intento_preg)
+            await db.flush()
+
+        # Incrementar intentos y sumarle tiempo
+        intento_preg.intentos_totales += 1
+        if payload.tiempo_respuesta_segundos:
+            intento_preg.tiempo_total += payload.tiempo_respuesta_segundos
+
+        # Registrar el paso en IntentoPaso
+        intento_paso = IntentoPaso(
+            intento_pregunta_id=intento_preg.id,
+            paso_numero=payload.paso_numero or 1,
+            respuesta_dada=payload.respuesta_dada,
+            es_correcta=es_correcta,
+            tipo_error_detectado=tipo_error.value if tipo_error else None,
+            es_espejo=bool(es_variante_espejo),
+            tiempo_respuesta=payload.tiempo_respuesta_segundos
+        )
+        db.add(intento_paso)
+        await db.flush()
+
+        # Lógica de completitud general:
+        # Solo si es el ÚLTIMO paso y es correcta, aprobamos el IntentoPregunta y mantenemos es_correcta_intento = True
+        pasos = (pregunta.datos_numericos or {}).get("pasos", [])
+        es_ultimo_paso = (payload.paso_numero == len(pasos))
+
+        if es_correcta and es_ultimo_paso:
+            intento_preg.aprobada_completa = True
+            es_correcta_intento = True
+        else:
+            # Si es un paso intermedio o es incorrecta, la pregunta general no está aprobada completa,
+            # y forzamos que el intento general de la tabla Intento sea es_correcta_intento = False
+            # para no registrar la familia como resuelta de forma prematura.
+            es_correcta_intento = False
+
     # 3. REGISTRAR EL INTENTO
     intento = Intento(
         alumno_id=alumno.id,
         pregunta_id=payload.pregunta_id,
         respuesta_dada=payload.respuesta_dada or (str(payload.alternativa_id) if payload.alternativa_id else ""),
-        es_correcta=es_correcta,
+        es_correcta=es_correcta_intento,
         fase_id=FASE2_ID,
         seccion=seccion,
         operacion=operacion,
@@ -925,17 +981,16 @@ async def responder_fase2(
         current_aciertos = progreso.aciertos_acumulados
         aciertos_found = 0
         
-        if current_aciertos > 0:
-            for att in attempts:
-                if att.id == intento.id:
-                    continue
-                if att.es_correcta:
-                    aciertos_found += 1
-                    if aciertos_found > current_aciertos:
-                        break
-                else:
-                    if aciertos_found <= current_aciertos:
-                        errores_sesion += 1
+        for att in attempts:
+            if att.id == intento.id:
+                continue
+            if att.es_correcta:
+                aciertos_found += 1
+                if aciertos_found > current_aciertos:
+                    break
+            else:
+                if aciertos_found <= current_aciertos:
+                    errores_sesion += 1
         
         if errores_sesion >= max_errores:
             # RESET ABSOLUTO POR SALIDA TEMPRANA
@@ -981,6 +1036,7 @@ async def responder_fase2(
                 early_exit=True,
                 errores_sesion=errores_sesion,
                 max_errores_tolerados=max_errores,
+                feedback_error=feedback_mostrado,
             )
         else:
             progreso.intentos_totales += 1
@@ -1050,6 +1106,7 @@ async def responder_fase2(
                 fase_completada=fase_completada,
                 errores_sesion=errores_sesion,
                 max_errores_tolerados=max_errores,
+                feedback_error=feedback_mostrado,
             )
 
 
@@ -1153,6 +1210,7 @@ async def responder_fase2(
             es_correcta=es_correcta,
             respuesta_correcta=respuesta_correcta_str,
             explicacion=pregunta.explicacion_paso_a_paso if (not es_correcta and soporte_avanzado) else None,
+            feedback_error=feedback_mostrado,
             aciertos_acumulados=progreso.aciertos_acumulados,
             intentos_totales=progreso.intentos_totales,
             porcentaje_actual=progreso.porcentaje_actual,
@@ -1162,6 +1220,8 @@ async def responder_fase2(
             intentos_espejo_actuales=intentos_espejo,
             intentos_espejo_max=MAX_ESPEJO,
             soporte_avanzado=soporte_avanzado,
+            paso_aprobado=paso_aprobado,
+            valor_paso1_congelado=valor_paso1_congelado,
         )
 
 

@@ -15,6 +15,9 @@ La fuente de verdad para el progreso académico es la tabla `ProgresoMaestria`. 
 Para garantizar estabilidad, auditoría pedagógica previa y evitar latencia o fallos matemáticos en tiempo de ejecución, **se prohíbe la generación dinámica de preguntas en tiempo real por el backend durante la sesión del alumno**.
 
 * **Modelo de Pool Precargado:** Todas las preguntas, variantes, respuestas correctas, distractores y feedbacks específicos de cada nivel deben estar previamente calculados, validados e insertados en tablas de PostgreSQL.
+* **Estrategia de Purga y Reemplazo Limpio (Clean Purge & Overwrite):** Antes de proceder con la ejecución de cualquier script de sembrado de datos (`seed.py`), se debe purgar completamente la base de datos de los registros de la fase correspondiente (preguntas, alternativas, intentos, configuraciones de progreso y teoría). Esto evita la acumulación de datos huérfanos, inconsistentes, obsoletos o duplicados de ejecuciones previas.
+* **Garantía de De-duplicación Absoluta:** Para mantener un modelo limpio y una experiencia de usuario diversa, el 100% de las preguntas precargadas en el pool deben ser únicas. Se prohíbe la inserción de preguntas idénticas (duplicados textuales) en un mismo nivel o desafío. Los generadores de semillas deben ampliar sus espacios de combinación aleatoria (parámetros numéricos, nombres de productos, etc.) para que todas las combinaciones resulten en enunciados únicos.
+* **Certificación Lógica y Coherencia Matemática:** El pool de preguntas debe pasar por un proceso riguroso de auditoría offline antes del despliegue en producción. Cada enunciado matemático debe ser resuelto por un script analizador automático para certificar que la respuesta esperada almacenada en la base de datos es 100% correcta y matemáticamente coherente con el enunciado de la pregunta.
 * **Consumo del Backend:** El servidor FastAPI se limita a consultar, filtrar y seleccionar de manera aleatoria controlada los ítems del pool preexistente para entregarlos al frontend.
 * **Uso de Plantillas Estáticas:** Para problemas textuales o herramientas interactivas, los textos y estructuras se almacenan completamente renderizados o estructurados mediante objetos JSONB estáticos en la base de datos. No se deben generar variables nuevas al vuelo durante la sesión del alumno.
 
@@ -222,6 +225,8 @@ Para superar y aprobar un Desafío, el alumno debe cumplir estrictamente ambas c
 2. `precision_minima = porcentaje_aprobacion`, por defecto 90%.
 
 El servidor debe abortar la sesión automáticamente (Early Exit) si el alumno alcanza un número de errores que vuelve matemáticamente imposible alcanzar el 90% de precisión.
+* **Reset y Limpieza Total en Salida Temprana:** Al gatillarse el Early Exit, el backend realiza un reset absoluto de la sesión de progreso (`aciertos_acumulados = 0`, `porcentaje_actual = 0`, `intentos_totales = 0`) y purga de forma segura todos los intentos guardados para ese desafío (`Intento` e `IntentoPregunta` si aplica) para evitar colisiones lógicas y permitir al alumno volver a intentar el nivel desde cero de forma totalmente limpia y motivadora.
+* **Robustez en el Conteo de Errores de Sesión (Consistencia sin Aciertos):** Para evitar que el contador de errores consecutivos de sesión quede atascado en `1` cuando el alumno inicia un desafío con `0` aciertos acumulados (lo que causaría que el bucle de validación omitiera los errores previos), el backend evalúa incondicionalmente todos los intentos anteriores de la sesión actual. De esta manera, el Early Exit se activa de forma determinista y consistente al cometer el número límite de fallas (por ejemplo, 3er error en Desafíos 1 y 2, y 2do error en Desafío Final).
 
 ### 7.3. Tabla Maestra de Tolerancia
 

@@ -242,9 +242,43 @@ Al completar exitosamente toda la fase (por ejemplo, superando la batería final
 
 ---
 
-## 5. Paso 2: Plantilla de Seeder (`seed.py`)
+## 5. Paso 2: Plantilla de Seeder (`seed.py`) y Estrategias de Robustez
 
 El archivo `seed.py` de la fase debe crearse en `app/fase{X}/seed.py` y estructurarse en secciones deterministas. Cualquier error durante la inserción no debe silenciarse. Los bloques `try/except` deben imprimir el traceback completo y relanzar la excepción para que el contenedor falle explícitamente.
+
+### 4.0. Estrategias de Robustez de Datos y Ejecución
+
+Al construir y sembrar pools de base de datos, se deben aplicar las siguientes directrices obligatorias:
+
+1. **Estrategia de Purga Segura (Clean Purge & Replace):**
+   * El seeder debe incluir una función de limpieza dedicada (`clear_fase{X}_data(session: AsyncSession)`) que se ejecute al inicio del proceso.
+   * Para evitar errores de violación de clave foránea (`ForeignKeyViolationError`), esta función debe eliminar los registros de forma ordenada en cascada inversa: primero las alternativas de desafíos (`Alternativa`), luego los intentos de paso (`IntentoPaso`) e intentos de pregunta (`IntentoPregunta`), luego los intentos generales (`Intento`) y pooles asignados (`PoolAsignadoAlumno`), y finalmente las preguntas principales (`Pregunta`), configuraciones de progreso y niveles de teoría de la fase respectiva.
+2. **De-duplicación por Ampliación de Rango Combinatorio (Widened Parametric Spaces):**
+   * Se prohíbe generar pools de preguntas donde múltiples registros compartan enunciados de pregunta textuales idénticos.
+   * Los generadores de preguntas deben tener un espacio combinatorio significativamente más ancho que el número total de familias requeridas. Para problemas numéricos, amplíe los rangos numéricos de los aleatorios. Para problemas de dinero, amplíe las combinaciones de precios con céntimos variados y billetes. Esto garantiza que cada una de las 120+ familias del pool sea 100% única y activa, eliminando la necesidad de desactivar registros redundantes.
+3. **Protección contra Bloqueos de CPU por Bucles Primos Infinitos (Prime Loop CPU Hang Fix):**
+   * En generadores que involucren múltiplos, Máximo Común Divisor (MCD) o Mínimo Común Múltiplo (MCM), **se prohíbe el uso de bucles de descarte indefinidos** como `while math.gcd(a, b) < 2: b = random...`. Si el número `a` es un primo grande o no existen múltiplos válidos dentro del rango aleatorio establecido, el bucle correrá indefinidamente bloqueando el CPU al 100% y colgando el contenedor.
+   * En su lugar, utilice generación paramétrica basada en factores deterministas:
+     ```python
+     # Generar primero el divisor común y luego multiplicadores aleatorios
+     g = rng.randint(2, 6)
+     a_mult = rng.randint(2, 10)
+     b_mult = rng.choice([x for x in range(2, 10) if math.gcd(x, a_mult) == 1])
+     a = g * a_mult
+     b = g * b_mult
+     # Esto garantiza matemáticamente que gcd(a, b) = g sin ningún bucle
+     ```
+4. **Seguimiento por Pasos de Constructores Encadenados (Step-by-Step Chained Tracking):**
+   * En preguntas de tipo `constructor_soluciones_chained` (Módulo 4), el backend debe aislar el progreso de cada paso del problema en lugar de evaluar únicamente la respuesta final de forma plana.
+   * Utilice las entidades `IntentoPregunta` (que asocia el progreso general del alumno con la pregunta) e `IntentoPaso` (que registra el desempeño por paso individual `paso_numero` y si este paso es espejo `es_espejo`).
+   * La respuesta al intento general en la tabla `Intento` solo se marcará como `es_correcta = True` cuando el *último paso* del constructor encadenado sea respondido correctamente. Para garantizar una experiencia de usuario fluida, cuando el alumno responde correctamente a un paso intermedio (ej. Paso 1), el API retorna `es_correcta = True` en la carga útil JSON (junto con `paso_aprobado` y `valor_paso1_congelado`) para que el frontend valide visualmente el paso con éxito. Sin embargo, el backend utiliza internamente una variable de aislamiento (`es_correcta_intento`) para registrar ese intento en la base de datos como `es_correcta = False`. Esto evita avances prematuros en la maestría y el progreso de completitud del nivel, reservando el `True` general únicamente para cuando se resuelve el paso final de la cadena.
+5. **Auditoría Automatizada Offline (analyze_database.py):**
+   * Cada fase debe acompañarse de un script de auditoría read-only (`analyze_database.py`) para certificar de forma estricta la calidad de los datos antes de desplegarlos en producción, comprobando:
+     - Que no existan secciones vacías o incompletas.
+     - Que no existan preguntas duplicadas (`0 active duplicates`).
+     - Que todas las opciones múltiples tengan exactamente 4 alternativas y solo 1 de ellas sea la correcta.
+     - Que no existan preguntas en estado `INACTIVO`.
+     - Que la coherencia matemática de todas las preguntas de la base de datos sea del 100% mediante un motor de resolución autónomo.
 
 ### 4.1. Parte A: Textos de Teoría y Validación Estricta
 
@@ -568,13 +602,24 @@ Reglas de desafío:
 * Evalúa la respuesta sin Bucle Espejo.
 * Si expira el tiempo, computa error automáticamente y avanza a la siguiente pregunta tras un breve feedback visual.
 * Ante una respuesta incorrecta, el sistema muestra feedback (rojo) por 1.5 segundos y realiza un **auto-avance fluido** a la siguiente pregunta para mantener el ritmo de evaluación.
-* Si `errores_sesion >= max_errores`, retorna:
-
-```json
-{
-  "early_exit": true
-}
-```
+* Si `errores_sesion >= max_errores`, se ejecuta la **Salida Temprana (Early Exit)**:
+  * El backend realiza un reset absoluto de la sesión de progreso (`aciertos_acumulados = 0`, `porcentaje_actual = 0`, `intentos_totales = 0`).
+  * Elimina todos los intentos guardados para ese desafío (`Intento` e `IntentoPregunta` si aplica) para evitar colisiones y permitir que el alumno reinicie la sesión desde cero de forma limpia en el siguiente intento.
+  * Retorna el esquema de respuesta `Fase2ResultadoRespuesta` con:
+    ```json
+    {
+      "es_correcta": false,
+      "respuesta_correcta": "...",
+      "early_exit": true,
+      "errores_sesion": 3,
+      "max_errores_tolerados": 3,
+      "aciertos_acumulados": 0,
+      "porcentaje_actual": 0,
+      "bloque_completado": false,
+      "feedback_error": "..."
+    }
+    ```
+* **Contador de Errores Robustos:** Para evitar que el contador de errores de sesión quede atascado en `1` cuando el alumno tiene `0` aciertos acumulados (lo que causaría que el bucle de validación omitiera los errores previos), el backend evalúa incondicionalmente todos los intentos anteriores de la sesión actual (después del último reset/limpieza). De esta manera, el Early Exit se activa de forma determinista y consistente al cometer el número límite de fallas (por ejemplo, 3er error en Desafíos 1 y 2, y 2do error en Desafío Final).
 
 #### Regla Crítica de Sincronización Legacy y Segmentación Multicapa:
 Ante cualquier evento que modifique el estado de progreso en `ProgresoMaestria` (ya sea por desempeño del alumno, override manual o por la cascada de aprobación retrógrada), el backend **debe sincronizar de forma inmediata** el estado en `user.settings["unlockedLevels"]`. 

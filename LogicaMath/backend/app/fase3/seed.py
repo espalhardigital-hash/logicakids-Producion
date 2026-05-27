@@ -948,10 +948,13 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             feedback = "Calcula el Mínimo Común Múltiplo (MCM) de ambos intervalos de tiempo. El menor múltiplo común es el point de encuentro."
             vals = {"a": a, "b": b}
         else: # División Máxima Exacta - MCD
-            a = rng.randint(10, 60)
-            b = rng.randint(12, 80)
-            while a == b or math.gcd(a, b) < 2:
-                b = rng.randint(12, 80)
+            g = rng.randint(2, 10)
+            a_mult = rng.randint(2, 8)
+            b_mult = rng.randint(2, 10)
+            while a_mult == b_mult:
+                b_mult = rng.randint(2, 10)
+            a = g * a_mult
+            b = g * b_mult
             ans = math.gcd(a, b)
             enunciado = f"{prefix}Queremos cortar dos cuerdas de {a} metros y {b} metros en pedazos iguales lo más largos posible, sin que sobre nada. ¿De cuántos metros medirá cada pedazo?"
             feedback = "Calcula el Máximo Común Divisor (MCD) de las dos longitudes de cuerda para hallar el tamaño máximo de corte idéntico."
@@ -1050,10 +1053,13 @@ def generate_challenge_question(modulo_id: int, desafio_id: int, idx: int) -> Di
         ans = tot % cap
         enunciado = f"Un panadero hizo {tot} panes y los agrupó en bolsas de {cap} panes cada una. ¿Cuántos panes quedaron sueltos fuera de las bolsas completas?"
     else: # Módulo 5
-        a = rng.randint(3, 20)
-        b = rng.randint(4, 30)
-        while a == b or math.gcd(a, b) < 2:
-            b = rng.randint(4, 30)
+        g = rng.randint(2, 4)
+        a_mult = rng.randint(2, 7)
+        b_mult = rng.randint(2, 10)
+        while a_mult == b_mult:
+            b_mult = rng.randint(2, 10)
+        a = g * a_mult
+        b = g * b_mult
         ans = math.lcm(a, b)
         enunciado = f"Un atleta corre en una pista y tarda {a} minutos por vuelta, y su compañero tarda {b} minutos. Si salen juntos, ¿en cuántos minutos se encuentran de nuevo?"
         
