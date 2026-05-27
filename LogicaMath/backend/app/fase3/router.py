@@ -449,8 +449,8 @@ async def get_pregunta_fase3(
     seccion, operacion = _seccion_operacion(modulo_id, nivel_id)
     config = await _get_config(db, seccion, operacion)
 
-    # 1. MODO DESAFÍO (nivel_id en 11, 12, 13)
-    if nivel_id in (11, 12, 13):
+    # 1. MODO DESAFÍO (modulo_id == 99 o nivel_id en 11, 12, 13)
+    if modulo_id == 99 or nivel_id in (11, 12, 13):
         progreso = await _get_or_create_progreso(db, alumno.id, seccion, operacion)
         if reload:
             # Borrar los intentos de la tabla general `Intento` para esta sección
@@ -479,15 +479,19 @@ async def get_pregunta_fase3(
         )
         correct_pregunta_ids = set(result.scalars().all())
 
-        result = await db.execute(
-            select(Pregunta)
-            .options(selectinload(Pregunta.alternativas))
-            .where(and_(
-                Pregunta.fase_id == FASE3_ID,
-                Pregunta.seccion == seccion,
-                Pregunta.estado == StatusEnum.ACTIVO
-            ))
-        )
+        # Si modulo_id == 99, traer preguntas de toda la fase 3 (preferiblemente de nivel 13)
+        query = select(Pregunta).options(selectinload(Pregunta.alternativas)).where(and_(
+            Pregunta.fase_id == FASE3_ID,
+            Pregunta.estado == StatusEnum.ACTIVO
+        ))
+        
+        if modulo_id == 99:
+            # Filtrar solo preguntas de nivel de maestría (Desafío Final: secciones 1013, 2013, 3013, 4013, 5013)
+            query = query.where(func.mod(Pregunta.seccion, 1000) == 13)
+        else:
+            query = query.where(Pregunta.seccion == seccion)
+
+        result = await db.execute(query)
         preguntas = result.scalars().all()
         if not preguntas:
             raise HTTPException(status_code=404, detail="No hay preguntas en el pool para este desafío.")
@@ -508,13 +512,13 @@ async def get_pregunta_fase3(
 
         if config:
             tiene_crono = config.usa_cronometro
-            tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
+            tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
         else:
             global_cfg = await _get_global_config(db)
             des_cfg = global_cfg.get("desafios", {})
             tiene_crono = des_cfg.get("usa_cronometro", True)
             tiempo_key = f"tiempo_default_segundos_{nivel_id}"
-            tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
+            tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
 
         if not tiene_crono:
             tiempo_lim = None
@@ -734,9 +738,12 @@ async def responder_fase3(
     db.add(intento)
     await db.flush()
     
-    # ── 1. MODO DESAFÍO ──────────────────────────────────────────────────────
-    if nivel_id in (11, 12, 13):
-        max_errores = 2 if nivel_id == 13 else 3
+    # ── 1. MODO DESAFÍO (modulo_id == 99 o nivel_id en 11, 12, 13)
+    if modulo_id == 99 or nivel_id in (11, 12, 13):
+        if modulo_id == 99:
+            max_errores = 3  # 20 preguntas, 90% precisión = 18 aciertos, 3er error aborta (Early Exit)
+        else:
+            max_errores = 2 if nivel_id == 13 else 3
         
         result_att = await db.execute(
             select(Intento)
@@ -809,7 +816,10 @@ async def responder_fase3(
             else:
                 global_cfg = await _get_global_config(db)
                 des_cfg = global_cfg.get("desafios", {})
-                cantidad_req = des_cfg.get("cantidad_requerida", 10 if nivel_id == 13 else 20)
+                if modulo_id == 99:
+                    cantidad_req = 20
+                else:
+                    cantidad_req = des_cfg.get("cantidad_requerida", 10 if nivel_id == 13 else 20)
                 porc_aprobacion = des_cfg.get("porcentaje_aprobacion", 90)
 
             progreso.porcentaje_actual = min(100, int((progreso.aciertos_acumulados / cantidad_req) * 100)) if cantidad_req > 0 else 0

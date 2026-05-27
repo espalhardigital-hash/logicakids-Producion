@@ -791,6 +791,18 @@ async def seed_configuracion_progreso(session: AsyncSession):
             "tipo_feedback": "early_exit"
         })
 
+    # --- CONFIGURACIÓN GLOBAL DE DESAFÍO MIXTO (MÓDULO 99) ---
+    configs.append({
+        "seccion": 99099,
+        "operacion": "mixta",
+        "cantidad_requerida": 20,
+        "porcentaje_aprobacion": 90,
+        "orden_desbloqueo": 4,
+        "usa_cronometro": True,
+        "tiempo_default_segundos": 60,
+        "tipo_feedback": "simple"
+    })
+
     for c in configs:
         conf = ConfiguracionProgreso(
             fase_id=FASE3_ID,

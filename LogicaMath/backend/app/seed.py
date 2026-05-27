@@ -27,7 +27,7 @@ SEED_VERSIONS_KEY = "database_seed_versions"
 SEED_VERSIONS = {
     "fase_1": "1.0",
     "fase_2": "20260527_v1",
-    "fase_3": "20260527_v1"
+    "fase_3": "20260527_v2"
 }
 
 PEDAGOGY_CONFIG_KEY = "pedagogy_config"
