@@ -74,7 +74,7 @@ Campos:
 * `cuerpo_teoria`: JSONB con términos clave y párrafos secuenciales.
 * `trampa_advertencia`: Trampa común o tip pedagógico.
 * `diccionario_nivel`: JSONB con traducción de términos narrativos a operadores matemáticos.
-* `ejemplo_guiado`: JSONB de ejemplos resueltos paso a paso.
+* `ejemplo_guiado`: JSONB de un mínimo de 5 ejemplos resueltos paso a paso, con palabras clave destacadas mediante la clase CSS `.keyword-highlight` (utilizando la etiqueta HTML `<span class="keyword-highlight">...</span>`).
 * `interactivos_desbloqueo`: JSONB de minipreguntas interactivas para evocación obligatoria (retos sin tiempo).
 * `estado`: Estado del registro.
 
@@ -318,10 +318,38 @@ niveles_teoria = [
         },
         "ejemplo_guiado": [
             {
-                "enunciado": "Ejemplo práctico guiado",
+                "enunciado": "Hallar el <span class=\"keyword-highlight\">triple</span> de <span class=\"keyword-highlight\">6</span>.",
                 "pasos_resolucion": [
-                    "Paso uno: identificar la operación.",
-                    "Paso dos: resolver."
+                    "Paso uno: Traducimos '<span class=\"keyword-highlight\">el triple</span>' como multiplicar por 3 (× 3).",
+                    "Paso dos: Realizamos la operación: <span class=\"keyword-highlight\">6 × 3 = 18</span>."
+                ]
+            },
+            {
+                "enunciado": "Hallar la <span class=\"keyword-highlight\">mitad</span> de <span class=\"keyword-highlight\">10</span>.",
+                "pasos_resolucion": [
+                    "Paso uno: Traducimos '<span class=\"keyword-highlight\">la mitad</span>' como dividir entre 2 (÷ 2).",
+                    "Paso dos: Realizamos la operación: <span class=\"keyword-highlight\">10 ÷ 2 = 5</span>."
+                ]
+            },
+            {
+                "enunciado": "Hallar el <span class=\"keyword-highlight\">doble</span> de <span class=\"keyword-highlight\">8</span>.",
+                "pasos_resolucion": [
+                    "Paso uno: Traducimos '<span class=\"keyword-highlight\">el doble</span>' como multiplicar por 2 (× 2).",
+                    "Paso dos: Realizamos la operación: <span class=\"keyword-highlight\">8 × 2 = 16</span>."
+                ]
+            },
+            {
+                "enunciado": "Hallar el <span class=\"keyword-highlight\">cuádruple</span> de <span class=\"keyword-highlight\">5</span>.",
+                "pasos_resolucion": [
+                    "Paso uno: Traducimos '<span class=\"keyword-highlight\">el cuádruple</span>' como multiplicar por 4 (× 4).",
+                    "Paso dos: Realizamos la operación: <span class=\"keyword-highlight\">5 × 4 = 20</span>."
+                ]
+            },
+            {
+                "enunciado": "Hallar la <span class=\"keyword-highlight\">mitad</span> de <span class=\"keyword-highlight\">24</span>.",
+                "pasos_resolucion": [
+                    "Paso uno: Traducimos '<span class=\"keyword-highlight\">la mitad</span>' como dividir entre 2 (÷ 2).",
+                    "Paso dos: Realizamos la operación: <span class=\"keyword-highlight\">24 ÷ 2 = 12</span>."
                 ]
             }
         ],

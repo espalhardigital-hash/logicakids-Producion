@@ -71,7 +71,10 @@ Toda la carga teórica de un nivel se almacena de forma pre-renderizada en base 
 
 #### Paso 2: Modelado y Práctica Guiada
 
-* **Ejemplos Guiados:** Antes de pasar a los interactivos, el niño debe ver mínimo 2 ejemplos completamente resueltos paso a paso.
+* **Ejemplos Guiados (Mínimo 5):** Cada nivel de cada módulo en todas las fases debe garantizar **por lo menos 5 ejemplos guiados** completamente resueltos paso a paso para ofrecer una cobertura didáctica y una variedad de modelado óptima.
+* **Resaltado y Formateado Premium de Palabras Clave:** En todos los enunciados de los ejemplos y en las explicaciones paso a paso, se deben resaltar los términos críticos y palabras clave utilizando la clase CSS `.keyword-highlight` (representada en la base de datos mediante la etiqueta HTML `<span class="keyword-highlight">palabra</span>`).
+  * Esta clase CSS debe aplicar una línea de subrayado elegante (con `text-underline-offset: 3px`) y un cambio de color neón premium que hereda dinámicamente el color cromático del módulo via `--neon-accent-color` (o decae al color rosa neón de acento `#ff5e97`).
+  * Para garantizar el correcto renderizado de estos estilos interactivos y evitar inyecciones crudas de texto, el frontend debe renderizar los enunciados y explicaciones de los ejemplos del carrusel utilizando el método seguro de React `dangerouslySetInnerHTML`.
 * **Interactivos Pre-evaluativos:** Bloque obligatorio de 3 preguntas de evocación con `input` vacío.
 * **Retroalimentación Inmediata:**
   * En caso de acierto, se muestra `feedback_acierto`.
