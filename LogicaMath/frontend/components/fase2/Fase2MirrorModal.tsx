@@ -161,7 +161,7 @@ export const Fase2MirrorModal: React.FC<Props> = ({
                   />
                   <span className="f2-input-value-text text-4xl">
                     {feedback.visible 
-                      ? (feedback.resultado?.respuesta_correcta || respuesta) 
+                      ? (feedback.esCorrecta ? (feedback.resultado?.respuesta_correcta || respuesta) : (respuesta || '?')) 
                       : (respuesta || '?')}
                   </span>
                   {feedback.visible && (
