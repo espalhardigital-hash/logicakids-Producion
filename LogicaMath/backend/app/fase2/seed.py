@@ -145,7 +145,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 1,
             "nivel_id": 2,
             "titulo": "Prioridad algebraica: orden de operaciones y uso de paréntesis",
-            "texto_descubrimiento": "¡Atención! Los números tienen reglas de oro y jerarquías como los caballeros antiguos. En una fila de operaciones matemáticas, la multiplicación y la división siempre se resuelven antes que la suma y la resta. Pero hay un escudo mágico supremo: Los Paréntesis ( ). Cualquier operación atrapada dentro de un paréntesis se resuelve primero, sin importar qué símbolo sea.",
+            "texto_descubrimiento": "En matemáticas, no leemos las operaciones simplemente de izquierda a derecha como si fuera un texto común. Las ecuaciones requieren un orden universal para evitar confusiones, conocido como la jerarquía de las operaciones. La multiplicación y la división representan agrupaciones complejas, por lo que siempre deben resolverse antes que las sumas y las restas. Sin embargo, existe una herramienta superior: los paréntesis (). Cualquier cálculo, por simple que sea, que se encuentre dentro de un paréntesis tiene prioridad absoluta y debe resolverse primero.",
             "diccionario": {
                 "Jerarquía Mayor": "Primero multiplicaciones (×) y divisiones (÷).",
                 "Jerarquía Menor": "Después sumas (+) y restas (-).",
@@ -195,7 +195,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 1,
             "nivel_id": 3,
             "titulo": "Traducción del lenguaje verbal a expresiones numéricas abstractas",
-            "texto_descubrimiento": "¡Te has convertido en un traductor de élite! Las historias humanas están llenas de palabras que esconden fórmulas matemáticas abstractas. Tu misión es leer el enunciado, identificar la operación y ordenarla usando paréntesis si es necesario.",
+            "texto_descubrimiento": "Resolver un problema matemático en el mundo real comienza por traducir el lenguaje natural a un modelo simbólico. A esto lo llamamos modelado algebraico básico. Tu objetivo aquí es leer detenidamente una afirmación y extraer la estructura matemática que la define. Frases como 'la diferencia', 'el producto' o 'la suma de' te indican exactamente dónde colocar tus operaciones y tus paréntesis. Aprender a escribir el problema correctamente es el paso más importante antes de comenzar a calcular.",
             "diccionario": {
                 "La suma de A y B multiplicada por C": "Se traduce como (A + B) × C.",
                 "El triple de la diferencia entre A y B": "Se traduce como 3 × (A - B).",
@@ -240,7 +240,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 2,
             "nivel_id": 1,
             "titulo": "Operación Inversa - Suma y Resta",
-            "texto_descubrimiento": "¡Bienvenido al mundo al revés! Hoy vas a aprender el superpoder del Camino de Regreso. Si una máquina matemática le sumó un número a tu inventario secreto y quieres descubrir cuál era tu número original, solo debes viajar hacia atrás aplicando una Resta. La resta destruye a la suma, y la suma destruye a la resta.",
+            "texto_descubrimiento": "Una ecuación matemática funciona bajo el principio de equivalencia: es una balanza en perfecto equilibrio donde el signo igual (=) es el centro. Si desconocemos un valor inicial al que se le sumó o restó una cantidad, podemos deducirlo utilizando las operaciones inversas. La resta es la operación inversa de la suma, y viceversa. Si un valor se añadió a un lado de nuestra ecuación, para mantener el equilibrio y descubrir la incógnita, debemos aplicar la sustracción en el sentido contrario.",
             "diccionario": {
                 "Inverso de la Suma (+)": "La Resta (-).",
                 "Inverso de la Resta (-)": "La Suma (+).",
@@ -282,7 +282,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 2,
             "nivel_id": 2,
             "titulo": "Operación Inversa - Multiplicación y División",
-            "texto_descubrimiento": "¡Subimos la velocidad! Ahora la máquina misteriosa multiplica y divide en secreto. Si un número fue multiplicado por 3 para crecer, el camino de regreso para rescatar al número original es Dividir entre 3. La multiplicación y la división son espejos perfectos: una arma grupos y la otra los desarma.",
+            "texto_descubrimiento": "Así como la resta deshace la suma, la división es la herramienta analítica que revierte la multiplicación. Cuando un número ha sido multiplicado (escalado), no podemos encontrar el valor original simplemente restando. Debemos aplicar la reversibilidad multiplicativa. Si una incógnita fue multiplicada por un factor, debemos dividir el resultado final por ese mismo factor para despejar nuestra variable y volver al estado inicial.",
             "diccionario": {
                 "Inverso de la Multiplicación (×)": "La División (÷).",
                 "Inverso de la División (÷)": "La Multiplicación (×)."
@@ -323,7 +323,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 2,
             "nivel_id": 3,
             "titulo": "El Número Faltante",
-            "texto_descubrimiento": "¡Es hora de convertirte en un cazador de espacios vacíos! En este nivel, las ecuaciones se presentan como un reto de casillas en blanco. Verás un espacio desierto [ ] o una incógnita pura mezclada en cualquier posición de la operación. Tu trabajo es mantener la balanza equilibrada despejando el espacio vacío.",
+            "texto_descubrimiento": "Encontrar un valor faltante en el centro de una operación requiere que apliques la lógica deductiva para aislar la incógnita. En lugar de adivinar, debes reorganizar la información matemática. Si tienes un total y conoces una de las partes que lo conforman, el uso estructurado de las operaciones inversas te permitirá despejar exactamente el valor del espacio en blanco. Mantener la igualdad en ambos lados de la ecuación es tu principal herramienta de comprobación.",
             "diccionario": {
                 "Balanza Equilibrada": "Lo que está a la izquierda del igual (=) debe valer exactamente lo mismo que lo que está a la derecha.",
                 "Despejar [ ]": "Mover los números al otro lado de la balanza aplicando operaciones inversas hasta que la casilla vacía quede sola."
@@ -364,7 +364,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 2,
             "nivel_id": 4,
             "titulo": "Gran Integración",
-            "texto_descubrimiento": "¡Felicidades, estratega! Has unificado tus conocimientos de operaciones inversas. En este nivel de máxima velocidad operacional, el servidor barajará incógnitas aditivas y multiplicativas al azar. Tendrás que cambiar tu chip mental en milisegundos para decidir si regresas sumando, restando, multiplicando o dividiendo.",
+            "texto_descubrimiento": "Al enfrentar ecuaciones compuestas, debes combinar todo lo aprendido resolviendo las operaciones de manera sistemática. Para despejar una incógnita en una ecuación estructurada (por ejemplo, encontrar el valor de X en la ecuación 2 × X + 3 = 11), debes deshacer las operaciones en el orden cronológico inverso. Primero se neutralizan las sumas y restas para simplificar la expresión, y finalmente se aplican las divisiones o multiplicaciones necesarias para aislar la variable por completo.",
             "diccionario": {
                 "Estrategia Unificada": "Si el número suma -> pasa restando; si resta -> pasa sumando; si multiplica -> pasa dividiendo; si divide -> pasa multiplicando."
             },
@@ -406,7 +406,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 3,
             "nivel_id": 1,
             "titulo": "Reconozco el Dinero",
-            "texto_descubrimiento": "¡Bienvenido a la Tienda de Logicakids! Hoy te damos tu billetera oficial de entrenamiento. Para que manejar dinero sea súper fácil, los centavos están agrupados en bloques mágicos y limpios: 0,25, 0,50, 0,75 y el peso completo ,00. Piensa en los centavos como piezas de un rompecabezas: cuatro piezas de 0,25 arman un peso entero.",
+            "texto_descubrimiento": "El sistema monetario es una aplicación práctica fundamental de los números racionales y el sistema decimal. Los valores ubicados a la derecha de la coma decimal representan fracciones de un entero (centavos). Sabiendo que 100 centavos equivalen exactamente a 1 unidad entera, podemos realizar agrupaciones fraccionarias. Comprender que 0,50 representa la mitad geométrica de un entero, o que 0,25 representa un cuarto, agilizará tu capacidad de análisis cuantitativo.",
             "diccionario": {
                 "1 moneda de 0,25": "25 centavos.",
                 "1 moneda de 0,50": "50 centavos (o dos de 0,25).",
@@ -449,7 +449,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 3,
             "nivel_id": 2,
             "titulo": "Pago y Cambio",
-            "texto_descubrimiento": "¡Eres el cajero oficial! Cuando un cliente compra un juguete, te pagará con un billete más grande que el precio. Tu misión es calcular el Vuelto o Cambio restando el precio del artículo del dinero recibido.",
+            "texto_descubrimiento": "El cálculo del cambio en una transacción requiere precisión en la sustracción de números decimales. La regla fundamental es respetar el valor posicional: debes restar las unidades enteras con las unidades enteras, y las fracciones decimales con las fracciones decimales. Cuando la porción decimal del precio es mayor que la porción decimal del dinero entregado, es matemáticamente necesario reagrupar (o \"pedir prestado\") una unidad entera, convirtiéndola en 100 centésimas para poder ejecutar la sustracción correctamente.",
             "diccionario": {
                 "Vuelto (Cambio)": "Dinero Recibido - Precio del Artículo.",
                 "Regla de Resta Decimal": "Resta centavos con centavos y pesos con pesos. Si los centavos del precio son mayores, pide prestado 1 peso (100 centavos) al entero."
@@ -490,7 +490,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 3,
             "nivel_id": 3,
             "titulo": "Carrito de Compras",
-            "texto_descubrimiento": "¡Hora de llenar el carrito! Vas a combinar múltiples artículos. Junta los pesos con los pesos y los bloques de centavos con sus bloques hermanos. ¡Si tus centavos suman 100, se convierten automáticamente en un peso extra!",
+            "texto_descubrimiento": "Al consolidar múltiples valores financieros, aplicamos la adición con reagrupación decimal. El proceso es sistemático: sumamos las partes fraccionarias por un lado y las enteras por el otro. Si la suma de las fracciones alcanza o supera las 100 unidades (por ejemplo, al sumar 0,75 y 0,50), aplicamos una reagrupación base 10: convertimos esos 100 centavos en 1 unidad entera, la cual se transfiere inmediatamente al registro de los números enteros, dejando únicamente el residuo en la columna decimal.",
             "diccionario": {
                 "Suma de Precios": "1. Suma las partes enteras (pesos). 2. Suma los centavos. 3. Si los centavos dan 100 o más, sumas 1,00 al entero y restas 100 a los centavos."
             },
@@ -531,7 +531,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 3,
             "nivel_id": 4,
             "titulo": "Comprador Inteligente",
-            "texto_descubrimiento": "¡Has sido promovido a Gerente de Presupuesto! Compara el dinero que llevas con el costo de tu carrito antes de pagar para determinar si el dinero te alcanza o calcular exactamente cuánto te falta.",
+            "texto_descubrimiento": "La planificación financiera requiere el análisis de desigualdades matemáticas. Antes de efectuar un cálculo de vuelto, primero debes evaluar la viabilidad de la operación comparando dos magnitudes: el capital disponible frente al costo total. Si el costo es mayor que el capital, la transacción arroja un déficit (lo que te falta). In este caso, la sustracción del capital respecto al precio total te indicará exactamente la diferencia numérica necesaria para lograr el balance.",
             "diccionario": {
                 "¿Alcanza?": "Si Dinero Llevado ≥ Costo total -> SÍ alcanza (escribe 1). Si Dinero Llevado < Costo total -> NO alcanza (escribe 2).",
                 "¿Cuánto Falta?": "Costo Total - Dinero Llevado."
@@ -574,7 +574,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 4,
             "nivel_id": 1,
             "titulo": "Problemas de Dos Pasos Guiados",
-            "texto_descubrimiento": "¡Bienvenido al centro de control, ingeniero de soluciones! En este nivel, los problemas de palabras se vuelven misiones estructuradas. El sistema te guiará usando un Diagrama de Flujo. Primero resolverás el Bloque A, y luego el sistema congelará ese número en pantalla para que resuelvas el Bloque B.",
+            "texto_descubrimiento": "Los problemas matemáticos reales rara vez se resuelven con una sola operación directa; requieren un pensamiento algorítmico. Esto significa dividir una situación compleja en pasos lógicos secuenciales. No puedes calcular el estado final de un sistema sin haber resuelto primero su estado intermedio. Aprender a organizar tu proceso, resolviendo la primera incógnita y utilizando ese resultado verificado como punto de partida para la segunda operación, es la clave para la exactitud analítica.",
             "diccionario": {
                 "Paso 1 (Bloque A)": "Resolver la primera parte de la historia (usualmente una multiplicación o suma del inventario).",
                 "Paso 2 (Bloque B)": "Tomar el resultado anterior y aplicar la operación final (una resta de pérdida o suma de regalo)."
@@ -614,7 +614,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 4,
             "nivel_id": 2,
             "titulo": "Encadenamiento de Resultados",
-            "texto_descubrimiento": "¡Fabuloso! Tu mente debe aprender a Encadenar las Ecuaciones de forma secuencial sin andamios. La respuesta que digites en la primera sub-pregunta se inyectará automáticamente como el valor de inicio de la segunda ecuación.",
+            "texto_descubrimiento": "En el modelado matemático, las operaciones suelen presentar una dependencia secuencial. Esto significa que el resultado obtenido en tu primera ecuación se convierte inmediatamente en el dato de entrada (input) para tu siguiente cálculo. Mantener la concentración en el traspaso de este valor es vital; un cálculo correcto en la primera etapa perderá todo su valor si no se encadena lógicamente con la premisa final del problema.",
             "diccionario": {
                 "Eslabón 1": "Ecuación primaria que calcula la cantidad de partida.",
                 "Eslabón 2": "Inyección del resultado anterior en la segunda ecuación del problema."
@@ -654,7 +654,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 4,
             "nivel_id": 3,
             "titulo": "Minimización de Error de Arrastre",
-            "texto_descubrimiento": "Estás en la sala de control avanzado. Las historias contienen datos basura camuflados (distractores). Tu superpoder será la Auto-verificación activa: levantarás un escudo contra los datos inútiles y asegurarás el orden del tiempo de la historia.",
+            "texto_descubrimiento": "Uno de los mayores retos en la matemática aplicada es la capacidad de realizar un filtrado de datos. En un entorno real, estarás rodeado de información irrelevante (ruido analítico). Tu primer paso analítico siempre debe ser identificar y descartar los datos numéricos que no tienen relación directa con la variable que estás intentando despejar. Además, debes respetar estrictamente la cronología del problema, aplicando las operaciones secuencialmente tal cual dictan los eventos, para garantizar que tu modelo matemático sea preciso.",
             "diccionario": {
                 "Dato Basura": "Números u objetos descritos en el problema que no tienen relación con la pregunta matemática final (ej. colores, edades de personas no involucradas, objetos distintos).",
                 "Reloj de la Historia": "Resolver las operaciones en el orden cronológico estricto en que ocurren los eventos."
