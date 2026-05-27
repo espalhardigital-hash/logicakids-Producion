@@ -876,6 +876,110 @@ async def seed_configuracion_progreso(session: AsyncSession):
             existing.tipo_feedback = c["tipo_feedback"]
             print(f"  Actualizada config progreso para Sección {c['seccion']}")
 
+# Nombres de personajes, objetos, recipientes y verbos para diversificar las preguntas
+NOMBRES_POOL = [
+    "Camila", "Mateo", "Valentina", "Enzo", "Isabella", "Thiago", "Sofía", "Lucas", "Clara", "Benjamín",
+    "Gabriela", "Daniel", "Sara", "Gabriel", "Victoria", "Miguel", "Laura", "Rafael", "Helena", "Samuel"
+]
+
+ARTICULOS_TIENDA = [
+    "dulce", "alfajor", "chocolate", "piruleta", "galleta", "chupetín", "dona", "muffin", "bombón", "goma de mascar"
+]
+
+UTILES_ESCOLARES = [
+    "lápiz", "cuaderno", "goma", "regla", "sacapuntas", "marcador", "estuche", "pincel", "block de notas", "carpeta"
+]
+
+OBJETOS_RECREO = [
+    "canica", "tazo", "figurita", "pelota de tenis", "coche de juguete", "spinner", "yo-yo", "llavero", "carta coleccionable"
+]
+
+INGREDIENTES_COMIDA = [
+    "manzana", "pera", "naranja", "plátano", "frutilla", "limón", "panqué", "magdalena", "bombón", "galleta de avena"
+]
+
+RECIPIENTES = [
+    "caja", "bolsa", "estuche", "frasco", "canasta", "cajón", "paquete", "sobre"
+]
+
+VERBOS_COMPRA = [
+    "compra", "adquiere", "lleva", "pide"
+]
+
+VERBOS_PERDIDA = [
+    "rompe", "pierde", "regala", "consume", "come", "gasta"
+]
+
+VERBOS_OBTENCION = [
+    "recolecta", "cosecha", "junta", "encuentra", "recibe", "acumula"
+]
+
+def _genero_fem(palabra):
+    # Returns True if the word is feminine, False if masculine
+    fem_words = {
+        "piruleta", "galleta", "dona", "goma de mascar",
+        "goma", "regla", "carpeta",
+        "canica", "figurita", "pelota de tenis", "carta coleccionable",
+        "manzana", "pera", "naranja", "frutilla", "magdalena", "galleta de avena",
+        "caja", "bolsa", "canasta"
+    }
+    return palabra in fem_words
+
+def _plural(palabra):
+    # Explicit mapping for exact spelling and grammatical correctness in Spanish
+    mapping = {
+        "dulce": "dulces",
+        "alfajor": "alfajores",
+        "chocolate": "chocolates",
+        "piruleta": "piruletas",
+        "galleta": "galletas",
+        "chupetín": "chupetines",
+        "dona": "donas",
+        "muffin": "muffins",
+        "bombón": "bombones",
+        "goma de mascar": "gomas de mascar",
+        
+        "lápiz": "lápices",
+        "cuaderno": "cuadernos",
+        "goma": "gomas",
+        "regla": "reglas",
+        "sacapuntas": "sacapuntas",
+        "marcador": "marcadores",
+        "estuche": "estuches",
+        "pincel": "pinceles",
+        "block de notas": "blocks de notas",
+        "carpeta": "carpetas",
+        
+        "canica": "canicas",
+        "tazo": "tazos",
+        "figurita": "figuritas",
+        "pelota de tenis": "pelotas de tenis",
+        "coche de juguete": "coches de juguete",
+        "spinner": "spinners",
+        "yo-yo": "yo-yos",
+        "llavero": "llaveros",
+        "carta coleccionable": "cartas coleccionables",
+        
+        "manzana": "manzanas",
+        "pera": "peras",
+        "naranja": "naranjas",
+        "plátano": "plátanos",
+        "frutilla": "frutillas",
+        "limón": "limones",
+        "panqué": "panqués",
+        "magdalena": "magdalenas",
+        "galleta de avena": "galletas de avena",
+        
+        "caja": "cajas",
+        "bolsa": "bolsas",
+        "frasco": "frascos",
+        "canasta": "canastas",
+        "cajón": "cajones",
+        "paquete": "paquetes",
+        "sobre": "sobres",
+    }
+    return mapping.get(palabra, palabra + "s")
+
 # Helper generators
 def _gen_m1l1(rng, fam, es_espejo, var):
     op = rng.choice(["doble", "triple", "mitad", "cuádruple"])
@@ -1276,7 +1380,12 @@ def _gen_m3l1(rng, fam, es_espejo, var):
     n25 = rng.randint(1, 15)
     total_cents = n50 * 50 + n25 * 25
     reais = total_cents / 100.0
-    enunciado = f"¿Cuánto dinero tienes en total si juntas {n50} monedas de 0,50 y {n25} de 0,25?"
+    
+    nombre = rng.choice(NOMBRES_POOL)
+    sitio = rng.choice(["alcancía", "billetera", "bolsillo", "monedero"])
+    juntar_verb = rng.choice(["junta", "tiene", "guarda", "acumula"])
+    
+    enunciado = f"{nombre} tiene en su {sitio} {n50} monedas de 0,50 y {n25} de 0,25. ¿Cuánto dinero {juntar_verb} en total?"
     
     # Asegurar formato exacto de respuesta string
     ans_str = f"{reais:.2f}".replace(".", ",")
@@ -1292,7 +1401,7 @@ def _gen_m3l1(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": ans_str,
-        "datos_numericos": {"n50": n50, "n25": n25, "es_espejo": es_espejo, "variante": var},
+        "datos_numericos": {"n50": n50, "n25": n25, "es_espejo": es_espejo, "variante": var, "nombre": nombre, "sitio": sitio},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "decimal": "Cuidado con los decimales. 0,50 + 0,50 es 1,00 real entero."
@@ -1317,7 +1426,12 @@ def _gen_m3l2(rng, fam, es_espejo, var):
     cambio = pago - precio
     ans_str = f"{cambio:.2f}".replace(".", ",")
     
-    enunciado = f"Compro un dulce de {precio:.2f} pesos y pago con un billete de {pago:.2f} pesos. ¿Cuánto cambio recibo?"
+    nombre = rng.choice(NOMBRES_POOL)
+    compra_verb = rng.choice(VERBOS_COMPRA)
+    objeto = rng.choice(ARTICULOS_TIENDA)
+    
+    articulo = "una" if _genero_fem(objeto) else "un"
+    enunciado = f"{nombre} {compra_verb} {articulo} {objeto} de {precio:.2f} pesos y paga con un billete de {pago:.2f} pesos. ¿Cuánto cambio recibe?"
     respuestas_erroneas = []
     
     # Vuelto mocho error común: restar centavos con centavos sin pedir prestado
@@ -1332,7 +1446,7 @@ def _gen_m3l2(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": ans_str,
-        "datos_numericos": {"precio": precio, "pago": pago, "es_espejo": es_espejo, "variante": var},
+        "datos_numericos": {"precio": precio, "pago": pago, "es_espejo": es_espejo, "variante": var, "nombre": nombre, "objeto": objeto},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "vuelto": "Recuerda restar centavos con centavos. 1 peso entero son 100 centavos."
@@ -1355,7 +1469,15 @@ def _gen_m3l3(rng, fam, es_espejo, var):
     total = p1 + p2 + p3
     ans_str = f"{total:.2f}".replace(".", ",")
     
-    enunciado = f"En tu carrito llevas tres cosas: un chicle de {p1:.2f} pesos, un lápiz de {p2:.2f} pesos y un helado de {p3:.2f} pesos. ¿Cuánto es el total?"
+    nombre = rng.choice(NOMBRES_POOL)
+    pool = ARTICULOS_TIENDA + UTILES_ESCOLARES
+    obj1, obj2, obj3 = rng.sample(pool, 3)
+    
+    art1 = "una" if _genero_fem(obj1) else "un"
+    art2 = "una" if _genero_fem(obj2) else "un"
+    art3 = "una" if _genero_fem(obj3) else "un"
+    
+    enunciado = f"{nombre} lleva en su carrito: {art1} {obj1} de {p1:.2f} pesos, {art2} {obj2} de {p2:.2f} pesos y {art3} {obj3} de {p3:.2f} pesos. ¿Cuánto es el total?"
     respuestas_erroneas = []
     
     # Error: sumar centavos y no llevarse 1 a la parte entera (ej: .75 + .25 = .100)
@@ -1369,7 +1491,7 @@ def _gen_m3l3(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": ans_str,
-        "datos_numericos": {"p1": p1, "p2": p2, "p3": p3, "es_espejo": es_espejo, "variante": var},
+        "datos_numericos": {"p1": p1, "p2": p2, "p3": p3, "es_espejo": es_espejo, "variante": var, "nombre": nombre, "obj1": obj1, "obj2": obj2, "obj3": obj3},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "suma_decimal": "Suma los centavos por un lado. Si superan 100 centavos, agrúpalos como 1 peso entero extra."
@@ -1388,18 +1510,21 @@ def _gen_m3l4(rng, fam, es_espejo, var):
     costo = rng.randint(3, 20) + rng.choice([0.00, 0.25, 0.50, 0.75])
     respuestas_erroneas = []
     
+    nombre = rng.choice(NOMBRES_POOL)
+    bolsillo = rng.choice(["monedero", "bolsillo", "billetera", "cartera"])
+    
     if tipo == "alcanza":
         presupuesto = costo + rng.randint(1, 15) + rng.choice([0.00, 0.25, 0.50, 0.75])
         ans_str = "1"
-        enunciado = f"Tienes {presupuesto:.2f} pesos de presupuesto. Tu carrito de compras suma {costo:.2f} pesos. ¿Te alcanza el dinero? (Escribe 1 para SÍ, 2 para NO)"
-        expl = f"Como el presupuesto ({presupuesto:.2f}) es mayor o igual al costo ({costo:.2f}), sí te alcanza (1)."
+        enunciado = f"{nombre} tiene {presupuesto:.2f} pesos en su {bolsillo}. Su carrito de compras suma {costo:.2f} pesos. ¿Le alcanza el dinero para pagar? (Escribe 1 para SÍ, 2 para NO)"
+        expl = f"Como el presupuesto ({presupuesto:.2f}) es mayor o igual al costo ({costo:.2f}), sí le alcanza (1)."
     else:
         presupuesto = costo - rng.randint(1, 4) - rng.choice([0.25, 0.50, 0.75])
         if presupuesto <= 0:
             presupuesto = 1.00
         falta = costo - presupuesto
         ans_str = f"{falta:.2f}".replace(".", ",")
-        enunciado = f"Llevas {presupuesto:.2f} pesos en el bolsillo. Si tu carrito cuesta {costo:.2f} pesos, ¿cuánto dinero te hace falta para pagar?"
+        enunciado = f"{nombre} lleva {presupuesto:.2f} pesos en su {bolsillo}. Si su carrito cuesta {costo:.2f} pesos, ¿cuánto dinero le hace falta para completar el pago?"
         expl = f"Restamos el costo menos el presupuesto: {costo:.2f} - {presupuesto:.2f} = {falta:.2f} pesos faltantes."
         
         # Error común: sumar en lugar de restar
@@ -1413,7 +1538,7 @@ def _gen_m3l4(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": ans_str,
-        "datos_numericos": {"presupuesto": presupuesto, "costo": costo, "tipo": tipo, "es_espejo": es_espejo, "variante": var},
+        "datos_numericos": {"presupuesto": presupuesto, "costo": costo, "tipo": tipo, "es_espejo": es_espejo, "variante": var, "nombre": nombre, "bolsillo": bolsillo},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "presupuesto": "Compara detenidamente los valores decimales para ver si te sobra o te falta."
@@ -1434,7 +1559,19 @@ def _gen_m4l1(rng, fam, es_espejo, var):
     p1_ans = cajas * crayones
     p2_ans = p1_ans - rotos
     
-    enunciado = f"Lucas compra {cajas} cajas de crayones con {crayones} crayones cada una. Si en el camino se le rompen {rotos} crayones, ¿cuántos útiles le quedan?"
+    nombre = rng.choice(NOMBRES_POOL)
+    compra_verb = rng.choice(VERBOS_COMPRA)
+    contenedor = rng.choice(RECIPIENTES)
+    util = rng.choice(UTILES_ESCOLARES)
+    perdida_verb = rng.choice(["se le rompen", "pierde", "se le dañan", "extravía"])
+    
+    contenedor_pl = _plural(contenedor)
+    util_pl = _plural(util)
+    
+    cada_uno_str = "cada una" if _genero_fem(util) else "cada uno"
+    cuantos_str = "cuántas" if _genero_fem(util) else "cuántos"
+    
+    enunciado = f"{nombre} {compra_verb} {cajas} {contenedor_pl} de {util_pl} con {crayones} {util_pl} {cada_uno_str}. Si en el camino {perdida_verb} {rotos} {util_pl}, ¿{cuantos_str} {util_pl} útiles le quedan?"
     
     return {
         "enunciado": enunciado,
@@ -1442,20 +1579,23 @@ def _gen_m4l1(rng, fam, es_espejo, var):
         "datos_numericos": {
             "es_espejo": es_espejo,
             "variante": var,
+            "nombre": nombre,
+            "util": util,
+            "contenedor": contenedor,
             "pasos": [
-                {"titulo": "Paso 1", "descripcion": f"¿Cuántos crayones compró Lucas en total en las {cajas} cajas?", "respuesta_correcta": str(p1_ans)},
-                {"titulo": "Paso 2", "descripcion": "¿Cuántos crayones útiles le quedan en total?", "respuesta_correcta": str(p2_ans)}
+                {"titulo": "Paso 1", "descripcion": f"¿{cuantos_str.capitalize()} {util_pl} compró {nombre} en total en los/las {cajas} {contenedor_pl}?", "respuesta_correcta": str(p1_ans)},
+                {"titulo": "Paso 2", "descripcion": f"¿{cuantos_str.capitalize()} {util_pl} útiles le quedan en total?", "respuesta_correcta": str(p2_ans)}
             ]
         },
         "errores_previstos": {
             "respuestas_erroneas": [],
-            "arrastre": "Resuelve paso a paso. Primero el total de crayones y luego resta los dañados."
+            "arrastre": f"Resuelve paso a paso. Primero calcula el total de {util_pl} y luego resta los dañados."
         },
         "explicacion_paso_a_paso": {
             "titulo": "Resolución Multi-Paso",
             "pasos": [
-                {"orden": 1, "texto": f"Multiplicamos para hallar el total inicial: {cajas} × {crayones} = {p1_ans} crayones."},
-                {"orden": 2, "texto": f"Restamos la pérdida de crayones rotos: {p1_ans} - {rotos} = {p2_ans} crayones."}
+                {"orden": 1, "texto": f"Multiplicamos para hallar el total inicial: {cajas} × {crayones} = {p1_ans} {util_pl}."},
+                {"orden": 2, "texto": f"Restamos la pérdida de {util_pl} {perdida_verb}: {p1_ans} - {rotos} = {p2_ans} {util_pl}."}
             ]
         }
     }
@@ -1468,7 +1608,18 @@ def _gen_m4l2(rng, fam, es_espejo, var):
     p1_ans = rojas + verdes
     p2_ans = p1_ans // 2
     
-    enunciado = f"Sofía recolectó {rojas} manzanas rojas y {verdes} manzanas verdes en el jardín. Si utiliza exactamente la mitad para hornear un pastel, ¿cuántas manzanas le quedan?"
+    nombre = rng.choice(NOMBRES_POOL)
+    recolecta_verb = rng.choice(VERBOS_OBTENCION)
+    fruta = rng.choice(INGREDIENTES_COMIDA)
+    
+    fruta_pl = _plural(fruta)
+    rojas_color = "rojas" if _genero_fem(fruta) else "rojos"
+    verdes_color = "verdes"
+    
+    cuantas_str = "cuántas" if _genero_fem(fruta) else "cuántos"
+    receta = rng.choice(["hornear un pastel", "hacer una ensalada", "preparar una mermelada", "hacer un postre"])
+    
+    enunciado = f"{nombre} {recolecta_verb} {rojas} {fruta_pl} {rojas_color} y {verdes} {fruta_pl} {verdes_color} en el jardín. Si utiliza exactamente la mitad para {receta}, ¿{cuantas_str} {fruta_pl} le quedan?"
     
     return {
         "enunciado": enunciado,
@@ -1476,20 +1627,22 @@ def _gen_m4l2(rng, fam, es_espejo, var):
         "datos_numericos": {
             "es_espejo": es_espejo,
             "variante": var,
+            "nombre": nombre,
+            "fruta": fruta,
             "pasos": [
-                {"titulo": "Paso 1", "descripcion": "¿Cuántas manzanas cosechó en total Sofía?", "respuesta_correcta": str(p1_ans)},
-                {"titulo": "Paso 2", "descripcion": "¿Cuántas manzanas le quedan al final?", "respuesta_correcta": str(p2_ans)}
+                {"titulo": "Paso 1", "descripcion": f"¿{cuantas_str.capitalize()} {fruta_pl} en total {recolecta_verb} {nombre}?", "respuesta_correcta": str(p1_ans)},
+                {"titulo": "Paso 2", "descripcion": f"¿{cuantas_str.capitalize()} {fruta_pl} le quedan al final?", "respuesta_correcta": str(p2_ans)}
             ]
         },
         "errores_previstos": {
             "respuestas_erroneas": [],
-            "secuencia": "Primero suma todas las manzanas recolectadas y luego divide ese total entre 2."
+            "secuencia": f"Primero suma todas las {fruta_pl} recolectadas y luego divide ese total entre 2."
         },
         "explicacion_paso_a_paso": {
             "titulo": "Encadenamiento Lógico",
             "pasos": [
-                {"orden": 1, "texto": f"Sumamos la cosecha total: {rojas} + {verdes} = {p1_ans} manzanas."},
-                {"orden": 2, "texto": f"Dividimos a la mitad: {p1_ans} ÷ 2 = {p2_ans} manzanas restantes."}
+                {"orden": 1, "texto": f"Sumamos la cosecha total: {rojas} + {verdes} = {p1_ans} {fruta_pl}."},
+                {"orden": 2, "texto": f"Dividimos a la mitad: {p1_ans} ÷ 2 = {p2_ans} {fruta_pl} restantes."}
             ]
         }
     }
@@ -1501,7 +1654,21 @@ def _gen_m4l3(rng, fam, es_espejo, var):
     p1_ans = bombones - comidos
     p2_ans = p1_ans * 2
     
-    enunciado = f"Valentina tenía {bombones} bombones en una caja y también vio {sillas} sillas de madera. Si se comió {comidos} bombones, y luego su abuela le duplicó la cantidad restante, ¿con cuántos bombones cuenta ahora?"
+    nombre = rng.choice(NOMBRES_POOL)
+    objeto_dulce = rng.choice(ARTICULOS_TIENDA)
+    contenedor = rng.choice(RECIPIENTES)
+    
+    distractor_obj = rng.choice(["sillas de madera", "camisas rojas", "mesas de plástico", "libros viejos", "bicicletas azules"])
+    tutor = rng.choice(["abuela", "tío", "hermano mayor", "profesor", "padre"])
+    
+    objeto_dulce_pl = _plural(objeto_dulce)
+    consumo_verb = rng.choice(["comió", "perdió", "regaló", "gastó"])
+    consumo_str = "se comió" if consumo_verb == "comió" else consumo_verb
+    
+    articulo_cont = "una" if _genero_fem(contenedor) else "un"
+    cuantos_str = "cuántas" if _genero_fem(objeto_dulce) else "cuántos"
+    
+    enunciado = f"{nombre} tenía {bombones} {objeto_dulce_pl} en {articulo_cont} {contenedor} y también vio {sillas} {distractor_obj}. Si {consumo_str} {comidos} {objeto_dulce_pl}, y luego su {tutor} le duplica la cantidad restante, ¿con {cuantos_str} {objeto_dulce_pl} cuenta ahora?"
     respuestas_erroneas = []
     
     # Error: operar incluyendo el distractor (sillas)
@@ -1512,26 +1679,32 @@ def _gen_m4l3(rng, fam, es_espejo, var):
         "feedback": "¡Caíste en la trampa del distractor! Antes de operar, levanta tu escudo y separa solo los datos útiles para resolver la pregunta."
     })
     
+    art_los_las = "las" if _genero_fem(objeto_dulce) else "los"
+    art_dist = "las" if distractor_obj in ["sillas de madera", "camisas rojas", "mesas de plástico", "bicicletas azules"] else "los"
+    art_primeros = "las primeras" if _genero_fem(objeto_dulce) else "los primeros"
+    
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(p2_ans),
         "datos_numericos": {
             "es_espejo": es_espejo,
             "variante": var,
+            "nombre": nombre,
+            "objeto_dulce": objeto_dulce,
             "pasos": [
-                {"titulo": "Paso 1", "descripcion": "¿Cuántos bombones le quedaron después de comerse los primeros?", "respuesta_correcta": str(p1_ans)},
-                {"titulo": "Paso 2", "descripcion": "¿Con cuántos bombones cuenta Valentina al final?", "respuesta_correcta": str(p2_ans)}
+                {"titulo": "Paso 1", "descripcion": f"¿{cuantos_str.capitalize()} {objeto_dulce_pl} le quedaron después de que {consumo_str} {art_primeros}?", "respuesta_correcta": str(p1_ans)},
+                {"titulo": "Paso 2", "descripcion": f"¿Con {cuantos_str} {objeto_dulce_pl} cuenta {nombre} al final?", "respuesta_correcta": str(p2_ans)}
             ]
         },
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
-            "distractor": "¡Escudo de datos basura activado! Ignora por completo las sillas de madera, solo importan los bombones."
+            "distractor": f"¡Escudo de datos basura activado! Ignora por completo {art_dist} {distractor_obj}, solo importan {art_los_las} {objeto_dulce_pl}."
         },
         "explicacion_paso_a_paso": {
             "titulo": "Filtrado de Distractores",
             "pasos": [
-                {"orden": 1, "texto": f"Las {sillas} sillas son un dato distractor. Restamos los bombones: {bombones} - {comidos} = {p1_ans} bombones."},
-                {"orden": 2, "texto": f"Duplicamos los bombones restantes: {p1_ans} × 2 = {p2_ans}."}
+                {"orden": 1, "texto": f"{art_dist.capitalize()} {sillas} {distractor_obj} son un dato distractor. Restamos {art_los_las} {objeto_dulce_pl}: {bombones} - {comidos} = {p1_ans} {objeto_dulce_pl}."},
+                {"orden": 2, "texto": f"Duplicamos {art_los_las} {objeto_dulce_pl} restantes: {p1_ans} × 2 = {p2_ans}."}
             ]
         }
     }
@@ -1665,82 +1838,98 @@ def _gen_desafio_pregunta(rng, mod, lvl_id, sub_dif):
             expl = f"Ambas multiplicaciones primero: {a} × {b} = {a*b} y {c} × 2 = {c*2}. Luego sumamos: {a*b} + {c*2} = {ans}."
             
     elif mod == 2:
-        # Tablas en Acción
         if sub_dif == "estandar":
-            a = rng.randint(5, 25)
-            ans = rng.randint(4, 25)
+            a, ans = rng.randint(5, 25), rng.randint(4, 25)
             b = a * ans
             enunciado = f"Halla la incógnita: Y × {a} = {b}"
-            expl = f"Dividimos ambos lados entre {a}: Y = {b} ÷ {a} = {ans}."
+            expl = f"Dividimos: Y = {b} ÷ {a} = {ans}."
         elif sub_dif == "avanzada":
-            a = rng.randint(15, 100)
-            b = rng.randint(120, 250)
+            a, b = rng.randint(15, 100), rng.randint(120, 250)
             ans = b - a
             enunciado = f"Completa la casilla vacía: {a} + [ ] = {b}"
             expl = f"Restamos para despejar: {b} - {a} = {ans}."
-        else: # maestria
-            a = rng.randint(2, 8)
-            b = rng.randint(3, 20)
-            ans = rng.randint(2, 15)
+        else:
+            a, b, ans = rng.randint(2, 8), rng.randint(3, 20), rng.randint(2, 15)
             c = a * ans + b
             enunciado = f"Despeja la incógnita paso a paso: {a} × X + {b} = {c}"
-            expl = f"Restamos primero: {a} × X = {c} - {b} = {a*ans}. Luego dividimos entre {a}: X = {ans}."
+            expl = f"Restamos primero: {c} - {b} = {a*ans}. Luego dividimos entre {a}: X = {ans}."
             
     elif mod == 3:
-        # Tienda Matemática
+        nombre = rng.choice(NOMBRES_POOL)
+        objeto_tienda = rng.choice(ARTICULOS_TIENDA)
+        compra_verb = rng.choice(VERBOS_COMPRA)
+        
         if sub_dif == "estandar":
-            precio = 0.25 * rng.randint(4, 38)
-            pago = rng.choice([10.00, 20.00, 50.00])
-            while pago <= precio:
-                pago = rng.choice([10.00, 20.00, 50.00])
+            precio = 0.25 * rng.randint(4, 20)
+            pago = rng.choice([5.00, 10.00, 20.00])
+            while pago <= precio: pago += 10.00
             cambio = pago - precio
-            enunciado = f"Pagas un artículo de {precio:.2f} pesos con un billete de {pago:.2f} pesos. ¿Cuánto cambio recibes?"
+            articulo = "una" if _genero_fem(objeto_tienda) else "un"
+            enunciado = f"{nombre} {compra_verb} {articulo} {objeto_tienda} de {precio:.2f} pesos y paga con un billete de {pago:.2f} pesos. ¿Cuánto cambio le queda?"
             ans = cambio
-            expl = f"Restamos el precio al billete: {pago:.2f} - {precio:.2f} = {cambio:.2f} pesos."
+            expl = f"Resta directa: {pago:.2f} - {precio:.2f} = {cambio:.2f} pesos."
         elif sub_dif == "avanzada":
-            p1 = 0.25 * rng.randint(4, 20)
-            p2 = 0.25 * rng.randint(4, 30)
+            p1, p2 = 0.25 * rng.randint(4, 20), 0.25 * rng.randint(4, 30)
             total = p1 + p2
             presupuesto = rng.choice([10.00, 20.00, 50.00])
-            while presupuesto <= total:
-                presupuesto = rng.choice([10.00, 20.00, 50.00])
+            while presupuesto <= total: presupuesto = rng.choice([10.00, 20.00, 50.00])
             cambio = presupuesto - total
-            enunciado = f"Llevas un billete de {presupuesto:.2f} pesos. Compras dos artículos que cuestan {p1:.2f} y {p2:.2f} pesos. ¿Cuánto cambio te queda?"
+            obj1, obj2 = rng.sample(ARTICULOS_TIENDA + UTILES_ESCOLARES, 2)
+            bolsillo = rng.choice(["billetera", "cartera", "bolsillo"])
+            articulo1 = "una" if _genero_fem(obj1) else "un"
+            articulo2 = "una" if _genero_fem(obj2) else "un"
+            enunciado = f"{nombre} lleva un billete de {presupuesto:.2f} pesos en su {bolsillo}. {compra_verb.capitalize()} dos artículos: {articulo1} {obj1} de {p1:.2f} pesos y {articulo2} {obj2} de {p2:.2f} pesos. ¿Cuánto cambio le queda?"
             ans = cambio
-            expl = f"Sumamos costo de compra: {p1:.2f} + {p2:.2f} = {total:.2f} pesos. Restamos al billete: {presupuesto:.2f} - {total:.2f} = {cambio:.2f} pesos."
-        else: # maestria
+            expl = f"Sumamos costo: {p1:.2f} + {p2:.2f} = {total:.2f} pesos. Restamos al billete: {presupuesto:.2f} - {total:.2f} = {cambio:.2f} pesos."
+        else:
             p1 = 0.25 * rng.randint(2, 12)
             n = rng.randint(2, 6)
             total = p1 * n
             presupuesto = rng.choice([10.00, 20.00, 50.00])
+            postre = rng.choice(INGREDIENTES_COMIDA)
+            postre_pl = _plural(postre)
+            cada_uno_str = "cada una" if _genero_fem(postre) else "cada uno"
             if presupuesto >= total:
                 ans = presupuesto - total
-                enunciado = f"Compras {n} pasteles de {p1:.2f} pesos cada uno. Pagas con un billete de {presupuesto:.2f} pesos. ¿Cuánto cambio te queda?"
+                enunciado = f"{nombre} {compra_verb} {n} {postre_pl} de {p1:.2f} pesos {cada_uno_str}. Paga con un billete de {presupuesto:.2f} pesos. ¿Cuánto cambio le queda?"
                 expl = f"Multiplicamos costo: {n} × {p1:.2f} = {total:.2f} pesos. Restamos al billete: {presupuesto:.2f} - {total:.2f} = {ans:.2f} pesos."
             else:
                 ans = total - presupuesto
-                enunciado = f"Quieres comprar {n} pasteles de {p1:.2f} pesos cada uno, pero solo tienes un billete de {presupuesto:.2f} pesos. ¿Cuánto te falta?"
+                enunciado = f"{nombre} quiere comprar {n} {postre_pl} de {p1:.2f} pesos {cada_uno_str}, pero solo tiene un billete de {presupuesto:.2f} pesos. ¿Cuánto le falta?"
                 expl = f"Multiplicamos costo: {n} × {p1:.2f} = {total:.2f} pesos. Restamos el billete: {total:.2f} - {presupuesto:.2f} = {ans:.2f} pesos."
 
     else:
-        # Constructor de Soluciones
+        nombre = rng.choice(NOMBRES_POOL)
+        util = rng.choice(UTILES_ESCOLARES)
+        util_pl = _plural(util)
+        contenedor = rng.choice(RECIPIENTES)
+        contenedor_pl = _plural(contenedor)
+        
         if sub_dif == "estandar":
-            cajas = rng.randint(3, 12)
-            lapices = rng.randint(6, 20)
-            rotos = rng.randint(2, 25)
+            cajas, lapices, rotos = rng.randint(3, 12), rng.randint(6, 20), rng.randint(2, 25)
             ans = cajas * lapices - rotos
-            enunciado = f"Un carpintero fabrica {cajas} cajas y mete {lapices} tornillos en cada una. Si gasta {rotos} tornillos sueltos en otro mueble, ¿cuántos le quedan en las cajas?"
-            expl = f"Total en cajas = {cajas} × {lapices} = {cajas*lapices}. Restamos los usados: {cajas*lapices} - {rotos} = {ans}."
+            fabricante = rng.choice(["carpintero", "artesano", "ayudante", "estudiante"])
+            insumo = rng.choice(["tornillos", "clavos", "remaches", "piezas de madera"])
+            fabricar_verb = rng.choice(["fabrica", "arma", "construye"])
+            cada_uno_insumo = "cada una" if insumo == "piezas de madera" else "cada uno"
+            cuantos_insumo = "cuántas" if insumo == "piezas de madera" else "cuántos"
+            enunciado = f"Un {fabricante} {fabricar_verb} {cajas} {contenedor_pl} y mete {lapices} {insumo} en {cada_uno_insumo}. Si gasta {rotos} {insumo} sueltos en otro mueble, ¿{cuantos_insumo} le quedan en los {contenedor_pl}?"
+            expl = f"Total = {cajas} × {lapices} = {cajas*lapices}. Restamos los usados: {cajas*lapices} - {rotos} = {ans}."
         elif sub_dif == "avanzada":
-            rojas = rng.randint(10, 60)
-            distractor = rng.randint(5, 30) # distractor
-            perdidas = rng.randint(3, 15)
+            rojas, distractor, perdidas = rng.randint(10, 60), rng.randint(5, 30), rng.randint(3, 15)
             ans = (rojas - perdidas) * 3
-            enunciado = f"Enzo tiene {rojas} canicas rojas y {distractor} lápices amarillos. Jugando pierde {perdidas} canicas rojas. Luego, triplica las canicas rojas que le quedan. ¿Cuántas canicas tiene ahora?"
-            expl = f"Ignoramos los {distractor} lápices (dato basura). Restamos canicas: {rojas} - {perdidas} = {rojas-perdidas}. Triplicamos: {rojas-perdidas} × 3 = {ans}."
-        else: # maestria
-            cajas = rng.randint(3, 12)
-            libros = rng.randint(5, 25)
+            item_obj = rng.choice(OBJETOS_RECREO)
+            item_obj_pl = _plural(item_obj)
+            rojos_color = "rojas" if _genero_fem(item_obj) else "rojos"
+            dist_obj = rng.choice(["lápices amarillos", "hojas secas", "cuadernos viejos", "camisas de colores"])
+            pierde_verb = rng.choice(VERBOS_PERDIDA)
+            art_los_las = "las" if _genero_fem(item_obj) else "los"
+            cuantos_item_str = "cuántas" if _genero_fem(item_obj) else "cuántos"
+            art_dist = "las" if dist_obj in ["hojas secas", "camisas de colores"] else "los"
+            enunciado = f"{nombre} tiene {rojas} {item_obj_pl} {rojos_color} y {distractor} {dist_obj}. Jugando {pierde_verb} {perdidas} {item_obj_pl} {rojos_color}. Luego, triplica {art_los_las} {item_obj_pl} que le quedan. ¿{cuantos_item_str} tiene ahora?"
+            expl = f"Ignoramos {art_dist} {distractor} {dist_obj}. Restamos: {rojas} - {perdidas} = {rojas-perdidas}. Triplicamos: {rojas-perdidas} × 3 = {ans}."
+        else:
+            cajas, libros = rng.randint(3, 12), rng.randint(5, 25)
             tot_lib = cajas * libros
             cajones = rng.choice([2, 3, 4, 5, 6, 8])
             tot_lib_cajon = tot_lib // cajones

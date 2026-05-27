@@ -254,87 +254,122 @@ export const Fase3TheoryModal: React.FC<Fase3TheoryModalProps> = ({
               >
                 <div className="f3-reading-interactive">
                   <h3>🎯 ENTRENAMIENTO RÁPIDO: Completa los ejercicios</h3>
-                  {currentSlide.data.map((int: any) => {
+                  {currentSlide.data.map((int: any, localIdx: number) => {
                     const idx = int.globalIndex;
                     const qText = int.enunciado || int.pregunta;
                     const isCorrect = feedback[idx]?.isCorrect;
+                    const isLocked = localIdx > 0 && !feedback[currentSlide.data[localIdx - 1].globalIndex]?.isCorrect;
+                    
                     return (
-                      <div key={idx} className={`f3-interactive-box ${isCorrect ? 'correct' : ''} ${feedback[idx] && !isCorrect ? 'error' : ''}`}>
-                        <div className="f3-int-q">{qText}</div>
-                        {int.pasos && (
-                          <div className="f3-ex-steps">
-                            {int.pasos.map((paso: any) => {
-                              const isInputPaso = paso.texto.includes("= ?");
-                              if (isInputPaso) {
-                                const parts = paso.texto.split("= ?");
-                                return (
-                                  <div key={paso.orden} className="f3-ex-step input-step">
-                                    <span className="f3-ex-step-num" style={{ color: moduleColor, backgroundColor: `${moduleColor}12` }}>{paso.orden}</span>
-                                    <span className="f3-ex-step-text">{parts[0]} = </span>
-                                    <div className="f3-int-input-group">
-                                      <input 
-                                        type="text" 
-                                        className="f3-int-input"
-                                        value={answers[idx] || ''}
-                                        onChange={(e) => handleAnswerChange(idx, e.target.value)}
-                                        disabled={isCorrect}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error);
-                                        }}
-                                        autoComplete="off"
-                                      />
-                                      {!isCorrect && (
-                                        <button 
-                                          className="f3-int-verify"
-                                          style={{ background: moduleColor }}
-                                          onClick={() => handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error)}
-                                        >
-                                          Verificar
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              }
-                              return (
-                                <div key={paso.orden} className="f3-ex-step">
-                                  <span className="f3-ex-step-num" style={{ color: moduleColor, backgroundColor: `${moduleColor}12` }}>{paso.orden}</span>
-                                  <span className="f3-ex-step-text">{paso.texto}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                        {!int.pasos && (
-                          <div className="f3-int-input-group legacy">
-                            <input 
-                              type="text" 
-                              className="f3-int-input"
-                              value={answers[idx] || ''}
-                              onChange={(e) => handleAnswerChange(idx, e.target.value)}
-                              disabled={isCorrect}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error);
-                              }}
-                              autoComplete="off"
-                            />
-                            {!isCorrect && (
-                              <button 
-                                className="f3-int-verify"
-                                style={{ background: moduleColor }}
-                                onClick={() => handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error)}
-                              >
-                                Verificar
-                              </button>
-                            )}
-                          </div>
-                        )}
+                      <div 
+                        key={idx} 
+                        className={`f3-interactive-box ${isCorrect ? 'correct' : ''} ${feedback[idx] && !isCorrect ? 'error' : ''}`}
+                        style={isLocked ? { position: 'relative', overflow: 'hidden', minHeight: '110px' } : {}}
+                      >
+                        <div 
+                          className="f3-int-q"
+                          style={isLocked ? { filter: 'blur(5px)', opacity: 0.3, pointerEvents: 'none', userSelect: 'none' } : {}}
+                        >
+                          {qText}
+                        </div>
                         
-                        {feedback[idx] && (
-                          <div className={`f3-int-feedback ${feedback[idx].isCorrect ? 'success' : 'error'}`}>
-                            {feedback[idx].isCorrect ? <CheckCircle size={18} /> : <XCircle size={18} />}
-                            <span>{feedback[idx].message}</span>
+                        {isLocked ? (
+                          <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'rgba(19, 25, 41, 0.85)',
+                            zIndex: 10,
+                            borderRadius: '12px',
+                            gap: '8px',
+                            border: '1px dashed rgba(255, 255, 255, 0.15)'
+                          }}>
+                            <span style={{ fontSize: '1.4rem' }}>🔒</span>
+                            <span style={{ fontSize: '0.85rem', color: '#8a9bbf', fontWeight: 650 }}>
+                              Completa el ejercicio anterior para desbloquear
+                            </span>
                           </div>
+                        ) : (
+                          <>
+                            {int.pasos && (
+                              <div className="f3-ex-steps">
+                                {int.pasos.map((paso: any) => {
+                                  const isInputPaso = paso.texto.includes("= ?");
+                                  if (isInputPaso) {
+                                    const parts = paso.texto.split("= ?");
+                                    return (
+                                      <div key={paso.orden} className="f3-ex-step input-step">
+                                        <span className="f3-ex-step-num" style={{ color: moduleColor, backgroundColor: `${moduleColor}12` }}>{paso.orden}</span>
+                                        <span className="f3-ex-step-text">{parts[0]} = </span>
+                                        <div className="f3-int-input-group">
+                                          <input 
+                                            type="text" 
+                                            className="f3-int-input"
+                                            value={answers[idx] || ''}
+                                            onChange={(e) => handleAnswerChange(idx, e.target.value)}
+                                            disabled={isCorrect}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error);
+                                            }}
+                                            autoComplete="off"
+                                          />
+                                          {!isCorrect && (
+                                            <button 
+                                              className="f3-int-verify"
+                                              style={{ background: moduleColor }}
+                                              onClick={() => handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error)}
+                                            >
+                                              Verificar
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <div key={paso.orden} className="f3-ex-step">
+                                      <span className="f3-ex-step-num" style={{ color: moduleColor, backgroundColor: `${moduleColor}12` }}>{paso.orden}</span>
+                                      <span className="f3-ex-step-text">{paso.texto}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            {!int.pasos && (
+                              <div className="f3-int-input-group legacy">
+                                <input 
+                                  type="text" 
+                                  className="f3-int-input"
+                                  value={answers[idx] || ''}
+                                  onChange={(e) => handleAnswerChange(idx, e.target.value)}
+                                  disabled={isCorrect}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error);
+                                  }}
+                                  autoComplete="off"
+                                />
+                                {!isCorrect && (
+                                  <button 
+                                    className="f3-int-verify"
+                                    style={{ background: moduleColor }}
+                                    onClick={() => handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error)}
+                                  >
+                                    Verificar
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                            
+                            {feedback[idx] && (
+                              <div className={`f3-int-feedback ${feedback[idx].isCorrect ? 'success' : 'error'}`}>
+                                {feedback[idx].isCorrect ? <CheckCircle size={18} /> : <XCircle size={18} />}
+                                <span>{feedback[idx].message}</span>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     );

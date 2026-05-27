@@ -268,82 +268,120 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
               >
                 <div className="f2-reading-interactive">
                   <h3>¡Tu turno! Completa los ejercicios:</h3>
-                  {currentSlide.data.map((int: any) => {
+                  {currentSlide.data.map((int: any, localIdx: number) => {
                     const idx = int.globalIndex;
                     const qText = int.enunciado || int.pregunta;
                     const isCorrect = feedback[idx]?.isCorrect;
+                    const isLocked = localIdx > 0 && !feedback[currentSlide.data[localIdx - 1].globalIndex]?.isCorrect;
+                    
                     return (
-                      <div key={idx} className={`f2-interactive-box ${isCorrect ? 'correct' : ''} ${feedback[idx] && !isCorrect ? 'error' : ''}`}>
-                        <div className="f2-int-q">{qText}</div>
-                        {int.pasos && (
-                          <div className="f2-ex-steps">
-                            {int.pasos.map((paso: any) => {
-                              const isInputPaso = paso.texto.includes("= ?");
-                              if (isInputPaso) {
-                                const parts = paso.texto.split("= ?");
-                                return (
-                                  <div key={paso.orden} className="f2-ex-step input-step">
-                                    <span className="f2-ex-step-num">{paso.orden}</span>
-                                    <span>{parts[0]} = </span>
-                                    <div className="f2-int-input-group">
-                                      <input 
-                                        type="number" 
-                                        className="f2-int-input"
-                                        value={answers[idx] || ''}
-                                        onChange={(e) => handleAnswerChange(idx, e.target.value)}
-                                        disabled={isCorrect}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error);
-                                        }}
-                                      />
-                                      {!isCorrect && (
-                                        <button 
-                                          className="f2-int-verify"
-                                          style={{ backgroundColor: moduleColor }}
-                                          onClick={() => handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error)}
-                                        >
-                                          Verificar
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              }
-                              return (
-                                <div key={paso.orden} className="f2-ex-step">
-                                  <span className="f2-ex-step-num">{paso.orden}</span>
-                                  <span>{paso.texto}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                        {!int.pasos && (
-                          <div className="f2-int-input-group legacy">
-                            <input 
-                              type="text" 
-                              className="f2-int-input"
-                              value={answers[idx] || ''}
-                              onChange={(e) => handleAnswerChange(idx, e.target.value)}
-                              disabled={isCorrect}
-                            />
-                            {!isCorrect && (
-                              <button 
-                                className="f2-int-verify"
-                                style={{ backgroundColor: moduleColor }}
-                                onClick={() => handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error)}
-                              >
-                                Verificar
-                              </button>
-                            )}
-                          </div>
-                        )}
+                      <div 
+                        key={idx} 
+                        className={`f2-interactive-box ${isCorrect ? 'correct' : ''} ${feedback[idx] && !isCorrect ? 'error' : ''}`}
+                        style={isLocked ? { position: 'relative', overflow: 'hidden', minHeight: '110px' } : {}}
+                      >
+                        <div 
+                          className="f2-int-q"
+                          style={isLocked ? { filter: 'blur(5px)', opacity: 0.3, pointerEvents: 'none', userSelect: 'none' } : {}}
+                        >
+                          {qText}
+                        </div>
                         
-                        {feedback[idx] && (
-                          <div className={`f2-int-feedback ${feedback[idx].isCorrect ? 'success' : 'error'}`}>
-                            {feedback[idx].isCorrect ? <CheckCircle size={18} /> : <XCircle size={18} />}
-                            <span>{feedback[idx].message}</span>
+                        {isLocked ? (
+                          <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'rgba(19, 25, 41, 0.85)',
+                            zIndex: 10,
+                            borderRadius: '12px',
+                            gap: '8px',
+                            border: '1px dashed rgba(255, 255, 255, 0.15)'
+                          }}>
+                            <span style={{ fontSize: '1.4rem' }}>🔒</span>
+                            <span style={{ fontSize: '0.85rem', color: '#8a9bbf', fontWeight: 650 }}>
+                              Completa el ejercicio anterior para desbloquear
+                            </span>
                           </div>
+                        ) : (
+                          <>
+                            {int.pasos && (
+                              <div className="f2-ex-steps">
+                                {int.pasos.map((paso: any) => {
+                                  const isInputPaso = paso.texto.includes("= ?");
+                                  if (isInputPaso) {
+                                    const parts = paso.texto.split("= ?");
+                                    return (
+                                      <div key={paso.orden} className="f2-ex-step input-step">
+                                        <span className="f2-ex-step-num">{paso.orden}</span>
+                                        <span>{parts[0]} = </span>
+                                        <div className="f2-int-input-group">
+                                          <input 
+                                            type="number" 
+                                            className="f2-int-input"
+                                            value={answers[idx] || ''}
+                                            onChange={(e) => handleAnswerChange(idx, e.target.value)}
+                                            disabled={isCorrect}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error);
+                                            }}
+                                          />
+                                          {!isCorrect && (
+                                            <button 
+                                              className="f2-int-verify"
+                                              style={{ backgroundColor: moduleColor }}
+                                              onClick={() => handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error)}
+                                            >
+                                              Verificar
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <div key={paso.orden} className="f2-ex-step">
+                                      <span className="f2-ex-step-num">{paso.orden}</span>
+                                      <span>{paso.texto}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            {!int.pasos && (
+                              <div className="f2-int-input-group legacy">
+                                <input 
+                                  type="text" 
+                                  className="f2-int-input"
+                                  value={answers[idx] || ''}
+                                  onChange={(e) => handleAnswerChange(idx, e.target.value)}
+                                  disabled={isCorrect}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error);
+                                  }}
+                                />
+                                {!isCorrect && (
+                                  <button 
+                                    className="f2-int-verify"
+                                    style={{ backgroundColor: moduleColor }}
+                                    onClick={() => handleVerify(idx, int.respuesta, int.feedback_acierto, int.feedback_error)}
+                                  >
+                                    Verificar
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                            
+                            {feedback[idx] && (
+                              <div className={`f2-int-feedback ${feedback[idx].isCorrect ? 'success' : 'error'}`}>
+                                {feedback[idx].isCorrect ? <CheckCircle size={18} /> : <XCircle size={18} />}
+                                <span>{feedback[idx].message}</span>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     );
