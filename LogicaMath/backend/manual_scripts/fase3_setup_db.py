@@ -1,12 +1,21 @@
 """
 fase3_setup_db.py — Setup and Seeding Script for Phase 3
 =========================================================
-This script:
-1. Verifies/creates the database tables required for Phase 3.
-2. Runs the Phase 3 seeder to insert the 120 practice families and 150 challenge questions per level.
+¿QUÉ HACE?
+  1. Verifica y crea las tablas requeridas para la Fase 3 en la base de datos.
+  2. Ejecuta el seeder de la Fase 3, insertando las preguntas de práctica y los desafíos
+     con las narrativas y variaciones didácticas correspondientes.
 
-Usage:
-  python fase3_setup_db.py
+¿CUÁNDO SE DEBE EJECUTAR?
+  - Cuando se requiera inicializar o actualizar la estructura de tablas para la Fase 3.
+  - Cuando se desee re-sembrar y actualizar todas las preguntas y la teoría de la Fase 3 en la base de datos.
+  - Después de aplicar cambios mayores en los generadores o lógica de las preguntas de la Fase 3.
+
+¿CÓMO EJECUTARLO MANUALMENTE?
+  - Localmente (en PC de desarrollo):
+      .\venv\Scripts\python.exe manual_scripts/fase3_setup_db.py
+  - En el Servidor VPS (dentro del contenedor backend):
+      docker exec -it logica_kids_desarrollo-backend-1 python manual_scripts/fase3_setup_db.py
 """
 
 import asyncio

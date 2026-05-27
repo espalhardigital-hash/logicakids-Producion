@@ -1,3 +1,23 @@
+"""
+create_users.py - Creador de Usuarios Administrador y de Prueba
+============================================================
+¿QUÉ HACE?
+  Crea o actualiza en la base de datos el usuario administrador por defecto
+  (amilcar@gmail.com) y el usuario de prueba (prueba@gmail.com) con sus
+  respectivas contraseñas, configuraciones por defecto y perfiles de Alumno.
+
+¿CUÁNDO SE DEBE EJECUTAR?
+  - Al inicializar el sistema/base de datos por primera vez.
+  - Después de recrear o limpiar la base de datos.
+  - Cuando se requiera restablecer o asegurar las claves por defecto de estos usuarios.
+
+¿CÓMO EJECUTARLO MANUALMENTE?
+  - Localmente (en PC de desarrollo):
+      .\venv\Scripts\python.exe manual_scripts/create_users.py
+  - En el Servidor VPS (dentro del contenedor backend):
+      docker exec -it logica_kids_desarrollo-backend-1 python manual_scripts/create_users.py
+"""
+
 import asyncio
 import sys
 import os

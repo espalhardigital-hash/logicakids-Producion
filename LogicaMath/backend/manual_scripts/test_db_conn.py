@@ -1,3 +1,25 @@
+"""
+test_db_conn.py - Probador de Conexión a la Base de Datos
+======================================================
+¿QUÉ HACE?
+  Prueba la conectividad asíncrona (con SQLAlchemy + asyncpg) a la base de datos PostgreSQL.
+  - Imprime la versión del motor de base de datos PostgreSQL.
+  - Muestra una lista de todas las tablas existentes en el esquema 'public'.
+  - Detecta automáticamente si se encuentra corriendo dentro de un contenedor Docker
+    para decidir si se conecta localmente (PC a VPS) o dentro de la red interna del contenedor.
+
+¿CUÁNDO SE DEBE EJECUTAR?
+  - Al experimentar fallos o latencia de conexión con la base de datos.
+  - Para verificar si las variables de entorno o el archivo `.env` se cargan correctamente.
+  - Para comprobar si la migración de tablas con Alembic se aplicó con éxito.
+
+¿CÓMO EJECUTARLO MANUALMENTE?
+  - Localmente (en PC de desarrollo):
+      .\venv\Scripts\python.exe manual_scripts/test_db_conn.py
+  - En el Servidor VPS (dentro del contenedor backend):
+      docker exec -it logica_kids_desarrollo-backend-1 python manual_scripts/test_db_conn.py
+"""
+
 import asyncio
 import sys
 import os

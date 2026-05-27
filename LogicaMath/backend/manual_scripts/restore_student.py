@@ -1,3 +1,31 @@
+"""
+restore_student.py - Restaurador de Progreso de Alumnos
+======================================================
+¿QUÉ HACE?
+  Busca un alumno en la base de datos y restablece o adelanta su progreso a una
+  fase objetivo específica. Por defecto, marca como "APROBADO" todos los bloques de las
+  fases anteriores y configura el primer bloque de la fase objetivo como "EN_PROGRESO"
+  (desbloqueado) para que el alumno pueda jugar inmediatamente. También sincroniza la
+  configuración de niveles desbloqueados (`unlockedLevels`) del usuario.
+
+¿CUÁNDO SE DEBE EJECUTAR?
+  - Durante pruebas de QA o desarrollo para simular el avance de un estudiante.
+  - Para desbloquear niveles avanzados rápidamente sin tener que resolver todas las preguntas.
+  - Para corregir o resetear el estado de progreso de un alumno con problemas.
+
+¿CÓMO EJECUTARLO MANUALMENTE?
+  - Localmente (en PC de desarrollo):
+      * Modo Interactivo:
+          .\venv\Scripts\python.exe manual_scripts/restore_student.py
+      * Con Argumentos:
+          .\venv\Scripts\python.exe manual_scripts/restore_student.py --query "nombre_o_email" --fase <ID_o_Orden>
+  - En el Servidor VPS (dentro del contenedor backend):
+      * Modo Interactivo:
+          docker exec -it logica_kids_desarrollo-backend-1 python manual_scripts/restore_student.py
+      * Con Argumentos:
+          docker exec -it logica_kids_desarrollo-backend-1 python manual_scripts/restore_student.py --query "nombre_o_email" --fase <ID_o_Orden>
+"""
+
 import asyncio
 import sys
 import os

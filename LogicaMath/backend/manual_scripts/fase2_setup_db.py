@@ -1,15 +1,22 @@
 """
 fase2_setup_db.py — Setup and Seeding Script for Phase 2
 =========================================================
-This script:
-1. Verifies/creates the database tables required for Phase 2:
-   - intento_preguntas
-   - intento_pasos
-   - niveles_teoria_pool
-2. Runs the Phase 2 seeder to insert the 120 practice families and 150 challenge questions per level.
+¿QUÉ HACE?
+  1. Verifica y crea las tablas requeridas para la Fase 2 en la base de datos:
+     - intento_preguntas, intento_pasos, niveles_teoria_pool.
+  2. Ejecuta el seeder de la Fase 2, insertando las preguntas de práctica y los desafíos
+     con las narrativas y variaciones didácticas correspondientes.
 
-Usage:
-  python fase2_setup_db.py
+¿CUÁNDO SE DEBE EJECUTAR?
+  - Cuando se requiera inicializar o actualizar la estructura de tablas para la Fase 2.
+  - Cuando se desee re-sembrar y actualizar todas las preguntas y la teoría de la Fase 2 en la base de datos.
+  - Después de aplicar cambios mayores en los generadores o lógica de las preguntas de la Fase 2.
+
+¿CÓMO EJECUTARLO MANUALMENTE?
+  - Localmente (en PC de desarrollo):
+      .\venv\Scripts\python.exe manual_scripts/fase2_setup_db.py
+  - En el Servidor VPS (dentro del contenedor backend):
+      docker exec -it logica_kids_desarrollo-backend-1 python manual_scripts/fase2_setup_db.py
 """
 
 import asyncio
