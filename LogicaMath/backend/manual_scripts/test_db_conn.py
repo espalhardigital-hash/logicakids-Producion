@@ -18,8 +18,13 @@ if not original_url:
     # Set a fallback/dummy so it doesn't crash on replace
     original_url = "postgresql+asyncpg://user:pass@base_postgres_general:5432/db"
 
-vps_url = original_url.replace("base_postgres_general", "34.9.51.225")
-print("Trying VPS URL:", vps_url)
+is_docker = os.path.exists('/.dockerenv')
+if is_docker:
+    vps_url = original_url
+    print("Running inside Docker. Using original DATABASE_URL:", vps_url)
+else:
+    vps_url = original_url.replace("base_postgres_general", "34.9.51.225")
+    print("Running outside Docker. Trying VPS URL:", vps_url)
 
 async def test_conn():
     try:
