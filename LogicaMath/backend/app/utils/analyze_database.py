@@ -263,12 +263,20 @@ async def run_analysis():
         
         # 1. TABLE SIZES
         print("\n--- 1. Table Sizes ---")
-        result = await conn.execute(text("""
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public' 
-            ORDER BY table_name;
-        """))
+        if conn.dialect.name == "sqlite":
+            result = await conn.execute(text("""
+                SELECT name 
+                FROM sqlite_master 
+                WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
+                ORDER BY name;
+            """))
+        else:
+            result = await conn.execute(text("""
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                ORDER BY table_name;
+            """))
         tables = [t[0] for t in result.fetchall()]
         
         for table in tables:
@@ -385,7 +393,7 @@ async def run_analysis():
         # 4. DUPLICATES CHECK
         print("\n--- 4. Duplicates Check ---")
         dup_res = await conn.execute(text("""
-            SELECT enunciado, seccion, fase_id, COUNT(*) 
+            SELECT enunciado, seccion, fase_id, COUNT(*) AS count 
             FROM preguntas 
             WHERE fase_id IN (2, 3) 
             GROUP BY enunciado, seccion, fase_id 
