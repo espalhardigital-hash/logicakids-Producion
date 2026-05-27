@@ -854,7 +854,9 @@ async def responder_fase3(
 
     # ── 2. MODO PRÁCTICA LIBRE ───────────────────────────────────────────────
     else:
-        progreso.intentos_totales += 1
+        es_variante_espejo = (pregunta.datos_numericos and pregunta.datos_numericos.get("es_espejo"))
+        if not es_variante_espejo:
+            progreso.intentos_totales += 1
         ya_resuelta = False
         if es_correcta:
             result_previo = await db.execute(

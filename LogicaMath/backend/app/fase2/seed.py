@@ -1088,12 +1088,13 @@ def _gen_m2l1(rng, fam, es_espejo, var):
     op = rng.choice(["suma", "resta"])
     a = rng.randint(2, 40)
     respuestas_erroneas = []
+    letra = rng.choice(['A', 'B', 'C', 'D', 'M', 'N', 'P', 'R', 'Y'])
     
     if op == "suma":
         ans = rng.randint(2, 40)
         b = ans + a
-        enunciado = f"Descubre el valor de X: X + {a} = {b}"
-        expl = f"El {a} está sumando. La inversa es restar: X = {b} - {a} = {ans}."
+        enunciado = f"Encontrar el valor de {letra} dado que {letra} + {a} = {b}"
+        expl = f"El {a} está sumando. La inversa es restar: {letra} = {b} - {a} = {ans}."
         
         err_val = b + a
         respuestas_erroneas.append({
@@ -1107,8 +1108,8 @@ def _gen_m2l1(rng, fam, es_espejo, var):
         if b <= 0:
             b = rng.randint(2, 40)
             ans = b + a
-        enunciado = f"Descubre el valor de X: X - {a} = {b}"
-        expl = f"El {a} está restando. La inversa es sumar: X = {b} + {a} = {ans}."
+        enunciado = f"Encontrar el valor de {letra} dado que {letra} - {a} = {b}"
+        expl = f"El {a} está restando. La inversa es sumar: {letra} = {b} + {a} = {ans}."
         
         err_val = b - a
         if err_val > 0:
@@ -1121,15 +1122,15 @@ def _gen_m2l1(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
-        "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var},
+        "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var, "letra": letra},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
-            "inversa": "Para despejar X, pasa el número al otro lado usando su operación contraria (resta si suma, suma si resta)."
+            "inversa": f"Para despejar {letra}, pasa el número al otro lado usando su operación contraria (resta si suma, suma si resta)."
         },
         "explicacion_paso_a_paso": {
             "titulo": "Operación Inversa",
             "pasos": [
-                {"orden": 1, "texto": f"Identificamos que {a} acompaña a X in una {op}."},
+                {"orden": 1, "texto": f"Identificamos que {a} acompaña a {letra} en una {op}."},
                 {"orden": 2, "texto": expl}
             ]
         }
@@ -1140,11 +1141,12 @@ def _gen_m2l2(rng, fam, es_espejo, var):
     a = rng.randint(2, 10)
     ans = rng.randint(2, 12)
     respuestas_erroneas = []
+    letra = rng.choice(['A', 'B', 'C', 'D', 'M', 'N', 'P', 'R', 'X'])
     
     if op == "mult":
         b = a * ans
-        enunciado = f"Resuelve para Y: {a} × Y = {b}"
-        expl = f"El {a} está multiplicando. Pasamos dividiendo al otro lado del igual: Y = {b} ÷ {a} = {ans}."
+        enunciado = f"Encontrar el valor de {letra} dado que {a} × {letra} = {b}"
+        expl = f"El {a} está multiplicando. Pasamos dividiendo al otro lado del igual: {letra} = {b} ÷ {a} = {ans}."
         
         err_val = b * a
         respuestas_erroneas.append({
@@ -1155,8 +1157,8 @@ def _gen_m2l2(rng, fam, es_espejo, var):
     else:
         b = ans
         total = a * b
-        enunciado = f"Resuelve para Y: Y ÷ {a} = {b}"
-        expl = f"El {a} está dividiendo. Pasamos multiplicando al otro lado del igual: Y = {b} × {a} = {total}."
+        enunciado = f"Encontrar el valor de {letra} dado que {letra} ÷ {a} = {b}"
+        expl = f"El {a} está dividiendo. Pasamos multiplicando al otro lado del igual: {letra} = {b} × {a} = {total}."
         ans = total
         
         err_val = b // a
@@ -1170,7 +1172,7 @@ def _gen_m2l2(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
-        "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var},
+        "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var, "letra": letra},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "inversa": "La multiplicación se deshace con división. La división se deshace con multiplicación."
