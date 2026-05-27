@@ -21,8 +21,10 @@ from app.models.sql_models import (
     PoolAsignadoAlumno,
 )
 from app.fase2.models import NivelTeoria, IntentoPregunta, IntentoPaso
+from app.fase2.theory_examples import obtener_ejemplos_expandidos_fase2
 
 # ID de la Fase 2 en la base de datos
+
 FASE2_ID = 2
 
 # Schema de Validación de Teoría para garantizar 3 interactivos obligatorios
@@ -692,8 +694,11 @@ async def seed_teoria_niveles(session: AsyncSession):
     ]
     
     for nt in niveles_teoria:
+        # Expandir ejemplos a exactamente 5 premium keyword-highlighted ejemplos
+        nt["ejemplos"] = obtener_ejemplos_expandidos_fase2(nt["modulo_id"], nt["nivel_id"])
         # Validación de teoría con Pydantic para asegurar que tiene exactamente 3 interactivos
         NivelTeoriaSeederSchema(**nt)
+
         # Verificar si ya existe
         res = await session.execute(
             select(NivelTeoria).where(and_(

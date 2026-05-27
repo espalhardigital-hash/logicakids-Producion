@@ -2521,3 +2521,13 @@
   }
 }
 
+/* Resaltado premium de palabras clave */
+.keyword-highlight {
+  color: var(--neon-accent-color, #ff5e97); /* Color dinámico del módulo o rosa neon de respaldo */
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+

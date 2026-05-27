@@ -232,22 +232,23 @@ export const Fase2TheoryModal: React.FC<Fase2TheoryModalProps> = ({
                     <h3>EJEMPLOS GUIADOS:</h3>
                     {currentSlide.data.map((ex: any, idx: number) => (
                       <div key={idx} className="f2-example-box">
-                        <div className="f2-ex-q">{ex.enunciado}</div>
+                        <div className="f2-ex-q" dangerouslySetInnerHTML={{ __html: ex.enunciado }} />
                         {ex.pasos ? (
                           <div className="f2-ex-steps">
                             {ex.pasos.map((paso: any) => (
                               <div key={paso.orden} className="f2-ex-step">
                                 <span className="f2-ex-step-num">{paso.orden}</span>
-                                <span>{paso.texto}</span>
+                                <span dangerouslySetInnerHTML={{ __html: paso.texto }} />
                               </div>
                             ))}
                           </div>
                         ) : (
-                           <div className="f2-ex-legacy">→ <span style={{ color: moduleColor }}>{ex.respuesta}</span></div>
+                           <div className="f2-ex-legacy">→ <span style={{ color: moduleColor }} dangerouslySetInnerHTML={{ __html: ex.respuesta }} /></div>
                         )}
                       </div>
                     ))}
                   </div>
+
                 ) : (
                   <div className="f2-reading-p">No hay ejemplos para este nivel. Avanza al siguiente paso.</div>
                 )}

@@ -364,11 +364,12 @@ export default function FaseGenericGameScreen() {
                       key={index}
                       style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f8fafc', lineHeight: 1.5 }}
                     >
-                      <span style={{ color: '#94a3b8' }}>Problema: </span>{ex.enunciado}
+                      <span style={{ color: '#94a3b8' }}>Problema: </span><span dangerouslySetInnerHTML={{ __html: ex.enunciado }} />
                       <br />
-                      <span style={{ color: modulo.color }}>Respuesta: </span>{ex.respuesta}
+                      <span style={{ color: modulo.color }}>Respuesta: </span><span dangerouslySetInnerHTML={{ __html: ex.respuesta }} />
                     </div>
                   ))}
+
                 </div>
               )}
 

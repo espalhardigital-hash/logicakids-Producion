@@ -24,8 +24,11 @@ from app.models.sql_models import (
     PoolAsignadoAlumno,
 )
 from app.fase2.models import NivelTeoria
+from app.fase3.theory_examples import obtener_ejemplos_expandidos_fase3
 
+# ID de la Fase 3 en la base de datos
 FASE3_ID = 3
+
 
 # Schema de Validación de Teoría para garantizar exactamente 3 interactivos obligatorios
 class NivelTeoriaSeederSchema(BaseModel):
@@ -715,8 +718,11 @@ async def seed_teoria_niveles(session: AsyncSession):
     ]
     
     for nt in niveles_teoria:
+        # Expandir ejemplos a exactamente 5 premium keyword-highlighted ejemplos
+        nt["ejemplos"] = obtener_ejemplos_expandidos_fase3(nt["modulo_id"], nt["nivel_id"])
         # Validación
         NivelTeoriaSeederSchema(**nt)
+
         rec = NivelTeoria(
             fase_id=FASE3_ID,
             modulo_id=nt["modulo_id"],
