@@ -438,6 +438,20 @@ export const overrideAlumnoProgress = async (alumnoId: number, data: {
   return await apiRequest<ProgresoOverrideResponse>(`/admin/alumnos/${alumnoId}/progress/override`, 'POST', data);
 };
 
+export const overrideAlumnoProgressBulk = async (
+  alumnoId: number,
+  data: {
+    items: Array<{ fase_id: number; seccion: number; operacion: string }>;
+    action: 'approve' | 'unlock' | 'lock';
+  }
+): Promise<ProgresoOverrideResponse> => {
+  return await apiRequest<ProgresoOverrideResponse>(
+    `/admin/alumnos/${alumnoId}/progress/override-bulk`,
+    'POST',
+    data
+  );
+};
+
 // --- PREGUNTAS CRUD ---
 
 export const getPreguntasByLevel = async (faseId: number, seccion: number, operacion: string): Promise<any[]> => {

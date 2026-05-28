@@ -245,6 +245,15 @@ class ProgressOverridePayload(BaseModel):
     operacion: str
     action: str # "approve", "unlock", "lock"
 
+class ProgressOverrideItem(BaseModel):
+    fase_id: int
+    seccion: int
+    operacion: str
+
+class ProgressOverrideBulkPayload(BaseModel):
+    items: List[ProgressOverrideItem]
+    action: str # "approve", "unlock", "lock"
+
 @router.delete("/preguntas/{pregunta_id}")
 async def delete_pregunta(pregunta_id: int, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
     result = await db.execute(select(Pregunta).where(Pregunta.id == pregunta_id))
@@ -444,3 +453,146 @@ async def override_alumno_progress(alumno_id: int, payload: ProgressOverridePayl
                 await db.commit()
 
     return {"status": "ok", "message": "Progreso actualizado exitosamente"}
+
+@router.post("/alumnos/{alumno_id}/progress/override-bulk")
+async def override_alumno_progress_bulk(
+    alumno_id: int,
+    payload: ProgressOverrideBulkPayload,
+    db: AsyncSession = Depends(get_db),
+    admin_user: dict = Depends(get_admin_user)
+):
+    """
+    Apply a bulk progress override (approve / unlock / lock) to a set of sections
+    belonging to the same module or phase in a single database transaction.
+    This is significantly more efficient than calling the single-item endpoint
+    once per level when operating on an entire module (~7 levels) or phase (~28+ levels).
+    """
+    from sqlalchemy.orm.attributes import flag_modified
+
+    if payload.action not in ("approve", "unlock", "lock"):
+        raise HTTPException(status_code=400, detail="Acción inválida. Use 'approve', 'unlock' o 'lock'.")
+    if not payload.items:
+        raise HTTPException(status_code=400, detail="La lista de items no puede estar vacía.")
+
+    # Collect all (fase_id, seccion, operacion) tuples for efficient batch query
+    for item in payload.items:
+        result = await db.execute(
+            select(ProgresoMaestria).where(and_(
+                ProgresoMaestria.alumno_id == alumno_id,
+                ProgresoMaestria.fase_id == item.fase_id,
+                ProgresoMaestria.seccion == item.seccion,
+                ProgresoMaestria.operacion == item.operacion
+            ))
+        )
+        progreso = result.scalar_one_or_none()
+
+        # Fetch ConfiguracionProgreso to know cantidad_requerida
+        cant_req = 15
+        result_config = await db.execute(
+            select(ConfiguracionProgreso).where(and_(
+                ConfiguracionProgreso.fase_id == item.fase_id,
+                ConfiguracionProgreso.seccion == item.seccion,
+                ConfiguracionProgreso.operacion == item.operacion
+            ))
+        )
+        config = result_config.scalar_one_or_none()
+        if config:
+            cant_req = config.cantidad_requerida
+
+        if payload.action == "approve":
+            if not progreso:
+                progreso = ProgresoMaestria(
+                    alumno_id=alumno_id,
+                    fase_id=item.fase_id,
+                    seccion=item.seccion,
+                    operacion=item.operacion,
+                    estado=EstadoProgresoEnum.APROBADO,
+                    aciertos_acumulados=cant_req,
+                    intentos_totales=cant_req,
+                    porcentaje_actual=90,
+                    aprobado_por_admin=True,
+                    fecha_aprobacion=datetime.utcnow()
+                )
+                db.add(progreso)
+            else:
+                progreso.estado = EstadoProgresoEnum.APROBADO
+                progreso.aciertos_acumulados = cant_req
+                progreso.porcentaje_actual = 90
+                progreso.aprobado_por_admin = True
+                progreso.fecha_aprobacion = datetime.utcnow()
+
+        elif payload.action == "unlock":
+            if not progreso:
+                progreso = ProgresoMaestria(
+                    alumno_id=alumno_id,
+                    fase_id=item.fase_id,
+                    seccion=item.seccion,
+                    operacion=item.operacion,
+                    estado=EstadoProgresoEnum.EN_PROGRESO,
+                    aciertos_acumulados=0,
+                    intentos_totales=0,
+                    porcentaje_actual=0,
+                    aprobado_por_admin=False
+                )
+                db.add(progreso)
+            else:
+                progreso.estado = EstadoProgresoEnum.EN_PROGRESO
+                progreso.aprobado_por_admin = False
+
+        elif payload.action == "lock":
+            if progreso:
+                progreso.estado = EstadoProgresoEnum.BLOQUEADO
+                progreso.porcentaje_actual = 0
+                progreso.aciertos_acumulados = 0
+                progreso.aprobado_por_admin = False
+                progreso.fecha_aprobacion = None
+
+    # Single commit for all items in the batch
+    await db.commit()
+
+    # Sync user.settings["unlockedLevels"] aggregated across all unique categories in the batch
+    result_alumno = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
+    alumno = result_alumno.scalar_one_or_none()
+    if alumno:
+        result_user = await db.execute(select(User).where(User.id == alumno.user_id))
+        user = result_user.scalar_one_or_none()
+        if user:
+            settings = user.settings or {}
+            if "unlockedLevels" not in settings:
+                settings["unlockedLevels"] = {}
+
+            cat_map = {
+                "suma": "addition",
+                "resta": "subtraction",
+                "multiplicacion": "multiplication",
+                "division": "division",
+                "mixta": "challenge"
+            }
+            # Determine the maximum level value per category from the batch
+            # (approve = 6, unlock = 1, lock = 0)
+            action_level = {"approve": 6, "unlock": 1, "lock": 0}[payload.action]
+            affected_cats = set()
+            for item in payload.items:
+                cat = cat_map.get(item.operacion)
+                if cat:
+                    affected_cats.add(cat)
+
+            for cat in affected_cats:
+                current = settings["unlockedLevels"].get(cat, 0)
+                if payload.action == "lock":
+                    settings["unlockedLevels"][cat] = 0
+                else:
+                    # Only upgrade, never downgrade existing unlocked level
+                    settings["unlockedLevels"][cat] = max(current, action_level)
+
+            user.settings = settings
+            flag_modified(user, "settings")
+            await db.commit()
+
+    processed = len(payload.items)
+    return {
+        "status": "ok",
+        "message": f"Se aplicó '{payload.action}' a {processed} sección(es) exitosamente.",
+        "processed": processed
+    }
+
