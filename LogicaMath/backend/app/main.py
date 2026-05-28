@@ -2,6 +2,7 @@
 LogicaKids Pro API - Punto de Entrada Principal
 ===============================================
 """
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,8 +10,32 @@ from .routers import auth_users, admin, pedagogia, ai
 from .fase2.router import router as fase2_router
 from .fase3.router import router as fase3_router
 from .config import settings
+from .db.session import engine
+from .db.base import Base
+from .models.sql_models import (
+    User, Fase, Alumno, Pregunta, Alternativa, 
+    ConfiguracionProgreso, PoolAsignadoAlumno, ProgresoMaestria, Intento,
+    PlatformSettings, IntentoPregunta, IntentoPaso
+)
 
-app = FastAPI(title="LogicaKids Pro API", version="3.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Inicializar Base de Datos (crear tablas si no existen)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+            print("✅ Tablas de base de datos verificadas/creadas exitosamente.")
+
+    except Exception as e:
+        print(f"❌ Error al verificar/crear tablas: {e}")
+
+    # S3 warning
+    if not all([settings.S3_ACCESS_KEY, settings.S3_SECRET_KEY, settings.S3_ENDPOINT_URL, settings.S3_BUCKET_NAME]):
+        print("WARNING: S3 configuration incomplete. Avatar upload will fail.")
+        
+    yield
+
+app = FastAPI(title="LogicaKids Pro API", version="3.0.0", lifespan=lifespan)
 
 # Security Headers
 if settings.ENABLE_SECURITY_HEADERS:
@@ -34,29 +59,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from .db.session import engine
-from .db.base import Base
-from .models.sql_models import (
-    User, Fase, Alumno, Pregunta, Alternativa, 
-    ConfiguracionProgreso, PoolAsignadoAlumno, ProgresoMaestria, Intento,
-    PlatformSettings, IntentoPregunta, IntentoPaso
-)
-
-@app.on_event("startup")
-async def startup_event():
-    # Inicializar Base de Datos (crear tablas si no existen)
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            print("✅ Tablas de base de datos verificadas/creadas exitosamente.")
-
-    except Exception as e:
-        print(f"❌ Error al verificar/crear tablas: {e}")
-
-    # S3 warning
-    if not all([settings.S3_ACCESS_KEY, settings.S3_SECRET_KEY, settings.S3_ENDPOINT_URL, settings.S3_BUCKET_NAME]):
-        print("WARNING: S3 configuration incomplete. Avatar upload will fail.")
-
 @app.get("/")
 def read_root():
     return {"message": "LogicaKids Pro - Backend API"}
@@ -71,3 +73,4 @@ app.include_router(pedagogia.router)
 app.include_router(ai.router)
 app.include_router(fase2_router)
 app.include_router(fase3_router)
+
