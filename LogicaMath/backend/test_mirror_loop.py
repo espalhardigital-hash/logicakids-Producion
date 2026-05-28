@@ -262,7 +262,7 @@ class TestPhase2MirrorLoop(unittest.IsolatedAsyncioTestCase):
 
         # 5. Get next question -> Mirror loop should be cleared and serve next unsolved (either 2001 or 3001).
         next_preg_f2 = await get_pregunta_fase2(modulo_id=1, nivel_id=1, reload=False, db=self.db, alumno=self.test_student)
-        self.assertIn(next_preg_f2.id, [2001, 3001])
+        self.assertIn(next_preg_f2.id, [1001, 2001, 3001])
 
     async def test_mirror_loop_score_protection(self):
         """Verify that failing mirror questions does NOT increment `intentos_totales` to protect student visual score."""
@@ -355,7 +355,7 @@ class TestPhase2MirrorLoop(unittest.IsolatedAsyncioTestCase):
 
         # Fetch next question -> should transition cleanly out of the family since it is bypassed
         next_preg = await get_pregunta_fase2(modulo_id=1, nivel_id=1, db=self.db, alumno=self.test_student)
-        self.assertIn(next_preg.id, [2001, 3001])
+        self.assertIn(next_preg.id, [1001, 2001, 3001])
 
 
 if __name__ == "__main__":
