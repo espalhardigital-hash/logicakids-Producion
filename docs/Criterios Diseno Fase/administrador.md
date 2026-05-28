@@ -212,6 +212,22 @@ La interfaz expone para cada bloque tres controles críticos de anulación pedag
    * **Efecto DB:** El backend reinicia todos los contadores de progreso (`aciertos_acumulados = 0`, `intentos_totales = 0`, `fallas_consecutivas_bucle = 0`, `completado = false`), establece el estado a `BLOQUEADO` y limpia las banderas `aprobado_por_admin` y `desbloqueado_por_admin`.
    * **Espejo Legacy:** Sincroniza `user.settings["unlockedLevels"]` asignándole el valor `0` para el nivel correspondiente.
 
+### 6.2.1. Intervención Masiva / Bloqueo y Aprobación en Lote (Bulk Override)
+
+Para optimizar la experiencia de tutoría y evitar saturar la base de datos con peticiones HTTP individuales, el sistema implementa una lógica de **anulación en bloque** a nivel de **Fases completas** y **Módulos completos** en la interfaz `PerformanceTab.tsx`:
+
+* **Cálculo de Estados Agregados:**
+  * La interfaz calcula dinámicamente en el cliente el estado consolidado de cada Módulo o Fase con base en las sub-secciones asociadas en `PHASE_MAPS`.
+  * *APROBADO:* Si todos los sub-niveles del Módulo/Fase están en estado `APROBADO`.
+  * *BLOQUEADO:* Si todos los sub-niveles del Módulo/Fase están en estado `BLOQUEADO`.
+  * *EN PROGRESO:* Si existe una mezcla de estados o algún nivel está en curso.
+* **Botones de Control Masivo:**
+  * En la cabecera de cada Fase (Acordeón) y Módulo se renderizan los controles contextuales de acción en bloque: **Liberar**, **Aprobar** y **Restablecer**.
+  * Al activarse una acción masiva, el frontend recolecta la lista de todas las secciones asociadas y realiza una única llamada al endpoint `/api/admin/alumnos/{alumno_id}/progress/override-bulk` en lugar de invocar el endpoint unitario N veces.
+* **Lógica Server-Authoritative Transaccional en Lote:**
+  * El endpoint bulk del backend recibe la lista de secciones, resuelve las configuraciones y actualiza o inserta los registros de `ProgresoMaestria` de forma unificada dentro de una única transacción SQL (`commit`).
+  * Sincroniza de forma agregada el objeto `user.settings["unlockedLevels"]` del estudiante correspondiente para reflejar el máximo nivel desbloqueado por categoría (ej: `approve` asigna nivel 6, `unlock` asigna nivel 1 y `lock` asigna nivel 0), evitando retrocesos en categorías preexistentes del alumno.
+
 ### 6.3. Protocolo de Auditoría y Flujo de Trabajo del Administrador
 
 Para evitar intervenciones accidentales y mantener un registro riguroso de las decisiones de tutoría, se define el siguiente flujo de usuario obligatorio en la UI de Overrides:
@@ -573,6 +589,7 @@ PATCH /api/admin/configuracion/{id}
 GET  /api/admin/alumnos/search?query={texto}
 GET  /api/admin/alumnos/{alumno_id}/progress
 POST /api/admin/alumnos/{alumno_id}/progress/override
+POST /api/admin/alumnos/{alumno_id}/progress/override-bulk
 ```
 
 ### 12.3. Práctica Libre
