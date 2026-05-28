@@ -450,6 +450,12 @@ async def override_alumno_progress(alumno_id: int, payload: ProgressOverridePayl
                     
                 user.settings = settings
                 flag_modified(user, "settings")
+                
+                # Advance fase_actual_id if approving
+                if payload.action == "approve":
+                    if alumno.fase_actual_id < payload.fase_id:
+                        alumno.fase_actual_id = payload.fase_id
+                
                 await db.commit()
 
     return {"status": "ok", "message": "Progreso actualizado exitosamente"}
@@ -567,6 +573,13 @@ async def override_alumno_progress_bulk(alumno_id: int, payload: ProgressOverrid
                         
             user.settings = settings
             flag_modified(user, "settings")
+            
+            # Advance fase_actual_id if we have any "approve" actions
+            if payload.action == "approve":
+                max_fase_id = max(item.fase_id for item in payload.items) if payload.items else 0
+                if max_fase_id > 0 and alumno.fase_actual_id < max_fase_id:
+                    alumno.fase_actual_id = max_fase_id
+
             await db.commit()
 
     return {"status": "ok", "message": f"{len(payload.items)} registros actualizados exitosamente"}
