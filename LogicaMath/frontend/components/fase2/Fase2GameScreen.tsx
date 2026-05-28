@@ -700,10 +700,28 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         porcentaje: data.porcentaje_actual,
       });
 
+      // 1. Si es el primer cargado y es un alumno nuevo en este nivel (0 intentos), y no es desafío, cargamos teoría primero
+      if (isFirstLoad && data.intentos_totales === 0 && !isChallenge) {
+        setIsInitialReading(true);
+        try {
+          const reading = await getFase2Reading(moduloId, nivelId);
+          setReadingData(reading);
+          setShowReading(true);
+        } catch {
+          setReadingData(MOCK_LECTURA(moduloId, nivelId));
+          setShowReading(true);
+        }
+      }
+
+      // 2. Si la pregunta es espejo, mostramos el modal espejo SÓLO si no es la primera lectura
       if (data.datos_numericos?.es_espejo) {
         setMirrorPregunta(data);
-        setShowMirrorModal(true);
-        setPregunta(data); // <-- FIX: Set it to data so the background UI renders behind the modal
+        if (data.intentos_totales > 0) {
+          setShowMirrorModal(true);
+        } else {
+          setShowMirrorModal(false);
+        }
+        setPregunta(data);
         setLoading(false);
         return;
       }
@@ -718,7 +736,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         setTimer(limit);
         setMaxTimer(limit);
       } else if (data.tiene_cronometro && data.tiempo_limite_segundos) {
-        setTimer(data.tiempo_limite_segundos);
+        setTimer(data.tiene_cronometro && !showReading ? data.tiempo_limite_segundos : null);
         setMaxTimer(data.tiempo_limite_segundos);
       } else {
         setTimer(null);
@@ -890,25 +908,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     }
   }, [moduloId, nivelId, isChallenge]);
 
-  // 35: checkAndShowReading Effect
-  useEffect(() => {
-    if (isChallenge) {
-      setShowReading(false);
-      return;
-    }
-    const check = async () => {
-      setIsInitialReading(true);
-      try {
-        const data = await getFase2Reading(moduloId, nivelId);
-        setReadingData(data);
-        setShowReading(true);
-      } catch {
-        setReadingData(MOCK_LECTURA(moduloId, nivelId));
-        setShowReading(true);
-      }
-    };
-    check();
-  }, [moduloId, nivelId, isChallenge]);
+  // El check de lectura inicial ya no se ejecuta en paralelo aquí para evitar condiciones de carrera,
+  // sino que se maneja de forma secuencial directamente en loadPregunta.
 
   // 36: Timer Effect
   useEffect(() => {
