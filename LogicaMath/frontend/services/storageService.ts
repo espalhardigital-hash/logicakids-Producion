@@ -34,11 +34,11 @@ async function apiRequest<T>(endpoint: string, method: string = 'GET', body?: an
   const response = await fetch(`${API_URL}${endpoint}`, config);
 
   if (response.status === 401) {
-    console.warn("Sesi??n expirada o inv??lida (401). Redireccionando a Login...");
+    console.warn("Sesión expirada o inválida (401). Redireccionando a Login...");
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     window.location.href = '/login';
-    throw new Error('Sesi??n expirada. Por favor, inicia sesi??n de nuevo.');
+    throw new Error('Sesión expirada. Por favor, inicia sesión de nuevo.');
   }
 
   if (!response.ok) {
@@ -232,7 +232,7 @@ export const adminChangePassword = async (userId: string, newPassword: string): 
     return { success: true, message: result.message };
   } catch (e: any) {
     console.error("Error changing password", e);
-    return { success: false, message: e.message || 'Error al cambiar contrase??a' };
+    return { success: false, message: e.message || 'Error al cambiar contraseña' };
   }
 };
 
@@ -399,7 +399,7 @@ export const getAIAnalysis = async (category: string): Promise<string> => {
     return result.analysis;
   } catch (error) {
     console.error("Error fetching AI analysis:", error);
-    return "No se pudo obtener el an??lisis de IA en este momento.";
+    return "No se pudo obtener el análisis de IA en este momento.";
   }
 };
 

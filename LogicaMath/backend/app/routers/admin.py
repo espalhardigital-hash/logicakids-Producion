@@ -70,7 +70,7 @@ async def update_settings(payload: dict, db: AsyncSession = Depends(get_db), adm
         db.add(settings)
     
     await db.commit()
-    return {"status": "ok", "message": "Configuraci??n guardada exitosamente"}
+    return {"status": "ok", "message": "Configuración guardada exitosamente"}
 
 # ============================================================
 # FASES
@@ -127,7 +127,7 @@ async def create_configuracion(config_data: ConfiguracionProgresoCreate, db: Asy
         )
     )
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Ya existe configuraci??n para este bloque")
+        raise HTTPException(status_code=400, detail="Ya existe configuración para este bloque")
 
     new_config = ConfiguracionProgreso(**config_data.model_dump())
     db.add(new_config)
@@ -140,7 +140,7 @@ async def update_configuracion(config_id: int, config_data: ConfiguracionProgres
     result = await db.execute(select(ConfiguracionProgreso).where(ConfiguracionProgreso.id == config_id))
     config = result.scalar_one_or_none()
     if not config:
-        raise HTTPException(status_code=404, detail="Configuraci??n no encontrada")
+        raise HTTPException(status_code=404, detail="Configuración no encontrada")
     
     update_data = config_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -205,7 +205,7 @@ async def update_pregunta(pregunta_id: int, pregunta_data: PreguntaUpdate, db: A
         
     update_data = pregunta_data.model_dump(exclude_unset=True)
     
-    # Manejar alternativas si vienen en la petici??n
+    # Manejar alternativas si vienen en la petición
     if "alternativas" in update_data:
         alts_data = update_data.pop("alternativas")
         # Eliminar las alternativas existentes
@@ -298,7 +298,7 @@ async def save_teoria(payload: NivelTeoriaSave, db: AsyncSession = Depends(get_d
         db.add(theory)
     
     await db.commit()
-    return {"status": "ok", "message": "Teor??a guardada exitosamente"}
+    return {"status": "ok", "message": "Teoría guardada exitosamente"}
 
 @router.get("/alumnos/search")
 async def search_alumnos(query: str = "", db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):

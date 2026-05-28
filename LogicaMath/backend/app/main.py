@@ -25,10 +25,10 @@ async def lifespan(app: FastAPI):
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-            print("??? Tablas de base de datos verificadas/creadas exitosamente.")
+            print("🐘 Tablas de base de datos verificadas/creadas exitosamente.")
 
     except Exception as e:
-        print(f"??? Error al verificar/crear tablas: {e}")
+        print(f"❌ Error al verificar/crear tablas: {e}")
 
     # S3 warning
     if not all([settings.S3_ACCESS_KEY, settings.S3_SECRET_KEY, settings.S3_ENDPOINT_URL, settings.S3_BUCKET_NAME]):
