@@ -94,6 +94,21 @@ class Pregunta(Base):
             "operacion",
             "estado",
         ),
+        Index(
+            "idx_preguntas_errores_previstos_gin",
+            "errores_previstos",
+            postgresql_using="gin",
+        ),
+        Index(
+            "idx_preguntas_datos_numericos_gin",
+            "datos_numericos",
+            postgresql_using="gin",
+        ),
+        Index(
+            "idx_preguntas_palabras_clave_gin",
+            "palabras_clave",
+            postgresql_using="gin",
+        ),
     )
 
     def __repr__(self):

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import Column, String, Integer, DateTime, Index
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -11,6 +11,15 @@ class User(Base):
     El campo role='ADMIN' habilita el panel de administracion.
     """
     __tablename__ = "users"
+
+    __table_args__ = (
+        Index(
+            "idx_users_settings_gin",
+            "settings",
+            postgresql_using="gin",
+        ),
+    )
+
 
     id = Column(String, primary_key=True)  # UUID
     username = Column(String, nullable=False)
