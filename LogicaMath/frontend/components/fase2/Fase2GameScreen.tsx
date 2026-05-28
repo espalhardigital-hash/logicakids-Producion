@@ -1296,13 +1296,13 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         {showReading && readingData && (
           <Fase2TheoryModal readingData={readingData} moduleColor={moduleColor} onClose={() => setShowReading(false)} onAbort={() => isInitialReading ? onBack() : setShowReading(false)} isInitialReading={isInitialReading} userAvatar={userAvatar} />
         )}
-        {showRescate && feedback.resultado?.explicacion && (
+        {showRescate && feedback.resultado?.explicacion && !showReading && (
           <Fase2RescateModal explicacion={feedback.resultado.explicacion} moduleColor={moduleColor} onClose={async () => {
             if (pregunta?.id) try { await closeFase2Rescate(moduloId, nivelId, pregunta.id); } catch(e){}
             setShowRescate(false); loadPregunta();
           }} />
         )}
-        {showMirrorModal && mirrorPregunta && (
+        {showMirrorModal && mirrorPregunta && !showReading && (
           <Fase2MirrorModal pregunta={mirrorPregunta} moduleColor={moduleColor} lastCorrectAnswer={lastCorrectAnswer} lastQuestionEnunciado={lastQuestionEnunciado} lastWrongAnswer={lastWrongAnswer} onClose={(res) => {
             if (res) {
               setProgreso({ aciertos: res.aciertos_acumulados, intentos: res.intentos_totales, porcentaje: res.porcentaje_actual });
