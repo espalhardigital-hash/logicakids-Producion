@@ -2087,6 +2087,37 @@ async def seed_desafios_pool(session: AsyncSession):
         if batch_count > 0:
             await session.commit()
             batch_count = 0
+
+    # Seed Desafío Mixto (99099) for Fase 2 to avoid sufficiency warnings
+    # It requires 20 questions, but we will seed 150 for robustness
+    print("  Generando 150 preguntas del Desafío Mixto (99099) para Fase 2...")
+    for q_idx in range(1, 151):
+        rng = random.Random(99099 * 1000 + q_idx)
+        # Select random module (1 to 4) and level (13) to generate questions
+        rnd_mod = rng.choice([1, 2, 3, 4])
+        q_data = _gen_desafio_pregunta(rng, rnd_mod, 13, "maestria")
+        
+        pregunta = Pregunta(
+            fase_id=FASE2_ID,
+            seccion=99099,
+            operacion=OperacionEnum.MIXTA,
+            tipo_pregunta=TipoPreguntaEnum.RESPUESTA_NUMERICA,
+            enunciado=q_data["enunciado"],
+            respuesta_correcta=q_data["respuesta_correcta"],
+            datos_numericos={
+                "es_desafio": True,
+                "tipo_interfaz": "input",
+                "sub_dificultad": "maestria"
+            },
+            explicacion_paso_a_paso={
+                "titulo": "Resolución Desafío Mixto",
+                "pasos": [{"orden": 1, "texto": q_data["expl"]}]
+            },
+            estado=StatusEnum.ACTIVO
+        )
+        session.add(pregunta)
+    await session.commit()
+    print("  Pool de Desafío Mixto (99099) sembrado correctamente.")
             
     print("  Pool de desafíos sembrado correctamente.")
 
