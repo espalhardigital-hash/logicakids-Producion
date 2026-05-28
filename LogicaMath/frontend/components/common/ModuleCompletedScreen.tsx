@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Zap, Target } from 'lucide-react';
 import './ModuleCompletedScreen.css';
 
+// Generic typed interface for Props
 export interface ModuleCompletedScreenProps {
   points: number;
   precision: number;
@@ -10,6 +11,7 @@ export interface ModuleCompletedScreenProps {
   onContinue: () => void;
 }
 
+// Sparkle particle interface
 interface SparkleParticle {
   id: number;
   color: string;
@@ -19,6 +21,7 @@ interface SparkleParticle {
   delay: number;
 }
 
+// Custom hook to animate counting numbers smoothly
 const useCountUp = (end: number, duration: number = 800, delay: number = 0) => {
   const [count, setCount] = useState(0);
 
@@ -31,6 +34,7 @@ const useCountUp = (end: number, duration: number = 800, delay: number = 0) => {
       const elapsed = timestamp - startTimestamp;
       const progress = Math.min(elapsed / duration, 1);
       
+      // Easing out quadratic
       const easeProgress = progress * (2 - progress);
       setCount(Math.floor(easeProgress * end));
 
@@ -58,8 +62,12 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
   moduleName = 'Módulo',
   onContinue
 }) => {
+  // Trigger animated counts once cards enter the screen
+  // Card 1 delay is 1000ms, Card 2 delay is 1200ms
   const animatedPoints = useCountUp(points, 1000, 1000);
   const animatedPrecision = useCountUp(precision, 1000, 1200);
+
+  // Generate randomized sparkle particles for the celebration burst
   const [particles, setParticles] = useState<SparkleParticle[]>([]);
 
   useEffect(() => {
@@ -75,7 +83,7 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
         x,
         y,
         size: 6 + Math.random() * 10,
-        delay: 0.3 + Math.random() * 0.4
+        delay: 0.3 + Math.random() * 0.4 // Sparkle bursts shortly after mascot bounce
       };
     });
     setParticles(pList);
@@ -84,7 +92,11 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
   return (
     <div className="mcs-overlay">
       <div className="mcs-container">
+        
+        {/* Mascot + Celebration Stage */}
         <div className="mcs-character-stage">
+          
+          {/* Sparkles / Fireworks Burst */}
           <div className="mcs-sparks-container">
             {particles.map((p) => (
               <motion.div
@@ -111,6 +123,7 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
             ))}
           </div>
 
+          {/* Duolingo-style Mascot (Cute LogicaKids Tiger) */}
           <motion.div
             className="mcs-mascot-container"
             initial={{ scale: 0, y: 50 }}
@@ -128,24 +141,34 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
               xmlns="http://www.w3.org/2000/svg"
               className="w-full h-full"
             >
+              {/* Cute Tiger Head */}
               <circle cx="80" cy="85" r="50" fill="#FF8E53" />
               <path d="M48 48C48 38 60 42 60 52C60 62 48 58 48 48Z" fill="#FFA372" />
               <path d="M48 48C50 40 58 43 58 50C58 57 50 55 48 48Z" fill="#FF5E97" />
               <path d="M112 48C112 38 100 42 100 52C100 62 112 58 112 48Z" fill="#FFA372" />
               <path d="M112 48C110 40 102 43 102 50C102 57 110 55 112 48Z" fill="#FF5E97" />
+              
+              {/* Tiger Stripes */}
               <path d="M80 35L80 47" stroke="#333333" strokeWidth="4" strokeLinecap="round" />
               <path d="M72 38L75 46" stroke="#333333" strokeWidth="4" strokeLinecap="round" />
               <path d="M88 38L85 46" stroke="#333333" strokeWidth="4" strokeLinecap="round" />
+              
               <path d="M30 80C36 80 40 83 42 85" stroke="#333333" strokeWidth="4" strokeLinecap="round" />
               <path d="M31 89C37 88 40 90 42 92" stroke="#333333" strokeWidth="4" strokeLinecap="round" />
               <path d="M130 80C124 80 120 83 118 85" stroke="#333333" strokeWidth="4" strokeLinecap="round" />
               <path d="M129 89C123 88 120 90 118 92" stroke="#333333" strokeWidth="4" strokeLinecap="round" />
+
+              {/* Big Joyful Eyes */}
               <ellipse cx="60" cy="80" rx="8" ry="10" fill="#333333" />
               <ellipse cx="100" cy="80" rx="8" ry="10" fill="#333333" />
               <circle cx="57" cy="77" r="3" fill="#FFFFFF" />
               <circle cx="97" cy="77" r="3" fill="#FFFFFF" />
+
+              {/* Cheeks */}
               <circle cx="48" cy="92" r="6" fill="#FF5E97" opacity="0.6" />
               <circle cx="112" cy="92" r="6" fill="#FF5E97" opacity="0.6" />
+
+              {/* Snout & Smiling Mouth */}
               <ellipse cx="80" cy="95" rx="14" ry="10" fill="#FFFFFF" />
               <polygon points="76,91 84,91 80,95" fill="#333333" />
               <path d="M74 97C77 101 80 101 80 97C80 101 83 101 86 97" stroke="#333333" strokeWidth="3" strokeLinecap="round" fill="none" />
@@ -153,6 +176,7 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
           </motion.div>
         </div>
 
+        {/* Celebratory Headings */}
         <motion.h1
           className="mcs-title"
           initial={{ opacity: 0, y: 15 }}
@@ -171,7 +195,10 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
           {moduleName} superado con éxito
         </motion.p>
 
+        {/* Stats Grid */}
         <div className="mcs-stats-grid">
+          
+          {/* Card 1: Points Earned */}
           <motion.div
             className="mcs-card points-card"
             initial={{ opacity: 0, y: 40 }}
@@ -192,6 +219,7 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
             </div>
           </motion.div>
 
+          {/* Card 2: Precision rate */}
           <motion.div
             className="mcs-card precision-card"
             initial={{ opacity: 0, y: 40 }}
@@ -211,8 +239,10 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
               <span className="mcs-card-value">{animatedPrecision}%</span>
             </div>
           </motion.div>
+
         </div>
 
+        {/* Continue Action Button */}
         <motion.div
           className="mcs-button-container"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -223,9 +253,9 @@ export const ModuleCompletedScreen: React.FC<ModuleCompletedScreenProps> = ({
             Continuar
           </button>
         </motion.div>
+
       </div>
     </div>
   );
 };
-
 export default ModuleCompletedScreen;

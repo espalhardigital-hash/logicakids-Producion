@@ -223,16 +223,6 @@ Al terminar exitosamente un nivel o desafío, el frontend debe suspender tempora
 * **Caja de Recomendación Pedagógica:** Caja con fondo semi-transparente y borde izquierdo destacado que muestra una recomendación inteligente basada en el nivel actual para guiar al estudiante a su próximo paso didáctico.
 * **Botón de Continuidad Dinámico:** Botón de confirmación destacado cuyo texto se calcula en caliente (ej: *"Ir al Nivel X+1 🚀"*, *"Siguiente Módulo 🚀"*) y que al pulsarse redirige de forma segura al dashboard.
 
-### 4.3.B. Pantalla Completa de Módulo Completado (Module Completed Screen - Duolingo Style)
-Al completar el 100% de los niveles de un módulo, se renderiza la pantalla de celebración inmersiva (`ModuleCompletedScreen.tsx`):
-* **Librerías Requeridas:** `framer-motion` para transiciones complejas y rebotes; `lucide-react` para íconos vectoriales.
-* **Animación Staggered:**
-  - El contenedor principal de la mascota entra con un efecto de resorte (`type: 'spring', stiffness: 260, damping: 15`).
-  - Los destellos/fuegos artificiales estallan radialmente alrededor utilizando un retraso de 0.3s a 0.7s.
-  - El título `"¡Completaste el módulo!"` entra con un deslizamiento vertical y fade-in.
-  - Las tarjetas de estadísticas entran de abajo hacia arriba de forma secuencial.
-* **Lógica de Conteo (Count-Up Helper):** Utilización de `window.requestAnimationFrame` para animar las estadísticas de puntos y precisión incrementando linealmente desde cero hasta el valor final en 1 segundo de duración.
-
 ### 4.4. Botones de Confirmación Inline Obligatorios
 Todo tipo de interacción y pregunta (numérica, opción múltiple o pasos encadenados) debe contar con su botón de acción inline (`Confirmar` / `Continuar`) directamente integrado en la tarjeta de juego para consistencia táctil en móviles y tabletas:
 * **Especificaciones del Botón:** Clase `.f2-submit-btn` con `display: flex; align-items: center; justify-content: center; width: 100%; border: none; cursor: pointer; transition: all 0.2s ease;`.
@@ -250,17 +240,6 @@ Al completar exitosamente toda la fase (por ejemplo, superando la batería final
   * **Conceptos Clave:** ej: `12+`
 * **Botón de Enlace de Fase:** Botón de acción con degradado y sombreado luminoso destacado que llama al redireccionamiento inmediato hacia el mapamundi general (`/map`), promoviendo el inicio de la siguiente fase académica desbloqueada.
 * **Mapeo de Endpoints y Lógica de Graduación de Fases:** Para garantizar que el alumno avance de fase en la base de datos de manera consistente, cada fase de la plataforma debe contar con su propio endpoint de graduación en el backend (ej: `/pedagogia/graduate-to-fase1`, `/pedagogia/graduate-to-fase2`, `/fase2/graduate`, etc.) y su respectivo servicio en el frontend. La lógica del cliente en `handleEndGame` debe evaluar condicionalmente la fase actual del alumno (`currentUser.fase_actual_id`) para invocar el endpoint de graduación correspondiente a esa fase específica, garantizando que el usuario no sea redirigido de forma inconsistente o quede atascado.
-
-### 4.6. Dinámica del Banner del Dashboard General (Bottom Banner State Integration)
-El banner inferior de seguimiento en la selección de niveles del frontend (`WelcomeScreen.tsx`) debe mapear tres estados visuales e interactivos específicos en función de las variables de progreso:
-1. **Estado de Progreso en Prácticas (`remainingLevels > 0`):**
-   - Renderiza el progreso global acumulado en porcentaje, mostrando la barra de carga general y los niveles restantes para desbloquear el examen.
-2. **Estado Desafío Disponible (`remainingLevels === 0` y `isChallengeCompleted === false`):**
-   - Renderiza un gradiente azul-indigo con la llamada interactiva "Tu Camino a la Fase X" y el botón **"Iniciar Prueba Final"** habilitado para gatillar el desafío mixto.
-3. **Estado de Fase Aprobada (`isChallengeCompleted === true`):**
-   - Renderiza un gradiente verde esmeralda y verde azulado neón con animación en el ícono del trofeo (`Trophy`) mediante un efecto continuo de vaivén y cambio de escala (`rotate: [0, -15, 15, -15, 15, 0]`, `scale: [1, 1.15, 1]`).
-   - El título pasa a ser **`¡Felicidades! 🎉`** con la descripción **`Has superado esta fase. Puedes avanzar a la próxima.`**
-   - Muestra el botón de acción **"Volver al Mapa"** en lugar de "Iniciar Prueba Final", redirigiendo limpiamente a la selección global y previniendo bucles de reintento.
 
 ---
 
@@ -781,4 +760,3 @@ location ~ \.[a-zA-Z0-9]+$ {
 * [ ] Validar preguntas tokenizadas con `tokens_texto` y `tokens_correctos`.
 * [ ] Probar backend con `python -m py_compile`.
 * [ ] Probar frontend con `npx tsc --noEmit`.
-* [ ] Validar que ningún componente de pantalla de fase usa datos mock (`MOCK_DASHBOARD`, `MOCK_DATA`, etc.) como fallback ante errores del backend (el bloque `catch` solo debe llamar `setError()` y mostrar la pantalla de error con botón "Reintentar").

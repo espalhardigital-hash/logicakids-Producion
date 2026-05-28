@@ -342,4 +342,3 @@ async def graduate_to_fase2(db: AsyncSession = Depends(get_db), current_user: di
     await db.commit()
     
     return {"message": "¡Felicidades! Has avanzado a la Fase 2", "new_fase_id": fase_dos.id}
-

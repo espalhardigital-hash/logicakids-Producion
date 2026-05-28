@@ -1,11 +1,11 @@
 /**
  * WelcomeScreenPhase2.tsx
- * ─────────────────────────────────────────────────────────────
- * Hub de selección de módulos para la Fase 2.
- * Replica el diseño de la imagen de referencia:
+ * ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+ * Hub de selecci??n de m??dulos para la Fase 2.
+ * Replica el dise??o de la imagen de referencia:
  *   - Header con saludo, badge FASE 2, avatar y puntaje
- *   - 5 tarjetas de módulo con ícono de color, badge de estado y barra de progreso
- *   - Banner del Desafío Mixto al fondo (disponible cuando todos dominados)
+ *   - 5 tarjetas de m??dulo con ??cono de color, badge de estado y barra de progreso
+ *   - Banner del Desaf??o Mixto al fondo (disponible cuando todos dominados)
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -14,7 +14,7 @@ import { getFase2Dashboard } from './Fase2Service';
 import type { Fase2Dashboard, Fase2ModuloInfo } from './Fase2Types';
 import { getAvatarUrl } from '../../services/storageService';
 
-// ── Íconos SVG inline para no depender de dependencias externas ───────────
+// ?????? ??conos SVG inline para no depender de dependencias externas ?????????????????????????????????
 
 const Icons: Record<string, React.FC<{ size?: number; color?: string }>> = {
   activity: ({ size = 24, color = 'currentColor' }) => (
@@ -75,14 +75,14 @@ const Icons: Record<string, React.FC<{ size?: number; color?: string }>> = {
   ),
 };
 
-// Estado por módulo → label amigable
+// Estado por m??dulo ??? label amigable
 const ESTADO_LABELS: Record<string, string> = {
   dominado:    'DOMINADO',
   en_progreso: 'EN PROGRESO',
   bloqueado:   'BLOQUEADO',
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
 interface Props {
   onModuleSelect: (moduloId: number, nivelId?: number) => void;
@@ -129,25 +129,12 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
       
       setDashboard(data);
     } catch (e: unknown) {
-      // En desarrollo o sin backend, usar datos de muestra
-      let mockData = MOCK_DASHBOARD(studentName);
-      if (userRole === 'ADMIN') {
-        mockData = {
-          ...mockData,
-          desafio_mixto_disponible: true,
-          desafio_mixto_estado: 'completado',
-          modulos: mockData.modulos.map(m => ({
-            ...m,
-            estado: m.estado === 'bloqueado' ? 'en_progreso' : m.estado,
-            niveles: m.niveles.map(n => ({
-              ...n,
-              estado: n.estado === 'bloqueado' ? 'en_progreso' : n.estado,
-            }))
-          }))
-        };
-      }
-      setDashboard(mockData);
-      console.warn('[Fase2] Backend no disponible, usando datos de muestra.', e);
+      // CORRECCI??N: NO cargar datos mock en producci??n.
+      // Mostrar el estado de error real para que el alumno pueda reintentar.
+      // Los datos falsos del mock pueden confundirse con progreso real.
+      const errorMsg = e instanceof Error ? e.message : 'Error de conexi??n con el servidor.';
+      setError(`No se pudo cargar tu progreso. ${errorMsg}`);
+      console.error('[Fase2] Error al cargar dashboard desde el backend:', e);
     } finally {
       setLoading(false);
     }
@@ -162,7 +149,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
 
   const handleChallengeClick = () => {
     if (!dashboard?.desafio_mixto_disponible) return;
-    onModuleSelect(99, 99); // 99,99 = Desafío Mixto
+    onModuleSelect(99, 99); // 99,99 = Desaf??o Mixto
   };
 
   if (loading) {
@@ -170,7 +157,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
       <div className="f2-screen">
         <div className="f2-loading">
           <div className="f2-spinner" />
-          <span>Cargando Fase 2…</span>
+          <span>Cargando Fase 2???</span>
         </div>
       </div>
     );
@@ -197,10 +184,10 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
 
   return (
     <div className="f2-screen">
-      {/* ── Header ── */}
+      {/* ?????? Header ?????? */}
       <header className="f2-header">
         <div className="f2-header-left-side">
-          {/* Botón volver en la esquina izquierda */}
+          {/* Bot??n volver en la esquina izquierda */}
           <button 
             className="f2-back-btn" 
             onClick={selectedModule ? () => setSelectedModule(null) : onBack} 
@@ -222,11 +209,11 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
             </div>
             <div className="f2-header-user-info">
               <div className="f2-header-greeting">
-                ¡Hola, {nombre}! <span>👋</span>
+                ??Hola, {nombre}! <span>????</span>
               </div>
               <div className="f2-header-subtitle">
                 <span className="f2-badge-fase">FASE 2</span>
-                <span className="f2-header-fasename">Desarrollo Numérico y Razonamiento</span>
+                <span className="f2-header-fasename">Desarrollo Num??rico y Razonamiento</span>
               </div>
             </div>
           </div>
@@ -244,11 +231,11 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
         </div>
       </header>
 
-      {/* ── Contenido ── */}
+      {/* ?????? Contenido ?????? */}
       <main className="f2-content">
         {!selectedModule ? (
           <>
-            {/* Grid de 5 módulos */}
+            {/* Grid de 5 m??dulos */}
             <div className="f2-modules-grid">
               {dashboard.modulos.map(modulo => (
                 <ModuleCard
@@ -260,17 +247,17 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
               ))}
             </div>
 
-            {/* Banner Desafío Mixto */}
+            {/* Banner Desaf??o Mixto */}
             <div
               className={`f2-challenge-banner ${dashboard.desafio_mixto_disponible ? '' : 'bloqueado'}`}
             >
-              <div className="f2-challenge-icon">🏆</div>
+              <div className="f2-challenge-icon">????</div>
               <div className="f2-challenge-text">
-                <div className="f2-challenge-title">Desafío Mixto de la Fase 2</div>
+                <div className="f2-challenge-title">Desaf??o Mixto de la Fase 2</div>
                 <div className="f2-challenge-desc">
                   {dashboard.desafio_mixto_disponible
-                    ? '¡Has completado exitosamente todos los módulos! Es momento de resolver el Desafío Mixto y demostrar tu maestría en Razonamiento Matemático.'
-                    : 'Domina todos los módulos para desbloquear el Desafío Mixto y demostrar tu maestría.'}
+                    ? '??Has completado exitosamente todos los m??dulos! Es momento de resolver el Desaf??o Mixto y demostrar tu maestr??a en Razonamiento Matem??tico.'
+                    : 'Domina todos los m??dulos para desbloquear el Desaf??o Mixto y demostrar tu maestr??a.'}
                 </div>
               </div>
               <button
@@ -278,30 +265,30 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
                 onClick={handleChallengeClick}
                 disabled={!dashboard.desafio_mixto_disponible}
               >
-                {dashboard.desafio_mixto_disponible ? 'Iniciar Desafío Mixto' : '🔒 Bloqueado'}
+                {dashboard.desafio_mixto_disponible ? 'Iniciar Desaf??o Mixto' : '???? Bloqueado'}
               </button>
             </div>
           </>
         ) : (
           <div className="f2-levels-container">
-            {/* Botón Volver al menú */}
+            {/* Bot??n Volver al men?? */}
             <div className="f2-levels-back-wrap">
               <button 
                 onClick={() => setSelectedModule(null)}
                 className="f2-levels-back-btn"
               >
                 <Icons.arrow_left />
-                <span>Volver al menú</span>
+                <span>Volver al men??</span>
               </button>
             </div>
 
-            {/* Título de niveles */}
+            {/* T??tulo de niveles */}
             <div className="f2-levels-header">
               <h1 className="f2-levels-title">
                 Niveles De {selectedModule.nombre}
               </h1>
               <p className="f2-levels-subtitle">
-                Completa el <span className="highlight">100%</span> de cada nivel de práctica para desbloquear el siguiente.
+                Completa el <span className="highlight">100%</span> de cada nivel de pr??ctica para desbloquear el siguiente.
               </p>
             </div>
 
@@ -341,16 +328,16 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
               })}
             </div>
 
-            {/* Zona de Desafíos */}
+            {/* Zona de Desaf??os */}
             <div className="f2-challenge-zone">
               <div className="f2-challenge-zone-title-wrapper">
                 <Icons.trophy size={22} color="#F59E0B" />
                 <h2 className="f2-challenge-zone-title">
-                  ZONA DE DESAFÍOS
+                  ZONA DE DESAF??OS
                 </h2>
               </div>
               <p className="f2-challenge-zone-subtitle">
-                Pon a prueba tu velocidad y precisión. Completa todos los niveles de práctica para desbloquear la evaluación.
+                Pon a prueba tu velocidad y precisi??n. Completa todos los niveles de pr??ctica para desbloquear la evaluaci??n.
               </p>
               
               <div className="f2-challenge-zone-list">
@@ -388,7 +375,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
                     >
                       {/* Left: Icon */}
                       <div className="f2-challenge-bar-icon">
-                        {isPassed ? '✅' : desafio.dificultad === 'maestria' ? '🏆' : desafio.dificultad === 'avanzada' ? '⚡' : '🎯'}
+                        {isPassed ? '???' : desafio.dificultad === 'maestria' ? '????' : desafio.dificultad === 'avanzada' ? '???' : '????'}
                       </div>
 
                       {/* Middle: Content info */}
@@ -402,9 +389,9 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
                           </span>
                         </div>
                         <div className="f2-challenge-bar-meta">
-                          <span>⏱️ Límite: {desafio.tiempo_limite}s</span>
-                          <span>❌ Errores máx: {desafio.max_errores}</span>
-                          {isPassed && <span style={{ color: '#a7f3d0', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>✓ Dominado</span>}
+                          <span>?????? L??mite: {desafio.tiempo_limite}s</span>
+                          <span>??? Errores m??x: {desafio.max_errores}</span>
+                          {isPassed && <span style={{ color: '#a7f3d0', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>??? Dominado</span>}
                         </div>
                       </div>
 
@@ -414,7 +401,7 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
                         disabled={!isDesafioUnlocked}
                         onClick={() => onModuleSelect(selectedModule.modulo_id, desafio.desafio_id)}
                       >
-                        {isPassed ? 'Iniciar de nuevo' : isDesafioUnlocked ? 'Iniciar Desafío' : '🔒 Bloqueado'}
+                        {isPassed ? 'Iniciar de nuevo' : isDesafioUnlocked ? 'Iniciar Desaf??o' : '???? Bloqueado'}
                       </button>
                     </div>
                   );
@@ -429,9 +416,9 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SUBCOMPONENTE: Tarjeta de módulo
-// ─────────────────────────────────────────────────────────────────────────────
+// ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+// SUBCOMPONENTE: Tarjeta de m??dulo
+// ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
 const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userRole?: string }> = ({
   modulo,
@@ -450,9 +437,9 @@ const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userR
       role={!isLocked ? 'button' : undefined}
       tabIndex={!isLocked ? 0 : undefined}
       onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && !isLocked) onClick(); }}
-      aria-label={`${modulo.nombre} — ${ESTADO_LABELS[modulo.estado]}`}
+      aria-label={`${modulo.nombre} ??? ${ESTADO_LABELS[modulo.estado]}`}
     >
-      {/* Ícono con color de módulo */}
+      {/* ??cono con color de m??dulo */}
       <div
         className="f2-module-icon"
         style={{ background: isLocked ? 'rgba(255, 255, 255, 0.02)' : `${modulo.color}22` }}
@@ -464,7 +451,7 @@ const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userR
         )}
       </div>
 
-      {/* Nombre y descripción */}
+      {/* Nombre y descripci??n */}
       <div className="f2-module-name">{modulo.nombre}</div>
       <div className="f2-module-desc">{modulo.descripcion}</div>
 
@@ -488,9 +475,9 @@ const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userR
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DATOS DE MUESTRA (usado cuando el backend no está disponible)
-// ─────────────────────────────────────────────────────────────────────────────
+// ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+// DATOS DE MUESTRA (usado cuando el backend no est?? disponible)
+// ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
 function MOCK_DASHBOARD(nombre: string): Fase2Dashboard {
   const makeNiveles = (moduloId: number, domAll = false) => {
@@ -498,7 +485,7 @@ function MOCK_DASHBOARD(nombre: string): Fase2Dashboard {
     return Array.from({ length: totalLevels }, (_, i) => i + 1).map(id => ({
       nivel_id: id,
       nombre: `Nivel ${id}`,
-      descripcion: `Descripción del nivel ${id}`,
+      descripcion: `Descripci??n del nivel ${id}`,
       estado: (domAll ? 'dominado' : id === 1 ? 'en_progreso' : 'bloqueado') as 'dominado' | 'en_progreso' | 'bloqueado',
       porcentaje: domAll ? 100 : id === 1 ? 45 : 0,
       aciertos: domAll ? 15 : id === 1 ? 5 : 0,
@@ -509,17 +496,17 @@ function MOCK_DASHBOARD(nombre: string): Fase2Dashboard {
 
   const makeDesafios = (moduloId: number, domAll = false) => {
     return [
-      { desafio_id: 11, nombre: 'Desafío 1: Estándar', dificultad: 'estandar' as const, estado: (domAll ? 'en_progreso' : 'bloqueado') as any, porcentaje: 0, aciertos: 0, requeridos: 25, tiempo_limite: 25, max_errores: 3 },
-      { desafio_id: 12, nombre: 'Desafío 2: Avanzado', dificultad: 'avanzada' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 25, tiempo_limite: 40, max_errores: 3 },
-      { desafio_id: 13, nombre: 'Desafío Final: Maestría', dificultad: 'maestria' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 10, tiempo_limite: 50, max_errores: 2 },
+      { desafio_id: 11, nombre: 'Desaf??o 1: Est??ndar', dificultad: 'estandar' as const, estado: (domAll ? 'en_progreso' : 'bloqueado') as any, porcentaje: 0, aciertos: 0, requeridos: 25, tiempo_limite: 25, max_errores: 3 },
+      { desafio_id: 12, nombre: 'Desaf??o 2: Avanzado', dificultad: 'avanzada' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 25, tiempo_limite: 40, max_errores: 3 },
+      { desafio_id: 13, nombre: 'Desaf??o Final: Maestr??a', dificultad: 'maestria' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 10, tiempo_limite: 50, max_errores: 2 },
     ];
   };
 
   const modulos = [
-    { id: 1, nombre: 'Gimnasio Mental',   desc: 'Cálculo mental ultra veloz, dobles y mitades.', icono: 'activity',    color: '#10B981', estado: 'dominado'    as const, pct: 100 },
-    { id: 2, nombre: 'Tablas en Acción',  desc: 'Tablas de multiplicar y operaciones inversas.',  icono: 'hash',        color: '#8B5CF6', estado: 'dominado'    as const, pct: 100 },
-    { id: 3, nombre: 'Tienda Matemática', desc: 'Cálculo de cambio, billetes y precios en R$.', icono: 'shopping-bag', color: '#F59E0B', estado: 'en_progreso' as const, pct: 40 },
-    { id: 4, nombre: 'Constructor de Soluciones', desc: 'Problemas de múltiples pasos conectados.', icono: 'tool',      color: '#EC4899', estado: 'bloqueado'   as const, pct: 0 },
+    { id: 1, nombre: 'Gimnasio Mental',   desc: 'C??lculo mental ultra veloz, dobles y mitades.', icono: 'activity',    color: '#10B981', estado: 'dominado'    as const, pct: 100 },
+    { id: 2, nombre: 'Tablas en Acci??n',  desc: 'Tablas de multiplicar y operaciones inversas.',  icono: 'hash',        color: '#8B5CF6', estado: 'dominado'    as const, pct: 100 },
+    { id: 3, nombre: 'Tienda Matem??tica', desc: 'C??lculo de cambio, billetes y precios en R$.', icono: 'shopping-bag', color: '#F59E0B', estado: 'en_progreso' as const, pct: 40 },
+    { id: 4, nombre: 'Constructor de Soluciones', desc: 'Problemas de m??ltiples pasos conectados.', icono: 'tool',      color: '#EC4899', estado: 'bloqueado'   as const, pct: 0 },
   ];
 
   return {
@@ -542,3 +529,4 @@ function MOCK_DASHBOARD(nombre: string): Fase2Dashboard {
 }
 
 export default WelcomeScreenPhase2;
+

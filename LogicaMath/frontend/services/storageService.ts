@@ -34,11 +34,11 @@ async function apiRequest<T>(endpoint: string, method: string = 'GET', body?: an
   const response = await fetch(`${API_URL}${endpoint}`, config);
 
   if (response.status === 401) {
-    console.warn("Sesión expirada o inválida (401). Redireccionando a Login...");
+    console.warn("Sesi??n expirada o inv??lida (401). Redireccionando a Login...");
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     window.location.href = '/login';
-    throw new Error('Sesión expirada. Por favor, inicia sesión de nuevo.');
+    throw new Error('Sesi??n expirada. Por favor, inicia sesi??n de nuevo.');
   }
 
   if (!response.ok) {
@@ -232,7 +232,7 @@ export const adminChangePassword = async (userId: string, newPassword: string): 
     return { success: true, message: result.message };
   } catch (e: any) {
     console.error("Error changing password", e);
-    return { success: false, message: e.message || 'Error al cambiar contraseña' };
+    return { success: false, message: e.message || 'Error al cambiar contrase??a' };
   }
 };
 
@@ -324,7 +324,6 @@ export const graduateToFase2 = async (): Promise<void> => {
   }
 };
 
-
 export const getPedagogiaDashboard = async (): Promise<any> => {
   return await apiRequest<any>('/pedagogia/dashboard');
 };
@@ -400,7 +399,7 @@ export const getAIAnalysis = async (category: string): Promise<string> => {
     return result.analysis;
   } catch (error) {
     console.error("Error fetching AI analysis:", error);
-    return "No se pudo obtener el análisis de IA en este momento.";
+    return "No se pudo obtener el an??lisis de IA en este momento.";
   }
 };
 
@@ -438,18 +437,11 @@ export const overrideAlumnoProgress = async (alumnoId: number, data: {
   return await apiRequest<ProgresoOverrideResponse>(`/admin/alumnos/${alumnoId}/progress/override`, 'POST', data);
 };
 
-export const overrideAlumnoProgressBulk = async (
-  alumnoId: number,
-  data: {
-    items: Array<{ fase_id: number; seccion: number; operacion: string }>;
-    action: 'approve' | 'unlock' | 'lock';
-  }
-): Promise<ProgresoOverrideResponse> => {
-  return await apiRequest<ProgresoOverrideResponse>(
-    `/admin/alumnos/${alumnoId}/progress/override-bulk`,
-    'POST',
-    data
-  );
+export const overrideAlumnoProgressBulk = async (alumnoId: number, data: {
+  items: Array<{ fase_id: number; seccion: number; operacion: string }>;
+  action: 'approve' | 'unlock' | 'lock';
+}): Promise<ProgresoOverrideResponse> => {
+  return await apiRequest<ProgresoOverrideResponse>(`/admin/alumnos/${alumnoId}/progress/override-bulk`, 'POST', data);
 };
 
 // --- PREGUNTAS CRUD ---
@@ -483,3 +475,4 @@ export const getNivelTeoria = async (faseId: number, moduloId: number, nivelId: 
 export const saveNivelTeoria = async (data: any): Promise<void> => {
   await apiRequest('/admin/teoria', 'PUT', data);
 };
+

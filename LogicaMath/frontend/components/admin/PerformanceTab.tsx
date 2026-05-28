@@ -2,108 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Search, User, Shield, Check, Unlock, RotateCcw, 
-  AlertTriangle, ChevronDown, ChevronUp, Loader2,
-  CheckCircle2, CircleDot, Circle, Layers
+  AlertTriangle, ChevronDown, ChevronUp, Loader2
 } from 'lucide-react';
 import { 
   searchAlumnos, getAlumnoProgress, overrideAlumnoProgress, overrideAlumnoProgressBulk,
   AlumnoSearchInfo
 } from '../../services/storageService';
-import { PHASE_MAPS, LevelMap } from './phaseMaps';
+import { PHASE_MAPS, PhaseMap, ModuleMap } from './phaseMaps';
 
-// ─── Helper: compute aggregate status from a list of level records ─────────────
-type ProgressState = 'APROBADO' | 'EN_PROGRESO' | 'BLOQUEADO';
-
-function computeAggregateStatus(levels: LevelMap[], alumnoProgress: any[]): ProgressState {
-  if (levels.length === 0) return 'BLOQUEADO';
-  const states = levels.map((lvl) => {
-    const prog = alumnoProgress.find(
-      (p) => p.fase_id === /* resolved by caller */ 0 && p.seccion === lvl.seccion && p.operacion === lvl.operacion
-    );
-    return prog ? (prog.estado as ProgressState) : 'BLOQUEADO';
-  });
-  if (states.every((s) => s === 'APROBADO')) return 'APROBADO';
-  if (states.every((s) => s === 'BLOQUEADO')) return 'BLOQUEADO';
-  return 'EN_PROGRESO';
-}
-
-function computeAggregateStatusForPhase(faseId: number, levels: LevelMap[], alumnoProgress: any[]): ProgressState {
-  if (levels.length === 0) return 'BLOQUEADO';
-  const states = levels.map((lvl) => {
-    const prog = alumnoProgress.find(
-      (p) => p.fase_id === faseId && p.seccion === lvl.seccion && p.operacion === lvl.operacion
-    );
-    return prog ? (prog.estado as ProgressState) : 'BLOQUEADO';
-  });
-  if (states.every((s) => s === 'APROBADO')) return 'APROBADO';
-  if (states.every((s) => s === 'BLOQUEADO')) return 'BLOQUEADO';
-  return 'EN_PROGRESO';
-}
-
-// ─── Small Status Badge ────────────────────────────────────────────────────────
-const StatusBadge: React.FC<{ status: ProgressState; size?: 'sm' | 'xs' }> = ({ status, size = 'xs' }) => {
-  const configs = {
-    APROBADO: { icon: CheckCircle2, text: 'APROBADO', cls: 'bg-green-500/20 text-green-400 border-green-500/30' },
-    EN_PROGRESO: { icon: CircleDot, text: 'EN PROGRESO', cls: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-    BLOQUEADO: { icon: Circle, text: 'BLOQUEADO', cls: 'bg-slate-800 text-slate-500 border-white/5' },
-  };
-  const { icon: Icon, text, cls } = configs[status];
-  const textSize = size === 'sm' ? 'text-[11px]' : 'text-[10px]';
-  return (
-    <span className={`${textSize} font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${cls}`}>
-      <Icon size={size === 'sm' ? 11 : 9} />
-      {text}
-    </span>
-  );
-};
-
-// ─── Bulk Action Buttons ───────────────────────────────────────────────────────
-interface BulkActionButtonsProps {
-  aggregateStatus: ProgressState;
-  loading: boolean;
-  onApprove: () => void;
-  onUnlock: () => void;
-  onLock: () => void;
-}
-
-const BulkActionButtons: React.FC<BulkActionButtonsProps> = ({
-  aggregateStatus, loading, onApprove, onUnlock, onLock
-}) => {
-  if (loading) return <Loader2 size={14} className="animate-spin text-blue-400" />;
-  return (
-    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-      {aggregateStatus === 'BLOQUEADO' && (
-        <button
-          onClick={onUnlock}
-          title="Liberar todo"
-          className="px-2 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[10px] font-black text-blue-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
-        >
-          <Unlock size={9} /> Liberar
-        </button>
-      )}
-      {aggregateStatus !== 'APROBADO' && (
-        <button
-          onClick={onApprove}
-          title="Aprobar todo"
-          className="px-2 py-1 rounded-lg bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[10px] font-black text-green-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
-        >
-          <Check size={9} /> Aprobar
-        </button>
-      )}
-      {aggregateStatus !== 'BLOQUEADO' && (
-        <button
-          onClick={onLock}
-          title="Restablecer todo"
-          className="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-[10px] font-black text-slate-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
-        >
-          <RotateCcw size={9} /> Restablecer
-        </button>
-      )}
-    </div>
-  );
-};
-
-// ─── Main Component ────────────────────────────────────────────────────────────
 const PerformanceTab: React.FC = () => {
   // Search & Alumnos states
   const [searchQuery, setSearchQuery] = useState('');
@@ -115,16 +21,14 @@ const PerformanceTab: React.FC = () => {
   const [alumnoProgress, setAlumnoProgress] = useState<any[]>([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [expandedFases, setExpandedFases] = useState<Record<number, boolean>>({ 1: true, 2: true, 3: true });
-  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
-
-  // Action tracking: "level-{faseId}-{seccion}-{op}" | "module-{faseId}-{modId}" | "fase-{faseId}"
-  const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const [actionInProgress, setActionInProgress] = useState<string | null>(null); // e.g. "fase-seccion-operacion"
 
   // Search trigger on input change
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       handleSearch();
     }, 400);
+
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
@@ -144,6 +48,7 @@ const PerformanceTab: React.FC = () => {
     }
   };
 
+  // Fetch student progress
   const fetchProgress = async (alumnoId: number) => {
     setLoadingProgress(true);
     try {
@@ -159,78 +64,64 @@ const PerformanceTab: React.FC = () => {
   const handleSelectAlumno = (alumno: AlumnoSearchInfo) => {
     setSelectedAlumno(alumno);
     fetchProgress(alumno.alumno_id);
-    // Default: expand all modules
-    const defaults: Record<string, boolean> = {};
-    PHASE_MAPS.forEach((phase) =>
-      phase.modules.forEach((mod) => { defaults[`${phase.id}-${mod.id}`] = true; })
+  };
+
+  // Apply override
+  const handleApplyOverride = async (faseId: number, seccion: number, operacion: string, action: 'approve' | 'unlock' | 'lock') => {
+    if (!selectedAlumno) return;
+    const actionKey = `${faseId}-${seccion}-${operacion}`;
+    setActionInProgress(actionKey);
+    try {
+      await overrideAlumnoProgress(selectedAlumno.alumno_id, {
+        fase_id: faseId,
+        seccion,
+        operacion,
+        action
+      });
+      // refresh progress
+      await fetchProgress(selectedAlumno.alumno_id);
+    } catch (e) {
+      console.error(e);
+      alert("Error al aplicar la acci??n.");
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const handleApplyBulkOverride = async (items: {fase_id: number, seccion: number, operacion: string}[], action: 'approve' | 'unlock' | 'lock', actionKey: string) => {
+    if (!selectedAlumno) return;
+    setActionInProgress(actionKey);
+    try {
+      await overrideAlumnoProgressBulk(selectedAlumno.alumno_id, {
+        items,
+        action
+      });
+      await fetchProgress(selectedAlumno.alumno_id);
+    } catch (e) {
+      console.error(e);
+      alert("Error al aplicar la acci??n en lote.");
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const getLevelState = (faseId: number, seccion: number, operacion: string) => {
+    const prog = alumnoProgress.find(
+      p => p.fase_id === faseId && p.seccion === seccion && p.operacion === operacion
     );
-    setExpandedModules(defaults);
+    return prog ? prog.estado : "BLOQUEADO";
   };
 
-  // ── Single-level override ──────────────────────────────────────────────────
-  const handleApplyOverride = async (
-    faseId: number, seccion: number, operacion: string,
-    action: 'approve' | 'unlock' | 'lock'
-  ) => {
-    if (!selectedAlumno) return;
-    const actionKey = `level-${faseId}-${seccion}-${operacion}`;
-    setActionInProgress(actionKey);
-    try {
-      await overrideAlumnoProgress(selectedAlumno.alumno_id, { fase_id: faseId, seccion, operacion, action });
-      await fetchProgress(selectedAlumno.alumno_id);
-    } catch (e) {
-      console.error(e);
-      alert('Error al aplicar la acción.');
-    } finally {
-      setActionInProgress(null);
-    }
+  const getGroupStatus = (levels: {fase_id: number, seccion: number, operacion: string}[]) => {
+    if (levels.length === 0) return "BLOQUEADO";
+    const states = levels.map(l => getLevelState(l.fase_id, l.seccion, l.operacion));
+    const allApproved = states.every(s => s === "APROBADO");
+    const allLocked = states.every(s => s === "BLOQUEADO");
+    if (allApproved) return "APROBADO";
+    if (allLocked) return "BLOQUEADO";
+    return "EN_PROGRESO";
   };
 
-  // ── Module-level bulk override ─────────────────────────────────────────────
-  const handleModuleBulk = async (
-    faseId: number, modId: number, levels: LevelMap[],
-    action: 'approve' | 'unlock' | 'lock'
-  ) => {
-    if (!selectedAlumno) return;
-    const actionKey = `module-${faseId}-${modId}`;
-    setActionInProgress(actionKey);
-    try {
-      await overrideAlumnoProgressBulk(selectedAlumno.alumno_id, {
-        items: levels.map((lvl) => ({ fase_id: faseId, seccion: lvl.seccion, operacion: lvl.operacion })),
-        action
-      });
-      await fetchProgress(selectedAlumno.alumno_id);
-    } catch (e) {
-      console.error(e);
-      alert('Error al aplicar la acción en bloque.');
-    } finally {
-      setActionInProgress(null);
-    }
-  };
-
-  // ── Phase-level bulk override ──────────────────────────────────────────────
-  const handleFaseBulk = async (
-    faseId: number, allLevels: LevelMap[],
-    action: 'approve' | 'unlock' | 'lock'
-  ) => {
-    if (!selectedAlumno) return;
-    const actionKey = `fase-${faseId}`;
-    setActionInProgress(actionKey);
-    try {
-      await overrideAlumnoProgressBulk(selectedAlumno.alumno_id, {
-        items: allLevels.map((lvl) => ({ fase_id: faseId, seccion: lvl.seccion, operacion: lvl.operacion })),
-        action
-      });
-      await fetchProgress(selectedAlumno.alumno_id);
-    } catch (e) {
-      console.error(e);
-      alert('Error al aplicar la acción de fase.');
-    } finally {
-      setActionInProgress(null);
-    }
-  };
-
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="w-full flex flex-col gap-6 text-white select-none">
       
@@ -244,12 +135,12 @@ const PerformanceTab: React.FC = () => {
             Rendimiento Estudiantil Avanzado
           </h2>
           <p className="text-slate-400 text-sm mt-1">
-            Busca un alumno para gestionar su avance. Usa los controles de Fase y Módulo para acciones masivas.
+            Busca un alumno para gestionar su avance y configurar sus permisos de fase.
           </p>
         </div>
       </div>
 
-      {/* Main Grid */}
+      {/* Main Grid: Student search and detailed progress */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left Column: Student search */}
@@ -267,18 +158,22 @@ const PerformanceTab: React.FC = () => {
             />
           </div>
 
+          {/* Student list */}
           <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto pr-1 custom-scrollbar">
             {loadingSearch && (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="text-blue-500 animate-spin" size={24} />
               </div>
             )}
-            {!loadingSearch && alumnos.length === 0 && searchQuery.trim() !== '' && (
+            
+            {!loadingSearch && alumnos.length === 0 && searchQuery.trim() !== "" && (
               <p className="text-sm text-slate-500 text-center py-10">No se encontraron alumnos.</p>
             )}
-            {!loadingSearch && alumnos.length === 0 && searchQuery.trim() === '' && (
+
+            {!loadingSearch && alumnos.length === 0 && searchQuery.trim() === "" && (
               <p className="text-sm text-slate-500 text-center py-10">Escribe en el buscador para encontrar un alumno.</p>
             )}
+
             {alumnos.map((a) => {
               const isSelected = selectedAlumno?.id === a.id;
               return (
@@ -302,20 +197,20 @@ const PerformanceTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Detailed progress */}
+        {/* Right Column: Detailed student progress & overrides */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {!selectedAlumno ? (
             <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-12 rounded-[2.2rem] shadow-2xl flex flex-col items-center justify-center text-center min-h-[40vh]">
               <User size={48} className="text-slate-600 mb-4" />
-              <h4 className="text-base font-black text-slate-300">Ningún Alumno Seleccionado</h4>
+              <h4 className="text-base font-black text-slate-300">Ning??n Alumno Seleccionado</h4>
               <p className="text-sm text-slate-500 max-w-xs mt-1">
-                Selecciona un alumno de la lista de la izquierda para ver su rendimiento académico detallado y gestionar sus permisos de fase.
+                Selecciona un alumno de la lista de la izquierda para ver su rendimiento acad??mico detallado y gestionar sus permisos de fase.
               </p>
             </div>
           ) : (
             <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-6">
               
-              {/* Student profile card */}
+              {/* Selected student profile card */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-950/40 p-5 rounded-3xl border border-white/5">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-blue-500/20 rounded-2xl border border-blue-500/30">
@@ -326,6 +221,7 @@ const PerformanceTab: React.FC = () => {
                     <p className="text-sm text-slate-500 font-bold">{selectedAlumno.email}</p>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-3">
                   <div className="bg-slate-900 border border-white/10 px-4 py-2 rounded-xl text-center">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Fase Actual</span>
@@ -340,7 +236,7 @@ const PerformanceTab: React.FC = () => {
 
               {/* Progress Drilldown */}
               <div className="flex flex-col gap-4 border-t border-white/5 pt-4">
-                <h4 className="text-base font-black text-slate-400 uppercase tracking-widest px-1">Progreso y Control de Maestría</h4>
+                <h4 className="text-base font-black text-slate-400 uppercase tracking-widest px-1">Progreso y Control de Maestr??a</h4>
 
                 {loadingProgress ? (
                   <div className="flex items-center justify-center py-20">
@@ -348,160 +244,222 @@ const PerformanceTab: React.FC = () => {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-5">
+                    
                     {PHASE_MAPS.map((phase) => {
                       const isExpanded = expandedFases[phase.id];
-                      const allFaseLevels = phase.modules.flatMap((m) => m.levels);
-                      const faseStatus = computeAggregateStatusForPhase(phase.id, allFaseLevels, alumnoProgress);
-                      const faseBulkKey = `fase-${phase.id}`;
-                      const faseBulkLoading = actionInProgress === faseBulkKey;
-
                       return (
                         <div key={phase.id} className="rounded-3xl border border-white/5 bg-slate-950/20 overflow-hidden">
-
+                          
                           {/* Phase header */}
-                          <div
-                            className="flex justify-between items-center p-4 bg-slate-900/40 cursor-pointer border-b border-white/5 hover:bg-slate-900/60 transition-colors"
+                          <div 
+                            onClick={() => setExpandedFases(prev => ({ ...prev, [phase.id]: !prev[phase.id] }))}
+                            className="flex justify-between items-center p-4 bg-slate-900/40 cursor-pointer border-b border-white/5 hover:bg-slate-900/60"
                           >
-                            {/* Left: expand toggle + name + status */}
-                            <div
-                              className="flex items-center gap-3 flex-1 min-w-0"
-                              onClick={() => setExpandedFases(prev => ({ ...prev, [phase.id]: !prev[phase.id] }))}
-                            >
-                              {isExpanded ? <ChevronUp size={16} className="text-slate-400 shrink-0" /> : <ChevronDown size={16} className="text-slate-400 shrink-0" />}
-                              <Layers size={14} className="text-slate-500 shrink-0" />
-                              <span className="text-sm font-black text-white truncate">{phase.name}</span>
-                              <StatusBadge status={faseStatus} size="xs" />
-                            </div>
+                            <span className="text-sm font-black text-white">{phase.name}</span>
+                            <div className="flex items-center gap-4">
+                              {/* Phase bulk actions */}
+                              <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                {(() => {
+                                  const phaseLevels = phase.modules.flatMap(m => m.levels.map(l => ({
+                                    fase_id: phase.id, seccion: l.seccion, operacion: l.operacion
+                                  })));
+                                  const phaseStatus = getGroupStatus(phaseLevels);
+                                  const actionKey = `phase-bulk-${phase.id}`;
+                                  const loadingThis = actionInProgress === actionKey;
 
-                            {/* Right: bulk action buttons */}
-                            <BulkActionButtons
-                              aggregateStatus={faseStatus}
-                              loading={faseBulkLoading}
-                              onApprove={() => handleFaseBulk(phase.id, allFaseLevels, 'approve')}
-                              onUnlock={() => handleFaseBulk(phase.id, allFaseLevels, 'unlock')}
-                              onLock={() => handleFaseBulk(phase.id, allFaseLevels, 'lock')}
-                            />
+                                  if (loadingThis) {
+                                    return <Loader2 size={16} className="animate-spin text-blue-400 mr-2" />;
+                                  }
+
+                                  return (
+                                    <>
+                                      {phaseStatus === 'BLOQUEADO' && (
+                                        <button
+                                          onClick={() => handleApplyBulkOverride(phaseLevels, 'unlock', actionKey)}
+                                          className="px-2 py-1 rounded bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[9px] font-black text-blue-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                          title="Liberar todos los niveles de la fase"
+                                        >
+                                          <Unlock size={10} /> Liberar Fase
+                                        </button>
+                                      )}
+                                      
+                                      {phaseStatus !== 'APROBADO' && (
+                                        <button
+                                          onClick={() => handleApplyBulkOverride(phaseLevels, 'approve', actionKey)}
+                                          className="px-2 py-1 rounded bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[9px] font-black text-green-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                          title="Aprobar todos los niveles de la fase al 90%"
+                                        >
+                                          <Check size={10} /> Aprobar Fase
+                                        </button>
+                                      )}
+
+                                      {phaseStatus !== 'BLOQUEADO' && (
+                                        <button
+                                          onClick={() => handleApplyBulkOverride(phaseLevels, 'lock', actionKey)}
+                                          className="px-2 py-1 rounded bg-red-500/10 hover:bg-red-500 border border-red-500/20 text-[9px] font-black text-slate-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                          title="Restablecer todos los niveles de la fase a 0%"
+                                        >
+                                          <RotateCcw size={10} /> Restablecer Fase
+                                        </button>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                              {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                            </div>
                           </div>
 
                           {isExpanded && (
                             <div className="p-4 flex flex-col gap-4">
-                              {phase.modules.map((mod) => {
-                                const modKey = `${phase.id}-${mod.id}`;
-                                const isModExpanded = expandedModules[modKey] ?? true;
-                                const modStatus = computeAggregateStatusForPhase(phase.id, mod.levels, alumnoProgress);
-                                const moduleBulkKey = `module-${phase.id}-${mod.id}`;
-                                const moduleBulkLoading = actionInProgress === moduleBulkKey;
+                              {phase.modules.map((mod) => (
+                                <div key={mod.id} className="bg-slate-950/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
+                                  <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
+                                    <h5 className="text-xs font-black text-slate-400">{mod.name}</h5>
+                                    <div className="flex items-center gap-1.5">
+                                      {(() => {
+                                        const modLevels = mod.levels.map(l => ({
+                                          fase_id: phase.id, seccion: l.seccion, operacion: l.operacion
+                                        }));
+                                        const modStatus = getGroupStatus(modLevels);
+                                        const actionKey = `mod-bulk-${phase.id}-${mod.id}`;
+                                        const loadingThis = actionInProgress === actionKey;
 
-                                return (
-                                  <div key={mod.id} className="bg-slate-950/40 rounded-2xl border border-white/5 overflow-hidden">
-                                    
-                                    {/* Module header */}
-                                    <div className="flex items-center justify-between p-3 bg-slate-900/30 border-b border-white/5 hover:bg-slate-900/50 transition-colors cursor-pointer">
-                                      <div
-                                        className="flex items-center gap-2 flex-1 min-w-0"
-                                        onClick={() => setExpandedModules(prev => ({ ...prev, [modKey]: !prev[modKey] }))}
-                                      >
-                                        {isModExpanded ? <ChevronUp size={13} className="text-slate-500 shrink-0" /> : <ChevronDown size={13} className="text-slate-500 shrink-0" />}
-                                        <h5 className="text-xs font-black text-slate-300 truncate">{mod.name}</h5>
-                                        <StatusBadge status={modStatus} size="xs" />
-                                      </div>
-                                      <div className="ml-2 shrink-0">
-                                        <BulkActionButtons
-                                          aggregateStatus={modStatus}
-                                          loading={moduleBulkLoading}
-                                          onApprove={() => handleModuleBulk(phase.id, mod.id, mod.levels, 'approve')}
-                                          onUnlock={() => handleModuleBulk(phase.id, mod.id, mod.levels, 'unlock')}
-                                          onLock={() => handleModuleBulk(phase.id, mod.id, mod.levels, 'lock')}
-                                        />
-                                      </div>
+                                        if (loadingThis) {
+                                          return <Loader2 size={12} className="animate-spin text-blue-400 mr-2" />;
+                                        }
+
+                                        return (
+                                          <>
+                                            {modStatus === 'BLOQUEADO' && (
+                                              <button
+                                                onClick={() => handleApplyBulkOverride(modLevels, 'unlock', actionKey)}
+                                                className="px-2 py-1 rounded bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[9px] font-black text-blue-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                title="Liberar todo el m??dulo"
+                                              >
+                                                <Unlock size={8} /> Liberar
+                                              </button>
+                                            )}
+                                            
+                                            {modStatus !== 'APROBADO' && (
+                                              <button
+                                                onClick={() => handleApplyBulkOverride(modLevels, 'approve', actionKey)}
+                                                className="px-2 py-1 rounded bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[9px] font-black text-green-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                title="Aprobar todo el m??dulo"
+                                              >
+                                                <Check size={8} /> Aprobar
+                                              </button>
+                                            )}
+
+                                            {modStatus !== 'BLOQUEADO' && (
+                                              <button
+                                                onClick={() => handleApplyBulkOverride(modLevels, 'lock', actionKey)}
+                                                className="px-2 py-1 rounded bg-red-500/10 hover:bg-red-500 border border-red-500/20 text-[9px] font-black text-slate-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                title="Restablecer todo el m??dulo"
+                                              >
+                                                <RotateCcw size={8} /> Restablecer
+                                              </button>
+                                            )}
+                                          </>
+                                        );
+                                      })()}
                                     </div>
-
-                                    {/* Individual levels */}
-                                    {isModExpanded && (
-                                      <div className="p-3 flex flex-col gap-2">
-                                        {mod.levels.map((lvl) => {
-                                          const prog = alumnoProgress.find(
-                                            (p) => p.fase_id === phase.id && p.seccion === lvl.seccion && p.operacion === lvl.operacion
-                                          );
-                                          const state: ProgressState = prog ? prog.estado : 'BLOQUEADO';
-                                          const pct = prog ? prog.porcentaje_actual : 0;
-                                          const isApprovedByAdmin = prog ? prog.aprobado_por_admin : false;
-                                          const actionKey = `level-${phase.id}-${lvl.seccion}-${lvl.operacion}`;
-                                          const loadingThis = actionInProgress === actionKey;
-
-                                          return (
-                                            <div
-                                              key={lvl.id}
-                                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-900/20 border border-white/5 rounded-xl"
-                                            >
-                                              {/* Level metadata */}
-                                              <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                  <span className={`text-xs font-black ${lvl.isChallenge ? 'text-amber-400' : 'text-slate-300'}`}>
-                                                    {lvl.isChallenge ? 'Desafío' : 'Nivel'} {lvl.id}: {lvl.name}
-                                                  </span>
-                                                  {isApprovedByAdmin && (
-                                                    <span className="text-[9px] bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full font-black flex items-center gap-1">
-                                                      <AlertTriangle size={10} /> Aprobado por Admin
-                                                    </span>
-                                                  )}
-                                                </div>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                  <StatusBadge status={state} />
-                                                  {state !== 'BLOQUEADO' && (
-                                                    <span className="text-xs text-slate-500 font-bold">{pct}% Aciertos</span>
-                                                  )}
-                                                </div>
-                                              </div>
-
-                                              {/* Individual controls */}
-                                              <div className="flex items-center gap-1.5 self-end sm:self-center">
-                                                {loadingThis ? (
-                                                  <Loader2 size={16} className="animate-spin text-blue-400 mr-4" />
-                                                ) : (
-                                                  <>
-                                                    {state === 'BLOQUEADO' && (
-                                                      <button
-                                                        onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'unlock')}
-                                                        className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[10px] font-black text-blue-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
-                                                      >
-                                                        <Unlock size={10} /> Liberar
-                                                      </button>
-                                                    )}
-                                                    {state !== 'APROBADO' && (
-                                                      <button
-                                                        onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'approve')}
-                                                        className="px-3 py-1.5 rounded-lg bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[10px] font-black text-green-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
-                                                      >
-                                                        <Check size={10} /> Aprobar (90%)
-                                                      </button>
-                                                    )}
-                                                    {state !== 'BLOQUEADO' && (
-                                                      <button
-                                                        onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'lock')}
-                                                        className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-[10px] font-black text-slate-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
-                                                      >
-                                                        <RotateCcw size={10} /> Restablecer
-                                                      </button>
-                                                    )}
-                                                  </>
-                                                )}
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    )}
-
                                   </div>
-                                );
-                              })}
+                                  
+                                  <div className="flex flex-col gap-2">
+                                    {mod.levels.map((lvl) => {
+                                      // Find progress entry
+                                      const prog = alumnoProgress.find(
+                                        p => p.fase_id === phase.id && p.seccion === lvl.seccion && p.operacion === lvl.operacion
+                                      );
+                                      
+                                      const state = prog ? prog.estado : "BLOQUEADO";
+                                      const pct = prog ? prog.porcentaje_actual : 0;
+                                      const isApprovedByAdmin = prog ? prog.aprobado_por_admin : false;
+                                      const actionKey = `${phase.id}-${lvl.seccion}-${lvl.operacion}`;
+                                      const loadingThis = actionInProgress === actionKey;
+
+                                      return (
+                                        <div key={lvl.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-900/20 border border-white/5 rounded-xl">
+                                          
+                                          {/* Level metadata */}
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                              <span className={`text-xs font-black ${lvl.isChallenge ? 'text-amber-400' : 'text-slate-300'}`}>
+                                                {lvl.isChallenge ? 'Desaf??o' : 'Nivel'} {lvl.id}: {lvl.name}
+                                              </span>
+                                              {isApprovedByAdmin && (
+                                                <span className="text-[9px] bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full font-black flex items-center gap-1">
+                                                  <AlertTriangle size={10} /> Aprobado por Admin
+                                                </span>
+                                              )}
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-1">
+                                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                                state === 'APROBADO' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                                state === 'EN_PROGRESO' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                                                'bg-slate-800 text-slate-500 border border-white/5'
+                                              }`}>
+                                                {state}
+                                              </span>
+                                              {state !== 'BLOQUEADO' && (
+                                                <span className="text-xs text-slate-500 font-bold">{pct}% Aciertos</span>
+                                              )}
+                                            </div>
+                                          </div>
+
+                                          {/* Controls buttons */}
+                                          <div className="flex items-center gap-1.5 self-end sm:self-center">
+                                            {loadingThis ? (
+                                              <Loader2 size={16} className="animate-spin text-blue-400 mr-4" />
+                                            ) : (
+                                              <>
+                                                {/* Unlock button */}
+                                                {state === 'BLOQUEADO' && (
+                                                  <button
+                                                    onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'unlock')}
+                                                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[10px] font-black text-blue-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                  >
+                                                    <Unlock size={10} /> Liberar
+                                                  </button>
+                                                )}
+                                                
+                                                {/* Approve button */}
+                                                {state !== 'APROBADO' && (
+                                                  <button
+                                                    onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'approve')}
+                                                    className="px-3 py-1.5 rounded-lg bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[10px] font-black text-green-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                  >
+                                                    <Check size={10} /> Aprobar (90%)
+                                                  </button>
+                                                )}
+
+                                                {/* Reset/Lock button */}
+                                                {state !== 'BLOQUEADO' && (
+                                                  <button
+                                                    onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'lock')}
+                                                    className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-[10px] font-black text-slate-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                  >
+                                                    <RotateCcw size={10} /> Restablecer
+                                                  </button>
+                                                )}
+                                              </>
+                                            )}
+                                          </div>
+
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           )}
 
                         </div>
                       );
                     })}
+
                   </div>
                 )}
               </div>
@@ -511,8 +469,10 @@ const PerformanceTab: React.FC = () => {
         </div>
 
       </div>
+
     </div>
   );
 };
 
 export default PerformanceTab;
+

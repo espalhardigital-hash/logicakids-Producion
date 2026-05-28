@@ -2,14 +2,15 @@
 LogicaKids Pro API - Punto de Entrada Principal
 ===============================================
 """
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from .routers import auth_users, admin, pedagogia, ai
 from .fase2.router import router as fase2_router
 from .fase3.router import router as fase3_router
 from .config import settings
+
 from .db.session import engine
 from .db.base import Base
 from .models.sql_models import (
@@ -24,10 +25,10 @@ async def lifespan(app: FastAPI):
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-            print("✅ Tablas de base de datos verificadas/creadas exitosamente.")
+            print("??? Tablas de base de datos verificadas/creadas exitosamente.")
 
     except Exception as e:
-        print(f"❌ Error al verificar/crear tablas: {e}")
+        print(f"??? Error al verificar/crear tablas: {e}")
 
     # S3 warning
     if not all([settings.S3_ACCESS_KEY, settings.S3_SECRET_KEY, settings.S3_ENDPOINT_URL, settings.S3_BUCKET_NAME]):
@@ -58,6 +59,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 @app.get("/")
 def read_root():

@@ -70,7 +70,7 @@ async def update_settings(payload: dict, db: AsyncSession = Depends(get_db), adm
         db.add(settings)
     
     await db.commit()
-    return {"status": "ok", "message": "Configuración guardada exitosamente"}
+    return {"status": "ok", "message": "Configuraci??n guardada exitosamente"}
 
 # ============================================================
 # FASES
@@ -127,7 +127,7 @@ async def create_configuracion(config_data: ConfiguracionProgresoCreate, db: Asy
         )
     )
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Ya existe configuración para este bloque")
+        raise HTTPException(status_code=400, detail="Ya existe configuraci??n para este bloque")
 
     new_config = ConfiguracionProgreso(**config_data.model_dump())
     db.add(new_config)
@@ -140,7 +140,7 @@ async def update_configuracion(config_id: int, config_data: ConfiguracionProgres
     result = await db.execute(select(ConfiguracionProgreso).where(ConfiguracionProgreso.id == config_id))
     config = result.scalar_one_or_none()
     if not config:
-        raise HTTPException(status_code=404, detail="Configuración no encontrada")
+        raise HTTPException(status_code=404, detail="Configuraci??n no encontrada")
     
     update_data = config_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -205,7 +205,7 @@ async def update_pregunta(pregunta_id: int, pregunta_data: PreguntaUpdate, db: A
         
     update_data = pregunta_data.model_dump(exclude_unset=True)
     
-    # Manejar alternativas si vienen en la petición
+    # Manejar alternativas si vienen en la petici??n
     if "alternativas" in update_data:
         alts_data = update_data.pop("alternativas")
         # Eliminar las alternativas existentes
@@ -298,7 +298,7 @@ async def save_teoria(payload: NivelTeoriaSave, db: AsyncSession = Depends(get_d
         db.add(theory)
     
     await db.commit()
-    return {"status": "ok", "message": "Teoría guardada exitosamente"}
+    return {"status": "ok", "message": "Teor??a guardada exitosamente"}
 
 @router.get("/alumnos/search")
 async def search_alumnos(query: str = "", db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
@@ -455,27 +455,19 @@ async def override_alumno_progress(alumno_id: int, payload: ProgressOverridePayl
     return {"status": "ok", "message": "Progreso actualizado exitosamente"}
 
 @router.post("/alumnos/{alumno_id}/progress/override-bulk")
-async def override_alumno_progress_bulk(
-    alumno_id: int,
-    payload: ProgressOverrideBulkPayload,
-    db: AsyncSession = Depends(get_db),
-    admin_user: dict = Depends(get_admin_user)
-):
-    """
-    Apply a bulk progress override (approve / unlock / lock) to a set of sections
-    belonging to the same module or phase in a single database transaction.
-    This is significantly more efficient than calling the single-item endpoint
-    once per level when operating on an entire module (~7 levels) or phase (~28+ levels).
-    """
+async def override_alumno_progress_bulk(alumno_id: int, payload: ProgressOverrideBulkPayload, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
     from sqlalchemy.orm.attributes import flag_modified
+    
+    cat_map = {
+        "suma": "addition",
+        "resta": "subtraction",
+        "multiplicacion": "multiplication",
+        "division": "division",
+        "mixta": "challenge"
+    }
 
-    if payload.action not in ("approve", "unlock", "lock"):
-        raise HTTPException(status_code=400, detail="Acción inválida. Use 'approve', 'unlock' o 'lock'.")
-    if not payload.items:
-        raise HTTPException(status_code=400, detail="La lista de items no puede estar vacía.")
-
-    # Collect all (fase_id, seccion, operacion) tuples for efficient batch query
-    for item in payload.items:
+    # Helper function equivalent to what happens in override
+    async def process_item(item: ProgressOverrideItem):
         result = await db.execute(
             select(ProgresoMaestria).where(and_(
                 ProgresoMaestria.alumno_id == alumno_id,
@@ -485,8 +477,7 @@ async def override_alumno_progress_bulk(
             ))
         )
         progreso = result.scalar_one_or_none()
-
-        # Fetch ConfiguracionProgreso to know cantidad_requerida
+        
         cant_req = 15
         result_config = await db.execute(
             select(ConfiguracionProgreso).where(and_(
@@ -498,7 +489,7 @@ async def override_alumno_progress_bulk(
         config = result_config.scalar_one_or_none()
         if config:
             cant_req = config.cantidad_requerida
-
+            
         if payload.action == "approve":
             if not progreso:
                 progreso = ProgresoMaestria(
@@ -520,7 +511,7 @@ async def override_alumno_progress_bulk(
                 progreso.porcentaje_actual = 90
                 progreso.aprobado_por_admin = True
                 progreso.fecha_aprobacion = datetime.utcnow()
-
+                
         elif payload.action == "unlock":
             if not progreso:
                 progreso = ProgresoMaestria(
@@ -538,7 +529,7 @@ async def override_alumno_progress_bulk(
             else:
                 progreso.estado = EstadoProgresoEnum.EN_PROGRESO
                 progreso.aprobado_por_admin = False
-
+                
         elif payload.action == "lock":
             if progreso:
                 progreso.estado = EstadoProgresoEnum.BLOQUEADO
@@ -547,10 +538,13 @@ async def override_alumno_progress_bulk(
                 progreso.aprobado_por_admin = False
                 progreso.fecha_aprobacion = None
 
-    # Single commit for all items in the batch
+    # Procesar todo
+    for item in payload.items:
+        await process_item(item)
+        
     await db.commit()
 
-    # Sync user.settings["unlockedLevels"] aggregated across all unique categories in the batch
+    # Sincronizar de forma agregada el user.settings
     result_alumno = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
     alumno = result_alumno.scalar_one_or_none()
     if alumno:
@@ -560,39 +554,20 @@ async def override_alumno_progress_bulk(
             settings = user.settings or {}
             if "unlockedLevels" not in settings:
                 settings["unlockedLevels"] = {}
-
-            cat_map = {
-                "suma": "addition",
-                "resta": "subtraction",
-                "multiplicacion": "multiplication",
-                "division": "division",
-                "mixta": "challenge"
-            }
-            # Determine the maximum level value per category from the batch
-            # (approve = 6, unlock = 1, lock = 0)
-            action_level = {"approve": 6, "unlock": 1, "lock": 0}[payload.action]
-            affected_cats = set()
+                
             for item in payload.items:
                 cat = cat_map.get(item.operacion)
                 if cat:
-                    affected_cats.add(cat)
-
-            for cat in affected_cats:
-                current = settings["unlockedLevels"].get(cat, 0)
-                if payload.action == "lock":
-                    settings["unlockedLevels"][cat] = 0
-                else:
-                    # Only upgrade, never downgrade existing unlocked level
-                    settings["unlockedLevels"][cat] = max(current, action_level)
-
+                    if payload.action == "approve":
+                        settings["unlockedLevels"][cat] = 6
+                    elif payload.action == "unlock":
+                        settings["unlockedLevels"][cat] = 1
+                    elif payload.action == "lock":
+                        settings["unlockedLevels"][cat] = 0
+                        
             user.settings = settings
             flag_modified(user, "settings")
             await db.commit()
 
-    processed = len(payload.items)
-    return {
-        "status": "ok",
-        "message": f"Se aplicó '{payload.action}' a {processed} sección(es) exitosamente.",
-        "processed": processed
-    }
+    return {"status": "ok", "message": f"{len(payload.items)} registros actualizados exitosamente"}
 

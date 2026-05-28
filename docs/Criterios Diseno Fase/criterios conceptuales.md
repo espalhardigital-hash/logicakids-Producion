@@ -42,28 +42,6 @@ El frontend debe ser responsable únicamente de:
 * enviar respuestas al servidor;
 * mostrar feedbacks, modales y animaciones según el payload recibido.
 
-### 1.2.B Prácticas de Ingeniería Backend de Alta Escalabilidad
-* **Gestión de Ciclo de Vida (Lifespan):** Las inicializaciones de la aplicación FastAPI (como el test de conexión a base de datos o precarga de configuraciones) deben realizarse utilizando el gestor de contexto de vida moderno `@asynccontextmanager async def lifespan(app)`, descartando explícitamente los eventos obsoletos basados en cadenas como `@app.on_event("startup")` para garantizar compatibilidad técnica futura.
-* **Optimización de Índices (GIN para JSONB):** Para mantener respuestas de API inferiores a `50ms` al escalar la cantidad de usuarios, toda estructura anidada almacenada en base de datos que se consulte en lógicas encadenadas o Tutor Invisible (ej. `mapeo_errores`, `datos_numericos` en base a reglas de Bucle Espejo, o `settings` de usuario) debe forzosamente:
-  1. Utilizar el tipo de columna estricto `JSONB` en PostgreSQL (se prohíbe el tipo `JSON` plano debido a su incompatibilidad con la indexación profunda).
-  2. Tener implementados **índices de tipo GIN (Generalized Inverted Index)**.
-  3. Los índices GIN deben construirse mediante el modificador `CONCURRENTLY` (en SQL raw sin transacciones) para no bloquear las tablas de producción durante su construcción.
-
----
-
-## 1.3. Prohibición de Datos Mock en Pantallas de Fase (Producción)
-
-Todos los componentes de pantalla de fase del frontend (ej. `WelcomeScreenPhase2.tsx`, y cualquier equivalente para Fase 3, 4, 5, etc.) **tienen prohibido mostrar datos estáticos de prueba (`MOCK_DATA`, `MOCK_DASHBOARD`, etc.) ante errores de red o del backend**.
-
-* **Riesgo documentado:** Si un componente de pantalla de fase captura un error del backend (por ejemplo, un `HTTP 500` causado por una columna faltante en la base de datos) y responde cargando datos de prueba predeterminados, el alumno verá un progreso ficticio que no refleja su situación real. Esto puede generar confusión, diagnósticos erróneos y pérdida de confianza en la plataforma.
-* **Comportamiento obligatorio:** Ante cualquier error de llamada a la API (timeout, error de red, HTTP 4xx/5xx), el componente **debe**:
-  1. Establecer el estado de error (`setError(mensajeDescriptivo)`).
-  2. Dejar el dashboard en `null`.
-  3. Mostrar la **pantalla de error con botón "Reintentar"** ya existente en el componente.
-  4. Registrar el error en `console.error()` con el contexto completo.
-* **Los datos mock (`MOCK_DASHBOARD`, etc.) solo son válidos** en herramientas de desarrollo aisladas, storybooks o scripts de prueba desconectados del backend real. Nunca deben estar activos en un componente que ya tiene conexión a la API.
-* **Criterio de aceptación:** En ninguna fase nueva se debe añadir código del tipo `catch (e) { setDashboard(MOCK_DATA); }` en componentes de producción.
-
 ---
 
 ## 2. Anatomía Estándar de un Módulo
@@ -297,16 +275,6 @@ Para reforzar el impacto del progreso, la finalización exitosa de cualquier niv
 * **Motor Lógico de Recomendaciones:** El sistema incluye una caja que evalúa el nivel superado y sugiere con precisión pedagógica el siguiente reto que debe afrontar el alumno (ej: *"Ir al Nivel X+1"*, *"Iniciar Desafío 1"*, *"Siguiente Módulo"*, *"Avanzar a Fase X+1"*).
 * **Botón Progresivo:** El botón principal adopta el color del módulo y el texto sugerido por el recomendador pedagógico para llevar al estudiante directamente al mapa o al hub con su progreso guardado.
 
-### 7.5.B. Pantalla de Módulo Completado (Duolingo Style Celebration)
-Cuando el alumno culmina exitosamente todos los niveles de un módulo académico, se debe desplegar una pantalla interactiva dedicada a pantalla completa con los siguientes parámetros de experiencia UX/UI:
-* **Fondo Oscuro Inmersivo:** Uso de un color de fondo plano muy oscuro (ej: `#131f24` o `#070b14`) que aísle al estudiante del mapa general y concentre su atención en la recompensa.
-* **Personaje o Mascota Central Dinámica:** Un gráfico o SVG representativo en escena que aparezca mediante un efecto de rebote elástico (`spring` o `bounce` de Framer Motion) transmitiendo alegría.
-* **Estallido de Fuegos Artificiales (Sparks Burst):** Generación de partículas de colores vibrantes (`#FFC800`, `#58CC02`, `#FF5E97`, `#84D8FF`) con retrasos aleatorios y trayectorias radiales que estallen alrededor de la mascota.
-* **Conteo Progresivo de Estadísticas (Count-Up):** Animación numérica progresiva desde 0 hasta el valor final en las dos tarjetas principales del pie:
-  - **Tarjeta de Puntos (Izquierda):** Fondo plano amarillo Duolingo (`#ffc800`) con volumen de botón, ícono de rayo (`Zap`) y valor animado.
-  - **Tarjeta de Precisión (Derecha):** Fondo plano verde Duolingo (`#58cc02`) con volumen, ícono de puntería (`Target`) y porcentaje animado.
-* **Botón de Continuidad:** Botón de acción con efecto hover/active de Duolingo (sombreado inferior de 3D flat y traslación vertical al pulsar) para avanzar de manera fluida.
-
 ### 7.6. Pantalla Monumental de Graduación de Fase (Phase Graduation Modal)
 Completar una fase académica completa (ej: 26 niveles en la Fase 2) representa el máximo hito de esfuerzo e ingenio del alumno en la plataforma. Por ello, **se prohíbe el uso de alertas nativas de navegador u salidas simplistas**. El sistema debe gatillar un portal de graduación monumental y personalizado:
 * **Pantalla de Celebración Esmerilada:** Overlay inmersivo completo (`rgba(7, 11, 20, 0.95)`) con borde neón verde de éxito (`#10B981`) y una gran corona real (`👑`) animada tridimensionalmente.
@@ -319,21 +287,6 @@ Completar una fase académica completa (ej: 26 niveles en la Fase 2) representa 
   4. **Conceptos Clave:** Conceptos matemáticos clave asimilados (ej: `12+`).
 * **Lanzamiento de Siguiente Fase:** Un botón final destacado con sombreado luminoso que invita directamente al estudiante a avanzar en el mapamundi al primer nivel del bloque o fase posterior desbloqueada.
 * **Mapeo de Endpoints y Lógica de Graduación de Fases:** Para habilitar el avance correcto y desbloquear la siguiente fase en la base de datos, cada fase de la plataforma debe contar con su propio endpoint de graduación en el backend (ej: `/pedagogia/graduate-to-fase1`, `/pedagogia/graduate-to-fase2`, `/fase2/graduate`, etc.) y su respectivo servicio en el frontend. La lógica del cliente en `handleEndGame` debe evaluar condicionalmente la fase actual del alumno (`currentUser.fase_actual_id`) para invocar el endpoint de graduación correspondiente a esa fase específica, garantizando que el usuario no sea redirigido de forma inconsistente o quede atascado.
-
-### 7.7. Dinámica y Estados del Banner de Progreso de Fase (Bottom Banner States)
-El banner de control inferior en los dashboards y mapas de fase (`WelcomeScreen` y equivalentes) actúa como el portal de graduación y control de la fase. Debe reaccionar dinámicamente según tres estados lógicos excluyentes del progreso del alumno:
-1. **Estado de Progreso Básico (Incompleto):**
-   - Se muestra cuando restan niveles por completar en las disciplinas básicas.
-   - Muestra el avance global en porcentaje y un mensaje invitando a completar los niveles para desbloquear el examen o desafío final.
-2. **Estado de Desafío Listo (Desbloqueado):**
-   - Se activa cuando todas las disciplinas básicas han sido dominadas al 100%, pero el Desafío Mixto final no ha sido aprobado.
-   - Presenta un degradado azul/índigo neón con un botón destacado de **"Iniciar Prueba Final"** que redirige al examen final.
-3. **Estado de Fase Aprobada (Felicitaciones):**
-   - Se activa cuando la disciplina final (Desafío Mixto) ha sido aprobada de forma satisfactoria (Examen Completado ✓).
-   - El banner cambia a un gradiente verde esmeralda y verde azulado neón.
-   - El título se actualiza dinámicamente a un mensaje animado de **`¡Felicidades! 🎉`** con un texto secundario claro: **`Has superado esta fase. Puedes avanzar a la próxima.`**
-   - El botón cambia de acción a **"Volver al Mapa"** o avanzar a la siguiente fase, eliminando el acceso al examen y evitando bucles de reintento innecesarios en fases ya aprobadas.
-   - El ícono del trofeo (`Trophy`) del banner debe ejecutar una animación continua y cíclica de oscilación de ángulo y escala (efecto vaivén) para denotar recompensa y llamar la atención del alumno.
 
 ---
 
@@ -515,4 +468,3 @@ Cuando el equipo pedagógico y técnico comience el diseño de una nueva fase, d
 * [ ] Validación de que no existen campos críticos nulos.
 * [ ] Validación de que el frontend no recibe `es_correcta`.
 * [ ] Validación de que el progreso se calcula en backend y no en frontend.
-* [ ] Validación de que ningún componente de pantalla de fase usa datos mock como fallback ante errores del backend (el catch solo debe mostrar la pantalla de error y un botón "Reintentar").
