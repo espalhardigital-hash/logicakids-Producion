@@ -203,6 +203,12 @@ El fin abrupto e inesperado de una sesión de evaluación es perjudicial para la
 * **Enfoque Pedagógico Positivo:** El texto del modal debe tener un tono motivador e instructivo. Debe explicar claramente que el intento actual no puede alcanzar el 90% mínimo de aprobación debido a las fallas acumuladas, pero le invita con entusiasmo a no rendirse, a practicar en los niveles de entrenamiento y a iniciar un nuevo intento cuando se sienta listo.
 * **Retorno Controlado:** Al pulsar el botón "Entendido, volver a intentar", la interfaz redirige limpiamente al dashboard de selección de niveles, liberando de forma segura la sesión y los intentos en la base de datos para iniciar de cero.
 
+### 6.4. Desafíos Mixtos / Acumulativos de Fase (Módulo 99, Nivel 99)
+Para culminar y consolidar la maestría global de una fase académica, se implementa un **Desafío Mixto** (representado como Módulo 99, Nivel 99). Este desafío difiere de las evaluaciones de módulos individuales en lo siguiente:
+* **Generación Dinámica de Preguntas:** No contiene preguntas fijas en una sección específica. En su lugar, el backend debe recolectar dinámicamente preguntas del pool de desafíos que correspondan a los hitos finales o de maestría de todos los módulos anteriores de esa misma fase (por ejemplo, preguntas cuyas secciones terminen en `13` u otros códigos de maestría).
+* **Parámetros Pedagógicos de Evaluación:** Opera con un cronómetro de 60 segundos por pregunta, requiere una batería de 20 preguntas únicas, exige una precisión mínima del 90% para aprobar, y cuenta con un límite estricto de 3 errores máximo antes de activar el Early Exit.
+* **Configuración del Seeder:** Es obligatorio que la tabla `ConfiguracionProgreso` de la fase contenga el registro semilla para la sección `99099` (Desafío Mixto) con estos parámetros activos para evitar errores de consulta que deriven en pantallas en blanco en el frontend.
+
 ---
 
 ## 7. Reglas Universales de Aprobación, Completitud y Early Exit

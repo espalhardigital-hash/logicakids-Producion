@@ -280,6 +280,15 @@ Al construir y sembrar pools de base de datos, se deben aplicar las siguientes d
      - Que todas las opciones múltiples tengan exactamente 4 alternativas y solo 1 de ellas sea la correcta.
      - Que no existan preguntas en estado `INACTIVO`.
      - Que la coherencia matemática de todas las preguntas de la base de datos sea del 100% mediante un motor de resolución autónomo.
+6. **Smart Seeding Condicional por Versión (Smart Seeding):**
+   - Para evitar bloqueos de CPU y reconstrucciones innecesarias de la base de datos en cada reinicio de contenedor o despliegue, el seeder debe implementar un semillado condicional por versión.
+   - El sistema almacena y compara la versión instalada de cada fase en la tabla `platform_settings` (clave `database_seed_versions`). Si coincide con la versión objetivo del código (`SEED_VERSIONS`), se omite el semillado.
+   - Para emergencias o desarrollo, se debe soportar una variable de entorno `FORCE_SEED=true` que fuerce la purga y el semillado inmediato de las fases configuradas.
+7. **Estructura del Desafío Mixto de Fase (Desafío Final - Módulo 99):**
+   - El desafío final acumulativo de la fase (`modulo_id == 99`, `nivel_id == 99`) no posee preguntas estáticas propias en el pool de base de datos bajo la sección `99099`.
+   - El backend debe interceptar las peticiones para `modulo_id == 99` en sus routers de obtención y resolución de preguntas, y tratarlas obligatoriamente como **modo evaluación/desafío** (con cronómetro y límite de errores / Early Exit).
+   - Las preguntas del Desafío Mixto deben extraerse **dinámicamente en caliente** desde el pool de desafíos de la fase actual, filtrando aquellas que pertenezcan a los desafíos de maestría de los módulos individuales (por ejemplo, secciones cuyo identificador termina en `13` o equivalente).
+   - Se debe garantizar que el seeder de la fase inyecte la fila de `ConfiguracionProgreso` para la sección `99099` (Desafío Mixto) con parámetros adecuados (20 preguntas, 90% aprobación, cronómetro activo, 60 segundos y tolerancia de 3 errores máximo) para evitar errores 404 y pantallas en blanco en el frontend.
 
 ### 4.1. Parte A: Textos de Teoría y Validación Estricta
 

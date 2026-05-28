@@ -146,6 +146,7 @@ En una respuesta incorrecta:
 * badge de error;
 * resplandor ambiental rojo;
 * **Revelación de Respuesta Correcta (Práctica Libre):** Un panel informativo contiguo muestra de forma inmediata: *"La respuesta correcta era: [Respuesta]"*;
+* **Conservación del Valor del Input (No Auto-sobreescritura):** Para evitar confusión y superposición de textos, el input principal debe mantener de forma intacta la respuesta errónea introducida por el estudiante (por ejemplo, "45") y pintarse de rojo con el badge de error correspondiente. El componente frontend no debe auto-completar ni sobreescribir el input con la respuesta correcta obtenida del backend (ej. "46") si la respuesta fue incorrecta; la respuesta correcta se muestra únicamente en el panel o píldora lateral ("Era: 46").
 * feedback textual del Tutor Invisible;
 * bloqueo de avance hasta que el alumno presiona el botón `"Siguiente Variante Espejo"`.
 
