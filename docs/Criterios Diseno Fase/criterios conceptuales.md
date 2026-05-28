@@ -286,6 +286,7 @@ Completar una fase académica completa (ej: 26 niveles en la Fase 2) representa 
   3. **Ejercicios Logrados:** Estimado global de preguntas resueltas exitosamente (ej: `300+`).
   4. **Conceptos Clave:** Conceptos matemáticos clave asimilados (ej: `12+`).
 * **Lanzamiento de Siguiente Fase:** Un botón final destacado con sombreado luminoso que invita directamente al estudiante a avanzar en el mapamundi al primer nivel del bloque o fase posterior desbloqueada.
+* **Mapeo de Endpoints y Lógica de Graduación de Fases:** Para habilitar el avance correcto y desbloquear la siguiente fase en la base de datos, cada fase de la plataforma debe contar con su propio endpoint de graduación en el backend (ej: `/pedagogia/graduate-to-fase1`, `/pedagogia/graduate-to-fase2`, `/fase2/graduate`, etc.) y su respectivo servicio en el frontend. La lógica del cliente en `handleEndGame` debe evaluar condicionalmente la fase actual del alumno (`currentUser.fase_actual_id`) para invocar el endpoint de graduación correspondiente a esa fase específica, garantizando que el usuario no sea redirigido de forma inconsistente o quede atascado.
 
 ---
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation, useParams } from 'react-router-dom';
 import { ThemeProvider } from './components/theme/ThemeContext';
 import { ThemeToggle } from './components/theme/ThemeToggle';
@@ -259,7 +259,9 @@ const AppContent: React.FC = () => {
       // --- GRADUATION LOGIC ---
       if (category === 'challenge' && score >= 90) { // Require 90% for graduation
         import('./services/storageService').then(service => {
-          service.graduateToFase1().then(() => {
+          const currentPhase = currentUser?.fase_actual_id || 1;
+          const gradPromise = currentPhase === 1 ? service.graduateToFase2() : service.graduateToFase1();
+          gradPromise.then(() => {
             service.getCurrentUserFull().then(updatedUser => {
               setCurrentUser(updatedUser);
             }).catch(err => console.error("Error syncing user:", err));

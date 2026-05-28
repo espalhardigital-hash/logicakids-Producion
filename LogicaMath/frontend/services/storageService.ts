@@ -316,6 +316,15 @@ export const graduateToFase1 = async (): Promise<void> => {
   }
 };
 
+export const graduateToFase2 = async (): Promise<void> => {
+  try {
+    await apiRequest('/pedagogia/graduate-to-fase2', 'POST');
+  } catch (error) {
+    console.error("Error graduating to Fase 2:", error);
+  }
+};
+
+
 export const getPedagogiaDashboard = async (): Promise<any> => {
   return await apiRequest<any>('/pedagogia/dashboard');
 };

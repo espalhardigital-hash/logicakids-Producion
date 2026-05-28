@@ -314,3 +314,32 @@ async def graduate_to_fase1(db: AsyncSession = Depends(get_db), current_user: di
     await db.commit()
     
     return {"message": "¡Felicidades! Has avanzado a la Fase 1", "new_fase_id": fase_uno.id}
+
+@router.post("/graduate-to-fase2")
+async def graduate_to_fase2(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    alumno_id = current_user.get("alumno_id")
+    if not alumno_id:
+        raise HTTPException(status_code=400, detail="El usuario no tiene un perfil de alumno asociado.")
+
+    # 1. Obtener Alumno
+    alumno = current_user.get("alumno_obj")
+    if not alumno:
+        result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
+        alumno = result.scalar_one_or_none()
+    
+    if not alumno:
+        raise HTTPException(status_code=404, detail="Perfil de alumno no encontrado")
+        
+    # 2. Buscar Fase 2 (orden = 2)
+    result = await db.execute(select(Fase).where(Fase.orden == 2))
+    fase_dos = result.scalar_one_or_none()
+    
+    if not fase_dos:
+        raise HTTPException(status_code=500, detail="La Fase 2 no ha sido configurada en el sistema.")
+        
+    # 3. Actualizar Fase
+    alumno.fase_actual_id = fase_dos.id
+    await db.commit()
+    
+    return {"message": "¡Felicidades! Has avanzado a la Fase 2", "new_fase_id": fase_dos.id}
+
