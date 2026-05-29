@@ -958,11 +958,9 @@ const PedagogyTab: React.FC = () => {
                             onClick={() => updateGlobalField('practica_libre', 'usa_cronometro', !draftGlobalConfig.practica_libre.usa_cronometro)} 
                             className="transition-all hover:scale-105"
                           >
-                            {draftGlobalConfig.practica_libre.usa_cronometro ? (
-                              <ToggleRight size={34} className="text-blue-500" />
-                            ) : (
-                              <ToggleLeft size={34} className="text-slate-600" />
-                            )}
+                            <div className={`ios-switch ${draftGlobalConfig.practica_libre.usa_cronometro ? 'ios-switch-active' : ''}`}>
+                              <div className="ios-switch-knob" />
+                            </div>
                           </button>
                         </div>
 
@@ -1061,11 +1059,9 @@ const PedagogyTab: React.FC = () => {
                             onClick={() => updateGlobalField('desafios', 'usa_cronometro', !draftGlobalConfig.desafios.usa_cronometro)} 
                             className="transition-all hover:scale-105"
                           >
-                            {draftGlobalConfig.desafios.usa_cronometro ? (
-                              <ToggleRight size={34} className="text-purple-500" />
-                            ) : (
-                              <ToggleLeft size={34} className="text-slate-600" />
-                            )}
+                            <div className={`ios-switch ${draftGlobalConfig.desafios.usa_cronometro ? 'ios-switch-active' : ''}`}>
+                              <div className="ios-switch-knob" />
+                            </div>
                           </button>
                         </div>
                       </div>
@@ -1268,11 +1264,9 @@ const PedagogyTab: React.FC = () => {
                             disabled={!activePhaseDefaultRecord}
                             className="transition-all hover:scale-105 disabled:opacity-30"
                           >
-                            {activePhaseDefaultRecord?.usa_cronometro ? (
-                              <ToggleRight size={36} className="text-blue-400" />
-                            ) : (
-                              <ToggleLeft size={36} className="text-slate-600" />
-                            )}
+                            <div className={`ios-switch ${activePhaseDefaultRecord?.usa_cronometro ? 'ios-switch-active' : ''}`}>
+                              <div className="ios-switch-knob" />
+                            </div>
                           </button>
                         </div>
 
@@ -1492,11 +1486,9 @@ const PedagogyTab: React.FC = () => {
                             disabled={!activeModuleRecord}
                             className="transition-all hover:scale-105 disabled:opacity-30"
                           >
-                            {(activeModuleRecord?.usa_cronometro ?? getInheritedUseTimer()) ? (
-                              <ToggleRight size={36} className="text-blue-400" />
-                            ) : (
-                              <ToggleLeft size={36} className="text-slate-600" />
-                            )}
+                            <div className={`ios-switch ${(activeModuleRecord?.usa_cronometro ?? getInheritedUseTimer()) ? 'ios-switch-active' : ''}`}>
+                              <div className="ios-switch-knob" />
+                            </div>
                           </button>
                         </div>
 
