@@ -3,7 +3,7 @@ import { User, UserRole } from '../../types';
 import { getAllUsers, saveUser, deleteUser, getStorageUsage, getAllScores, getUserDetailedAnalytics, adminCreateUser, adminChangePassword, getAvatarUrl, deleteScoreById } from '../../services/storageService';
 import {
   ArrowLeft, Users, Shield, Activity, Database, Search,
-  Edit, Trash2, UserX, UserCheck, Plus, X, Key, Check, BarChart2
+  Edit, Trash2, UserX, UserCheck, Plus, X, Key, Check, BarChart2, Eye, EyeOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -58,6 +58,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordUserId, setPasswordUserId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [showPasswordText, setShowPasswordText] = useState(false);
   const [statsUser, setStatsUser] = useState<User | null>(null);
   const [userStatsData, setUserStatsData] = useState<any>(null);
   const [allScores, setAllScores] = useState<any[]>([]);
@@ -174,6 +175,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
   const handleChangePassword = (user: User) => {
     setPasswordUserId(user.id);
     setNewPassword('');
+    setShowPasswordText(false);
     setShowPasswordModal(true);
   };
 
@@ -704,15 +706,24 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
               <form onSubmit={handleSavePassword} className="space-y-8">
                 <div className="space-y-3">
                   <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Nueva Contraseña Segura</label>
-                  <input
-                    required
-                    type="password"
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white font-black text-2xl focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all placeholder:text-slate-700"
-                    placeholder="••••••••"
-                    minLength={6}
-                  />
+                  <div className="relative">
+                    <input
+                      required
+                      type={showPasswordText ? "text" : "password"}
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 pr-14 text-white font-black text-2xl focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all placeholder:text-slate-700"
+                      placeholder="••••••••"
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordText(!showPasswordText)}
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors focus:outline-none flex items-center justify-center"
+                    >
+                      {showPasswordText ? <EyeOff size={22} /> : <Eye size={22} />}
+                    </button>
+                  </div>
                   <p className="text-xs text-amber-500/60 font-bold px-1 italic">Mínimo 6 caracteres alfanuméricos</p>
                 </div>
 

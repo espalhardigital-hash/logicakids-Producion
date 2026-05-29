@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routers import auth_users, admin, pedagogia, ai
 from .fase2.router import router as fase2_router
 from .fase3.router import router as fase3_router
+from .fase4.router import router as fase4_router
 from .config import settings
 from .db.session import engine
 from .db.base import Base
@@ -73,4 +74,5 @@ app.include_router(pedagogia.router)
 app.include_router(ai.router)
 app.include_router(fase2_router)
 app.include_router(fase3_router)
+app.include_router(fase4_router)
 

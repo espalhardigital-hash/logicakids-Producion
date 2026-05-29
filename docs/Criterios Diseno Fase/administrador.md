@@ -54,6 +54,12 @@ El panel cuenta con un apartado de **Ajustes Visuales** controlado por el admini
 * **Tipo de Fuente (`adminFontFamily`):** Outfit, Comic Sans, Monospace, Arial, Serif y Alta Legibilidad.
 * **Persistencia Local:** Los cambios se aplican al documento mediante `document.documentElement.style.fontSize` y variables de fuente.
 
+### 2.4. Sistema de Diálogos, Alertas y Confirmaciones Customizadas
+
+Para evitar congelar el hilo principal del navegador mediante llamadas síncronas a `window.confirm()` o `window.alert()`, el Panel de Administrador utiliza un **Gestor de Diálogos Personalizado (`dialogState`)**:
+* **Aislamiento y Estilo:** Los modales de confirmación y advertencia se renderizan en una capa esmerilada (`glassmorphism`) coherente con la paleta de colores del panel principal.
+* **Manejo Asíncrono:** Emplea callbacks estructurados para ejecutar acciones destructivas (como eliminar registros de base de datos o aplicar overrides) de forma fluida y segura.
+
 ---
 
 ## 3. Estructura y Navegación del Panel de Administración
@@ -101,7 +107,7 @@ Punto de control inicial que ofrece análisis rápidos y gestión completa de us
 * Crear usuarios con rol `ADMIN` o `USER`.
 * Editar datos básicos.
 * Banear o desbanear.
-* Cambiar contraseñas mediante modal seguro.
+* **Cambiar contraseñas mediante modal seguro:** El modal incluye un interruptor visual (icono de ojo interactivo que alterna entre `Eye` y `EyeOff`) que permite visualizar o enmascarar la nueva contraseña de forma dinámica.
 * Ver historial detallado de rendimiento.
 
 ### 4.3. Historial de Rendimiento
@@ -191,6 +197,7 @@ Herramienta de tutoría y control para intervenir el progreso académico de un e
 * Visualizar la fase y módulo activo del estudiante.
 * Inspeccionar de forma granular el progreso de cada nivel de práctica libre y cada bloque de desafío.
 * Revisar el porcentaje de acierto real (`porcentaje_precision`), intentos acumulados y el estado actual (`BLOQUEADO`, `EN_PROGRESO`, `APROBADO`).
+* **Normalización de Estados de Progreso (`normalizeState`):** Al consumir la API de progreso estudiantil, el componente `PerformanceTab` normaliza de manera segura el estatus retornado para evitar páginas en blanco o errores catastróficos en caso de inconsistencias de datos o cadenas indefinidas en la base de datos.
 * Identificar claramente si el estado de maestría actual fue obtenido automáticamente por desempeño del alumno o mediante una intervención administrativa previa (mostrando el logo o indicador visual correspondiente).
 
 ### 6.2. Panel de Intervención (Acciones de Override)

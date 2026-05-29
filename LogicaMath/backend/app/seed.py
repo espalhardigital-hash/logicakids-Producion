@@ -27,7 +27,8 @@ SEED_VERSIONS_KEY = "database_seed_versions"
 SEED_VERSIONS = {
     "fase_1": "1.0",
     "fase_2": "20260527_v1",
-    "fase_3": "20260527_v2"
+    "fase_3": "20260527_v2",
+    "fase_4": "20260529_v1"
 }
 
 PEDAGOGY_CONFIG_KEY = "pedagogy_config"
@@ -714,6 +715,16 @@ async def run_seed():
     except Exception as e:
         import traceback
         print("❌ Error al inyectar datos de Fase 3:")
+        traceback.print_exc()
+        raise e
+
+    # Inyectar datos semilla de la Fase 4
+    try:
+        from app.fase4.seed import run_fase4_seed
+        await run_fase4_seed()
+    except Exception as e:
+        import traceback
+        print("❌ Error al inyectar datos de Fase 4:")
         traceback.print_exc()
         raise e
 
