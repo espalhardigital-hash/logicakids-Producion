@@ -770,6 +770,7 @@ export const Fase4GameScreen: React.FC = () => {
   const barWidth = Math.min(100, (progreso.aciertos / maxAciertos) * 100);
   const isFractionAnswer = (pregunta.respuesta_correcta ?? '').includes('/');
   const showFractionInput = isFractionAnswer || pregunta.datos_numericos?.tipo_visual === 'pizza';
+  const isInteractivePizzaLayout = pregunta.datos_numericos?.tipo_visual === 'pizza' && !!pregunta.datos_numericos?.es_interactivo;
 
   return (
     <div className="f4-screen-wrapper" style={{ ['--module-accent' as any]: moduleColor }}>
@@ -912,28 +913,29 @@ export const Fase4GameScreen: React.FC = () => {
           )}
         </AnimatePresence>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full max-w-4xl">
-          {/* Visual representations card */}
-          <motion.div 
-            animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}} 
-            transition={{ duration: 0.4 }}
-            className={`flex flex-col items-center justify-center bg-slate-900/40 border p-8 rounded-[2.5rem] min-h-[300px] ${
-              shaking ? 'shake-error' : ''
-            }`}
-            style={{ 
-              borderColor: feedback.visible 
-                ? (feedback.esCorrecta ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') 
-                : 'rgba(255, 255, 255, 0.05)',
-              boxShadow: feedback.visible 
-                ? (feedback.esCorrecta ? '0 0 25px rgba(16, 185, 129, 0.15)' : '0 0 25px rgba(239, 68, 68, 0.15)') 
-                : 'none'
-            }}
-          >
-            {pregunta.datos_numericos?.tipo_visual === 'pizza' ? (
+        {isInteractivePizzaLayout ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full max-w-4xl min-h-[400px]">
+            {/* Left Column: Interactive Pizza Visualizer */}
+            <motion.div 
+              animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}} 
+              transition={{ duration: 0.4 }}
+              className={`flex flex-col items-center justify-center bg-slate-900/40 border p-8 rounded-[2.5rem] min-h-[350px] ${
+                shaking ? 'shake-error' : ''
+              }`}
+              style={{ 
+                borderColor: feedback.visible 
+                  ? (feedback.esCorrecta ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') 
+                  : 'rgba(255, 255, 255, 0.05)',
+                boxShadow: feedback.visible 
+                  ? (feedback.esCorrecta ? '0 0 25px rgba(16, 185, 129, 0.15)' : '0 0 25px rgba(239, 68, 68, 0.15)') 
+                  : 'none'
+              }}
+            >
               <PizzaFractionVisualizer
                 slices={pregunta.datos_numericos?.cortes || 8}
                 initialSombreados={pregunta.datos_numericos?.sombreados || []}
-                interactive={!!pregunta.datos_numericos?.es_interactivo}
+                interactive={true}
+                hideText={true}
                 onChange={(selectedCount) => {
                   setRespuestaNum(selectedCount.toString());
                   setRespuestaDen((pregunta.datos_numericos?.cortes || 8).toString());
@@ -941,127 +943,220 @@ export const Fase4GameScreen: React.FC = () => {
                 }}
                 color={moduleColor}
               />
-            ) : pregunta.datos_numericos?.tipo_visual === 'thermometer' ? (
-              <ThermometerVisualizer
-                divisions={pregunta.datos_numericos?.cortes || 5}
-                initialLevel={pregunta.datos_numericos?.nivel || 0}
-                interactive={!!pregunta.datos_numericos?.es_interactivo}
-                onChange={(selectedLevel) => {
-                  if (isFractionAnswer) {
-                    setRespuestaNum(selectedLevel.toString());
-                    setRespuestaDen((pregunta.datos_numericos?.cortes || 5).toString());
-                  } else {
-                    setRespuestaNum(selectedLevel.toString());
-                  }
-                  setInteractiveSelectedCount(selectedLevel);
-                }}
-                color={moduleColor}
-              />
-            ) : pregunta.datos_numericos?.tipo_visual === 'pie' ? (
-              <PieChartVisualizer
-                pctA={pregunta.datos_numericos?.pct_a || 40}
-                pctB={pregunta.datos_numericos?.pct_b || 35}
-                pctC={pregunta.datos_numericos?.pct_c || 25}
-                categorias={pregunta.datos_numericos?.categorias || ['Rojas', 'Verdes', 'Uvas']}
-                interactive={!!pregunta.datos_numericos?.es_interactivo}
-                onChange={(value) => {
-                  setRespuestaNum(value.toString());
-                }}
-                color={moduleColor}
-              />
-            ) : pregunta.datos_numericos?.tipo_visual === 'percentage_thermometer' ? (
-              <PercentageThermometer
-                inputValue={respuestaNum}
-                total={pregunta.datos_numericos?.total || 100}
-                color="#EF4444"
-              />
-            ) : (
-              <div className="text-center font-display text-4xl font-black text-white p-4">
-                🍕 🧪
-              </div>
-            )}
-            
-            <p className="text-lg font-bold text-center mt-6 text-slate-200">
-              {pregunta.enunciado}
-            </p>
-          </motion.div>
 
-          {/* Interactive input area */}
-          <div className="flex flex-col items-center justify-center">
-            {pregunta.tipo_pregunta === 'multiple_opcion' && pregunta.alternativas ? (
-              <div className="w-full space-y-4">
-                {pregunta.alternativas.map(alt => (
-                  <button
-                    key={alt.id}
-                    onClick={() => handleAltSelect(alt.texto)}
-                    disabled={feedback.visible}
-                    className="w-full py-5 px-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/30 rounded-2xl font-black text-xl text-left text-white transition-all active:scale-[0.98] cursor-pointer"
-                  >
-                    {alt.texto}
-                  </button>
-                ))}
+              {/* Progress Indicator Pill */}
+              <div 
+                className="mt-4 px-6 py-2 bg-slate-950/60 border border-purple-500/20 rounded-full font-sans font-black tracking-widest text-center shadow-lg"
+                style={{ minWidth: '100px' }}
+              >
+                <span style={{ color: moduleColor }} className="text-2xl font-black">
+                  {interactiveSelectedCount}
+                </span>
+                <span className="text-slate-400 text-xl font-bold mx-2">/</span>
+                <span className="text-slate-200 text-2xl font-black">
+                  {pregunta.datos_numericos?.cortes || 8}
+                </span>
               </div>
-            ) : (
-              <div className="w-full flex flex-col items-center gap-8">
-                {/* Custom inputs */}
-                {showFractionInput ? (
-                  <div className="f4-fraction-input-box">
-                    <input
-                      type="text"
-                      readOnly
-                      placeholder="?"
-                      value={respuestaNum}
-                      onClick={() => setActiveInputField('num')}
-                      className={`f4-fraction-input-field ${activeInputField === 'num' ? 'focused' : ''}`}
-                    />
-                    <div className="f4-fraction-line" />
-                    <input
-                      type="text"
-                      readOnly
-                      placeholder="?"
-                      value={respuestaDen}
-                      onClick={() => setActiveInputField('den')}
-                      className={`f4-fraction-input-field ${activeInputField === 'den' ? 'focused' : ''}`}
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full max-w-[200px]">
-                    <input
-                      type="text"
-                      readOnly
-                      placeholder="Respuesta"
-                      value={respuestaNum}
-                      className="w-full bg-white/5 border border-purple-500/30 rounded-2xl p-5 text-center text-white font-black text-2xl outline-none"
-                    />
-                  </div>
-                )}
 
-                {/* Keypad */}
-                <CustomKeyboard
-                  onNumberPress={handleNumberPress}
-                  onDelete={handleDelete}
-                  onSubmit={() => handleSubmit()}
-                  disabled={feedback.visible}
-                  submitDisabled={showFractionInput ? (!respuestaNum || !respuestaDen) : !respuestaNum}
-                />
+              {/* Description Challenge Label */}
+              <div className="mt-6 text-center">
+                <span className="text-slate-400 text-xs font-black tracking-[0.2em] block mb-2">
+                  SOMBREA EXACTAMENTE LA FRACCIÓN:
+                </span>
+                <span 
+                  style={{ color: moduleColor, textShadow: `0 0 15px ${moduleColor}60` }} 
+                  className="text-4xl font-sans font-black tracking-wider block"
+                >
+                  {pregunta.respuesta_correcta}
+                </span>
               </div>
-            )}
-            
-            {/* Embedded score widgets */}
-            {!isChallenge && (
-              <div className="f4-scores-container max-w-[400px]">
-                <div className="f4-score-box correct">
-                  <span className="f4-score-label">CORRECTAS</span>
-                  <span className="f4-score-value">{progreso.aciertos}</span>
+            </motion.div>
+
+            {/* Right Column: Giant Purple Confirmation Button */}
+            <div className="flex flex-col items-center justify-center">
+              <button
+                onClick={() => handleSubmit()}
+                disabled={feedback.visible}
+                className="group relative flex items-center justify-center gap-4 w-full max-w-md py-8 px-10 bg-purple-600 hover:bg-purple-500 text-white font-sans font-black text-4xl rounded-[2.5rem] shadow-[0_12px_30px_rgba(168,85,247,0.4)] hover:shadow-[0_15px_35px_rgba(168,85,247,0.6)] border-4 border-purple-400/20 hover:border-purple-300/30 transform active:scale-[0.95] transition-all duration-150 cursor-pointer overflow-hidden"
+              >
+                {/* Micro-sparkle ambient hover effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+                
+                <span>CONFIRMAR</span>
+                
+                {/* Integrated checkmark circle */}
+                <div className="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white bg-transparent flex-shrink-0">
+                  <span className="text-white text-2xl font-black">✓</span>
                 </div>
-                <div className="f4-score-box incorrect">
-                  <span className="f4-score-label">ERRORES</span>
-                  <span className="f4-score-value">{progreso.intentos - progreso.aciertos}</span>
+              </button>
+
+              {/* Embedded score widgets for normal module questions */}
+              {!isChallenge && (
+                <div className="f4-scores-container max-w-[400px] mt-8 w-full">
+                  <div className="f4-score-box correct">
+                    <span className="f4-score-label">CORRECTAS</span>
+                    <span className="f4-score-value">{progreso.aciertos}</span>
+                  </div>
+                  <div className="f4-score-box incorrect">
+                    <span className="f4-score-label">ERRORES</span>
+                    <span className="f4-score-value">{progreso.intentos - progreso.aciertos}</span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full max-w-4xl">
+            {/* Visual representations card */}
+            <motion.div 
+              animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}} 
+              transition={{ duration: 0.4 }}
+              className={`flex flex-col items-center justify-center bg-slate-900/40 border p-8 rounded-[2.5rem] min-h-[300px] ${
+                shaking ? 'shake-error' : ''
+              }`}
+              style={{ 
+                borderColor: feedback.visible 
+                  ? (feedback.esCorrecta ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') 
+                  : 'rgba(255, 255, 255, 0.05)',
+                boxShadow: feedback.visible 
+                  ? (feedback.esCorrecta ? '0 0 25px rgba(16, 185, 129, 0.15)' : '0 0 25px rgba(239, 68, 68, 0.15)') 
+                  : 'none'
+              }}
+            >
+              {pregunta.datos_numericos?.tipo_visual === 'pizza' ? (
+                <PizzaFractionVisualizer
+                  slices={pregunta.datos_numericos?.cortes || 8}
+                  initialSombreados={pregunta.datos_numericos?.sombreados || []}
+                  interactive={!!pregunta.datos_numericos?.es_interactivo}
+                  onChange={(selectedCount) => {
+                    setRespuestaNum(selectedCount.toString());
+                    setRespuestaDen((pregunta.datos_numericos?.cortes || 8).toString());
+                    setInteractiveSelectedCount(selectedCount);
+                  }}
+                  color={moduleColor}
+                />
+              ) : pregunta.datos_numericos?.tipo_visual === 'thermometer' ? (
+                <ThermometerVisualizer
+                  divisions={pregunta.datos_numericos?.cortes || 5}
+                  initialLevel={pregunta.datos_numericos?.nivel || 0}
+                  interactive={!!pregunta.datos_numericos?.es_interactivo}
+                  onChange={(selectedLevel) => {
+                    if (isFractionAnswer) {
+                      setRespuestaNum(selectedLevel.toString());
+                      setRespuestaDen((pregunta.datos_numericos?.cortes || 5).toString());
+                    } else {
+                      setRespuestaNum(selectedLevel.toString());
+                    }
+                    setInteractiveSelectedCount(selectedLevel);
+                  }}
+                  color={moduleColor}
+                />
+              ) : pregunta.datos_numericos?.tipo_visual === 'pie' ? (
+                <PieChartVisualizer
+                  pctA={pregunta.datos_numericos?.pct_a || 40}
+                  pctB={pregunta.datos_numericos?.pct_b || 35}
+                  pctC={pregunta.datos_numericos?.pct_c || 25}
+                  categorias={pregunta.datos_numericos?.categorias || ['Rojas', 'Verdes', 'Uvas']}
+                  interactive={!!pregunta.datos_numericos?.es_interactivo}
+                  onChange={(value) => {
+                    setRespuestaNum(value.toString());
+                  }}
+                  color={moduleColor}
+                />
+              ) : pregunta.datos_numericos?.tipo_visual === 'percentage_thermometer' ? (
+                <PercentageThermometer
+                  inputValue={respuestaNum}
+                  total={pregunta.datos_numericos?.total || 100}
+                  color="#EF4444"
+                />
+              ) : (
+                <div className="text-center font-display text-4xl font-black text-white p-4">
+                  🍕 🧪
+                </div>
+              )}
+              
+              <p className="text-lg font-bold text-center mt-6 text-slate-200">
+                {pregunta.enunciado}
+              </p>
+            </motion.div>
+
+            {/* Interactive input area */}
+            <div className="flex flex-col items-center justify-center">
+              {pregunta.tipo_pregunta === 'multiple_opcion' && pregunta.alternativas ? (
+                <div className="w-full space-y-4">
+                  {pregunta.alternativas.map(alt => (
+                    <button
+                      key={alt.id}
+                      onClick={() => handleAltSelect(alt.texto)}
+                      disabled={feedback.visible}
+                      className="w-full py-5 px-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/30 rounded-2xl font-black text-xl text-left text-white transition-all active:scale-[0.98] cursor-pointer"
+                    >
+                      {alt.texto}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full flex flex-col items-center gap-8">
+                  {/* Custom inputs */}
+                  {showFractionInput ? (
+                    <div className="f4-fraction-input-box">
+                      <input
+                        type="text"
+                        readOnly
+                        placeholder="?"
+                        value={respuestaNum}
+                        onClick={() => setActiveInputField('num')}
+                        className={`f4-fraction-input-field ${activeInputField === 'num' ? 'focused' : ''}`}
+                      />
+                      <div className="f4-fraction-line" />
+                      <input
+                        type="text"
+                        readOnly
+                        placeholder="?"
+                        value={respuestaDen}
+                        onClick={() => setActiveInputField('den')}
+                        className={`f4-fraction-input-field ${activeInputField === 'den' ? 'focused' : ''}`}
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full max-w-[200px]">
+                      <input
+                        type="text"
+                        readOnly
+                        placeholder="Respuesta"
+                        value={respuestaNum}
+                        className="w-full bg-white/5 border border-purple-500/30 rounded-2xl p-5 text-center text-white font-black text-2xl outline-none"
+                      />
+                    </div>
+                  )}
+
+                  {/* Keypad */}
+                  <CustomKeyboard
+                    onNumberPress={handleNumberPress}
+                    onDelete={handleDelete}
+                    onSubmit={() => handleSubmit()}
+                    disabled={feedback.visible}
+                    submitDisabled={showFractionInput ? (!respuestaNum || !respuestaDen) : !respuestaNum}
+                  />
+                </div>
+              )}
+              
+              {/* Embedded score widgets */}
+              {!isChallenge && (
+                <div className="f4-scores-container max-w-[400px]">
+                  <div className="f4-score-box correct">
+                    <span className="f4-score-label">CORRECTAS</span>
+                    <span className="f4-score-value">{progreso.aciertos}</span>
+                  </div>
+                  <div className="f4-score-box incorrect">
+                    <span className="f4-score-label">ERRORES</span>
+                    <span className="f4-score-value">{progreso.intentos - progreso.aciertos}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Tutor Feedback Overlay */}

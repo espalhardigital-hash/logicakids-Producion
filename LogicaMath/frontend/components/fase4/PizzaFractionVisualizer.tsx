@@ -6,6 +6,7 @@ interface Props {
   interactive?: boolean; // Permite hacer clic
   onChange?: (selectedCount: number) => void; // Callback para modo interactivo
   color?: string; // Color neón primario
+  hideText?: boolean; // Oculta el texto interno
 }
 
 export const PizzaFractionVisualizer: React.FC<Props> = ({
@@ -14,6 +15,7 @@ export const PizzaFractionVisualizer: React.FC<Props> = ({
   interactive = false,
   onChange,
   color = '#A855F7',
+  hideText = false,
 }) => {
   const [sombreados, setSombreados] = useState<number[]>(initialSombreados);
 
@@ -101,7 +103,7 @@ export const PizzaFractionVisualizer: React.FC<Props> = ({
         />
       </svg>
 
-      {interactive && (
+      {interactive && !hideText && (
         <div className="mt-4 text-sm font-black text-slate-400 uppercase tracking-widest">
           Fracción elegida: <span style={{ color }} className="text-xl">{sombreados.length}</span> / <span className="text-xl">{slices}</span>
         </div>
