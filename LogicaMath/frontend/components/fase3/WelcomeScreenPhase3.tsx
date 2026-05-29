@@ -1,4 +1,4 @@
-﻿/**
+/**
  * WelcomeScreenPhase3.tsx
  * ─────────────────────────────────────────────────────────────
  * Hub de selección de módulos para la Fase 3: Problemas de Texto y Sistemas Simples.
@@ -138,24 +138,9 @@ export const WelcomeScreenPhase3: React.FC<Props> = ({
       
       setDashboard(data);
     } catch (e: unknown) {
-      console.warn('[Fase3] Backend no disponible, usando datos de muestra para el hub.', e);
-      let mockData = MOCK_DASHBOARD(studentName);
-      if (userRole === 'ADMIN') {
-        mockData = {
-          ...mockData,
-          desafio_mixto_disponible: true,
-          desafio_mixto_estado: 'completado',
-          modulos: mockData.modulos.map(m => ({
-            ...m,
-            estado: m.estado === 'bloqueado' ? 'en_progreso' : m.estado,
-            niveles: m.niveles.map(n => ({
-              ...n,
-              estado: n.estado === 'bloqueado' ? 'en_progreso' : n.estado,
-            }))
-          }))
-        };
-      }
-      setDashboard(mockData);
+      console.error('[Fase3] Error de red al cargar dashboard:', e);
+      setError('Error de conexión. No se pudo cargar el mapa de misiones.');
+      setDashboard(null);
     } finally {
       setLoading(false);
     }
@@ -506,68 +491,5 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
     </article>
   );
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DATOS MOCK DE RESERVA (Cuando el backend no responde o se está configurando)
-// ─────────────────────────────────────────────────────────────────────────────
-
-function MOCK_DASHBOARD(nombre: string): Fase3Dashboard {
-  const makeNivelesMock = (moduloId: number, isDomAll = false) => {
-    const nombresNiveles: Record<number, string[]> = {
-      1: ["Aislamiento de Variables Críticas", "Datos Útiles vs. Datos Basura", "Descarte por Incongruencia"],
-      2: ["Operaciones Cronológicas", "Álgebra Retrospectiva", "Mutaciones Sucesivas"],
-      3: ["Comparación de Carritos", "Grilla de Doble Entrada", "Álgebra Visual"],
-      4: ["Agrupación Visual", "Análisis de Resto", "Sucesión Circular"],
-      5: ["Visualización de Saltos y Empaques", "Encuentros Periódicos - MCM", "División Máxima Exacta - MCD"]
-    };
-
-    const lista = nombresNiveles[moduloId] || ["Nivel Práctico 1", "Nivel Práctico 2", "Nivel Práctico 3"];
-
-    return Array.from({ length: 3 }, (_, i) => i + 1).map(id => ({
-      nivel_id: id,
-      nombre: lista[id - 1],
-      descripcion: `Explicación conceptual del nivel práctico ${id}`,
-      estado: (isDomAll ? 'dominado' : id === 1 ? 'en_progreso' : 'bloqueado') as 'dominado' | 'en_progreso' | 'bloqueado',
-      porcentaje: isDomAll ? 100 : id === 1 ? 50 : 0,
-      aciertos: isDomAll ? 15 : id === 1 ? 7 : 0,
-      requeridos: 15,
-      usa_cronometro: false,
-    }));
-  };
-
-  const makeDesafiosMock = (moduloId: number, isDomAll = false) => {
-    return [
-      { desafio_id: 11, nombre: 'Desafío 1: Estándar', dificultad: 'estandar' as const, estado: (isDomAll ? 'en_progreso' : 'bloqueado') as any, porcentaje: 0, aciertos: 0, requeridos: 20, tiempo_limite: 25, max_errores: 3 },
-      { desafio_id: 12, nombre: 'Desafío 2: Avanzado', dificultad: 'avanzada' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 20, tiempo_limite: 40, max_errores: 3 },
-      { desafio_id: 13, nombre: 'Desafío Final: Maestría', dificultad: 'maestria' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 10, tiempo_limite: 50, max_errores: 2 },
-    ];
-  };
-
-  const metadataModulos = [
-    { id: 1, nombre: 'El Detective Literario',   desc: 'Filtrado de datos basura, distractores y modelado del problema.', icono: 'search',        color: '#F97316', estado: 'en_progreso' as const, pct: 15 },
-    { id: 2, nombre: 'Secuencia Temporal',  desc: 'Cronología de eventos y análisis retrospectivo.',  icono: 'clock',         color: '#EAB308', estado: 'bloqueado'   as const, pct: 0 },
-    { id: 3, nombre: 'Deducción de Precios', desc: 'Introducción intuitiva a sistemas de ecuaciones.', icono: 'shopping-cart', color: '#3B82F6', estado: 'bloqueado'   as const, pct: 0 },
-    { id: 4, nombre: 'Reparto y Residuos', desc: 'Algoritmo de la división, agrupamiento y patrones modulares.', icono: 'package',       color: '#A855F7', estado: 'bloqueado'   as const, pct: 0 },
-    { id: 5, nombre: 'Ciclos y Agrupaciones Máximas', desc: 'Múltiplos, divisores y aplicaciones narrativas (MCM y MCD).', icono: 'refresh-cw', color: '#10B981', estado: 'bloqueado'   as const, pct: 0 },
-  ];
-
-  return {
-    alumno_nombre: nombre,
-    puntos_totales: 15,
-    modulos: metadataModulos.map(m => ({
-      modulo_id: m.id,
-      nombre: m.nombre,
-      descripcion: m.desc,
-      icono: m.icono,
-      color: m.color,
-      estado: m.estado,
-      porcentaje_global: m.pct,
-      niveles: makeNivelesMock(m.id, (m.estado as string) === 'dominado'),
-      desafios: makeDesafiosMock(m.id, (m.estado as string) === 'dominado'),
-    })),
-    desafio_mixto_disponible: false,
-    desafio_mixto_estado: 'bloqueado',
-  };
-}
 
 export default WelcomeScreenPhase3;
