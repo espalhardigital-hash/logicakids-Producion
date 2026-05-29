@@ -795,7 +795,14 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
             ans = 100 - pct_a - pct_b
             enunciado = f"{prefix}En un gráfico circular de preferencias, el {pct_a}% prefiere manzanas rojas, el {pct_b}% prefiere manzanas verdes y el resto prefiere uvas. ¿Qué porcentaje prefiere uvas?"
             feedback = f"La suma de los sectores de un gráfico circular es siempre 100%. Restamos: 100 - {pct_a} - {pct_b} = {ans}%."
-            vals = {"pct_a": pct_a, "pct_b": pct_b}
+            vals = {
+                "tipo_visual": "pie",
+                "es_interactivo": True,
+                "pct_a": pct_a,
+                "pct_b": pct_b,
+                "pct_c": ans,
+                "categorias": ["Rojas", "Verdes", "Uvas"]
+            }
         elif nivel_id == 3: # Gráficos de barras
             val_a = rng.randint(10, 50) * 10
             val_b = rng.randint(10, 50) * 10

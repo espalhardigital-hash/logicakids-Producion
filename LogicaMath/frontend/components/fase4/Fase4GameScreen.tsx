@@ -4,6 +4,7 @@ import { getFase4Question, submitFase4Answer, getFase4Reading, submitFase4CloseR
 import { Fase4Pregunta, Fase4AnswerResult, Fase4Lectura } from './Fase4Types';
 import { PizzaFractionVisualizer } from './PizzaFractionVisualizer';
 import { ThermometerVisualizer } from './ThermometerVisualizer';
+import { PieChartVisualizer } from './PieChartVisualizer';
 import { Fase4TheoryModal } from './Fase4TheoryModal';
 import { CustomKeyboard } from '../common/CustomKeyboard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -952,6 +953,18 @@ export const Fase4GameScreen: React.FC = () => {
                     setRespuestaNum(selectedLevel.toString());
                   }
                   setInteractiveSelectedCount(selectedLevel);
+                }}
+                color={moduleColor}
+              />
+            ) : pregunta.datos_numericos?.tipo_visual === 'pie' ? (
+              <PieChartVisualizer
+                pctA={pregunta.datos_numericos?.pct_a || 40}
+                pctB={pregunta.datos_numericos?.pct_b || 35}
+                pctC={pregunta.datos_numericos?.pct_c || 25}
+                categorias={pregunta.datos_numericos?.categorias || ['Rojas', 'Verdes', 'Uvas']}
+                interactive={!!pregunta.datos_numericos?.es_interactivo}
+                onChange={(value) => {
+                  setRespuestaNum(value.toString());
                 }}
                 color={moduleColor}
               />
