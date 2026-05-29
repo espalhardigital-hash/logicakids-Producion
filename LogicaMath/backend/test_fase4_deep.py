@@ -116,7 +116,7 @@ class TestPhase4DeepSuite(unittest.IsolatedAsyncioTestCase):
                 if db_q.datos_numericos:
                     tipo_visual = db_q.datos_numericos.get("tipo_visual")
                     if tipo_visual:
-                        self.assertIn(tipo_visual, ["pizza", "thermometer"])
+                        self.assertIn(tipo_visual, ["pizza", "thermometer", "pie"])
                         self.assertIsNotNone(db_q.datos_numericos.get("cortes"))
                 
                 # 2. Answer correctly
