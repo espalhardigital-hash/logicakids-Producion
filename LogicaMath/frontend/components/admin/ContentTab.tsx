@@ -6,25 +6,27 @@ import {
   Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Award, AlertTriangle, Check
 } from 'lucide-react';
 import { 
-  getPreguntasByLevel, deletePregunta, createPregunta, updatePregunta,
-  getNivelTeoria, saveNivelTeoria 
+  deletePregunta, createPregunta, updatePregunta,
+  saveNivelTeoria 
 } from '../../services/storageService';
 import { PHASE_MAPS } from './phaseMaps';
+import { useAdminContent } from './useAdminContent';
 
 const ContentTab: React.FC = () => {
   // Navigation / Tabs State
   const [activeSubTab, setActiveSubTab] = useState<'theory' | 'questions'>('theory');
 
-  // Selectors State
-  const [mgrFaseId, setMgrFaseId] = useState<number>(2); // Default to Phase 2 to match screenshots
-  const [mgrModuloId, setMgrModuloId] = useState<number>(1);
-  const [mgrLevelId, setMgrLevelId] = useState<number>(1);
+  // Hook for Content Logic
+  const {
+    mgrFaseId, setMgrFaseId,
+    mgrModuloId, setMgrModuloId,
+    mgrLevelId, setMgrLevelId,
+    questions, setQuestions,
+    theory, setTheory,
+    loading: loadingQuestions // shared loading state
+  } = useAdminContent();
 
-  // Content Data State
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [loadingQuestions, setLoadingQuestions] = useState(false);
-  const [theory, setTheory] = useState<any | null>(null);
-  const [loadingTheory, setLoadingTheory] = useState(false);
+  const loadingTheory = loadingQuestions;
   const [savingTheory, setSavingTheory] = useState(false);
 
   // Collapse sections states
@@ -79,62 +81,7 @@ const ContentTab: React.FC = () => {
     setConfirmDialog({ show: true, title, message, onConfirm });
   };
 
-  // Fetch Questions and Theory
-  const loadContentManagerData = async (faseId: number, moduloId: number, levelId: number) => {
-    setLoadingQuestions(true);
-    setLoadingTheory(true);
-    
-    // Resolve DB section and operation
-    const phase = PHASE_MAPS.find(p => p.id === faseId);
-    const mod = phase?.modules.find(m => m.id === moduloId);
-    const lvl = mod?.levels.find(l => l.id === levelId);
-
-    if (!lvl) {
-      setLoadingQuestions(false);
-      setLoadingTheory(false);
-      return;
-    }
-
-    try {
-      // 1. Get Questions
-      const questionsRes = await getPreguntasByLevel(faseId, lvl.seccion, lvl.operacion);
-      setQuestions(questionsRes);
-      
-      // 2. Get Theory
-      const theoryRes = await getNivelTeoria(faseId, moduloId, levelId);
-      
-      if (theoryRes) {
-        // Safe fallbacks to ensure dictionary, examples, and interactives exist
-        setTheory({
-          ...theoryRes,
-          diccionario: theoryRes.diccionario || {},
-          ejemplos: theoryRes.ejemplos || [],
-          interactivos: theoryRes.interactivos || []
-        });
-      } else {
-        setTheory({
-          fase_id: faseId,
-          modulo_id: moduloId,
-          nivel_id: levelId,
-          titulo: "",
-          texto_descubrimiento: "",
-          advertencia: "",
-          diccionario: {},
-          ejemplos: [],
-          interactivos: []
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingQuestions(false);
-      setLoadingTheory(false);
-    }
-  };
-
-  useEffect(() => {
-    loadContentManagerData(mgrFaseId, mgrModuloId, mgrLevelId);
-  }, [mgrFaseId, mgrModuloId, mgrLevelId]);
+  // Load handled by useAdminContent hook
 
   // Reset pagination & search filters when selector or items per page change
   useEffect(() => {
@@ -342,15 +289,15 @@ const ContentTab: React.FC = () => {
     <div className="w-full flex flex-col gap-6 text-white select-none">
       
       {/* Top Header Panel */}
-      <div className="flex items-center justify-between bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl">
+      <div className="flex items-center justify-between glass-card p-6">
         <div>
-          <h2 className="text-3xl font-black text-white flex items-center gap-3">
-            <div className="p-2.5 bg-blue-500/20 rounded-2xl border border-blue-500/30">
-              <BookOpen className="text-blue-400" size={24} />
+          <h2 className="text-3xl font-bold text-[#f3f4f6] flex items-center gap-3">
+            <div className="p-2.5 bg-[#007AFF]/20 rounded-2xl border border-[#007AFF]/30">
+              <BookOpen className="text-[#007AFF]" size={24} />
             </div>
             Banco de Preguntas y Teoría
           </h2>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-[#8E8E93] text-sm mt-1 font-medium">
             Administra las preguntas del plan de estudios y el material teórico de cada nivel.
           </p>
         </div>
@@ -404,8 +351,8 @@ const ContentTab: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         
         {/* Left Column: Selectors */}
-        <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-[2.2rem] shadow-2xl flex flex-col gap-5">
-          <h3 className="text-base font-black text-slate-400 uppercase tracking-widest px-2">Selector de Nivel</h3>
+        <div className="lg:col-span-1 glass-card p-5 flex flex-col gap-5">
+          <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wider px-2">Selector de Nivel</h3>
           
           {/* Phase selector */}
           <div className="flex flex-col gap-2">
@@ -496,7 +443,7 @@ const ContentTab: React.FC = () => {
                   <div className="flex flex-col gap-6">
                     
                     {/* SECTION 1: CORE THEORY FIELDS (Collapsible) */}
-                    <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
+                    <div className="glass-card p-6 flex flex-col gap-4">
                       <div 
                         onClick={() => setExpandTheoryCore(!expandTheoryCore)}
                         className="flex justify-between items-center cursor-pointer select-none group"
@@ -563,7 +510,7 @@ const ContentTab: React.FC = () => {
                     </div>
 
                     {/* SECTION 2: GLOSSARY / DICTIONARY (Collapsible) */}
-                    <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
+                    <div className="glass-card p-6 flex flex-col gap-4">
                       <div 
                         onClick={() => setExpandGlosario(!expandGlosario)}
                         className="flex justify-between items-center cursor-pointer select-none group"
@@ -663,7 +610,7 @@ const ContentTab: React.FC = () => {
                     </div>
 
                     {/* SECTION 3: EXAMPLES & INTERACTIVE EXERCISES (Collapsible) */}
-                    <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
+                    <div className="glass-card p-6 flex flex-col gap-4">
                       <div 
                         onClick={() => setExpandEjemplos(!expandEjemplos)}
                         className="flex justify-between items-center cursor-pointer select-none group"
@@ -955,7 +902,7 @@ const ContentTab: React.FC = () => {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col gap-6"
               >
-                <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.2rem] shadow-2xl flex flex-col gap-5">
+                <div className="glass-card p-6 flex flex-col gap-5">
                   <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-white/5 pb-4">
                     <h4 className="text-base font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                       <Settings size={16} className="text-blue-400" /> Banco de Preguntas del Nivel

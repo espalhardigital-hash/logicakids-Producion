@@ -431,13 +431,21 @@ async def get_pregunta(
             await db.flush()
             
         # Consultar pool general de la base de datos para esta sección
-        result_q = await db.execute(
-            select(Pregunta).where(and_(
-                Pregunta.fase_id == FASE4_ID,
-                Pregunta.seccion == seccion,
-                Pregunta.estado == StatusEnum.ACTIVO
-            ))
-        )
+        if is_challenge and modulo_id == 99:
+            result_q = await db.execute(
+                select(Pregunta).where(and_(
+                    Pregunta.fase_id == FASE4_ID,
+                    Pregunta.estado == StatusEnum.ACTIVO
+                ))
+            )
+        else:
+            result_q = await db.execute(
+                select(Pregunta).where(and_(
+                    Pregunta.fase_id == FASE4_ID,
+                    Pregunta.seccion == seccion,
+                    Pregunta.estado == StatusEnum.ACTIVO
+                ))
+            )
         preguntas_db = result_q.scalars().all()
         if not preguntas_db:
             raise HTTPException(status_code=404, detail="No se encontraron preguntas en el banco para este nivel.")
@@ -515,6 +523,7 @@ async def get_pregunta(
         nivel_id=nivel_id,
         enunciado=pregunta_act.enunciado,
         tipo_pregunta=pregunta_act.tipo_pregunta,
+        respuesta_correcta=pregunta_act.respuesta_correcta if pregunta_act.tipo_pregunta != TipoPreguntaEnum.MULTIPLE_OPCION else None,
         alternativas=alts_out,
         tiene_cronometro=tiene_cronometro,
         tiempo_limite_segundos=tiempo_limite,

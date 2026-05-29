@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, CheckCircle, XCircle, ArrowRight, ArrowLeft, LogOut, Sparkles } from 'lucide-react';
 import { Fase4Lectura } from './Fase4Types';
+import { PizzaFractionVisualizer } from './PizzaFractionVisualizer';
+import { PieChartVisualizer } from './PieChartVisualizer';
 import './Fase4Styles.css';
 
 interface Fase4TheoryModalProps {
@@ -212,23 +214,54 @@ export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
                 {currentSlide.data.length > 0 ? (
                   <div className="f4-reading-examples">
                     <h3>📐 EJEMPLOS ILUSTRADOS:</h3>
-                    {currentSlide.data.map((ex: any, idx: number) => (
-                      <div key={idx} className="f4-example-box" style={{ borderLeftColor: moduleColor }}>
-                        <div className="f4-ex-q" dangerouslySetInnerHTML={{ __html: ex.enunciado }} />
-                        {ex.pasos ? (
-                          <div className="f4-ex-steps">
-                            {ex.pasos.map((paso: any) => (
-                              <div key={paso.orden} className="f4-ex-step">
-                                <span className="f4-ex-step-num" style={{ color: moduleColor, backgroundColor: `${moduleColor}12` }}>{paso.orden}</span>
-                                <span className="f4-ex-step-text" dangerouslySetInnerHTML={{ __html: paso.texto }} />
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                           <div className="f4-ex-legacy">Respuesta → <span style={{ color: moduleColor, fontWeight: 800 }} dangerouslySetInnerHTML={{ __html: ex.respuesta }} /></div>
-                        )}
-                      </div>
-                    ))}
+                    {currentSlide.data.map((ex: any, idx: number) => {
+                      let fractionVisualizer = null;
+                      if (readingData.modulo_id === 1) {
+                         const textToSearch = (ex.respuesta || ex.enunciado || '');
+                         const match = textToSearch.match(/(\d+)\/(\d+)/);
+                         if (match) {
+                            const num = parseInt(match[1], 10);
+                            const den = parseInt(match[2], 10);
+                            if (num <= den && den <= 12) {
+                               const sombreados = Array.from({length: num}, (_, i) => i);
+                               fractionVisualizer = (
+                                  <div className="flex justify-center my-4 scale-[0.8] origin-top">
+                                     <PizzaFractionVisualizer slices={den} initialSombreados={sombreados} color={moduleColor} interactive={false} hideText={true} />
+                                  </div>
+                               );
+                            }
+                         }
+                      } else if (readingData.modulo_id === 3) {
+                         const match = (ex.respuesta || ex.enunciado || '').match(/(\d+)%/);
+                         if (match) {
+                            const pct = parseInt(match[1], 10);
+                            fractionVisualizer = (
+                               <div className="flex justify-center my-4 scale-[0.8] origin-top">
+                                  <PieChartVisualizer pctA={100 - pct} pctB={0} pctC={pct} categorias={['Resto', '', 'Interés']} color={moduleColor} interactive={false} />
+                               </div>
+                            );
+                         }
+                      }
+                      
+                      return (
+                        <div key={idx} className="f4-example-box" style={{ borderLeftColor: moduleColor }}>
+                          {fractionVisualizer}
+                          <div className="f4-ex-q" dangerouslySetInnerHTML={{ __html: ex.enunciado }} />
+                          {ex.pasos ? (
+                            <div className="f4-ex-steps">
+                              {ex.pasos.map((paso: any) => (
+                                <div key={paso.orden} className="f4-ex-step">
+                                  <span className="f4-ex-step-num" style={{ color: moduleColor, backgroundColor: `${moduleColor}12` }}>{paso.orden}</span>
+                                  <span className="f4-ex-step-text" dangerouslySetInnerHTML={{ __html: paso.texto }} />
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                             <div className="f4-ex-legacy">Respuesta → <span style={{ color: moduleColor, fontWeight: 800 }} dangerouslySetInnerHTML={{ __html: ex.respuesta }} /></div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="f4-reading-p text-center opacity-70">

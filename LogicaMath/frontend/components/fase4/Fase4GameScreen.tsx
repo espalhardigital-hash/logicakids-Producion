@@ -622,7 +622,7 @@ export const Fase4GameScreen: React.FC = () => {
       return;
     }
 
-    if (feedback.esCorrecta) {
+    if (feedback.esCorrecta || isChallenge) {
       loadNextQuestion();
     } else {
       if (feedback.resultado?.es_espejo) {
@@ -632,7 +632,7 @@ export const Fase4GameScreen: React.FC = () => {
         setRespuestaDen('');
       }
     }
-  }, [feedback, navigate]);
+  }, [feedback, navigate, isChallenge, loadNextQuestion]);
 
   const handleSubmit = useCallback(async (customAnswer?: string) => {
     if (!pregunta) return;
@@ -646,7 +646,7 @@ export const Fase4GameScreen: React.FC = () => {
     // Determinar la respuesta a enviar
     let finalAnswer = '';
     
-    const isInteractivePizza = pregunta.datos_numericos?.tipo_visual === 'pizza' && moduloId === 1 && nivelId === 1;
+    const isInteractivePizza = pregunta.datos_numericos?.tipo_visual === 'pizza' && !!pregunta.datos_numericos?.es_interactivo;
     if (isInteractivePizza && customAnswer === undefined) {
       const numVal = respuestaNum.trim();
       const denVal = respuestaDen.trim();
@@ -669,11 +669,20 @@ export const Fase4GameScreen: React.FC = () => {
       finalAnswer = customAnswer;
     }
 
+    let alternativaId: number | undefined = undefined;
+    if (pregunta.tipo_pregunta === 'multiple_opcion' && pregunta.alternativas) {
+      const match = pregunta.alternativas.find(alt => alt.texto === finalAnswer);
+      if (match) {
+        alternativaId = match.id;
+      }
+    }
+
     const payload = {
       modulo_id: moduloId,
       nivel_id: nivelId,
       pregunta_id: pregunta.id,
       respuesta_dada: finalAnswer.trim() || undefined,
+      alternativa_id: alternativaId,
       tiempo_respuesta_segundos: timer ? (pregunta.tiempo_limite_segundos || 0) - timer : 15,
     };
 
@@ -770,7 +779,7 @@ export const Fase4GameScreen: React.FC = () => {
   const barWidth = Math.min(100, (progreso.aciertos / maxAciertos) * 100);
   const isFractionAnswer = (pregunta.respuesta_correcta ?? '').includes('/');
   const showFractionInput = isFractionAnswer || pregunta.datos_numericos?.tipo_visual === 'pizza';
-  const isInteractivePizzaLayout = pregunta.datos_numericos?.tipo_visual === 'pizza' && !!pregunta.datos_numericos?.es_interactivo;
+  const isInteractiveLayout = (pregunta.datos_numericos?.tipo_visual === 'pizza' || pregunta.datos_numericos?.tipo_visual === 'pie') && !!pregunta.datos_numericos?.es_interactivo;
 
   return (
     <div className="f4-screen-wrapper" style={{ ['--module-accent' as any]: moduleColor }}>
@@ -913,9 +922,9 @@ export const Fase4GameScreen: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {isInteractivePizzaLayout ? (
+        {isInteractiveLayout ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full max-w-4xl min-h-[400px]">
-            {/* Left Column: Interactive Pizza Visualizer */}
+            {/* Left Column: Interactive Visualizer */}
             <motion.div 
               animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}} 
               transition={{ duration: 0.4 }}
@@ -931,45 +940,74 @@ export const Fase4GameScreen: React.FC = () => {
                   : 'none'
               }}
             >
-              <PizzaFractionVisualizer
-                slices={pregunta.datos_numericos?.cortes || 8}
-                initialSombreados={pregunta.datos_numericos?.sombreados || []}
-                interactive={true}
-                hideText={true}
-                onChange={(selectedCount) => {
-                  setRespuestaNum(selectedCount.toString());
-                  setRespuestaDen((pregunta.datos_numericos?.cortes || 8).toString());
-                  setInteractiveSelectedCount(selectedCount);
-                }}
-                color={moduleColor}
-              />
+              {pregunta.datos_numericos?.tipo_visual === 'pizza' ? (
+                <>
+                  <PizzaFractionVisualizer
+                    slices={pregunta.datos_numericos?.cortes || 8}
+                    initialSombreados={pregunta.datos_numericos?.sombreados || []}
+                    interactive={true}
+                    hideText={true}
+                    onChange={(selectedCount) => {
+                      setRespuestaNum(selectedCount.toString());
+                      setRespuestaDen((pregunta.datos_numericos?.cortes || 8).toString());
+                      setInteractiveSelectedCount(selectedCount);
+                    }}
+                    color={moduleColor}
+                  />
 
-              {/* Progress Indicator Pill */}
-              <div 
-                className="mt-4 px-6 py-2 bg-slate-950/60 border border-purple-500/20 rounded-full font-sans font-black tracking-widest text-center shadow-lg"
-                style={{ minWidth: '100px' }}
-              >
-                <span style={{ color: moduleColor }} className="text-2xl font-black">
-                  {interactiveSelectedCount}
-                </span>
-                <span className="text-slate-400 text-xl font-bold mx-2">/</span>
-                <span className="text-slate-200 text-2xl font-black">
-                  {pregunta.datos_numericos?.cortes || 8}
-                </span>
-              </div>
+                  {/* Progress Indicator Pill */}
+                  <div 
+                    className="mt-4 px-6 py-2 bg-slate-950/60 border border-purple-500/20 rounded-full font-sans font-black tracking-widest text-center shadow-lg"
+                    style={{ minWidth: '100px' }}
+                  >
+                    <span style={{ color: moduleColor }} className="text-2xl font-black">
+                      {interactiveSelectedCount}
+                    </span>
+                    <span className="text-slate-400 text-xl font-bold mx-2">/</span>
+                    <span className="text-slate-200 text-2xl font-black">
+                      {pregunta.datos_numericos?.cortes || 8}
+                    </span>
+                  </div>
 
-              {/* Description Challenge Label */}
-              <div className="mt-6 text-center">
-                <span className="text-slate-400 text-xs font-black tracking-[0.2em] block mb-2">
-                  SOMBREA EXACTAMENTE LA FRACCIÓN:
-                </span>
-                <span 
-                  style={{ color: moduleColor, textShadow: `0 0 15px ${moduleColor}60` }} 
-                  className="text-4xl font-sans font-black tracking-wider block"
-                >
-                  {pregunta.respuesta_correcta}
-                </span>
-              </div>
+                  {/* Description Challenge Label */}
+                  <div className="mt-6 text-center">
+                    <span className="text-slate-400 text-xs font-black tracking-[0.2em] block mb-2">
+                      SOMBREA EXACTAMENTE LA FRACCIÓN:
+                    </span>
+                    <span 
+                      style={{ color: moduleColor, textShadow: `0 0 15px ${moduleColor}60` }} 
+                      className="text-4xl font-sans font-black tracking-wider block"
+                    >
+                      {pregunta.respuesta_correcta}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <PieChartVisualizer
+                    pctA={pregunta.datos_numericos?.pct_a || 40}
+                    pctB={pregunta.datos_numericos?.pct_b || 35}
+                    pctC={pregunta.datos_numericos?.pct_c || 25}
+                    categorias={pregunta.datos_numericos?.categorias || ['Rojas', 'Verdes', 'Uvas']}
+                    interactive={true}
+                    onChange={(value) => {
+                      setRespuestaNum(value.toString());
+                    }}
+                    color={moduleColor}
+                  />
+                  <div className="mt-6 text-center">
+                    <span className="text-slate-400 text-xs font-black tracking-[0.2em] block mb-2">
+                      PORCENTAJE SELECCIONADO:
+                    </span>
+                    <span 
+                      style={{ color: moduleColor, textShadow: `0 0 15px ${moduleColor}60` }} 
+                      className="text-4xl font-sans font-black tracking-wider block"
+                    >
+                      {respuestaNum ? `${respuestaNum}%` : '?'}
+                    </span>
+                  </div>
+                </>
+              )}
             </motion.div>
 
             {/* Right Column: Giant Purple Confirmation Button */}
@@ -1173,7 +1211,11 @@ export const Fase4GameScreen: React.FC = () => {
             }`}
           >
             <h4 className="text-3xl font-black mb-3">
-              {feedback.esCorrecta ? '¡Excelente trabajo! 🎉' : 'Vuelve a intentarlo ↺'}
+              {feedback.esCorrecta 
+                ? '¡Excelente trabajo! 🎉' 
+                : isChallenge 
+                  ? 'Respuesta incorrecta ➔' 
+                  : 'Vuelve a intentarlo ↺'}
             </h4>
             <p className="text-lg text-slate-300 max-w-xl mb-6">
               {feedback.resultado?.feedback_tutor}
