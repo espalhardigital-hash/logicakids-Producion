@@ -788,7 +788,11 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
                 ans = total // 10
                 feedback = f"El 10% representa una décima parte. Dividimos {total} entre 10: {ans}."
             enunciado = f"{prefix}Halla rápidamente el {pct}% de {total} tazas de café."
-            vals = {"total": total, "pct": pct}
+            vals = {
+                "tipo_visual": "percentage_thermometer",
+                "total": total,
+                "pct": pct
+            }
         elif nivel_id == 2: # Gráficos circulares
             pct_a = rng.choice([25, 30, 40, 50])
             pct_b = rng.choice([10, 20, 30])

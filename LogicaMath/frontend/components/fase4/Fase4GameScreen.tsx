@@ -5,6 +5,7 @@ import { Fase4Pregunta, Fase4AnswerResult, Fase4Lectura } from './Fase4Types';
 import { PizzaFractionVisualizer } from './PizzaFractionVisualizer';
 import { ThermometerVisualizer } from './ThermometerVisualizer';
 import { PieChartVisualizer } from './PieChartVisualizer';
+import { PercentageThermometer } from './PercentageThermometer';
 import { Fase4TheoryModal } from './Fase4TheoryModal';
 import { CustomKeyboard } from '../common/CustomKeyboard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -967,6 +968,12 @@ export const Fase4GameScreen: React.FC = () => {
                   setRespuestaNum(value.toString());
                 }}
                 color={moduleColor}
+              />
+            ) : pregunta.datos_numericos?.tipo_visual === 'percentage_thermometer' ? (
+              <PercentageThermometer
+                inputValue={respuestaNum}
+                total={pregunta.datos_numericos?.total || 100}
+                color="#EF4444"
               />
             ) : (
               <div className="text-center font-display text-4xl font-black text-white p-4">

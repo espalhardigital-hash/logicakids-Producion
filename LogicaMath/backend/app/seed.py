@@ -28,7 +28,7 @@ SEED_VERSIONS = {
     "fase_1": "1.0",
     "fase_2": "20260527_v1",
     "fase_3": "20260527_v2",
-    "fase_4": "20260529_v2"
+    "fase_4": "20260529_v3"
 }
 
 PEDAGOGY_CONFIG_KEY = "pedagogy_config"
