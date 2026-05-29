@@ -35,3 +35,23 @@ def normalize_response(val: str, is_money: bool = False) -> str:
             pass
     
     return cleaned.replace(",", ".")
+
+
+def calcular_max_errores(cantidad_req: int, porc_aprobacion: int) -> int:
+    """
+    Calcula dinámicamente el número máximo de errores permitidos en un desafío
+    antes de que sea matemáticamente imposible aprobar.
+    """
+    if cantidad_req <= 0:
+        return 1
+    
+    min_aciertos_req = cantidad_req
+    for c in range(cantidad_req + 1):
+        if int((c / cantidad_req) * 100) >= porc_aprobacion:
+            min_aciertos_req = c
+            break
+            
+    # Si comete (cantidad_req - min_aciertos_req + 1) errores, lo máximo que puede
+    # obtener de aciertos es (min_aciertos_req - 1), haciendo imposible aprobar.
+    return cantidad_req - min_aciertos_req + 1
+

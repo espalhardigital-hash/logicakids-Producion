@@ -32,7 +32,7 @@ from ..models.sql_models import (
     OperacionEnum, TipoPreguntaEnum, TipoErrorEnum,
     PlatformSettings, User,
 )
-from ..utils.math_utils import normalize_response
+from ..utils.math_utils import normalize_response, calcular_max_errores
 from .models import NivelTeoria, IntentoPregunta, IntentoPaso
 from .schemas import (
     Fase2Dashboard, Fase2ModuloInfo, Fase2NivelInfo,
@@ -375,17 +375,22 @@ async def get_fase2_dashboard(
                     estado = "bloqueado"
                 else:
                     estado = "en_progreso" if _is_desafio_unlocked(progresos, mod_id, des_id, all_practice_approved) else "bloqueado"
-
             if config:
                 usa_crono = config.usa_cronometro
                 tiempo_limite = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else d_conf["tiempo_limite"]
+                cantidad_req = config.cantidad_requerida
+                porc_aprobacion = config.porcentaje_aprobacion
             else:
                 usa_crono = des_cfg.get("usa_cronometro", True)
                 tiempo_key = f"tiempo_default_segundos_{des_id}"
                 tiempo_limite = des_cfg.get(tiempo_key, d_conf["tiempo_limite"])
+                cantidad_req = des_cfg.get("cantidad_requerida", 25 if des_id != 13 else 10)
+                porc_aprobacion = des_cfg.get("porcentaje_aprobacion", 90)
 
             if not usa_crono:
                 tiempo_limite = 0
+
+            max_errores_dinamico = calcular_max_errores(cantidad_req, porc_aprobacion)
 
             mod_porcentaje_total += porcentaje
             desafios.append(Fase2DesafioInfo(
@@ -397,9 +402,8 @@ async def get_fase2_dashboard(
                 aciertos=aciertos,
                 requeridos=requeridos,
                 tiempo_limite=tiempo_limite,
-                max_errores=d_conf["max_errores"],
+                max_errores=max_errores_dinamico,
             ))
-
         mod_porcentaje = mod_porcentaje_total // (num_niveles + 3)
         
         if all(n.estado == "dominado" for n in niveles) and all(d.estado == "dominado" for d in desafios):
@@ -763,11 +767,20 @@ async def get_pregunta_fase2(
         if config:
             tiene_crono = config.usa_cronometro
             tiempo_lim = config.tiempo_default_segundos
+            cantidad_req = config.cantidad_requerida
         else:
             global_cfg = await _get_global_config(db)
-            pl_cfg = global_cfg.get("practica_libre", {})
-            tiene_crono = pl_cfg.get("usa_cronometro", False)
-            tiempo_lim = pl_cfg.get("tiempo_default_segundos", 15)
+            if modulo_id == 99 or nivel_id in (11, 12, 13):
+                des_cfg = global_cfg.get("desafios", {})
+                tiene_crono = des_cfg.get("usa_cronometro", True)
+                tiempo_key = f"tiempo_default_segundos_{nivel_id}"
+                tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
+                cantidad_req = des_cfg.get("cantidad_requerida", 20 if nivel_id != 13 else 10)
+            else:
+                pl_cfg = global_cfg.get("practica_libre", {})
+                tiene_crono = pl_cfg.get("usa_cronometro", False)
+                tiempo_lim = pl_cfg.get("tiempo_default_segundos", 15)
+                cantidad_req = pl_cfg.get("cantidad_requerida", 15)
 
         if not tiene_crono:
             tiempo_lim = None
@@ -786,10 +799,8 @@ async def get_pregunta_fase2(
             aciertos_acumulados=progreso.aciertos_acumulados,
             intentos_totales=progreso.intentos_totales,
             porcentaje_actual=progreso.porcentaje_actual,
-        )
-
-
-# ─────────────────────────────────────────────────────────────────────────────
+            cantidad_requerida=cantidad_req,
+        )# ─────────────────────────────────────────────────────────────────────────────
 # ENDPOINT 4 — Responder pregunta (Valida y actualiza progreso)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -973,11 +984,19 @@ async def responder_fase2(
     
     # 3.1 MODO DESAFÍO (11, 12, 13 o Mod 99) -> Salida Temprana (Early Exit)
     if modulo_id == 99 or nivel_id in (11, 12, 13):
-        if modulo_id == 99:
-            max_errores = 3 # 20 preguntas, 90% precisión = 18 aciertos, 3er error aborta
+        if config:
+            cantidad_req = config.cantidad_requerida
+            porc_aprobacion = config.porcentaje_aprobacion
         else:
-            max_errores = 2 if nivel_id == 13 else 3
-        
+            if modulo_id == 99:
+                cantidad_req = 20
+                porc_aprobacion = 90
+            else:
+                cantidad_req = 10 if nivel_id == 13 else 25
+                porc_aprobacion = 90
+
+        max_errores = calcular_max_errores(cantidad_req, porc_aprobacion)
+
         result_att = await db.execute(
             select(Intento)
             .where(and_(

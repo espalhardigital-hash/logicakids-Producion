@@ -20,6 +20,10 @@ export interface Fase3Pregunta {
   alternativas?: Fase3AlternativaOut[];
   datos_numericos?: Record<string, any>;
   explicacion_referencia?: Record<string, any>;
+  aciertos_acumulados?: number;
+  intentos_totales?: number;
+  porcentaje_actual?: number;
+  cantidad_requerida?: number;
 }
 
 export interface Fase3AnswerPayload {

@@ -74,6 +74,8 @@ class Fase2PreguntaParaAlumno(BaseModel):
     aciertos_acumulados: int = 0
     intentos_totales: int = 0
     porcentaje_actual: int = 0
+    cantidad_requerida: Optional[int] = None
+
 
 
 # ============================================================

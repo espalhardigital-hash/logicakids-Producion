@@ -50,6 +50,7 @@ export interface Fase2Pregunta {
   aciertos_acumulados?: number;
   intentos_totales?: number;
   porcentaje_actual?: number;
+  cantidad_requerida?: number;
 }
 
 // ─── Respuesta del alumno ──────────────────────────────────────────────────

@@ -42,7 +42,8 @@ export const Fase3GameScreen: React.FC = () => {
   const nivelId = Number(location.state?.nivelId || '1');
   
   const isChallenge = moduloId === 99 || (nivelId >= 11 && nivelId <= 13);
-  const maxAciertos = isChallenge ? (nivelId === 13 ? 10 : 20) : 15;
+  // maxAciertos is dynamic — comes from the API (cantidad_requerida set by Admin)
+  const [maxAciertos, setMaxAciertos] = useState<number>(isChallenge ? (nivelId === 13 ? 10 : 20) : 15);
   const moduleName = MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
   const moduleColor = MODULE_COLORS[moduloId] ?? '#F97316';
 
@@ -130,6 +131,8 @@ export const Fase3GameScreen: React.FC = () => {
         q.tipo_pregunta = q.tipo_pregunta.toLowerCase() as any;
       }
       setPregunta(q);
+      // Sync dynamic required count from backend
+      if (q.cantidad_requerida) setMaxAciertos(q.cantidad_requerida);
       
       if (q.tiene_cronometro && q.tiempo_limite_segundos) {
         setTimer(q.tiene_cronometro && !showReading ? q.tiempo_limite_segundos : null);

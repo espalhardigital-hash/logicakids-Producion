@@ -39,7 +39,8 @@ export const Fase4GameScreen: React.FC = () => {
   const nivelId = Number(location.state?.nivelId || '1');
   
   const isChallenge = moduloId === 99 || (nivelId >= 11 && nivelId <= 13);
-  const maxAciertos = isChallenge ? (nivelId === 13 ? 10 : 20) : 15;
+  // maxAciertos comes dynamically from the API (set by Admin via ConfiguracionProgreso)
+  const [maxAciertos, setMaxAciertos] = useState<number>(isChallenge ? (nivelId === 13 ? 10 : 20) : 15);
   const moduleName = MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
   const moduleColor = MODULE_COLORS[moduloId] ?? '#A855F7';
 
@@ -128,6 +129,16 @@ export const Fase4GameScreen: React.FC = () => {
     try {
       const q = await getFase4Question(moduloId, nivelId);
       setPregunta(q);
+      // Sync dynamic required count and current progress from backend
+      if (q.cantidad_requerida) setMaxAciertos(q.cantidad_requerida);
+      if (q.aciertos_acumulados !== undefined) {
+        setProgreso(prev => ({
+          ...prev,
+          aciertos: q.aciertos_acumulados!,
+          intentos: q.intentos_totales ?? prev.intentos,
+          porcentaje: q.porcentaje_actual ?? prev.porcentaje,
+        }));
+      }
       
       if (q.tiene_cronometro && q.tiempo_limite_segundos) {
         setTimer(q.tiene_cronometro && !showReading ? q.tiempo_limite_segundos : null);
@@ -331,8 +342,9 @@ export const Fase4GameScreen: React.FC = () => {
   const barWidth = Math.min(100, (progreso.aciertos / maxAciertos) * 100);
   
   // Determinar si la pregunta requiere una entrada en formato fracción (contiene "/")
-  const isFractionAnswer = pregunta.respuesta_correcta.includes('/');
-
+  const isFractionAnswer = (pregunta.respuesta_correcta ?? '').includes('/');
+  // Fallback for interactive pizza — numerator/denominator input always
+  const showFractionInput = isFractionAnswer || pregunta.datos_numericos?.tipo_visual === 'pizza';
   return (
     <div className="f4-screen-wrapper" style={{ ['--module-accent' as any]: moduleColor }}>
       <AnimatePresence>
@@ -420,14 +432,26 @@ export const Fase4GameScreen: React.FC = () => {
               <PizzaFractionVisualizer
                 slices={pregunta.datos_numericos?.cortes || 8}
                 initialSombreados={pregunta.datos_numericos?.sombreados || []}
-                interactive={false}
+                interactive={!!pregunta.datos_numericos?.es_interactivo}
+                onChange={(selectedCount) => {
+                  setRespuestaNum(selectedCount.toString());
+                  setRespuestaDen((pregunta.datos_numericos?.cortes || 8).toString());
+                }}
                 color={moduleColor}
               />
             ) : pregunta.datos_numericos?.tipo_visual === 'thermometer' ? (
               <ThermometerVisualizer
                 divisions={pregunta.datos_numericos?.cortes || 5}
                 initialLevel={pregunta.datos_numericos?.nivel || 0}
-                interactive={false}
+                interactive={!!pregunta.datos_numericos?.es_interactivo}
+                onChange={(selectedLevel) => {
+                  if (isFractionAnswer) {
+                    setRespuestaNum(selectedLevel.toString());
+                    setRespuestaDen((pregunta.datos_numericos?.cortes || 5).toString());
+                  } else {
+                    setRespuestaNum(selectedLevel.toString());
+                  }
+                }}
                 color={moduleColor}
               />
             ) : (
@@ -459,7 +483,7 @@ export const Fase4GameScreen: React.FC = () => {
             ) : (
               <div className="w-full flex flex-col items-center gap-8">
                 {/* Custom inputs */}
-                {isFractionAnswer ? (
+                {showFractionInput ? (
                   <div className="f4-fraction-input-box">
                     <input
                       type="text"
@@ -497,7 +521,7 @@ export const Fase4GameScreen: React.FC = () => {
                   onDelete={handleDelete}
                   onSubmit={() => handleSubmit()}
                   disabled={feedback.visible}
-                  submitDisabled={isFractionAnswer ? (!respuestaNum || !respuestaDen) : !respuestaNum}
+                  submitDisabled={showFractionInput ? (!respuestaNum || !respuestaDen) : !respuestaNum}
                 />
               </div>
             )}

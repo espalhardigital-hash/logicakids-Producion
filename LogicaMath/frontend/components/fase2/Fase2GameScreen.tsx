@@ -658,7 +658,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const isChallenge = useMemo(() => moduloId === 99 || (nivelId >= 11 && nivelId <= 13), [moduloId, nivelId]);
   const moduleName  = useMemo(() => MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`, [moduloId]);
   const moduleColor = useMemo(() => MODULE_COLORS[moduloId] ?? '#10B981', [moduloId]);
-  const maxAciertos = useMemo(() => moduloId === 99 ? 20 : (isChallenge ? (nivelId === 13 ? 10 : 25) : 15), [moduloId, isChallenge, nivelId]);
+  // maxAciertos is dynamic — set by Admin via ConfiguracionProgreso, updated from API response
+  const [maxAciertos, setMaxAciertos] = useState<number>(moduloId === 99 ? 20 : (nivelId >= 11 && nivelId <= 13 ? (nivelId === 13 ? 10 : 25) : 15));
   const barWidth    = useMemo(() => Math.min(100, (progreso.aciertos / maxAciertos) * 100), [progreso.aciertos, maxAciertos]);
 
   // 27: Splash Effect
@@ -712,6 +713,8 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       setShowMirrorModal(false);
       setMirrorPregunta(null);
       setIsMockMode(false);
+      // Sync dynamic required count from backend config
+      if (data.cantidad_requerida) setMaxAciertos(data.cantidad_requerida);
       
       if (isChallenge) {
         const limit = moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);

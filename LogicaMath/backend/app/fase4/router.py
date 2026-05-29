@@ -16,7 +16,7 @@ from ..models.sql_models import (
     OperacionEnum, TipoPreguntaEnum, TipoErrorEnum,
     PlatformSettings, User,
 )
-from ..utils.math_utils import normalize_response
+from ..utils.math_utils import normalize_response, calcular_max_errores
 from ..fase2.models import NivelTeoria
 from ..fase2.schemas import (
     Fase2Dashboard as Fase4Dashboard, Fase2ModuloInfo as Fase4ModuloInfo,
@@ -200,6 +200,15 @@ async def get_dashboard(
     )
     progresos = {p.seccion: p for p in result_prog.scalars().all()}
     
+    # Cargar todas las configuraciones activas de Fase 4
+    result_configs = await db.execute(
+        select(ConfiguracionProgreso).where(and_(
+            ConfiguracionProgreso.fase_id == FASE4_ID,
+            ConfiguracionProgreso.activo == True
+        ))
+    )
+    configs = {c.seccion: c for c in result_configs.scalars().all()}
+    
     # El primer nivel de Fase 4 se autodesbloquea si el alumno está en la Fase 4 o superior, o si es Admin
     fase_actual_ok = alumno.fase_actual_id >= FASE4_ID
     
@@ -299,8 +308,24 @@ async def get_dashboard(
             d_name_map = {11: "Desafío Inicial", 12: "Desafío Intermedio", 13: "Desafío Final"}
             d_diff_map = {11: "estandar", 12: "avanzada", 13: "maestria"}
             d_time_map = {11: 25, 12: 40, 13: 50}
-            d_err_map = {11: 3, 12: 3, 13: 2}
-            
+
+            config_d = configs.get(sec_d)
+            if config_d:
+                usa_crono = config_d.usa_cronometro
+                tiempo_limite = config_d.tiempo_default_segundos if (config_d.tiempo_default_segundos is not None and config_d.tiempo_default_segundos > 0) else d_time_map[d_id]
+                cantidad_req = config_d.cantidad_requerida
+                porc_aprobacion = config_d.porcentaje_aprobacion
+            else:
+                usa_crono = True
+                tiempo_limite = d_time_map[d_id]
+                cantidad_req = 10 if d_id == 13 else 20
+                porc_aprobacion = 90
+
+            if not usa_crono:
+                tiempo_limite = 0
+
+            max_errores_dinamico = calcular_max_errores(cantidad_req, porc_aprobacion)
+
             desafios_list.append(Fase4DesafioInfo(
                 desafio_id=d_id,
                 nombre=d_name_map[d_id],
@@ -308,8 +333,8 @@ async def get_dashboard(
                 aciertos=aciertos_d,
                 porcentaje=porcentaje_d,
                 dificultad=d_diff_map[d_id],
-                tiempo_limite=d_time_map[d_id],
-                max_errores=d_err_map[d_id]
+                tiempo_limite=tiempo_limite,
+                max_errores=max_errores_dinamico,
             ))
             
         m_status = "bloqueado"
@@ -496,7 +521,8 @@ async def get_pregunta(
         datos_numericos=pregunta_act.datos_numericos,
         aciertos_acumulados=progreso.aciertos_acumulados,
         intentos_totales=progreso.intentos_totales,
-        porcentaje_actual=progreso.porcentaje_actual
+        porcentaje_actual=progreso.porcentaje_actual,
+        cantidad_requerida=config.cantidad_requerida if config else 15
     )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -654,9 +680,16 @@ async def responder_pregunta(
             )
             errores_sesion = result_errors.scalar()
             
-            # Límites de salida temprana: D11=3, D12=3, D13=2
-            desafio_id = seccion % 1000
-            max_errores_desafio = 2 if desafio_id == 13 else 3
+            # Límites de salida temprana dinámicos para evitar conflictos con el Administrador
+            if config:
+                cantidad_req = config.cantidad_requerida
+                porc_aprobacion = config.porcentaje_aprobacion
+            else:
+                desafio_id = seccion % 1000
+                cantidad_req = 10 if desafio_id == 13 else 20
+                porc_aprobacion = 90
+
+            max_errores_desafio = calcular_max_errores(cantidad_req, porc_aprobacion)
             
             if errores_sesion >= max_errores_desafio:
                 # Expulsión y reinicio de progreso
@@ -843,8 +876,10 @@ async def cerrar_rescate(
                     
                     # Aumentar aciertos del alumno para mantener avance lineal
                     progreso = await _get_progreso(db, alumno.id, seccion, operacion)
+                    config_rescate = await _get_config(db, seccion, operacion)
+                    cantidad_req_rescate = config_rescate.cantidad_requerida if config_rescate else 15
                     progreso.aciertos_acumulados += 1
-                    progreso.porcentaje_actual = int((progreso.aciertos_acumulados / 15) * 100)
+                    progreso.porcentaje_actual = int((progreso.aciertos_acumulados / cantidad_req_rescate) * 100)
                     
                     await db.commit()
                     

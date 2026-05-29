@@ -689,9 +689,26 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
             den = rng.choice([3, 4, 5, 6, 8, 10])
             num = rng.randint(1, den - 1)
             ans = f"{num}/{den}"
-            enunciado = f"{prefix}Identifica qué fracción representa la parte pintada de la pizza en la ilustración."
-            feedback = f"Cuenta los trozos sombreados para el numerador ({num}) y los trozos totales para el denominador ({den})."
-            vals = {"tipo_visual": "pizza", "cortes": den, "sombreados": list(range(num))}
+            
+            # 50% interactivas en familias pares, estáticas en impares
+            if fam % 2 == 0:
+                enunciado = f"{prefix}Colorea la pizza para formar la fracción {num}/{den}."
+                feedback = f"Haz clic sobre los trozos de la pizza hasta colorear exactamente {num} de los {den} sectores totales."
+                vals = {
+                    "tipo_visual": "pizza",
+                    "cortes": den,
+                    "sombreados": [],
+                    "es_interactivo": True
+                }
+            else:
+                enunciado = f"{prefix}Identifica qué fracción representa la parte pintada de la pizza en la ilustración."
+                feedback = f"Cuenta los trozos sombreados para el numerador ({num}) y los trozos totales para el denominador ({den})."
+                vals = {
+                    "tipo_visual": "pizza",
+                    "cortes": den,
+                    "sombreados": list(range(num)),
+                    "es_interactivo": False
+                }
         elif nivel_id == 2: # Equivalencias
             den_base = rng.choice([2, 3, 4, 5])
             num_base = rng.randint(1, den_base - 1)
@@ -701,7 +718,15 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
             ans = f"{num}/{den}"
             enunciado = f"{prefix}Si amplificas la fracción {num_base}/{den_base} multiplicando tanto el numerador como el denominador por {factor}, ¿cuál es la nueva fracción?"
             feedback = f"Multiplica el de arriba ({num_base} × {factor} = {num}) y el de abajo ({den_base} × {factor} = {den})."
-            vals = {"num_base": num_base, "den_base": den_base, "factor": factor}
+            vals = {
+                "tipo_visual": "pizza",
+                "cortes": den_base,
+                "sombreados": list(range(num_base)),
+                "es_interactivo": False,
+                "num_base": num_base,
+                "den_base": den_base,
+                "factor": factor
+            }
         else: # Asimetría
             ans = "no"
             enunciado = f"{prefix}Un cuadrado está cortado en 4 secciones. Si 2 de ellas son rectángulos gigantes y las otras son cuadrangulares pequeños, ¿representa cada sección exactamente 1/4?"
@@ -736,7 +761,16 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
             ans = comp_num * mult
             enunciado = f"{prefix}Tenías {total} tazos. Regalaste {num}/{den} del total. ¿Cuántos tazos te QUEDAN?"
             feedback = f"Si regalaste {num}/{den}, te quedan {comp_num}/{den} del total. Calculamos {comp_num}/{den} de {total} = ({total} ÷ {den}) × {comp_num} = {ans}."
-            vals = {"total": total, "num": num, "den": den, "comp_num": comp_num}
+            vals = {
+                "tipo_visual": "thermometer",
+                "cortes": den,
+                "nivel": comp_num,
+                "es_interactivo": False,
+                "total": total,
+                "num": num,
+                "den": den,
+                "comp_num": comp_num
+            }
 
     # ── MÓDULO 3: Porcentajes Rápidos y Promedios ────────────────────────────
     elif modulo_id == 3:
@@ -795,20 +829,64 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
             azul = rng.randint(1, 3)
             amarillo = rng.randint(2, 4)
             receta_total = azul + amarillo
-            factor = rng.randint(3, 8)
+            factor = rng.randint(3, 6) # Max 6 para evitar demasiados niveles
             pedido = receta_total * factor
             ans = azul * factor
-            enunciado = f"{prefix}Una pintura mezcla {azul} litros de azul con {amarillo} litros de amarillo (haciendo {receta_total} litros de verde). Para preparar {pedido} litros de verde, ¿cuántos litros de azul necesitas?"
-            feedback = f"Divide el pedido total ({pedido}) entre la receta base ({receta_total}) para hallar el lote: {pedido} ÷ {receta_total} = {factor} veces. Multiplica el azul: {azul} × {factor} = {ans}."
-            vals = {"azul": azul, "amarillo": amarillo, "pedido": pedido}
+            
+            if fam % 2 == 0:
+                enunciado = f"{prefix}Una pintura mezcla {azul}L de azul con {amarillo}L de amarillo. Representa la cantidad de litros de azul requeridos para preparar {pedido}L de mezcla interactuando con la probeta."
+                feedback = f"Primero divide el pedido total ({pedido}) entre la receta base ({receta_total}) para hallar el lote ({pedido} ÷ {receta_total} = {factor}). Luego, multiplica las partes de azul por {factor} ({azul} × {factor} = {ans}) e interactúa con el medidor."
+                vals = {
+                    "tipo_visual": "thermometer",
+                    "cortes": azul * factor + amarillo * factor,
+                    "nivel": 0,
+                    "es_interactivo": True,
+                    "azul": azul,
+                    "amarillo": amarillo,
+                    "pedido": pedido
+                }
+            else:
+                enunciado = f"{prefix}Una pintura mezcla {azul} litros de azul con {amarillo} litros de amarillo (haciendo {receta_total} litros de verde). Para preparar {pedido} litros de verde, ¿cuántos litros de azul necesitas?"
+                feedback = f"Divide el pedido total ({pedido}) entre la receta base ({receta_total}) para hallar el lote: {pedido} ÷ {receta_total} = {factor} veces. Multiplica el azul: {azul} × {factor} = {ans}."
+                vals = {
+                    "tipo_visual": "thermometer",
+                    "cortes": azul * factor + amarillo * factor,
+                    "nivel": azul * factor,
+                    "es_interactivo": False,
+                    "azul": azul,
+                    "amarillo": amarillo,
+                    "pedido": pedido
+                }
         else: # Mezclas complejas
             ess = 1
             alc = rng.choice([3, 4, 9])
             total = ess + alc
             ans = (ess * 100) // total
-            enunciado = f"{prefix}Una colonia se hace mezclando {ess} parte de esencia por {alc} partes de alcohol (haciendo {total} partes en total). ¿Qué porcentaje representa la esencia en la colonia?"
-            feedback = f"La fracción de esencia es 1 de {total} partes totales (1/{total}). Multiplicamos por 100 para hallar el porcentaje: 100 ÷ {total} = {ans}%."
-            vals = {"ess": ess, "alc": alc, "total": total}
+            
+            if fam % 2 == 0:
+                enunciado = f"{prefix}Una colonia mezcla {ess} parte de esencia con {alc} partes de alcohol. Representa las partes de esencia interactuando con la probeta y escribe qué porcentaje representa del volumen total."
+                feedback = f"La esencia representa 1 de un total de {total} partes (1/{total}). Haz clic en el primer nivel de la probeta para representarlo, e introduce el porcentaje correspondiente: 100 ÷ {total} = {ans}%."
+                vals = {
+                    "tipo_visual": "thermometer",
+                    "cortes": total,
+                    "nivel": 0,
+                    "es_interactivo": True,
+                    "ess": ess,
+                    "alc": alc,
+                    "total": total
+                }
+            else:
+                enunciado = f"{prefix}Una colonia se hace mezclando {ess} parte de esencia por {alc} partes de alcohol (haciendo {total} partes en total). ¿Qué porcentaje representa la esencia en la colonia?"
+                feedback = f"La fracción de esencia es 1 de {total} partes totales (1/{total}). Multiplicamos por 100 para hallar el porcentaje: 100 ÷ {total} = {ans}%."
+                vals = {
+                    "tipo_visual": "thermometer",
+                    "cortes": total,
+                    "nivel": ess,
+                    "es_interactivo": False,
+                    "ess": ess,
+                    "alc": alc,
+                    "total": total
+                }
 
     explicacion_html = (
         f"Recuerda seguir el orden pedagógico del Tutor Invisible:<br>"
@@ -840,6 +918,12 @@ async def seed_preguntas_practica(session: AsyncSession):
                 for var in range(4):
                     q_data = generate_practice_question_fase4(modulo_id, nivel_id, fam, var)
                     
+                    datos_numericos = {
+                        "es_espejo": var > 0,
+                        "variante": var,
+                        **q_data.get("valores", {})
+                    }
+                    
                     pregunta = Pregunta(
                         fase_id=FASE4_ID,
                         seccion=seccion,
@@ -848,11 +932,7 @@ async def seed_preguntas_practica(session: AsyncSession):
                         enunciado=q_data["enunciado"],
                         respuesta_correcta=q_data["respuesta_correcta"],
                         estructura_padre_id=padre_id,
-                        datos_numericos={
-                            "es_espejo": var > 0,
-                            "variante": var,
-                            "valores": q_data["valores"]
-                        },
+                        datos_numericos=datos_numericos,
                         explicacion_paso_a_paso={
                             "html": q_data["explicacion_profunda"]
                         },
@@ -872,11 +952,13 @@ def generate_challenge_question_fase4(modulo_id: int, desafio_id: int, idx: int)
     # Múltiple opción para Desafíos 11 y 12. Evocación pura para 13.
     tipo = TipoPreguntaEnum.MULTIPLE_OPCION if desafio_id in (11, 12) else TipoPreguntaEnum.RESPUESTA_NUMERICA
     
+    vals = {}
     if modulo_id == 1:
         den = rng.choice([4, 5, 8, 10])
         num = rng.randint(1, den - 1)
         ans = f"{num}/{den}"
         enunciado = f"Un azulejo cuadrado está dividido en {den} tiras del mismo tamaño y {num} de ellas son de color morado. ¿Qué fracción representa el morado?"
+        vals = {"tipo_visual": "pizza", "cortes": den, "sombreados": list(range(num)), "es_interactivo": False}
     elif modulo_id == 2:
         den = rng.choice([3, 4, 5, 8])
         num = rng.randint(1, den - 1)
@@ -884,6 +966,7 @@ def generate_challenge_question_fase4(modulo_id: int, desafio_id: int, idx: int)
         total = den * mult
         ans = str(num * mult)
         enunciado = f"En una caja de herramientas con {total} tornillos, se usaron exactamente {num}/{den} del total. ¿Cuántos tornillos se utilizaron?"
+        vals = {"total": total, "num": num, "den": den}
     elif modulo_id == 3:
         if idx % 2 == 0:
             pct = rng.choice([50, 25, 10])
@@ -891,6 +974,7 @@ def generate_challenge_question_fase4(modulo_id: int, desafio_id: int, idx: int)
             total = total * rng.randint(1, 3)
             ans = str(total // 2 if pct == 50 else total // 4 if pct == 25 else total // 10)
             enunciado = f"Un informe reporta que el {pct}% de los {total} encuestados votó a favor. ¿Cuántas personas votaron a favor?"
+            vals = {"total": total, "pct": pct}
         else:
             a = rng.randint(3, 15)
             b = rng.randint(2, 12)
@@ -899,15 +983,18 @@ def generate_challenge_question_fase4(modulo_id: int, desafio_id: int, idx: int)
                 c = rng.randint(1, 10)
             ans = str((a + b + c) // 3)
             enunciado = f"Las notas de tres exámenes de Sofía son {a}, {b} y {c}. ¿Cuál es la nota promedio de Sofía?"
+            vals = {"a": a, "b": b, "c": c}
     else: # Módulo 4
         agua = rng.randint(2, 5)
         factor = rng.choice([2, 3, 4])
         ans = str(agua * factor)
         enunciado = f"Un perfume requiere {agua} partes de solvente por 1 parte de fragancia. Si se elabora un frasco usando {factor} partes de fragancia, ¿cuánto solvente lleva para mantener la razón?"
+        vals = {"tipo_visual": "thermometer", "cortes": agua * factor + factor, "nivel": agua * factor, "es_interactivo": False}
         
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
+        "valores": vals,
         "tipo_pregunta": tipo,
         "operacion": "mixta"
     }
@@ -923,6 +1010,12 @@ async def seed_preguntas_desafios(session: AsyncSession):
             for idx in range(1, 31):
                 q_data = generate_challenge_question_fase4(modulo_id, desafio_id, idx)
                 
+                datos_numericos = {
+                    "es_desafio": True,
+                    "indice": idx,
+                    **q_data.get("valores", {})
+                }
+                
                 pregunta = Pregunta(
                     fase_id=FASE4_ID,
                     seccion=seccion,
@@ -931,7 +1024,7 @@ async def seed_preguntas_desafios(session: AsyncSession):
                     enunciado=q_data["enunciado"],
                     respuesta_correcta=q_data["respuesta_correcta"],
                     estructura_padre_id=f"f4_m{modulo_id}_d{desafio_id}_q_{idx:03d}",
-                    datos_numericos={"es_desafio": True, "indice": idx},
+                    datos_numericos=datos_numericos,
                     explicacion_paso_a_paso={
                         "html": f"<b>Resolución de Desafío:</b> La respuesta correcta es {q_data['respuesta_correcta']}."
                     },

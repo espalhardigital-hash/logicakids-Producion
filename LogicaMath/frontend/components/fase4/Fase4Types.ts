@@ -23,6 +23,11 @@ export interface Fase4Pregunta {
     nivel?: number;
     [key: string]: any;
   };
+  respuesta_correcta?: string;
+  aciertos_acumulados?: number;
+  intentos_totales?: number;
+  porcentaje_actual?: number;
+  cantidad_requerida?: number;
 }
 
 export interface Fase4AnswerPayload {
