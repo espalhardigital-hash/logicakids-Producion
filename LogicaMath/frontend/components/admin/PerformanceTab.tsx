@@ -14,13 +14,21 @@ import { PHASE_MAPS, LevelMap } from './phaseMaps';
 // ─── Helper: compute aggregate status from a list of level records ─────────────
 type ProgressState = 'APROBADO' | 'EN_PROGRESO' | 'BLOQUEADO';
 
+const normalizeState = (raw: string | undefined | null): ProgressState => {
+  if (!raw) return 'BLOQUEADO';
+  const upper = raw.toUpperCase().replace(' ', '_');
+  if (upper === 'APROBADO') return 'APROBADO';
+  if (upper === 'EN_PROGRESO') return 'EN_PROGRESO';
+  return 'BLOQUEADO';
+};
+
 function computeAggregateStatus(levels: LevelMap[], alumnoProgress: any[]): ProgressState {
   if (levels.length === 0) return 'BLOQUEADO';
   const states = levels.map((lvl) => {
     const prog = alumnoProgress.find(
-      (p) => p.fase_id === /* resolved by caller */ 0 && p.seccion === lvl.seccion && p.operacion === lvl.operacion
+      (p) => p.fase_id === 0 && p.seccion === lvl.seccion && p.operacion === lvl.operacion
     );
-    return prog ? (prog.estado as ProgressState) : 'BLOQUEADO';
+    return prog ? normalizeState(prog.estado) : 'BLOQUEADO';
   });
   if (states.every((s) => s === 'APROBADO')) return 'APROBADO';
   if (states.every((s) => s === 'BLOQUEADO')) return 'BLOQUEADO';
@@ -33,7 +41,7 @@ function computeAggregateStatusForPhase(faseId: number, levels: LevelMap[], alum
     const prog = alumnoProgress.find(
       (p) => p.fase_id === faseId && p.seccion === lvl.seccion && p.operacion === lvl.operacion
     );
-    return prog ? (prog.estado as ProgressState) : 'BLOQUEADO';
+    return prog ? normalizeState(prog.estado) : 'BLOQUEADO';
   });
   if (states.every((s) => s === 'APROBADO')) return 'APROBADO';
   if (states.every((s) => s === 'BLOQUEADO')) return 'BLOQUEADO';
@@ -41,13 +49,15 @@ function computeAggregateStatusForPhase(faseId: number, levels: LevelMap[], alum
 }
 
 // ─── Small Status Badge ────────────────────────────────────────────────────────
-const StatusBadge: React.FC<{ status: ProgressState; size?: 'sm' | 'xs' }> = ({ status, size = 'xs' }) => {
+const StatusBadge: React.FC<{ status: string; size?: 'sm' | 'xs' }> = ({ status, size = 'xs' }) => {
+  const normalized = normalizeState(status);
   const configs = {
     APROBADO: { icon: CheckCircle2, text: 'APROBADO', cls: 'bg-green-500/20 text-green-400 border-green-500/30' },
     EN_PROGRESO: { icon: CircleDot, text: 'EN PROGRESO', cls: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
     BLOQUEADO: { icon: Circle, text: 'BLOQUEADO', cls: 'bg-slate-800 text-slate-500 border-white/5' },
   };
-  const { icon: Icon, text, cls } = configs[status];
+  const config = configs[normalized] || configs.BLOQUEADO;
+  const { icon: Icon, text, cls } = config;
   const textSize = size === 'sm' ? 'text-[11px]' : 'text-[10px]';
   return (
     <span className={`${textSize} font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${cls}`}>
@@ -104,7 +114,12 @@ const BulkActionButtons: React.FC<BulkActionButtonsProps> = ({
 };
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-const PerformanceTab: React.FC = () => {
+interface PerformanceTabProps {
+  showConfirm?: (title: string, message: string, onConfirm: () => void) => void;
+  showAlert?: (title: string, message: string, type?: 'info' | 'success' | 'error') => void;
+}
+
+const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert }) => {
   // Search & Alumnos states
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingSearch, setLoadingSearch] = useState(false);
@@ -180,7 +195,11 @@ const PerformanceTab: React.FC = () => {
       await fetchProgress(selectedAlumno.alumno_id);
     } catch (e) {
       console.error(e);
-      alert('Error al aplicar la acción.');
+      if (showAlert) {
+        showAlert('Error', 'Error al aplicar la acción sobre el nivel.', 'error');
+      } else {
+        alert('Error al aplicar la acción.');
+      }
     } finally {
       setActionInProgress(null);
     }
@@ -202,7 +221,11 @@ const PerformanceTab: React.FC = () => {
       await fetchProgress(selectedAlumno.alumno_id);
     } catch (e) {
       console.error(e);
-      alert('Error al aplicar la acción en bloque.');
+      if (showAlert) {
+        showAlert('Error', 'Error al aplicar la acción en bloque sobre el módulo.', 'error');
+      } else {
+        alert('Error al aplicar la acción en bloque.');
+      }
     } finally {
       setActionInProgress(null);
     }
@@ -224,7 +247,11 @@ const PerformanceTab: React.FC = () => {
       await fetchProgress(selectedAlumno.alumno_id);
     } catch (e) {
       console.error(e);
-      alert('Error al aplicar la acción de fase.');
+      if (showAlert) {
+        showAlert('Error', 'Error al aplicar la acción masiva sobre la fase.', 'error');
+      } else {
+        alert('Error al aplicar la acción de fase.');
+      }
     } finally {
       setActionInProgress(null);
     }
@@ -423,7 +450,7 @@ const PerformanceTab: React.FC = () => {
                                           const prog = alumnoProgress.find(
                                             (p) => p.fase_id === phase.id && p.seccion === lvl.seccion && p.operacion === lvl.operacion
                                           );
-                                          const state: ProgressState = prog ? prog.estado : 'BLOQUEADO';
+                                          const state = normalizeState(prog ? prog.estado : 'BLOQUEADO');
                                           const pct = prog ? prog.porcentaje_actual : 0;
                                           const isApprovedByAdmin = prog ? prog.aprobado_por_admin : false;
                                           const actionKey = `level-${phase.id}-${lvl.seccion}-${lvl.operacion}`;

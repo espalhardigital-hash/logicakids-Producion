@@ -68,16 +68,31 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
             bloque_activo = next((p for p in progresos if p.estado != EstadoProgresoEnum.APROBADO), None)
             
             if bloque_activo:
-                # Obtener la configuración de este bloque
+                # Obtener la configuración de este bloque (específica e activa)
                 result = await db.execute(
                     select(ConfiguracionProgreso)
                     .where(and_(
                         ConfiguracionProgreso.fase_id == fase.id,
                         ConfiguracionProgreso.seccion == bloque_activo.seccion,
-                        ConfiguracionProgreso.operacion == bloque_activo.operacion
+                        ConfiguracionProgreso.operacion == bloque_activo.operacion,
+                        ConfiguracionProgreso.activo == True
                     ))
                 )
                 config = result.scalar_one_or_none()
+                
+                # Fallback a la configuración por defecto de la fase
+                if not config:
+                    result_phase = await db.execute(
+                        select(ConfiguracionProgreso)
+                        .where(and_(
+                            ConfiguracionProgreso.fase_id == fase.id,
+                            ConfiguracionProgreso.seccion == 0,
+                            ConfiguracionProgreso.operacion == "mixta",
+                            ConfiguracionProgreso.activo == True
+                        ))
+                    )
+                    config = result_phase.scalar_one_or_none()
+                    
                 if config:
                     configuracion_bloque = ConfiguracionProgresoResponse.model_validate(config)
                     
@@ -158,17 +173,54 @@ async def responder_pregunta(
     if not pregunta:
         raise HTTPException(status_code=404, detail="Pregunta no encontrada")
 
-    # 2. Obtener configuración del bloque
+    # 2. Obtener configuración del bloque (específica y activa)
     result = await db.execute(
         select(ConfiguracionProgreso).where(and_(
             ConfiguracionProgreso.fase_id == pregunta.fase_id,
             ConfiguracionProgreso.seccion == pregunta.seccion,
-            ConfiguracionProgreso.operacion == pregunta.operacion
+            ConfiguracionProgreso.operacion == pregunta.operacion,
+            ConfiguracionProgreso.activo == True
         ))
     )
     config = result.scalar_one_or_none()
+    
+    # Fallback a la configuración por defecto de la fase
     if not config:
-        raise HTTPException(status_code=500, detail="Configuración no encontrada para este bloque")
+        result_phase = await db.execute(
+            select(ConfiguracionProgreso).where(and_(
+                ConfiguracionProgreso.fase_id == pregunta.fase_id,
+                ConfiguracionProgreso.seccion == 0,
+                ConfiguracionProgreso.operacion == "mixta",
+                ConfiguracionProgreso.activo == True
+            ))
+        )
+        config = result_phase.scalar_one_or_none()
+        
+    # Fallback final dinámico si no existe configuración en absoluto (evita 500)
+    if not config:
+        from ..models.sql_models import PlatformSettings
+        result_settings = await db.execute(
+            select(PlatformSettings).where(PlatformSettings.key == "pedagogy_config")
+        )
+        settings = result_settings.scalar_one_or_none()
+        global_cfg = settings.value if settings else {
+            "practica_libre": {"cantidad_requerida": 15, "porcentaje_aprobacion": 80, "usa_cronometro": False, "tiempo_default_segundos": 15, "tipo_feedback": "simple"},
+            "desafios": {"cantidad_requerida": 20, "porcentaje_aprobacion": 90, "usa_cronometro": True, "tiempo_default_segundos_11": 25, "tiempo_default_segundos_12": 40, "tiempo_default_segundos_13": 50, "tipo_feedback": "simple"}
+        }
+        
+        is_challenge = pregunta.seccion >= 1000
+        sec_cfg = global_cfg.get("desafios" if is_challenge else "practica_libre", {})
+        
+        config = ConfiguracionProgreso(
+            fase_id=pregunta.fase_id,
+            seccion=pregunta.seccion,
+            operacion=pregunta.operacion,
+            cantidad_requerida=sec_cfg.get("cantidad_requerida", 15),
+            porcentaje_aprobacion=sec_cfg.get("porcentaje_aprobacion", 80),
+            usa_cronometro=sec_cfg.get("usa_cronometro", False),
+            tiempo_default_segundos=sec_cfg.get("tiempo_default_segundos", 15),
+            tipo_feedback=sec_cfg.get("tipo_feedback", "simple")
+        )
 
     # 3. Evaluar respuesta
     es_correcta = False

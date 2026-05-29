@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
   onBack: () => void;
+  showConfirm?: (title: string, message: string, onConfirm: () => void) => void;
+  showAlert?: (title: string, message: string, type?: 'info' | 'success' | 'error') => void;
 }
 
 const formatFriendlyDate = (dateStr: string, includeTime: boolean = true) => {
@@ -43,7 +45,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
 
-const GeneralTab: React.FC<Props> = ({ onBack }) => {
+const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [filter, setFilter] = useState('');
 
@@ -123,9 +125,18 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('¿Estás seguro de eliminar este usuario permanentemente?')) {
+    const performDelete = async () => {
       await deleteUser(id);
       loadData();
+    };
+    if (showConfirm) {
+      showConfirm(
+        'Confirmar Eliminación',
+        '¿Estás seguro de eliminar este usuario permanentemente? Esta acción no se puede deshacer.',
+        performDelete
+      );
+    } else if (window.confirm('¿Estás seguro de eliminar este usuario permanentemente?')) {
+      performDelete();
     }
   };
 
@@ -147,7 +158,11 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
         role: formData.role
       });
       if (!result.success) {
-        alert(result.message || 'Error al crear usuario');
+        if (showAlert) {
+          showAlert('Error de Creación', result.message || 'Error al crear usuario', 'error');
+        } else {
+          alert(result.message || 'Error al crear usuario');
+        }
         return;
       }
     }
@@ -168,10 +183,18 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
 
     const result = await adminChangePassword(passwordUserId, newPassword);
     if (result.success) {
-      alert('Contraseña actualizada correctamente');
+      if (showAlert) {
+        showAlert('Contraseña Actualizada', 'La contraseña ha sido actualizada correctamente.', 'success');
+      } else {
+        alert('Contraseña actualizada correctamente');
+      }
       setShowPasswordModal(false);
     } else {
-      alert(result.message || 'Error al cambiar contraseña');
+      if (showAlert) {
+        showAlert('Error', result.message || 'Error al cambiar contraseña', 'error');
+      } else {
+        alert(result.message || 'Error al cambiar contraseña');
+      }
     }
   };
 
@@ -618,9 +641,18 @@ const GeneralTab: React.FC<Props> = ({ onBack }) => {
                           <td className="p-6 text-center">
                             <button 
                               onClick={async () => {
-                                if (confirm('¿Eliminar esta puntuación permanentemente?')) {
+                                const performDeleteScore = async () => {
                                   await deleteScoreById(record.id);
                                   loadData();
+                                };
+                                if (showConfirm) {
+                                  showConfirm(
+                                    'Eliminar Puntuación',
+                                    '¿Estás seguro de eliminar esta puntuación permanentemente?',
+                                    performDeleteScore
+                                  );
+                                } else if (window.confirm('¿Eliminar esta puntuación permanentemente?')) {
+                                  performDeleteScore();
                                 }
                               }}
                               className="p-3 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-2xl transition-all shadow-lg active:scale-90"

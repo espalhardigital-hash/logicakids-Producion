@@ -178,14 +178,29 @@ async def _get_global_config(db: AsyncSession) -> dict:
 
 
 async def _get_config(db: AsyncSession, seccion: int, operacion: str) -> Optional[ConfiguracionProgreso]:
+    # 1. Intentar obtener configuración específica y activa del bloque/nivel
     result = await db.execute(
         select(ConfiguracionProgreso).where(and_(
             ConfiguracionProgreso.fase_id == FASE3_ID,
             ConfiguracionProgreso.seccion == seccion,
             ConfiguracionProgreso.operacion == operacion,
+            ConfiguracionProgreso.activo == True
         ))
     )
-    return result.scalar_one_or_none()
+    config = result.scalar_one_or_none()
+    if config:
+        return config
+
+    # 2. Fallback: intentar obtener configuración por defecto de la Fase 3 (seccion = 0, operacion = 'mixta')
+    result_phase = await db.execute(
+        select(ConfiguracionProgreso).where(and_(
+            ConfiguracionProgreso.fase_id == FASE3_ID,
+            ConfiguracionProgreso.seccion == 0,
+            ConfiguracionProgreso.operacion == "mixta",
+            ConfiguracionProgreso.activo == True
+        ))
+    )
+    return result_phase.scalar_one_or_none()
 
 
 async def _get_or_create_progreso(

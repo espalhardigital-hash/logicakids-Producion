@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut, BookOpen } from 'lucide-react';
+import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut, BookOpen, Check } from 'lucide-react';
 import GeneralTab from './GeneralTab';
 import PedagogyTab from './PedagogyTab';
 import PerformanceTab from './PerformanceTab';
@@ -20,6 +20,43 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
   // Custom Admin UI Settings
   const [adminScale, setAdminScale] = useState<number>(100);
   const [adminFontFamily, setAdminFontFamily] = useState<string>('');
+
+  // Dialog (Modal Alert/Confirm) State
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    type: 'alert' | 'confirm';
+    title: string;
+    message: string;
+    alertType?: 'info' | 'success' | 'error';
+    onConfirm?: () => void;
+    onCancel?: () => void;
+  }>({
+    isOpen: false,
+    type: 'alert',
+    title: '',
+    message: '',
+  });
+
+  const showAlert = (title: string, message: string, alertType: 'info' | 'success' | 'error' = 'info') => {
+    setDialogState({
+      isOpen: true,
+      type: 'alert',
+      title,
+      message,
+      alertType,
+    });
+  };
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void, onCancel?: () => void) => {
+    setDialogState({
+      isOpen: true,
+      type: 'confirm',
+      title,
+      message,
+      onConfirm,
+      onCancel,
+    });
+  };
 
   useEffect(() => {
     const savedScale = localStorage.getItem('adminScale');
@@ -187,27 +224,92 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
           <AnimatePresence mode="wait">
             {activeTab === 'general' && (
               <motion.div key="general" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                <GeneralTab onBack={onBack} />
+                <GeneralTab onBack={onBack} showConfirm={showConfirm} showAlert={showAlert} />
               </motion.div>
             )}
             {activeTab === 'pedagogy' && (
               <motion.div key="pedagogy" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                <PedagogyTab />
+                <PedagogyTab showConfirm={showConfirm} showAlert={showAlert} />
               </motion.div>
             )}
             {activeTab === 'performance' && (
               <motion.div key="performance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                <PerformanceTab />
+                <PerformanceTab showConfirm={showConfirm} showAlert={showAlert} />
               </motion.div>
             )}
             {activeTab === 'content' && (
               <motion.div key="content" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                <ContentTab />
+                <ContentTab showConfirm={showConfirm} showAlert={showAlert} />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Global Custom Dialog Modal (Alert/Confirm) */}
+      <AnimatePresence>
+        {dialogState.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 30 }}
+              className="bg-slate-900/90 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl relative overflow-hidden text-white"
+            >
+              <div className={`absolute top-0 left-0 w-full h-1.5 ${
+                dialogState.type === 'confirm'
+                  ? 'bg-gradient-to-r from-red-500 via-rose-500 to-amber-500'
+                  : dialogState.alertType === 'success'
+                    ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]'
+                    : dialogState.alertType === 'error'
+                      ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                      : 'bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]'
+              }`} />
+              
+              <h4 className="text-2xl font-black mb-3 tracking-tight">{dialogState.title}</h4>
+              <p className="text-slate-300 text-sm font-semibold mb-8 leading-relaxed whitespace-pre-wrap">{dialogState.message}</p>
+              
+              <div className="flex gap-4 justify-end">
+                {dialogState.type === 'confirm' && (
+                  <button
+                    onClick={() => {
+                      if (dialogState.onCancel) dialogState.onCancel();
+                      setDialogState(prev => ({ ...prev, isOpen: false }));
+                    }}
+                    className="px-5 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (dialogState.type === 'confirm' && dialogState.onConfirm) {
+                      dialogState.onConfirm();
+                    }
+                    setDialogState(prev => ({ ...prev, isOpen: false }));
+                  }}
+                  className={`px-6 py-3 rounded-xl font-black text-white text-sm transition-all shadow-lg cursor-pointer ${
+                    dialogState.type === 'confirm'
+                      ? 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500'
+                      : dialogState.alertType === 'success'
+                        ? 'bg-green-600 hover:bg-green-500'
+                        : dialogState.alertType === 'error'
+                          ? 'bg-red-600 hover:bg-red-500'
+                          : 'bg-blue-600 hover:bg-blue-500'
+                  }`}
+                >
+                  Aceptar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
