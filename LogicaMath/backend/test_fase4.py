@@ -74,7 +74,7 @@ class TestPhase4Logic(unittest.IsolatedAsyncioTestCase):
             fase_id=4,
             seccion=1011,
             operacion="mixta",
-            cantidad_requerida=2,
+            cantidad_requerida=20,
             porcentaje_aprobacion=90,
             orden_desbloqueo=2,
             usa_cronometro=True,
