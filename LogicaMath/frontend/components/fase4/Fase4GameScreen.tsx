@@ -9,7 +9,7 @@ import { PercentageThermometer } from './PercentageThermometer';
 import { Fase4TheoryModal } from './Fase4TheoryModal';
 import { CustomKeyboard } from '../common/CustomKeyboard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, BookOpen, Key, Sparkles, Trophy, Star, Target, Award, Compass } from 'lucide-react';
+import { ArrowLeft, BookOpen, Key, Sparkles, Trophy, Star, Target, Award, Compass, Clock } from 'lucide-react';
 import { getCurrentUserFull } from '../../services/storageService';
 import './Fase4Styles.css';
 
@@ -96,7 +96,6 @@ const Fase4CompletionModal: React.FC<{
   onClose: () => void;
 }> = ({ moduloId, nivelId, isChallenge, moduleColor, progreso, onClose }) => {
   const precision = progreso.intentos > 0 ? Math.round((progreso.aciertos / progreso.intentos) * 100) : 100;
-  
   const rec = useMemo(() => {
     if (moduloId === 99) {
       return {
@@ -466,6 +465,7 @@ export const Fase4GameScreen: React.FC = () => {
 
   // Splash welcome control
   const [showSplash, setShowSplash] = useState(true);
+  const [countdown, setCountdown] = useState(8);
   const [pregunta, setPregunta] = useState<Fase4Pregunta | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -494,13 +494,65 @@ export const Fase4GameScreen: React.FC = () => {
   const [showCompletion, setShowCompletion] = useState(false);
   const [showGraduation, setShowGraduation] = useState(false);
 
-  // Splash automatically closes after 2.5 seconds or on tap
+  // Memos de metadatos para la pantalla Splash Premium
+  const challengeName = useMemo(() => {
+    if (moduloId === 99) return "Maestría Final";
+    if (nivelId === 11) return "Desafío 1: Estándar";
+    if (nivelId === 12) return "Desafío 2: Avanzado";
+    if (nivelId === 13) return "Desafío Final: Maestría";
+    return `Desafío - Nivel ${nivelId}`;
+  }, [moduloId, nivelId]);
+
+  const displayModuleName = useMemo(() => {
+    if (moduloId === 99) return "Desafío Mixto de la Fase 4";
+    return MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
+  }, [moduloId]);
+
+  const displayTimeLimit = useMemo(() => {
+    return moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
+  }, [moduloId, nivelId]);
+
+  const displayQuestionsCount = maxAciertos;
+
+  // Temporizador interactivo de Splash con 8s countdown e instant bypass
   useEffect(() => {
     if (showSplash) {
-      const splashTimer = setTimeout(() => setShowSplash(false), 2500);
-      return () => clearTimeout(splashTimer);
+      let intervalId: ReturnType<typeof setInterval>;
+      let timeoutId: ReturnType<typeof setTimeout>;
+
+      if (isChallenge) {
+        setCountdown(8);
+        intervalId = setInterval(() => {
+          setCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(intervalId);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        timeoutId = setTimeout(() => {
+          setShowSplash(false);
+        }, 8000);
+      } else {
+        timeoutId = setTimeout(() => {
+          setShowSplash(false);
+        }, 2500);
+      }
+
+      const handleGlobalKeyDown = () => {
+        setShowSplash(false);
+      };
+      window.addEventListener('keydown', handleGlobalKeyDown);
+
+      return () => {
+        if (intervalId) clearInterval(intervalId);
+        if (timeoutId) clearTimeout(timeoutId);
+        window.removeEventListener('keydown', handleGlobalKeyDown);
+      };
     }
-  }, [showSplash]);
+  }, [showSplash, isChallenge]);
 
   // Load User Details
   useEffect(() => {
@@ -793,27 +845,92 @@ export const Fase4GameScreen: React.FC = () => {
             className="f4-start-splash-overlay" 
             onClick={() => setShowSplash(false)}
           >
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }} 
-              animate={{ y: 0, opacity: 1 }} 
-              transition={{ delay: 0.2 }} 
-              className="f4-splash-content"
-            >
-              <div className="f4-splash-badge" style={{ color: moduleColor }}>
-                {isChallenge ? 'DESAFÍO SUPREMO' : 'ENTRENAMIENTO PRO'}
-              </div>
-              <h1 className="f4-splash-title">{moduloId === 99 ? 'MAESTRÍA DE FRACCIONES' : moduleName}</h1>
-              <div className="f4-splash-level">
-                {moduloId === 99 ? 'FASE 4 FINAL' : `NIVEL ${nivelId}`}
-              </div>
+            {isChallenge ? (
               <motion.div 
-                animate={{ scale: [1, 1.08, 1], opacity: [0.7, 1, 0.7] }} 
-                transition={{ duration: 1.4, repeat: Infinity }} 
-                className="f4-splash-hint"
+                initial={{ y: 30, opacity: 0 }} 
+                animate={{ y: 0, opacity: 1 }} 
+                transition={{ delay: 0.1, type: "spring", stiffness: 100, damping: 15 }} 
+                className="f4-splash-container-premium"
               >
-                Toca la pantalla para comenzar
+                <div className="f4-splash-badge-premium" style={{ color: moduleColor }}>
+                  ¡Desafío Especial!
+                </div>
+                <h1 className="f4-splash-title-premium">{challengeName}</h1>
+                
+                {/* Metadatos en cuadrícula premium */}
+                <div className="f4-splash-metadata-grid">
+                  <div className="f4-splash-meta-card">
+                    <div className="f4-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
+                      {moduloId === 99 ? (
+                        <Trophy size={22} style={{ color: '#F59E0B' }} />
+                      ) : (
+                        <Compass size={22} style={{ color: moduleColor }} />
+                      )}
+                    </div>
+                    <span className="f4-splash-meta-label">Módulo</span>
+                    <span className="f4-splash-meta-value">{displayModuleName}</span>
+                  </div>
+
+                  <div className="f4-splash-meta-card">
+                    <div className="f4-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
+                      <Target size={22} style={{ color: moduleColor }} />
+                    </div>
+                    <span className="f4-splash-meta-label">Preguntas</span>
+                    <span className="f4-splash-meta-value">{displayQuestionsCount} a superar</span>
+                  </div>
+
+                  <div className="f4-splash-meta-card">
+                    <div className="f4-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
+                      <Clock size={22} style={{ color: moduleColor }} />
+                    </div>
+                    <span className="f4-splash-meta-label">Tiempo</span>
+                    <span className="f4-splash-meta-value">{displayTimeLimit}s / pregunta</span>
+                  </div>
+                </div>
+
+                {/* Animación de cuenta regresiva circular */}
+                <div className="f4-splash-countdown-wrapper">
+                  <svg className="f4-splash-countdown-svg" viewBox="0 0 100 100">
+                    <circle className="f4-splash-countdown-bg" cx="50" cy="50" r="45" />
+                    <motion.circle 
+                      className="f4-splash-countdown-progress" 
+                      cx="50" cy="50" r="45"
+                      initial={{ pathLength: 1 }}
+                      animate={{ pathLength: 0 }}
+                      transition={{ duration: 8, ease: 'linear' }}
+                      style={{ stroke: moduleColor }}
+                    />
+                  </svg>
+                  <div className="f4-splash-countdown-number">{countdown}</div>
+                </div>
+
+                <div className="f4-splash-hint-premium mt-4">
+                  Haz clic o presiona cualquier tecla para comenzar ahora
+                </div>
               </motion.div>
-            </motion.div>
+            ) : (
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }} 
+                animate={{ y: 0, opacity: 1 }} 
+                transition={{ delay: 0.2 }} 
+                className="f4-splash-content"
+              >
+                <div className="f4-splash-badge" style={{ color: moduleColor }}>
+                  ENTRENAMIENTO LIBRE
+                </div>
+                <h1 className="f4-splash-title">{moduleName}</h1>
+                <div className="f4-splash-level" style={{ background: `${moduleColor}20`, borderColor: `${moduleColor}40` }}>
+                  {`NIVEL ${nivelId}`}
+                </div>
+                <motion.div 
+                  animate={{ scale: [1, 1.05, 1], opacity: [0.7, 1, 0.7] }} 
+                  transition={{ duration: 1.5, repeat: Infinity }} 
+                  className="f4-splash-hint"
+                >
+                  Toca para comenzar
+                </motion.div>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
