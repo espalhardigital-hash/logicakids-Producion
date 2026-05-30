@@ -21,6 +21,34 @@ const MODULE_NAMES: Record<number, string> = {
   4: 'Razón y Mezclas',
 };
 
+const SHAPES = ['circle', 'square', 'pentagon', 'hexagon'] as const;
+
+const getDeterministicShape = (seedText: string): 'circle' | 'square' | 'pentagon' | 'hexagon' => {
+  let hash = 0;
+  for (let i = 0; i < seedText.length; i++) {
+    hash = seedText.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % SHAPES.length;
+  return SHAPES[index];
+};
+
+const getFractionForPercentage = (pct: number) => {
+  if (pct === 50) return { slices: 2, sombreados: [0] };
+  if (pct === 25) return { slices: 4, sombreados: [0] };
+  if (pct === 75) return { slices: 4, sombreados: [0, 1, 2] };
+  
+  for (let den = 2; den <= 20; den++) {
+    const val = (pct * den) / 100;
+    if (Number.isInteger(val)) {
+      return { slices: den, sombreados: Array.from({ length: val }, (_, i) => i) };
+    }
+  }
+  
+  const den = 10;
+  const num = Math.round((pct * den) / 100);
+  return { slices: den, sombreados: Array.from({ length: num }, (_, i) => i) };
+};
+
 export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
   readingData,
   moduleColor,
@@ -46,7 +74,7 @@ export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
     s.push({ type: 'intro', data: null });
     
     if (readingData.ejemplos && readingData.ejemplos.length > 0) {
-      const chunks = chunkArray(readingData.ejemplos, 2);
+      const chunks = chunkArray(readingData.ejemplos, 1);
       chunks.forEach(c => s.push({ type: 'examples', data: c }));
     } else {
       s.push({ type: 'examples', data: [] });
@@ -54,7 +82,7 @@ export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
 
     if (readingData.interactivos && readingData.interactivos.length > 0) {
       const withIndex = readingData.interactivos.map((item, index) => ({ ...item, globalIndex: index }));
-      const chunks = chunkArray(withIndex, 2);
+      const chunks = chunkArray(withIndex, 1);
       chunks.forEach(c => s.push({ type: 'interactives', data: c }));
     }
 
@@ -217,27 +245,56 @@ export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
                     {currentSlide.data.map((ex: any, idx: number) => {
                       let fractionVisualizer = null;
                       if (readingData.modulo_id === 1) {
-                         const textToSearch = (ex.respuesta || ex.enunciado || '');
-                         const match = textToSearch.match(/(\d+)\/(\d+)/);
-                         if (match) {
+                         const textToSearch = ex.enunciado + " " + (ex.pasos ? ex.pasos.map((p: any) => p.texto).join(" ") : "") + " " + (ex.respuesta || "");
+                         const matches = Array.from(textToSearch.matchAll(/(\d+)\/(\d+)/g));
+                         const uniqueFractions: { num: number; den: number }[] = [];
+                         const seen = new Set<string>();
+                         
+                         for (const match of matches) {
                             const num = parseInt(match[1], 10);
                             const den = parseInt(match[2], 10);
-                            if (num <= den && den <= 12) {
-                               const sombreados = Array.from({length: num}, (_, i) => i);
-                               fractionVisualizer = (
-                                  <div className="flex justify-center my-4 scale-[0.8] origin-top">
-                                     <PizzaFractionVisualizer slices={den} initialSombreados={sombreados} color={moduleColor} interactive={false} hideText={true} />
-                                  </div>
-                               );
+                            const key = `${num}/${den}`;
+                            if (!seen.has(key) && num <= den && den <= 20) {
+                               seen.add(key);
+                               uniqueFractions.push({ num, den });
                             }
+                         }
+                         
+                         const shape = getDeterministicShape(ex.enunciado);
+                         
+                         if (uniqueFractions.length >= 2) {
+                            // Equivalency mode: side-by-side with an "=" sign
+                            fractionVisualizer = (
+                               <div className="flex items-center justify-center gap-6 my-4 scale-[0.9] origin-top">
+                                  <div className="flex flex-col items-center">
+                                     <PizzaFractionVisualizer slices={uniqueFractions[0].den} initialSombreados={Array.from({ length: uniqueFractions[0].num }, (_, i) => i)} color={moduleColor} interactive={false} hideText={true} shape={shape} />
+                                     <span className="text-slate-300 font-black text-lg">{uniqueFractions[0].num}/{uniqueFractions[0].den}</span>
+                                  </div>
+                                  <div className="text-4xl font-black text-purple-400" style={{ color: moduleColor }}>=</div>
+                                  <div className="flex flex-col items-center">
+                                     <PizzaFractionVisualizer slices={uniqueFractions[1].den} initialSombreados={Array.from({ length: uniqueFractions[1].num }, (_, i) => i)} color={moduleColor} interactive={false} hideText={true} shape={shape} />
+                                     <span className="text-slate-300 font-black text-lg">{uniqueFractions[1].num}/{uniqueFractions[1].den}</span>
+                                  </div>
+                               </div>
+                            );
+                         } else if (uniqueFractions.length === 1) {
+                            fractionVisualizer = (
+                               <div className="flex flex-col items-center justify-center my-4 scale-[0.9] origin-top">
+                                  <PizzaFractionVisualizer slices={uniqueFractions[0].den} initialSombreados={Array.from({ length: uniqueFractions[0].num }, (_, i) => i)} color={moduleColor} interactive={false} hideText={true} shape={shape} />
+                                  <span className="text-slate-300 font-black text-lg">{uniqueFractions[0].num}/{uniqueFractions[0].den}</span>
+                               </div>
+                            );
                          }
                       } else if (readingData.modulo_id === 3) {
                          const match = (ex.respuesta || ex.enunciado || '').match(/(\d+)%/);
                          if (match) {
                             const pct = parseInt(match[1], 10);
+                            const { slices, sombreados } = getFractionForPercentage(pct);
+                            const shape = getDeterministicShape(ex.enunciado);
                             fractionVisualizer = (
-                               <div className="flex justify-center my-4 scale-[0.8] origin-top">
-                                  <PieChartVisualizer pctA={100 - pct} pctB={0} pctC={pct} categorias={['Resto', '', 'Interés']} color={moduleColor} interactive={false} />
+                               <div className="flex flex-col items-center justify-center my-4 scale-[0.9] origin-top">
+                                  <PizzaFractionVisualizer slices={slices} initialSombreados={sombreados} color={moduleColor} interactive={false} hideText={true} shape={shape} />
+                                  <span className="text-slate-300 font-black text-lg">{pct}%</span>
                                </div>
                             );
                          }

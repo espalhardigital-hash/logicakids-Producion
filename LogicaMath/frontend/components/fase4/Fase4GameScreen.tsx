@@ -35,6 +35,34 @@ interface FeedbackState {
   resultado?: Fase4AnswerResult;
 }
 
+const SHAPES = ['circle', 'square', 'pentagon', 'hexagon'] as const;
+
+const getDeterministicShape = (seedText: string): 'circle' | 'square' | 'pentagon' | 'hexagon' => {
+  let hash = 0;
+  for (let i = 0; i < seedText.length; i++) {
+    hash = seedText.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % SHAPES.length;
+  return SHAPES[index];
+};
+
+const getFractionForPercentage = (pct: number) => {
+  if (pct === 50) return { slices: 2, sombreados: [0] };
+  if (pct === 25) return { slices: 4, sombreados: [0] };
+  if (pct === 75) return { slices: 4, sombreados: [0, 1, 2] };
+  
+  for (let den = 2; den <= 20; den++) {
+    const val = (pct * den) / 100;
+    if (Number.isInteger(val)) {
+      return { slices: den, sombreados: Array.from({ length: val }, (_, i) => i) };
+    }
+  }
+  
+  const den = 10;
+  const num = Math.round((pct * den) / 100);
+  return { slices: den, sombreados: Array.from({ length: num }, (_, i) => i) };
+};
+
 // ─── Componente: Modal de Salida Temprana (Early Exit) ─────────────────────
 const Fase4EarlyExitModal: React.FC<{
   moduleColor: string;
@@ -1073,6 +1101,7 @@ export const Fase4GameScreen: React.FC = () => {
                       setInteractiveSelectedCount(selectedCount);
                     }}
                     color={moduleColor}
+                    shape={getDeterministicShape(pregunta.enunciado)}
                   />
 
                   {/* Progress Indicator Pill */}
@@ -1182,17 +1211,56 @@ export const Fase4GameScreen: React.FC = () => {
               }}
             >
               {pregunta.datos_numericos?.tipo_visual === 'pizza' ? (
-                <PizzaFractionVisualizer
-                  slices={pregunta.datos_numericos?.cortes || 8}
-                  initialSombreados={pregunta.datos_numericos?.sombreados || []}
-                  interactive={!!pregunta.datos_numericos?.es_interactivo}
-                  onChange={(selectedCount) => {
-                    setRespuestaNum(selectedCount.toString());
-                    setRespuestaDen((pregunta.datos_numericos?.cortes || 8).toString());
-                    setInteractiveSelectedCount(selectedCount);
-                  }}
-                  color={moduleColor}
-                />
+                moduloId === 1 && nivelId === 2 && pregunta.datos_numericos?.num_base !== undefined ? (
+                  (() => {
+                    const num_base = pregunta.datos_numericos.num_base;
+                    const den_base = pregunta.datos_numericos.den_base;
+                    const factor = pregunta.datos_numericos.factor;
+                    const num_eq = num_base * factor;
+                    const den_eq = den_base * factor;
+                    const shape = getDeterministicShape(pregunta.enunciado);
+                    return (
+                      <div className="flex items-center justify-center gap-6 my-4 scale-[0.9] origin-top">
+                        <div className="flex flex-col items-center">
+                          <PizzaFractionVisualizer
+                            slices={den_base}
+                            initialSombreados={Array.from({ length: num_base }, (_, i) => i)}
+                            interactive={false}
+                            hideText={true}
+                            color={moduleColor}
+                            shape={shape}
+                          />
+                          <span className="text-slate-300 font-black text-lg">{num_base}/{den_base}</span>
+                        </div>
+                        <div className="text-4xl font-black text-purple-400" style={{ color: moduleColor }}>=</div>
+                        <div className="flex flex-col items-center">
+                          <PizzaFractionVisualizer
+                            slices={den_eq}
+                            initialSombreados={Array.from({ length: num_eq }, (_, i) => i)}
+                            interactive={false}
+                            hideText={true}
+                            color={moduleColor}
+                            shape={shape}
+                          />
+                          <span className="text-slate-300 font-black text-lg">{num_eq}/{den_eq}</span>
+                        </div>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <PizzaFractionVisualizer
+                    slices={pregunta.datos_numericos?.cortes || 8}
+                    initialSombreados={pregunta.datos_numericos?.sombreados || []}
+                    interactive={!!pregunta.datos_numericos?.es_interactivo}
+                    onChange={(selectedCount) => {
+                      setRespuestaNum(selectedCount.toString());
+                      setRespuestaDen((pregunta.datos_numericos?.cortes || 8).toString());
+                      setInteractiveSelectedCount(selectedCount);
+                    }}
+                    color={moduleColor}
+                    shape={getDeterministicShape(pregunta.enunciado)}
+                  />
+                )
               ) : pregunta.datos_numericos?.tipo_visual === 'thermometer' ? (
                 <ThermometerVisualizer
                   divisions={pregunta.datos_numericos?.cortes || 5}
@@ -1222,11 +1290,24 @@ export const Fase4GameScreen: React.FC = () => {
                   color={moduleColor}
                 />
               ) : pregunta.datos_numericos?.tipo_visual === 'percentage_thermometer' ? (
-                <PercentageThermometer
-                  inputValue={respuestaNum}
-                  total={pregunta.datos_numericos?.total || 100}
-                  color="#EF4444"
-                />
+                (() => {
+                  const pct = pregunta.datos_numericos?.pct || 50;
+                  const { slices, sombreados } = getFractionForPercentage(pct);
+                  const shape = getDeterministicShape(pregunta.enunciado);
+                  return (
+                    <div className="flex flex-col items-center justify-center my-4 scale-[0.9] origin-top">
+                      <PizzaFractionVisualizer
+                        slices={slices}
+                        initialSombreados={sombreados}
+                        interactive={false}
+                        hideText={true}
+                        color={moduleColor}
+                        shape={shape}
+                      />
+                      <div className="text-2xl font-black text-slate-300 mt-2">{pct}%</div>
+                    </div>
+                  );
+                })()
               ) : (
                 <div className="text-center font-display text-4xl font-black text-white p-4">
                   🍕 🧪
