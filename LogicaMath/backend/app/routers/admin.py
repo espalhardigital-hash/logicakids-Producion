@@ -553,6 +553,55 @@ async def override_alumno_progress_bulk(
     # Single commit for all items in the batch
     await db.commit()
 
+    # Detect if we should auto-approve unmapped active levels (e.g. Módulo 5 in Phase 3 or 99099)
+    if payload.action == "approve":
+        items_by_fase = {}
+        for item in payload.items:
+            items_by_fase[item.fase_id] = items_by_fase.get(item.fase_id, 0) + 1
+            
+        for fase_id, count in items_by_fase.items():
+            # If count of levels is >= 15, the admin approved the entire phase
+            if count >= 15:
+                result_all_configs = await db.execute(
+                    select(ConfiguracionProgreso).where(and_(
+                        ConfiguracionProgreso.fase_id == fase_id,
+                        ConfiguracionProgreso.seccion > 0,
+                        ConfiguracionProgreso.activo == True
+                    ))
+                )
+                all_configs = result_all_configs.scalars().all()
+                for config in all_configs:
+                    result_prog = await db.execute(
+                        select(ProgresoMaestria).where(and_(
+                            ProgresoMaestria.alumno_id == alumno_id,
+                            ProgresoMaestria.fase_id == fase_id,
+                            ProgresoMaestria.seccion == config.seccion,
+                            ProgresoMaestria.operacion == config.operacion
+                        ))
+                    )
+                    prog = result_prog.scalar_one_or_none()
+                    if not prog:
+                        prog = ProgresoMaestria(
+                            alumno_id=alumno_id,
+                            fase_id=fase_id,
+                            seccion=config.seccion,
+                            operacion=config.operacion,
+                            estado=EstadoProgresoEnum.APROBADO,
+                            aciertos_acumulados=config.cantidad_requerida,
+                            intentos_totales=config.cantidad_requerida,
+                            porcentaje_actual=90,
+                            aprobado_por_admin=True,
+                            fecha_aprobacion=datetime.utcnow()
+                        )
+                        db.add(prog)
+                    else:
+                        prog.estado = EstadoProgresoEnum.APROBADO
+                        prog.aciertos_acumulados = config.cantidad_requerida
+                        prog.porcentaje_actual = 90
+                        prog.aprobado_por_admin = True
+                        prog.fecha_aprobacion = datetime.utcnow()
+        await db.commit()
+
     # Sync user.settings["unlockedLevels"] aggregated across all unique categories in the batch
     result_alumno = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
     alumno = result_alumno.scalar_one_or_none()

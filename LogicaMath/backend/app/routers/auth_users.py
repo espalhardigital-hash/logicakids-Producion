@@ -81,7 +81,15 @@ async def get_all_users(db: AsyncSession = Depends(get_db), admin_user: dict = D
     ]
 
 @router.get("/users/me")
-async def get_me(current_user: dict = Depends(get_current_user)):
+async def get_me(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    alumno_id = current_user.get("alumno_id")
+    if alumno_id:
+        from ..services.pedagogia_service import recalcular_y_sincronizar_fase_actual
+        nueva_fase = await recalcular_y_sincronizar_fase_actual(alumno_id, db)
+        current_user["fase_actual_id"] = nueva_fase
     return current_user
 
 @router.patch("/users/me/progress/level")

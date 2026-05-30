@@ -22,21 +22,22 @@ async def recalcular_y_sincronizar_fase_actual(alumno_id: int, db: AsyncSession)
     for fase in fases:
         # Obtener todas las reglas/bloques activos configurados para esta fase
         # Filtramos seccion > 0 para enfocarnos solo en niveles reales/desafíos jugables
+        # Excluimos seccion != 99099 (Desafío Mixto) que no bloquea la graduación de fase
         result_configs = await db.execute(
             select(ConfiguracionProgreso)
             .where(and_(
                 ConfiguracionProgreso.fase_id == fase.id,
                 ConfiguracionProgreso.seccion > 0,
+                ConfiguracionProgreso.seccion != 99099,
                 ConfiguracionProgreso.activo == True
             ))
         )
         configs = result_configs.scalars().all()
 
         if not configs:
-            # Si una fase no tiene bloques configurados, asumimos que no está lista 
-            # y la progresión se detiene en ella.
-            nueva_fase_id = fase.id
-            break
+            # Si una fase no tiene bloques configurados, se considera completada o se salta
+            # para no bloquear la progresión.
+            continue
 
         # Obtener los bloques aprobados por el alumno para esta fase
         result_progresos = await db.execute(
