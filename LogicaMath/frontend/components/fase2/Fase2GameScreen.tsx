@@ -19,7 +19,7 @@ import type {
   Fase2Lectura,
 } from './Fase2Types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Delete, ArrowRight, Trophy, Star, Target, Award, Compass } from 'lucide-react';
+import { BookOpen, Delete, ArrowRight, Trophy, Star, Target, Award, Compass, Clock } from 'lucide-react';
 import { getCurrentUserFull } from '../../services/storageService';
 import { useNavigate } from 'react-router-dom';
 
@@ -662,13 +662,68 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [maxAciertos, setMaxAciertos] = useState<number>(moduloId === 99 ? 20 : (nivelId >= 11 && nivelId <= 13 ? (nivelId === 13 ? 10 : 25) : 15));
   const barWidth    = useMemo(() => Math.min(100, (progreso.aciertos / maxAciertos) * 100), [progreso.aciertos, maxAciertos]);
 
+  // Premium splash memos
+  const challengeName = useMemo(() => {
+    if (moduloId === 99) return "Maestría Final";
+    if (nivelId === 11) return "Desafío 1: Estándar";
+    if (nivelId === 12) return "Desafío 2: Avanzado";
+    if (nivelId === 13) return "Desafío Final: Maestría";
+    return `Desafío - Nivel ${nivelId}`;
+  }, [moduloId, nivelId]);
+
+  const displayModuleName = useMemo(() => {
+    if (moduloId === 99) return "Desafío Mixto de la Fase 2";
+    return MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
+  }, [moduloId]);
+
+  const displayTimeLimit = useMemo(() => {
+    return moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
+  }, [moduloId, nivelId]);
+
+  const displayQuestionsCount = maxAciertos;
+
+  const [countdown, setCountdown] = useState(5);
+
   // 27: Splash Effect
   useEffect(() => {
     if (showSplash) {
-      const splashTimer = setTimeout(() => setShowSplash(false), 2500);
-      return () => clearTimeout(splashTimer);
+      let intervalId: ReturnType<typeof setInterval>;
+      let timeoutId: ReturnType<typeof setTimeout>;
+
+      if (isChallenge) {
+        setCountdown(5);
+        intervalId = setInterval(() => {
+          setCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(intervalId);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        timeoutId = setTimeout(() => {
+          setShowSplash(false);
+        }, 5000);
+      } else {
+        timeoutId = setTimeout(() => {
+          setShowSplash(false);
+        }, 2500);
+      }
+
+      // Keydown override to dismiss splash instantly
+      const handleGlobalKeyDown = () => {
+        setShowSplash(false);
+      };
+      window.addEventListener('keydown', handleGlobalKeyDown);
+
+      return () => {
+        if (intervalId) clearInterval(intervalId);
+        if (timeoutId) clearTimeout(timeoutId);
+        window.removeEventListener('keydown', handleGlobalKeyDown);
+      };
     }
-  }, [showSplash]);
+  }, [showSplash, isChallenge]);
 
   // 28: User Profile Effect
   useEffect(() => {
@@ -959,21 +1014,99 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       <AnimatePresence>
         {showSplash && (
           <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
-            className="f2-start-splash-overlay" onClick={() => setShowSplash(false)}
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
+            transition={{ duration: 0.3 }}
+            className="f2-start-splash-overlay" 
+            onClick={() => setShowSplash(false)}
           >
-            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="f2-splash-content">
-              <div className="f2-splash-badge" style={{ color: moduleColor }}>
-                {isChallenge ? 'DESAFÍO ESPECIAL' : 'ENTRENAMIENTO LIBRE'}
-              </div>
-              <h1 className="f2-splash-title">{moduloId === 99 ? 'MAESTRÍA FINAL' : moduleName}</h1>
-              <div className="f2-splash-level" style={{ background: `${moduleColor}20`, borderColor: `${moduleColor}40` }}>
-                {moduloId === 99 ? 'FASE 2' : `NIVEL ${nivelId}`}
-              </div>
-              <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.5, repeat: Infinity }} className="f2-splash-hint">
-                Toca para comenzar
+            {isChallenge ? (
+              <motion.div 
+                initial={{ y: 30, opacity: 0 }} 
+                animate={{ y: 0, opacity: 1 }} 
+                transition={{ delay: 0.1, type: "spring", stiffness: 100, damping: 15 }} 
+                className="f2-splash-container-premium"
+              >
+                <div className="f2-splash-badge-premium" style={{ color: moduleColor }}>
+                  ¡Desafío Especial!
+                </div>
+                <h1 className="f2-splash-title-premium">{challengeName}</h1>
+                
+                {/* Metadatos en cuadrícula premium */}
+                <div className="f2-splash-metadata-grid">
+                  <div className="f2-splash-meta-card">
+                    <div className="f2-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
+                      {moduloId === 99 ? (
+                        <Trophy size={22} style={{ color: '#F59E0B' }} />
+                      ) : (
+                        <Compass size={22} style={{ color: moduleColor }} />
+                      )}
+                    </div>
+                    <span className="f2-splash-meta-label">Módulo</span>
+                    <span className="f2-splash-meta-value">{displayModuleName}</span>
+                  </div>
+
+                  <div className="f2-splash-meta-card">
+                    <div className="f2-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
+                      <Target size={22} style={{ color: moduleColor }} />
+                    </div>
+                    <span className="f2-splash-meta-label">Preguntas</span>
+                    <span className="f2-splash-meta-value">{displayQuestionsCount} a superar</span>
+                  </div>
+
+                  <div className="f2-splash-meta-card">
+                    <div className="f2-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
+                      <Clock size={22} style={{ color: moduleColor }} />
+                    </div>
+                    <span className="f2-splash-meta-label">Tiempo</span>
+                    <span className="f2-splash-meta-value">{displayTimeLimit}s / pregunta</span>
+                  </div>
+                </div>
+
+                {/* Animación de cuenta regresiva circular */}
+                <div className="f2-splash-countdown-wrapper">
+                  <svg className="f2-splash-countdown-svg" viewBox="0 0 100 100">
+                    <circle className="f2-splash-countdown-bg" cx="50" cy="50" r="45" />
+                    <motion.circle 
+                      className="f2-splash-countdown-progress" 
+                      cx="50" cy="50" r="45"
+                      initial={{ pathLength: 1 }}
+                      animate={{ pathLength: 0 }}
+                      transition={{ duration: 5, ease: 'linear' }}
+                      style={{ stroke: moduleColor }}
+                    />
+                  </svg>
+                  <div className="f2-splash-countdown-number">{countdown}</div>
+                </div>
+
+                <div className="f2-splash-hint-premium mt-4">
+                  Haz clic o presiona cualquier tecla para comenzar ahora
+                </div>
               </motion.div>
-            </motion.div>
+            ) : (
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }} 
+                animate={{ y: 0, opacity: 1 }} 
+                transition={{ delay: 0.2 }} 
+                className="f2-splash-content"
+              >
+                <div className="f2-splash-badge" style={{ color: moduleColor }}>
+                  ENTRENAMIENTO LIBRE
+                </div>
+                <h1 className="f2-splash-title">{moduleName}</h1>
+                <div className="f2-splash-level" style={{ background: `${moduleColor}20`, borderColor: `${moduleColor}40` }}>
+                  {`NIVEL ${nivelId}`}
+                </div>
+                <motion.div 
+                  animate={{ scale: [1, 1.05, 1], opacity: [0.7, 1, 0.7] }} 
+                  transition={{ duration: 1.5, repeat: Infinity }} 
+                  className="f2-splash-hint"
+                >
+                  Toca para comenzar
+                </motion.div>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

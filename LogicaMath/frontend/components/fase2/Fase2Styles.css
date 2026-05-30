@@ -2530,4 +2530,180 @@
   text-decoration-thickness: 1.5px;
 }
 
+/* =========================================================================
+   ESTILOS PREMIUM SPLASH DESAFÍOS FASE 2
+   ========================================================================= */
+
+.f2-splash-container-premium {
+  background: rgba(11, 15, 26, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 36px;
+  padding: 40px;
+  max-width: 650px !important;
+  width: 90%;
+  backdrop-filter: blur(25px);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.f2-splash-badge-premium {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  letter-spacing: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  text-shadow: 0 0 15px currentColor;
+  animation: pulseNeon 1.5s infinite alternate;
+}
+
+@keyframes pulseNeon {
+  from { opacity: 0.8; filter: brightness(1); }
+  to { opacity: 1; filter: brightness(1.3); }
+}
+
+.f2-splash-title-premium {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
+  text-align: center;
+}
+
+.f2-splash-metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 1.5rem 0 2.5rem 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .f2-splash-metadata-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 1rem 0 2rem 0;
+  }
+  .f2-splash-title-premium {
+    font-size: 2.2rem;
+  }
+}
+
+.f2-splash-meta-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+  box-sizing: border-box;
+}
+
+.f2-splash-meta-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.f2-splash-meta-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  margin-bottom: 4px;
+}
+
+.f2-splash-meta-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.f2-splash-meta-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.f2-splash-countdown-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 1.5rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.f2-splash-countdown-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.f2-splash-countdown-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.04);
+  stroke-width: 6;
+}
+
+.f2-splash-countdown-progress {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.f2-splash-countdown-number {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  z-index: 2;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+  animation: countdownPulse 1s infinite alternate;
+}
+
+@keyframes countdownPulse {
+  from { transform: scale(0.95); opacity: 0.9; }
+  to { transform: scale(1.05); opacity: 1; }
+}
+
+.f2-splash-hint-premium {
+  font-family: 'Outfit', sans-serif;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-align: center;
+  animation: pulseBlink 2s infinite ease-in-out;
+}
+
+@keyframes pulseBlink {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.8; }
+}
+
 
