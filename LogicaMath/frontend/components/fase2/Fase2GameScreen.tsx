@@ -681,10 +681,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       return pregunta.tiempo_limite_segundos;
     }
     if (moduloId === 99) return 90;
-    if (moduloId === 3 || moduloId === 4) {
-      return nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60;
-    }
-    return nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50;
+    return nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60;
   }, [moduloId, nivelId, pregunta]);
 
   const displayQuestionsCount = maxAciertos;
@@ -779,7 +776,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       if (data.cantidad_requerida) setMaxAciertos(data.cantidad_requerida);
       
       if (isChallenge) {
-        const fallbackLimit = moduloId === 99 ? 90 : (moduloId === 3 || moduloId === 4 ? (nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60) : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50));
+        const fallbackLimit = moduloId === 99 ? 90 : (nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60);
         const limit = data.tiempo_limite_segundos || fallbackLimit;
         setTimer(limit);
         setMaxTimer(limit);
@@ -794,7 +791,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       const mockQ = MOCK_PREGUNTA(moduloId, nivelId);
       setPregunta(mockQ);
       if (isChallenge) {
-        const limit = moduloId === 99 ? 90 : (moduloId === 3 || moduloId === 4 ? (nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60) : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50));
+        const limit = moduloId === 99 ? 90 : (nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60);
         setTimer(limit);
         setMaxTimer(limit);
       } else {

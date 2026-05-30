@@ -344,9 +344,9 @@ async def get_fase2_dashboard(
 
         # 2. Cargar desafíos (11, 12, 13)
         desafio_configs = {
-            11: {"nombre": "Desafío 1", "dificultad": "estandar", "tiempo_limite": 25, "max_errores": 3},
-            12: {"nombre": "Desafío 2", "dificultad": "avanzada", "tiempo_limite": 40, "max_errores": 3},
-            13: {"nombre": "Desafío Final", "dificultad": "maestria", "tiempo_limite": 50, "max_errores": 2},
+            11: {"nombre": "Desafío 1", "dificultad": "estandar", "tiempo_limite": 30, "max_errores": 3},
+            12: {"nombre": "Desafío 2", "dificultad": "avanzada", "tiempo_limite": 45, "max_errores": 3},
+            13: {"nombre": "Desafío Final", "dificultad": "maestria", "tiempo_limite": 60, "max_errores": 2},
         }
 
         for des_id in [11, 12, 13]:
