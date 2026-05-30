@@ -48,6 +48,7 @@ La zona de desafíos corresponde a niveles virtuales `11`, `12` y `13`.
 * Desafío 1: opción múltiple, 25 preguntas, 25 segundos por pregunta (30 segundos para Módulos 3 al 8), Early Exit al 3er error.
 * Desafío 2: opción múltiple, 25 preguntas, 40 segundos por pregunta (45 segundos para Módulos 3 al 8), Early Exit al 3er error.
 * Desafío Final: evocación pura, 10 preguntas, 50 segundos por pregunta (60 segundos para Módulos 3 al 8), Early Exit al 2do error.
+* Desafío Mixto de la Fase (Módulo 99): evocación o múltiple, 20 preguntas, 60 segundos por pregunta (90 segundos para Módulos 3 al 8), Early Exit al 2do error.
 
 Cada desafío debe contar con un mínimo de 150 preguntas independientes precargadas.
 

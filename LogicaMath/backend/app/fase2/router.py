@@ -586,19 +586,23 @@ async def get_pregunta_fase2(
 
         if config:
             tiene_crono = config.usa_cronometro
-            if modulo_id in (3, 4):
-                tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (30 if nivel_id == 11 else (45 if nivel_id == 12 else (90 if modulo_id == 99 else 60)))
+            if modulo_id == 99:
+                tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else 90
+            elif modulo_id in (3, 4):
+                tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (30 if nivel_id == 11 else (45 if nivel_id == 12 else 60))
             else:
-                tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
+                tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
         else:
             global_cfg = await _get_global_config(db)
             des_cfg = global_cfg.get("desafios", {})
             tiene_crono = des_cfg.get("usa_cronometro", True)
             tiempo_key = f"tiempo_default_segundos_{nivel_id}"
-            if modulo_id in (3, 4):
-                tiempo_lim = des_cfg.get(tiempo_key, 30 if nivel_id == 11 else (45 if nivel_id == 12 else (90 if modulo_id == 99 else 60)))
+            if modulo_id == 99:
+                tiempo_lim = des_cfg.get(tiempo_key, 90)
+            elif modulo_id in (3, 4):
+                tiempo_lim = des_cfg.get(tiempo_key, 30 if nivel_id == 11 else (45 if nivel_id == 12 else 60))
             else:
-                tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
+                tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else 50))
 
         if not tiene_crono:
             tiempo_lim = None

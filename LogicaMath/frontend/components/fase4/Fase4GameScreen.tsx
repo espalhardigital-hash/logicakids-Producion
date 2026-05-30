@@ -509,8 +509,11 @@ export const Fase4GameScreen: React.FC = () => {
   }, [moduloId]);
 
   const displayTimeLimit = useMemo(() => {
+    if (pregunta?.tiene_cronometro && pregunta?.tiempo_limite_segundos) {
+      return pregunta.tiempo_limite_segundos;
+    }
     return moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
-  }, [moduloId, nivelId]);
+  }, [moduloId, nivelId, pregunta]);
 
   const displayQuestionsCount = maxAciertos;
 

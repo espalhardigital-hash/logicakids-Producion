@@ -201,6 +201,7 @@ Todo módulo debe contener exactamente estos 3 desafíos indexados en el pool es
 | **Desafío 1** | Estándar | Opción múltiple | 25 | 25 segundos (30s en Módulos 3-8) | Early Exit al 3er error |
 | **Desafío 2** | Avanzada | Opción múltiple | 25 | 40 segundos (45s en Módulos 3-8) | Early Exit al 3er error |
 | **Desafío Final** | Maestría | Evocación pura (`input`) | 10 | 50 segundos (60s en Módulos 3-8) | Early Exit al 2do error |
+| **Desafío Mixto** | Élite | Mixta | 20 | 60 segundos (90s en Módulos 3-8) | Early Exit al 2do error |
 
 ### 6.1. Filosofía del Tiempo Variable
 

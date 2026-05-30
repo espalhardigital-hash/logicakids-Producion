@@ -677,12 +677,15 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   }, [moduloId]);
 
   const displayTimeLimit = useMemo(() => {
+    if (pregunta?.tiene_cronometro && pregunta?.tiempo_limite_segundos) {
+      return pregunta.tiempo_limite_segundos;
+    }
     if (moduloId === 99) return 90;
     if (moduloId === 3 || moduloId === 4) {
       return nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60;
     }
     return nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50;
-  }, [moduloId, nivelId]);
+  }, [moduloId, nivelId, pregunta]);
 
   const displayQuestionsCount = maxAciertos;
 
