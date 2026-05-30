@@ -210,6 +210,19 @@ Los tiempos están calculados de forma inversa a la asistencia de la interfaz:
 * Desafío 2: más tiempo por mayor complejidad conceptual.
 * Desafío Final: más tiempo porque exige evocación pura sin distractores.
 
+### 6.1.B. Interfaz Splash Premium de Desafíos (Challenge Splash Screen)
+
+Antes de iniciar cualquier desafío (incluyendo los Desafíos 1, 2 y Desafío Final de Maestría de cada módulo o fase), se debe desplegar una pantalla de bienvenida inmersiva con las siguientes especificaciones técnicas y UX/UI:
+* **Duración Activa Obligatoria:** Exactamente **8 segundos** (8000ms).
+* **Contenido Informativo del Desafío:** Debe presentar de forma estructurada en un grid responsivo con *glassmorphism* y micro-iconos (Trophy/Compass, Target, Clock) los siguientes datos:
+  - **Módulo:** Nombre descriptivo del módulo actual.
+  - **Preguntas:** Cantidad de aciertos requeridos para aprobar la prueba (`maxAciertos` o `cantidad_requerida`).
+  - **Tiempo por Pregunta:** Límite de tiempo asignado a cada ejercicio.
+* **Animación de Cuenta Regresiva Circular:**
+  - Anillo circular SVG en el centro de la pantalla cuyo trazo de color característico del módulo se vacía linealmente de 100% a 0% a lo largo de los **8 segundos** de duración.
+  - Un número indicador dinámico gigante en el centro del anillo que decrece del **8** al **1** con un efecto periódico de escala y opacidad cada segundo.
+* **Mecanismo de Oclusión (Skip):** Para mantener el control del usuario, la interfaz debe descartarse de inmediato al hacer clic en cualquier parte de la pantalla o presionar cualquier tecla del teclado físico, dando paso inmediato a la primera pregunta del desafío.
+
 ### 6.2. Calibración en Caliente de Estrés Temporal y Fatiga de Atención (Overrides)
 
 Los tiempos (temporizadores) y la cantidad de preguntas de cada bloque estipulados en las tablas anteriores representan **valores iniciales de referencia pedagógica**. 

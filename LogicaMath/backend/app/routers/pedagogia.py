@@ -17,6 +17,7 @@ from ..models.sql_models import (
     ProgresoMaestria, Intento, PoolAsignadoAlumno, StatusEnum, EstadoProgresoEnum
 )
 from ..auth import get_current_user
+from ..services.pedagogia_service import recalcular_y_sincronizar_fase_actual
 
 router = APIRouter(prefix="/pedagogia", tags=["pedagogia"])
 
@@ -26,11 +27,12 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
     if not alumno_id:
         raise HTTPException(status_code=400, detail="El usuario no tiene un perfil de alumno asociado.")
 
-    # 1. Obtener Alumno
-    alumno = current_user.get("alumno_obj")
-    if not alumno:
-        result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
-        alumno = result.scalar_one_or_none()
+    # Recalcular y sincronizar fase actual antes de obtener el alumno
+    await recalcular_y_sincronizar_fase_actual(alumno_id, db)
+
+    # 1. Obtener Alumno (siempre fresco desde DB para evitar caché de sesión obsoleto)
+    result = await db.execute(select(Alumno).where(Alumno.id == alumno_id))
+    alumno = result.scalar_one_or_none()
     
     if not alumno:
         raise HTTPException(status_code=404, detail="Perfil de alumno no encontrado.")
@@ -317,6 +319,7 @@ async def responder_pregunta(
     )
     db.add(intento)
     
+    await recalcular_y_sincronizar_fase_actual(alumno_id, db)
     await db.commit()
 
     # 6. Preparar respuesta

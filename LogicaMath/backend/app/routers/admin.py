@@ -16,6 +16,7 @@ from ..models.sql_models import (
     Alumno, ProgresoMaestria, User, NivelTeoria, EstadoProgresoEnum
 )
 from ..auth import get_admin_user
+from ..services.pedagogia_service import recalcular_y_sincronizar_fase_actual
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -451,6 +452,8 @@ async def override_alumno_progress(alumno_id: int, payload: ProgressOverridePayl
                 user.settings = settings
                 flag_modified(user, "settings")
                 await db.commit()
+            
+            await recalcular_y_sincronizar_fase_actual(alumno_id, db)
 
     return {"status": "ok", "message": "Progreso actualizado exitosamente"}
 
@@ -588,6 +591,8 @@ async def override_alumno_progress_bulk(
             user.settings = settings
             flag_modified(user, "settings")
             await db.commit()
+        
+        await recalcular_y_sincronizar_fase_actual(alumno_id, db)
 
     processed = len(payload.items)
     return {

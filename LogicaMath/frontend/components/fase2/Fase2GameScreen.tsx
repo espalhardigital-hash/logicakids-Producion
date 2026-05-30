@@ -682,7 +682,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   const displayQuestionsCount = maxAciertos;
 
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(8);
 
   // 27: Splash Effect
   useEffect(() => {
@@ -691,7 +691,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       let timeoutId: ReturnType<typeof setTimeout>;
 
       if (isChallenge) {
-        setCountdown(5);
+        setCountdown(8);
         intervalId = setInterval(() => {
           setCountdown(prev => {
             if (prev <= 1) {
@@ -704,7 +704,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
         timeoutId = setTimeout(() => {
           setShowSplash(false);
-        }, 5000);
+        }, 8000);
       } else {
         timeoutId = setTimeout(() => {
           setShowSplash(false);
@@ -1073,7 +1073,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                       cx="50" cy="50" r="45"
                       initial={{ pathLength: 1 }}
                       animate={{ pathLength: 0 }}
-                      transition={{ duration: 5, ease: 'linear' }}
+                      transition={{ duration: 8, ease: 'linear' }}
                       style={{ stroke: moduleColor }}
                     />
                   </svg>
