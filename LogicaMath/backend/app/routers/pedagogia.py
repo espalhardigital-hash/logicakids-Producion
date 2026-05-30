@@ -22,6 +22,8 @@ from ..services.pedagogia_service import recalcular_y_sincronizar_fase_actual
 router = APIRouter(prefix="/pedagogia", tags=["pedagogia"])
 
 @router.get("/dashboard", response_model=DashboardAlumno)
+# NOTA: Este endpoint genérico es actualmente utilizado exclusivamente por la Fase 1.
+# Las Fases 2, 3 y 4 tienen sus propios routers especializados en app/faseX/router.py
 async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     alumno_id = current_user.get("alumno_id")
     if not alumno_id:

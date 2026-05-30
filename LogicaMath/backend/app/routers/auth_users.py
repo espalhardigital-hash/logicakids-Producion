@@ -4,7 +4,6 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 import uuid
-import boto3
 import io
 import os
 from PIL import Image, ImageOps
@@ -14,6 +13,7 @@ from pydantic import BaseModel as PydanticBaseModel
 
 from ..schemas import Token, UserRegister, UserLogin, User, CategoryLevelUpdate, UserCreate
 from ..db.session import get_db
+from ..core.storage import storage_service
 from ..models.sql_models import User as UserModel
 from ..auth import (
     authenticate_user,
@@ -26,12 +26,7 @@ from ..auth import (
 
 router = APIRouter()
 
-# S3 Configuration
-S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
-S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
-S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
-S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME")
-S3_REGION = os.environ.get("S3_REGION", "us-east-1")
+
 
 
 @router.post("/auth/register", response_model=Token)
@@ -298,80 +293,37 @@ async def upload_avatar(file: UploadFile = File(...), current_user: dict = Depen
         image.save(buffer, format="WEBP", quality=80, optimize=True)
         buffer.seek(0)
         image_bytes = buffer.getvalue()
-        content_type = "image/webp"
     except Exception as img_err:
         print(f"Image processing failed: {img_err}")
         raise HTTPException(status_code=422, detail="Error procesando la imagen.")
 
     filename = f"{current_user['id']}_{uuid.uuid4()}.webp"
     
-    # LOCAL FALLBACK IF S3 NOT CONFIGURED
-    if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
-        print("S3 configuration incomplete. Using local storage fallback for avatar upload.")
-        static_dir = os.path.join("app", "static", "avatars")
-        os.makedirs(static_dir, exist_ok=True)
-        local_filepath = os.path.join(static_dir, filename)
-        try:
-            with open(local_filepath, "wb") as f:
-                f.write(image_bytes)
-            proxy_url = f"/api/avatars/{filename}"
-            return {"success": True, "url": proxy_url}
-        except Exception as local_err:
-            print(f"Local storage fallback error: {local_err}")
-            raise HTTPException(status_code=500, detail="Configuración S3 incompleta y falló almacenamiento local.")
-
-    import asyncio
-    def _upload_to_s3():
-        s3 = boto3.client(
-            's3',
-            endpoint_url=S3_ENDPOINT_URL,
-            aws_access_key_id=S3_ACCESS_KEY,
-            aws_secret_access_key=S3_SECRET_KEY,
-            region_name=S3_REGION
-        )
-        s3.put_object(
-            Bucket=S3_BUCKET_NAME,
-            Key=filename,
-            Body=image_bytes,
-            ContentType=content_type
-        )
-
     try:
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, _upload_to_s3)
-        
-        # Return the proxy URL instead of direct MinIO URL because the bucket is PRIVATE
-        # The frontend will resolve this using getAvatarUrl
-        proxy_url = f"/api/avatars/{filename}"
-        return {"success": True, "url": proxy_url}
+        # Usar el storage_service unificado
+        avatar_url = await storage_service.upload_avatar(image_bytes, filename)
+        return {"success": True, "url": avatar_url}
     except Exception as e:
-        print(f"S3 Upload Error: {e}")
+        print(f"Upload Error: {e}")
         raise HTTPException(status_code=500, detail=f"Error subiendo imagen: {str(e)}")
 
 @router.get("/avatars/{filename}")
 async def get_avatar(filename: str):
-    # Check if exists locally first
     safe_filename = os.path.basename(filename)
     local_path = os.path.join("app", "static", "avatars", safe_filename)
     if os.path.exists(local_path):
         from fastapi.responses import FileResponse
         return FileResponse(local_path, media_type="image/webp")
 
-    if not all([S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL, S3_BUCKET_NAME]):
-        raise HTTPException(status_code=503, detail="Configuración S3 incompleta.")
+    if not storage_service.s3_client:
+        raise HTTPException(status_code=404, detail="Avatar no encontrado localmente y S3 no configurado.")
+        
     import asyncio
     from botocore.exceptions import ClientError
     
     def _fetch_from_s3():
-        s3 = boto3.client(
-            's3',
-            endpoint_url=S3_ENDPOINT_URL,
-            aws_access_key_id=S3_ACCESS_KEY,
-            aws_secret_access_key=S3_SECRET_KEY,
-            region_name=S3_REGION
-        )
         try:
-            response = s3.get_object(Bucket=S3_BUCKET_NAME, Key=safe_filename)
+            response = storage_service.s3_client.get_object(Bucket=storage_service.bucket_name, Key=safe_filename)
             content = response['Body'].read()
             content_type = response.get('ContentType', 'image/webp')
             return content, content_type

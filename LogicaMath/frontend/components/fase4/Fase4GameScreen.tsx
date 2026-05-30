@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getFase4Question, submitFase4Answer, getFase4Reading, submitFase4CloseRescue } from './Fase4Service';
+import { getFase4Question, submitFase4Answer, getFase4Reading, submitFase4CloseRescue, graduateFase4 } from './Fase4Service';
 import { Fase4Pregunta, Fase4AnswerResult, Fase4Lectura } from './Fase4Types';
 import { PizzaFractionVisualizer } from './PizzaFractionVisualizer';
 import { ThermometerVisualizer } from './ThermometerVisualizer';
@@ -1487,7 +1487,12 @@ export const Fase4GameScreen: React.FC = () => {
         {showGraduation && (
           <Fase4PhaseGraduationModal
             studentName={studentName}
-            onClose={() => {
+            onClose={async () => {
+              try {
+                await graduateFase4();
+              } catch (e) {
+                console.error(e);
+              }
               setShowGraduation(false);
               navigate('/map');
             }}

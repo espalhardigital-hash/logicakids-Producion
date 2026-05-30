@@ -756,12 +756,8 @@ async def responder_pregunta(
         )
         total_aprobados = result_total_aprobados.scalar()
         if total_aprobados >= 25:
-            # Graduación automática a Fase 5
-            result_fase5 = await db.execute(select(Fase).where(Fase.orden == 5))
-            fase5 = result_fase5.scalar_one_or_none()
-            if fase5:
-                alumno.fase_actual_id = fase5.id
-                fase_completada = True
+            # Notifica que la fase fue completada, la graduación explícita será mediante /fase4/graduate
+            fase_completada = True
                 
     await db.commit()
     
