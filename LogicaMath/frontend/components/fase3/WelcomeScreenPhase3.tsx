@@ -366,6 +366,10 @@ export const WelcomeScreenPhase3: React.FC<Props> = ({
                   }
 
                   const isPassed = desafio.estado === 'dominado';
+                  
+                  if (isPassed) {
+                      isDesafioUnlocked = true;
+                  }
                   const customBg = isDesafioUnlocked
                     ? `linear-gradient(135deg, ${selectedModule.color}cc 0%, ${selectedModule.color} 100%)`
                     : undefined;
