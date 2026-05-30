@@ -172,5 +172,67 @@ export const PHASE_MAPS: PhaseMap[] = [
         ]
       }
     ]
+  },
+  {
+    id: 4,
+    name: "Fase 4: Fracciones y Proporciones",
+    modules: [
+      {
+        id: 1,
+        name: "Módulo 1: La Fracción Visual",
+        levels: [
+          { id: 1, name: "Lectura de Fracciones", seccion: 101, operacion: "mixta" },
+          { id: 2, name: "Fracciones Equivalentes", seccion: 102, operacion: "mixta" },
+          { id: 3, name: "Áreas y Asimetrías", seccion: 103, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 1011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 1012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 1013, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 2,
+        name: "Módulo 2: Fracción de Cantidad",
+        levels: [
+          { id: 1, name: "Porciones de un Grupo", seccion: 201, operacion: "mixta" },
+          { id: 2, name: "El Motor de Dos Pasos", seccion: 202, operacion: "mixta" },
+          { id: 3, name: "Lógica del Complemento", seccion: 203, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 2011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 2012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 2013, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 3,
+        name: "Módulo 3: Porcentajes Rápidos y Promedios",
+        levels: [
+          { id: 1, name: "Porcentajes Intuitivos", seccion: 301, operacion: "mixta" },
+          { id: 2, name: "Gráficos Circulares", seccion: 302, operacion: "mixta" },
+          { id: 3, name: "Gráficos de Barras", seccion: 303, operacion: "mixta" },
+          { id: 4, name: "La Media Aritmética", seccion: 304, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 3011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 3012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 3013, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 4,
+        name: "Módulo 4: Razón y Mezclas",
+        levels: [
+          { id: 1, name: "Razones y Proporciones", seccion: 401, operacion: "mixta" },
+          { id: 2, name: "Reparto de Volúmenes", seccion: 402, operacion: "mixta" },
+          { id: 3, name: "Mezclas Complejas", seccion: 403, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 4011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 4012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 4013, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 99,
+        name: "Graduación y Examen Final",
+        levels: [
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
+        ]
+      }
+    ]
   }
 ];

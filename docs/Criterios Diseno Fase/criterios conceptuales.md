@@ -250,7 +250,7 @@ Para evitar contradicciones entre práctica y evaluación, LogicaKids Pro separa
 
 ### 7.1. Práctica Libre (Entrenamiento Antifrustración)
 
-La práctica libre se considera aprobada y se desbloquea el siguiente nivel cuando cumple la única condición de:
+La práctica libre se considera aprobada y se desbloquea el siguiente nivel del mismo módulo cuando cumple la única condición de:
 
 1. `completitud_requerida = 100%` de la batería asignada.
 
@@ -285,13 +285,16 @@ El servidor debe abortar la sesión automáticamente (Early Exit) si el alumno a
 
 El sistema pedagógico de **LogicaKids Pro** está estructurado para diferenciar rigurosamente la etapa de entrenamiento de la etapa de evaluación:
 
-1. **En Práctica Libre (Entrenamiento Antifrustración):** El objetivo exclusivo es que el estudiante practique y asimile activamente los microconceptos. **No se exige ningún umbral o porcentaje de precisión mínima para aprobar**. El estudiante aprueba de forma automática y desbloquea el siguiente nivel con solo alcanzar el **100% de completitud** de la batería asignada, independientemente de si responde correctamente o comete errores y avanza a través de los bypasses explicativos. La precisión real (con un estándar sugerido de 90%) se registra e informa **exclusivamente con fines estadísticos y de diagnóstico pedagógico para el Tutor IA y el Panel del Administrador**, sin actuar jamás como un bloqueo para el avance del alumno.
+1. **En Práctica Libre (Entrenamiento Antifrustración):** El objetivo exclusivo es que el estudiante practique y asimile activamente los microconceptos. **No se exige ningún umbral o porcentaje de precisión mínima para aprobar**. El estudiante aprueba de forma automática y desbloquea el siguiente nivel *del mismo módulo* con solo alcanzar el **100% de completitud** de la batería asignada, independientemente de si responde correctamente o comete errores y avanza a través de los bypasses explicativos. La precisión real (con un estándar sugerido de 90%) se registra e informa **exclusivamente con fines estadísticos y de diagnóstico pedagógico para el Tutor IA y el Panel del Administrador**, sin actuar jamás como un bloqueo para el avance del alumno.
 2. **En la Zona de Desafíos (Evaluación Estricta):** El avance automático exige de forma rígida cumplir tanto el **100% de completitud** como alcanzar una precisión real **igual o superior al porcentaje de aprobación (90%)**, además de superar el cronómetro y no incurrir en expulsión por Early Exit.
 
 Por tanto, el sistema pedagógico implementa dos vías legítimas y paralelas para el avance de un estudiante:
 
 1. **Avance Automático por Desempeño (Regla Pedagógica Estándar):**
    * El backend evalúa si el alumno cumple dinámicamente con los requisitos cuantitativos definidos para cada bloque (completitud de 100% para Práctica Libre; completitud de 100% y precisión de ≥90% para Desafíos).
+   * **Regla de Desbloqueo de Niveles dentro de un Módulo:** El siguiente nivel de práctica libre de un módulo se desbloquea secuencialmente cuando el nivel anterior alcanza el 100% de completitud.
+   * **Regla de Desbloqueo de Desafíos:** Los desafíos de un módulo se desbloquean una vez que se han dominado todos los niveles de práctica libre del módulo. Específicamente, el Desafío 1 se desbloquea al aprobar todos los niveles de práctica del módulo, el Desafío 2 se desbloquea al aprobar el Desafío 1, y el Desafío Final se desbloquea al aprobar el Desafío 2.
+   * **Regla de Desbloqueo de Módulos (Transición entre Módulos):** El primer nivel del siguiente módulo de la fase (Módulo N+1) **únicamente se desbloquea** cuando el alumno ha aprobado y dominado la totalidad de los bloques del módulo anterior (Módulo N), lo cual requiere haber completado exitosamente todos los niveles de práctica libre (100% completitud) Y todos los desafíos (Desafíos 1, 2 y Final con completitud al 100% y precisión de ≥90%).
 2. **Override Administrativo Manual (Intervención Pedagógica Directa):**
    * Un tutor o superusuario, desde el Panel de Administrador, tiene la autoridad pedagógica de anular el flujo estándar para un alumno en específico, aplicando una de las siguientes tres acciones de override:
      * **Liberar (`unlock`):** Cambia manualmente el estado de un nivel o módulo a `EN_PROGRESO` sin obligar al alumno a completar las etapas o niveles precedentes. Esto le permite saltar contenidos ya dominados y acceder directamente al material.

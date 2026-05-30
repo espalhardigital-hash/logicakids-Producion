@@ -483,3 +483,19 @@ export const getNivelTeoria = async (faseId: number, moduloId: number, nivelId: 
 export const saveNivelTeoria = async (data: any): Promise<void> => {
   await apiRequest('/admin/teoria', 'PUT', data);
 };
+
+// --- SYSTEM CONFIG (DATABASE & VPS) ---
+
+export const getSystemConfig = async (): Promise<{ vps_host: string; ssh_user: string; database_url: string }> => {
+  try {
+    return await apiRequest<{ vps_host: string; ssh_user: string; database_url: string }>('/admin/system-config');
+  } catch (error) {
+    console.error("Error fetching system config:", error);
+    return { vps_host: "", ssh_user: "", database_url: "" };
+  }
+};
+
+export const updateSystemConfig = async (data: { vps_host: string; ssh_user: string; database_url: string }): Promise<{ status: string; message: string }> => {
+  return await apiRequest<{ status: string; message: string }>('/admin/system-config', 'POST', data);
+};
+

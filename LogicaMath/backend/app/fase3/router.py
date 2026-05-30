@@ -241,10 +241,24 @@ def _is_nivel_unlocked(progresos: dict, modulo_id: int, nivel_id: int) -> bool:
         return prev_prog is not None and prev_prog.estado == EstadoProgresoEnum.APROBADO
     
     if nivel_id == 1 and modulo_id > 1:
+        prev_mod = modulo_id - 1
         prev_mod_levels = 3 # Todos los módulos en Fase 3 tienen 3 niveles prácticos
-        prev_seccion, prev_op = _seccion_operacion(modulo_id - 1, prev_mod_levels)
-        prev_prog = progresos.get((prev_seccion, prev_op))
-        return prev_prog is not None and prev_prog.estado == EstadoProgresoEnum.APROBADO
+        
+        # Check all practice levels of previous module
+        for p_level in range(1, prev_mod_levels + 1):
+            p_sec, p_op = _seccion_operacion(prev_mod, p_level)
+            p_prog = progresos.get((p_sec, p_op))
+            if not p_prog or p_prog.estado != EstadoProgresoEnum.APROBADO:
+                return False
+                
+        # Check all challenges of previous module
+        for des_id in (11, 12, 13):
+            c_sec, c_op = _seccion_operacion(prev_mod, des_id)
+            c_prog = progresos.get((c_sec, c_op))
+            if not c_prog or c_prog.estado != EstadoProgresoEnum.APROBADO:
+                return False
+                
+        return True
     
     return False
 

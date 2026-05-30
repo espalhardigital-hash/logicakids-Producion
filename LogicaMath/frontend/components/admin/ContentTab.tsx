@@ -286,31 +286,41 @@ const ContentTab: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 text-white select-none">
+    <div className="w-full flex flex-col gap-6 text-slate-900 dark:text-white select-none">
       
       {/* Top Header Panel */}
       <div className="flex items-center justify-between glass-card p-6">
         <div>
-          <h2 className="text-3xl font-bold text-[#f3f4f6] flex items-center gap-3">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-[#f3f4f6] flex items-center gap-3">
             <div className="p-2.5 bg-[#007AFF]/20 rounded-2xl border border-[#007AFF]/30">
               <BookOpen className="text-[#007AFF]" size={24} />
             </div>
             Banco de Preguntas y Teoría
           </h2>
-          <p className="text-[#8E8E93] text-sm mt-1 font-medium">
+          <p className="text-slate-500 dark:text-[#8E8E93] text-sm mt-1 font-medium">
             Administra las preguntas del plan de estudios y el material teórico de cada nivel.
           </p>
         </div>
+        <div>
+          <button 
+            onClick={() => document.documentElement.classList.toggle('dark')}
+            className="glass-button flex items-center gap-2 text-sm"
+          >
+            <ToggleRight className="hidden dark:block text-blue-400" size={20} />
+            <ToggleLeft className="block dark:hidden text-slate-400" size={20} />
+            Tema
+          </button>
+</div>
       </div>
 
       {/* Tabs Selector Bar */}
-      <div className="flex border-b border-white/10 w-full gap-2 md:gap-4 bg-slate-900/40 p-2 rounded-t-[1.5rem] border-t border-x">
+      <div className="flex border-b border-slate-200 dark:border-white/10 w-full gap-2 md:gap-4 glass-panel p-2 rounded-t-[1.5rem] border-t border-x">
         <button
           onClick={() => setActiveSubTab('theory')}
           className={`pb-3 pt-2 px-6 font-black text-base relative transition-all cursor-pointer ${
             activeSubTab === 'theory' 
-              ? 'text-white font-extrabold' 
-              : 'text-slate-400 hover:text-white hover:bg-white/5 rounded-xl'
+              ? 'text-slate-900 dark:text-white font-extrabold' 
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/5 rounded-xl'
           }`}
         >
           {activeSubTab === 'theory' && (
@@ -329,8 +339,8 @@ const ContentTab: React.FC = () => {
           onClick={() => setActiveSubTab('questions')}
           className={`pb-3 pt-2 px-6 font-black text-base relative transition-all cursor-pointer ${
             activeSubTab === 'questions' 
-              ? 'text-white font-extrabold' 
-              : 'text-slate-400 hover:text-white hover:bg-white/5 rounded-xl'
+              ? 'text-slate-900 dark:text-white font-extrabold' 
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/5 rounded-xl'
           }`}
         >
           {activeSubTab === 'questions' && (
@@ -352,7 +362,7 @@ const ContentTab: React.FC = () => {
         
         {/* Left Column: Selectors */}
         <div className="lg:col-span-1 glass-card p-5 flex flex-col gap-5">
-          <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wider px-2">Selector de Nivel</h3>
+          <h3 className="text-xs font-bold text-slate-500 dark:text-[#8E8E93] uppercase tracking-wider px-2">Selector de Nivel</h3>
           
           {/* Phase selector */}
           <div className="flex flex-col gap-2">
@@ -362,10 +372,19 @@ const ContentTab: React.FC = () => {
               onChange={(e) => {
                 const fid = parseInt(e.target.value);
                 setMgrFaseId(fid);
-                setMgrModuloId(1);
-                setMgrLevelId(1);
+                const phase = PHASE_MAPS.find(p => p.id === fid);
+                if (phase?.modules && phase.modules.length > 0) {
+                  setMgrModuloId(phase.modules[0].id);
+                  setMgrLevelId(phase.modules[0].levels[0]?.id || 1);
+                } else if (phase?.levels && phase.levels.length > 0) {
+                  setMgrModuloId(0);
+                  setMgrLevelId(phase.levels[0].id);
+                } else {
+                  setMgrModuloId(1);
+                  setMgrLevelId(1);
+                }
               }}
-              className="bg-slate-950 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
+              className="bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
             >
               {PHASE_MAPS.map(p => (
                 <option key={p.id} value={p.id}>{p.name.split(':')[0]}</option>
@@ -383,9 +402,9 @@ const ContentTab: React.FC = () => {
                 setMgrModuloId(mid);
                 setMgrLevelId(1);
               }}
-              className="bg-slate-950 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
+              className="bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
             >
-              {PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules.map(m => (
+              {(PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules || []).map(m => (
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </select>
@@ -397,7 +416,7 @@ const ContentTab: React.FC = () => {
             <select
               value={mgrLevelId}
               onChange={(e) => setMgrLevelId(parseInt(e.target.value))}
-              className="bg-slate-950 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
+              className="bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
             >
               {PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules.find(m => m.id === mgrModuloId)?.levels.map(l => (
                 <option key={l.id} value={l.id}>{l.isChallenge ? 'Desafío' : 'Nivel'} {l.id}: {l.name}</option>
@@ -421,8 +440,8 @@ const ContentTab: React.FC = () => {
                 className="flex flex-col gap-6"
               >
                 {/* Global theory save action panel */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/40 border border-white/5 p-4 rounded-2xl">
-                  <span className="text-sm font-black text-slate-300">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glass-panel border border-white/5 p-4 rounded-2xl">
+                  <span className="text-sm font-black text-slate-600 dark:text-slate-300">
                     Estás editando la teoría de: <span className="text-purple-400">{PHASE_MAPS.find(p => p.id === mgrFaseId)?.name.split(':')[0]} / {PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules.find(m => m.id === mgrModuloId)?.levels.find(l => l.id === mgrLevelId)?.name}</span>
                   </span>
                   <button
@@ -436,7 +455,7 @@ const ContentTab: React.FC = () => {
                 </div>
 
                 {loadingTheory ? (
-                  <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.2rem] p-10 flex justify-center shadow-2xl">
+                  <div className="bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] p-10 flex justify-center shadow-2xl">
                     <Loader2 className="animate-spin text-purple-400" size={32} />
                   </div>
                 ) : (
@@ -448,11 +467,11 @@ const ContentTab: React.FC = () => {
                         onClick={() => setExpandTheoryCore(!expandTheoryCore)}
                         className="flex justify-between items-center cursor-pointer select-none group"
                       >
-                        <h4 className="text-base font-black text-slate-300 group-hover:text-purple-400 transition-colors flex items-center gap-2">
+                        <h4 className="text-base font-black text-slate-600 dark:text-slate-300 group-hover:text-purple-400 transition-colors flex items-center gap-2">
                           <FileText size={18} className="text-purple-400" />
                           1. Información de Teoría Principal
                         </h4>
-                        {expandTheoryCore ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                        {expandTheoryCore ? <ChevronUp size={20} className="text-slate-500 dark:text-slate-400" /> : <ChevronDown size={20} className="text-slate-500 dark:text-slate-400" />}
                       </div>
 
                       <AnimatePresence initial={false}>
@@ -470,22 +489,22 @@ const ContentTab: React.FC = () => {
                                 {/* Left fields */}
                                 <div className="flex flex-col gap-4">
                                   <div className="flex flex-col gap-1.5">
-                                    <label className="text-xs font-bold text-slate-400 uppercase">Título de Teoría</label>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Título de Teoría</label>
                                     <input
                                       type="text"
                                       value={theory?.titulo || ""}
                                       onChange={(e) => setTheory((prev: any) => ({ ...prev, titulo: e.target.value }))}
-                                      className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-500/50"
+                                      className="bg-white/80 dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                     />
                                   </div>
                                   
                                   <div className="flex flex-col gap-1.5">
-                                    <label className="text-xs font-bold text-slate-400 uppercase">Texto Descubrimiento</label>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Texto Descubrimiento</label>
                                     <textarea
                                       rows={4}
                                       value={theory?.texto_descubrimiento || ""}
                                       onChange={(e) => setTheory((prev: any) => ({ ...prev, texto_descubrimiento: e.target.value }))}
-                                      className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
+                                      className="bg-white/80 dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50 resize-none"
                                     />
                                   </div>
                                 </div>
@@ -493,12 +512,12 @@ const ContentTab: React.FC = () => {
                                 {/* Right fields */}
                                 <div className="flex flex-col gap-4">
                                   <div className="flex flex-col gap-1.5">
-                                    <label className="text-xs font-bold text-slate-400 uppercase">Tip Pedagógico / Advertencia</label>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Tip Pedagógico / Advertencia</label>
                                     <textarea
                                       rows={7}
                                       value={theory?.advertencia || ""}
                                       onChange={(e) => setTheory((prev: any) => ({ ...prev, advertencia: e.target.value }))}
-                                      className="bg-slate-950/60 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-purple-500/50 resize-none"
+                                      className="bg-white/80 dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50 resize-none"
                                     />
                                   </div>
                                 </div>
@@ -515,7 +534,7 @@ const ContentTab: React.FC = () => {
                         onClick={() => setExpandGlosario(!expandGlosario)}
                         className="flex justify-between items-center cursor-pointer select-none group"
                       >
-                        <h4 className="text-base font-black text-slate-300 group-hover:text-purple-400 transition-colors flex items-center gap-2">
+                        <h4 className="text-base font-black text-slate-600 dark:text-slate-300 group-hover:text-purple-400 transition-colors flex items-center gap-2">
                           <Settings size={18} className="text-purple-400" />
                           2. Glosario / Vocabulario del Nivel
                         </h4>
@@ -531,12 +550,12 @@ const ContentTab: React.FC = () => {
                                 newDict[`Nuevo Término ${suffix}`] = "Definición del término.";
                                 setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
                               }}
-                              className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                              className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-slate-900 dark:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
                             >
                               <Plus size={12} /> Agregar Término
                             </button>
                           )}
-                          {expandGlosario ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                          {expandGlosario ? <ChevronUp size={20} className="text-slate-500 dark:text-slate-400" /> : <ChevronDown size={20} className="text-slate-500 dark:text-slate-400" />}
                         </div>
                       </div>
 
@@ -553,7 +572,7 @@ const ContentTab: React.FC = () => {
                             <div className="pt-4 border-t border-white/5 flex flex-col gap-4">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {Object.entries(theory?.diccionario || {}).map(([term, def]: [string, any], dIdx) => (
-                                  <div key={dIdx} className="flex gap-2 bg-slate-950/20 border border-white/5 p-3 rounded-xl items-start">
+                                  <div key={dIdx} className="flex gap-2 bg-white/80 dark:bg-slate-950/20 border border-white/5 p-3 rounded-xl items-start">
                                     <div className="flex-1 flex flex-col gap-1.5">
                                       <input
                                         type="text"
@@ -572,7 +591,7 @@ const ContentTab: React.FC = () => {
                                           }
                                           setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
                                         }}
-                                        className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs font-black text-purple-300 focus:outline-none focus:border-purple-500/50"
+                                        className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs font-black text-purple-300 focus:outline-none focus:border-purple-500/50"
                                       />
                                       <textarea
                                         rows={2}
@@ -583,7 +602,7 @@ const ContentTab: React.FC = () => {
                                           newDict[term] = e.target.value;
                                           setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
                                         }}
-                                        className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50 resize-none"
+                                        className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50 resize-none"
                                       />
                                     </div>
                                     <button
@@ -593,7 +612,7 @@ const ContentTab: React.FC = () => {
                                         delete newDict[term];
                                         setTheory((prev: any) => ({ ...prev, diccionario: newDict }));
                                       }}
-                                      className="p-2 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                      className="p-2 bg-red-500/10 hover:bg-red-500 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white rounded-lg transition-colors cursor-pointer"
                                     >
                                       <Trash2 size={12} />
                                     </button>
@@ -615,11 +634,11 @@ const ContentTab: React.FC = () => {
                         onClick={() => setExpandEjemplos(!expandEjemplos)}
                         className="flex justify-between items-center cursor-pointer select-none group"
                       >
-                        <h4 className="text-base font-black text-slate-300 group-hover:text-purple-400 transition-colors flex items-center gap-2">
+                        <h4 className="text-base font-black text-slate-600 dark:text-slate-300 group-hover:text-purple-400 transition-colors flex items-center gap-2">
                           <Award size={18} className="text-purple-400" />
                           3. Secuencia Didáctica (Ejemplos y Ejercicios)
                         </h4>
-                        {expandEjemplos ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                        {expandEjemplos ? <ChevronUp size={20} className="text-slate-500 dark:text-slate-400" /> : <ChevronDown size={20} className="text-slate-500 dark:text-slate-400" />}
                       </div>
 
                       <AnimatePresence initial={false}>
@@ -635,9 +654,9 @@ const ContentTab: React.FC = () => {
                             <div className="pt-4 border-t border-white/5 flex flex-col gap-6">
                               
                               {/* SUB-SECTION 3A: EXAMPLES (Guided explanation) */}
-                              <div className="flex flex-col gap-4 bg-slate-900/20 border border-white/5 p-4 rounded-3xl">
+                              <div className="flex flex-col gap-4 glass-panel/20 border border-white/5 p-4 rounded-3xl">
                                 <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                                  <h5 className="text-sm font-black text-slate-400 uppercase tracking-widest">
+                                  <h5 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                     3A. Ejemplos del Nivel (Explicativos / Guiados)
                                   </h5>
                                   <button
@@ -652,7 +671,7 @@ const ContentTab: React.FC = () => {
                                       });
                                       setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
                                     }}
-                                    className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                    className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-slate-900 dark:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
                                   >
                                     <Plus size={10} /> Agregar Ejemplo
                                   </button>
@@ -660,7 +679,7 @@ const ContentTab: React.FC = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {(theory?.ejemplos || []).map((ex: any, eIdx: number) => (
-                                    <div key={eIdx} className="bg-slate-950/20 border border-white/5 p-4 rounded-2xl flex flex-col gap-3 relative">
+                                    <div key={eIdx} className="bg-white/80 dark:bg-slate-950/20 border border-white/5 p-4 rounded-2xl flex flex-col gap-3 relative">
                                       <div className="flex justify-between items-center">
                                         <span className="text-xs font-black text-purple-400">Ejemplo #{eIdx + 1}</span>
                                         <button
@@ -669,14 +688,14 @@ const ContentTab: React.FC = () => {
                                             const newExamples = (theory.ejemplos || []).filter((_: any, i: number) => i !== eIdx);
                                             setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
                                           }}
-                                          className="p-1.5 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                          className="p-1.5 bg-red-500/10 hover:bg-red-500 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white rounded-lg transition-colors cursor-pointer"
                                         >
                                           <Trash2 size={12} />
                                         </button>
                                       </div>
 
                                       <div className="flex flex-col gap-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Enunciado del Ejemplo</label>
+                                        <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Enunciado del Ejemplo</label>
                                         <input
                                           type="text"
                                           value={ex.enunciado || ""}
@@ -685,13 +704,13 @@ const ContentTab: React.FC = () => {
                                             newExamples[eIdx] = { ...ex, enunciado: e.target.value };
                                             setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
                                           }}
-                                          className="bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                          className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                         />
                                       </div>
 
-                                      <div className="flex flex-col gap-2 bg-slate-950/40 p-3 rounded-xl border border-white/5">
+                                      <div className="flex flex-col gap-2 bg-white/80 dark:bg-slate-950/40 p-3 rounded-xl border border-white/5">
                                         <div className="flex justify-between items-center">
-                                          <label className="text-[10px] font-bold text-slate-400 uppercase">Pasos del Ejemplo</label>
+                                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Pasos del Ejemplo</label>
                                           <button
                                             type="button"
                                             onClick={() => {
@@ -701,7 +720,7 @@ const ContentTab: React.FC = () => {
                                               newExamples[eIdx] = { ...ex, pasos: steps };
                                               setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
                                             }}
-                                            className="px-2 py-0.5 bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-400 rounded text-[9px] font-bold flex items-center gap-0.5 border border-purple-500/20 cursor-pointer"
+                                            className="px-2 py-0.5 bg-purple-500/10 hover:bg-purple-500 hover:text-slate-900 dark:text-white text-purple-400 rounded text-[9px] font-bold flex items-center gap-0.5 border border-purple-500/20 cursor-pointer"
                                           >
                                             <Plus size={8} /> Añadir Paso
                                           </button>
@@ -721,7 +740,7 @@ const ContentTab: React.FC = () => {
                                                   newExamples[eIdx] = { ...ex, pasos: steps };
                                                   setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
                                                 }}
-                                                className="flex-1 bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                                className="flex-1 bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                               />
                                               <button
                                                 type="button"
@@ -732,7 +751,7 @@ const ContentTab: React.FC = () => {
                                                   newExamples[eIdx] = { ...ex, pasos: steps };
                                                   setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
                                                 }}
-                                                className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
+                                                className="p-1.5 hover:bg-red-500/20 text-slate-500 dark:text-slate-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
                                               >
                                                 <X size={10} />
                                               </button>
@@ -750,7 +769,7 @@ const ContentTab: React.FC = () => {
                                                   newExamples[eIdx] = { ...ex, respuesta: e.target.value };
                                                   setTheory((prev: any) => ({ ...prev, ejemplos: newExamples }));
                                                 }}
-                                                className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                                                className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:outline-none"
                                               />
                                             </div>
                                           )}
@@ -765,15 +784,15 @@ const ContentTab: React.FC = () => {
                               </div>
 
                               {/* SUB-SECTION 3B: INTERACTIVES (Exercise sequence student must answer) */}
-                              <div className="flex flex-col gap-4 bg-slate-900/20 border border-white/5 p-4 rounded-3xl">
+                              <div className="flex flex-col gap-4 glass-panel/20 border border-white/5 p-4 rounded-3xl">
                                 <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                                  <h5 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                  <h5 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                     3B. Ejercicios Interactivos del Alumno (Secuencia de Evocación)
                                   </h5>
                                   <button
                                     type="button"
                                     onClick={handleAddInteractive}
-                                    className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                    className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-slate-900 dark:text-white rounded-lg border border-purple-500/30 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
                                   >
                                     <Plus size={10} /> Agregar Ejercicio
                                   </button>
@@ -781,25 +800,25 @@ const ContentTab: React.FC = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {(theory?.interactivos || []).map((ex: any, iIdx: number) => (
-                                    <div key={iIdx} className="bg-slate-950/20 border border-white/5 p-4 rounded-2xl flex flex-col gap-3 relative">
+                                    <div key={iIdx} className="bg-white/80 dark:bg-slate-950/20 border border-white/5 p-4 rounded-2xl flex flex-col gap-3 relative">
                                       <div className="flex justify-between items-center">
                                         <span className="text-xs font-black text-purple-400">Ejercicio Interactivo #{iIdx + 1}</span>
                                         <button
                                           type="button"
                                           onClick={() => handleDeleteInteractive(iIdx)}
-                                          className="p-1.5 bg-red-500/10 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                          className="p-1.5 bg-red-500/10 hover:bg-red-500 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white rounded-lg transition-colors cursor-pointer"
                                         >
                                           <Trash2 size={12} />
                                         </button>
                                       </div>
 
                                       <div className="flex flex-col gap-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Enunciado del Ejercicio</label>
+                                        <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Enunciado del Ejercicio</label>
                                         <input
                                           type="text"
                                           value={ex.enunciado || ""}
                                           onChange={(e) => handleUpdateInteractive(iIdx, "enunciado", e.target.value)}
-                                          className="bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                          className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                         />
                                       </div>
 
@@ -811,18 +830,18 @@ const ContentTab: React.FC = () => {
                                           placeholder="Ej: 16"
                                           value={ex.respuesta || ""}
                                           onChange={(e) => handleUpdateInteractive(iIdx, "respuesta", e.target.value)}
-                                          className="bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                          className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                         />
                                       </div>
 
                                       {/* Steps */}
-                                      <div className="flex flex-col gap-2 bg-slate-950/40 p-3 rounded-xl border border-white/5">
+                                      <div className="flex flex-col gap-2 bg-white/80 dark:bg-slate-950/40 p-3 rounded-xl border border-white/5">
                                         <div className="flex justify-between items-center">
-                                          <label className="text-[10px] font-bold text-slate-400 uppercase">Pasos Resolutivos</label>
+                                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Pasos Resolutivos</label>
                                           <button
                                             type="button"
                                             onClick={() => handleAddInteractiveStep(iIdx)}
-                                            className="px-2 py-0.5 bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-400 rounded text-[9px] font-bold flex items-center gap-0.5 border border-purple-500/20 cursor-pointer"
+                                            className="px-2 py-0.5 bg-purple-500/10 hover:bg-purple-500 hover:text-slate-900 dark:text-white text-purple-400 rounded text-[9px] font-bold flex items-center gap-0.5 border border-purple-500/20 cursor-pointer"
                                           >
                                             <Plus size={8} /> Añadir Paso
                                           </button>
@@ -836,12 +855,12 @@ const ContentTab: React.FC = () => {
                                                 type="text"
                                                 value={step.texto || ""}
                                                 onChange={(e) => handleUpdateInteractiveStepText(iIdx, sIdx, e.target.value)}
-                                                className="flex-1 bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                                className="flex-1 bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                               />
                                               <button
                                                 type="button"
                                                 onClick={() => handleDeleteInteractiveStep(iIdx, sIdx)}
-                                                className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
+                                                className="p-1.5 hover:bg-red-500/20 text-slate-500 dark:text-slate-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
                                               >
                                                 <X size={10} />
                                               </button>
@@ -851,25 +870,25 @@ const ContentTab: React.FC = () => {
                                       </div>
 
                                       {/* Acierto & Error Feedback */}
-                                      <div className="flex flex-col gap-2 bg-slate-950/40 p-3 rounded-xl border border-white/5">
+                                      <div className="flex flex-col gap-2 bg-white/80 dark:bg-slate-950/40 p-3 rounded-xl border border-white/5">
                                         <div className="flex flex-col gap-1">
-                                          <label className="text-[10px] font-bold text-slate-400 uppercase">Feedback al Acertar</label>
+                                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Feedback al Acertar</label>
                                           <input
                                             type="text"
                                             placeholder="Ej: ¡Excelente! 8 x 2 = 16"
                                             value={ex.feedback_acierto || ""}
                                             onChange={(e) => handleUpdateInteractive(iIdx, "feedback_acierto", e.target.value)}
-                                            className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                            className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                           />
                                         </div>
                                         <div className="flex flex-col gap-1">
-                                          <label className="text-[10px] font-bold text-slate-400 uppercase">Feedback al Fallar</label>
+                                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Feedback al Fallar</label>
                                           <input
                                             type="text"
                                             placeholder="Ej: 'El doble' es multiplicar por 2"
                                             value={ex.feedback_error || ""}
                                             onChange={(e) => handleUpdateInteractive(iIdx, "feedback_error", e.target.value)}
-                                            className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                                            className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                           />
                                         </div>
                                       </div>
@@ -904,7 +923,7 @@ const ContentTab: React.FC = () => {
               >
                 <div className="glass-card p-6 flex flex-col gap-5">
                   <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-white/5 pb-4">
-                    <h4 className="text-base font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <h4 className="text-base font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                       <Settings size={16} className="text-blue-400" /> Banco de Preguntas del Nivel
                     </h4>
                     
@@ -918,7 +937,7 @@ const ContentTab: React.FC = () => {
                   </div>
 
                   {/* Filter and Pagination controls bar */}
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-950/40 p-4 rounded-2xl border border-white/5">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-white/5">
                     {/* Search input */}
                     <div className="relative w-full sm:w-80">
                       <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -927,17 +946,17 @@ const ContentTab: React.FC = () => {
                         placeholder="Buscar pregunta por enunciado..."
                         value={questionSearchQuery}
                         onChange={(e) => setQuestionSearchQuery(e.target.value)}
-                        className="w-full bg-slate-950 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold placeholder-slate-500 text-white focus:outline-none focus:border-blue-500/50 transition-colors"
+                        className="w-full bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold placeholder-slate-500 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50 transition-colors"
                       />
                     </div>
 
                     {/* Questions per page dropdown */}
                     <div className="flex items-center gap-2 self-end sm:self-center">
-                      <label className="text-xs font-bold text-slate-400">Mostrar:</label>
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Mostrar:</label>
                       <select
                         value={questionsPerPage}
                         onChange={(e) => setQuestionsPerPage(parseInt(e.target.value))}
-                        className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
+                        className="bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
                       >
                         <option value={10}>10 preguntas</option>
                         <option value={20}>20 preguntas</option>
@@ -960,7 +979,7 @@ const ContentTab: React.FC = () => {
                         <>
                           <table className="w-full text-left border-collapse">
                             <thead>
-                              <tr className="border-b border-white/10 text-xs font-black uppercase text-slate-400">
+                              <tr className="border-b border-slate-200 dark:border-white/10 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
                                 <th className="py-3 px-4">Pregunta / Enunciado</th>
                                 <th className="py-3 px-4">Respuesta Correcta</th>
                                 <th className="py-3 px-4">Tipo</th>
@@ -973,20 +992,20 @@ const ContentTab: React.FC = () => {
                                   <td className="py-4 px-4 font-semibold max-w-md truncate">{q.enunciado}</td>
                                   <td className="py-4 px-4 font-bold text-green-400">{q.respuesta_correcta}</td>
                                   <td className="py-4 px-4">
-                                    <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase">
+                                    <span className="text-[10px] bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase">
                                       {q.tipo_pregunta === 'multiple_opcion' ? 'Opción Múltiple' : 'Numérica'}
                                     </span>
                                   </td>
                                   <td className="py-4 px-4 text-right flex items-center justify-end gap-1">
                                     <button
                                       onClick={() => openEditQuestionModal(q)}
-                                      className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                                      className="p-2 hover:bg-white/10 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-colors cursor-pointer"
                                     >
                                       <Edit size={16} />
                                     </button>
                                     <button
                                       onClick={() => handleDeleteQuestion(q.id)}
-                                      className="p-2 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+                                      className="p-2 hover:bg-red-500/20 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
                                     >
                                       <Trash2 size={16} />
                                     </button>
@@ -1008,7 +1027,7 @@ const ContentTab: React.FC = () => {
                                 <button
                                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                   disabled={currentPage === 1}
-                                  className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 disabled:hover:text-slate-400 transition-all cursor-pointer"
+                                  className="p-2 rounded-lg bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 disabled:hover:text-slate-500 dark:text-slate-400 transition-all cursor-pointer"
                                 >
                                   <ChevronLeft size={14} />
                                 </button>
@@ -1022,8 +1041,8 @@ const ContentTab: React.FC = () => {
                                       onClick={() => setCurrentPage(page)}
                                       className={`w-8 h-8 rounded-lg text-xs font-black transition-all cursor-pointer ${
                                         isActive 
-                                          ? 'bg-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.3)]' 
-                                          : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+                                          ? 'bg-blue-600 text-slate-900 dark:text-white shadow-[0_0_12px_rgba(37,99,235,0.3)]' 
+                                          : 'bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/10'
                                       }`}
                                     >
                                       {page}
@@ -1035,7 +1054,7 @@ const ContentTab: React.FC = () => {
                                 <button
                                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                   disabled={currentPage === totalPages}
-                                  className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 disabled:hover:text-slate-400 transition-all cursor-pointer"
+                                  className="p-2 rounded-lg bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 disabled:hover:text-slate-500 dark:text-slate-400 transition-all cursor-pointer"
                                 >
                                   <ChevronRight size={14} />
                                 </button>
@@ -1061,7 +1080,7 @@ const ContentTab: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-white/10 w-full max-w-xl rounded-[2.2rem] p-8 shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto custom-scrollbar text-white select-none"
+              className="glass-panel border border-slate-200 dark:border-white/10 w-full max-w-xl rounded-[2.2rem] p-8 shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto custom-scrollbar text-slate-900 dark:text-white select-none"
             >
               <div className="flex justify-between items-center border-b border-white/5 pb-4">
                 <h4 className="text-xl font-black flex items-center gap-2">
@@ -1070,7 +1089,7 @@ const ContentTab: React.FC = () => {
                 </h4>
                 <button 
                   onClick={() => { setShowQuestionModal(false); setEditingQuestion(null); }}
-                  className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer"
+                  className="p-1 hover:bg-white/10 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all cursor-pointer"
                 >
                   <X size={20} />
                 </button>
@@ -1080,44 +1099,44 @@ const ContentTab: React.FC = () => {
                 
                 {/* Enunciado */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-black text-slate-400 uppercase">Enunciado / Pregunta</label>
+                  <label className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase">Enunciado / Pregunta</label>
                   <input
                     type="text"
                     required
                     value={editingQuestion.enunciado}
                     onChange={(e) => setEditingQuestion((prev: any) => ({ ...prev, enunciado: e.target.value }))}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl p-3.5 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-3.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50"
                   />
                 </div>
 
                 {/* Respuesta Correcta */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-black text-slate-400 uppercase">Respuesta Correcta</label>
+                  <label className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase">Respuesta Correcta</label>
                   <input
                     type="text"
                     required
                     value={editingQuestion.respuesta_correcta}
                     onChange={(e) => setEditingQuestion((prev: any) => ({ ...prev, respuesta_correcta: e.target.value }))}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl p-3.5 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-3.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50"
                   />
                 </div>
 
                 {/* Tipo de pregunta & Requiere subrayado */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-black text-slate-400 uppercase">Tipo de Interfaz</label>
+                    <label className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase">Tipo de Interfaz</label>
                     <select
                       value={editingQuestion.tipo_pregunta}
                       onChange={(e) => setEditingQuestion((prev: any) => ({ ...prev, tipo_pregunta: e.target.value }))}
-                      className="bg-slate-950 border border-white/10 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50"
+                      className="bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50"
                     >
                       <option value="multiple_opcion">Opción Múltiple</option>
                       <option value="respuesta_numerica">Respuesta Numérica</option>
                     </select>
                   </div>
 
-                  <div className="flex items-center justify-between bg-slate-950/40 border border-white/5 p-3 rounded-xl self-end h-[46px]">
-                    <span className="text-xs font-black text-slate-400 uppercase">Requiere Subrayado</span>
+                  <div className="flex items-center justify-between bg-white/80 dark:bg-slate-950/40 border border-white/5 p-3 rounded-xl self-end h-[46px]">
+                    <span className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase">Requiere Subrayado</span>
                     <button
                       type="button"
                       onClick={() => setEditingQuestion((prev: any) => ({ ...prev, requiere_subrayado: !prev.requiere_subrayado }))}
@@ -1135,10 +1154,10 @@ const ContentTab: React.FC = () => {
                 {/* Alternatives editor (only if Multiple Choice) */}
                 {editingQuestion.tipo_pregunta === "multiple_opcion" && (
                   <div className="flex flex-col gap-3 border-t border-white/5 pt-3">
-                    <label className="text-xs font-black text-slate-400 uppercase">Alternativas del Nivel (Opción Múltiple)</label>
+                    <label className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase">Alternativas del Nivel (Opción Múltiple)</label>
                     
                     {editingQuestion.alternativas.map((alt: any, idx: number) => (
-                      <div key={idx} className="flex flex-col gap-2 bg-slate-950/20 border border-white/5 p-3 rounded-xl">
+                      <div key={idx} className="flex flex-col gap-2 bg-white/80 dark:bg-slate-950/20 border border-white/5 p-3 rounded-xl">
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-black text-slate-500 w-5 text-center">#{idx + 1}</span>
                           <input
@@ -1159,7 +1178,7 @@ const ContentTab: React.FC = () => {
                                 ...updateCorrectObj
                               }));
                             }}
-                            className="flex-1 bg-slate-950 border border-white/5 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50"
+                            className="flex-1 bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50"
                           />
                           <button
                             type="button"
@@ -1179,7 +1198,7 @@ const ContentTab: React.FC = () => {
                             className={`px-3 py-1.5 rounded-lg text-xs font-black border transition-all cursor-pointer ${
                               alt.es_correcta 
                                 ? 'bg-green-500/20 border-green-500/40 text-green-400' 
-                                : 'bg-white/5 border-white/10 text-slate-500 hover:text-slate-300'
+                                : 'bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 hover:text-slate-600 dark:text-slate-300'
                             }`}
                           >
                             {alt.es_correcta ? 'Correcta' : 'Hacer Correcta'}
@@ -1189,7 +1208,7 @@ const ContentTab: React.FC = () => {
                         {!alt.es_correcta && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-8 border-t border-white/5 pt-2 mt-1">
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase">Tipo de Error</label>
+                              <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Tipo de Error</label>
                               <select
                                 value={alt.tipo_error || ""}
                                 onChange={(e) => {
@@ -1197,7 +1216,7 @@ const ContentTab: React.FC = () => {
                                   newAlts[idx] = { ...alt, tipo_error: e.target.value || null };
                                   setEditingQuestion((prev: any) => ({ ...prev, alternativas: newAlts }));
                                 }}
-                                className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
+                                className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50"
                               >
                                 <option value="">-- Sin Tipo de Error --</option>
                                 <option value="calculo">Cálculo</option>
@@ -1214,7 +1233,7 @@ const ContentTab: React.FC = () => {
                               </select>
                             </div>
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase">Feedback / Retroalimentación</label>
+                              <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Feedback / Retroalimentación</label>
                               <input
                                 type="text"
                                 placeholder="Retroalimentación específica de este error"
@@ -1224,7 +1243,7 @@ const ContentTab: React.FC = () => {
                                   newAlts[idx] = { ...alt, feedback_error: e.target.value };
                                   setEditingQuestion((prev: any) => ({ ...prev, alternativas: newAlts }));
                                 }}
-                                className="bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
+                                className="bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50"
                               />
                             </div>
                           </div>
@@ -1239,7 +1258,7 @@ const ContentTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => { setShowQuestionModal(false); setEditingQuestion(null); }}
-                    className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-sm font-bold transition-all border border-white/5 text-slate-300 cursor-pointer"
+                    className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-sm font-bold transition-all border border-white/5 text-slate-600 dark:text-slate-300 cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -1286,7 +1305,7 @@ const ContentTab: React.FC = () => {
             <span className="font-extrabold text-sm tracking-wide">{toast.message}</span>
             <button 
               onClick={() => setToast(prev => ({ ...prev, show: false }))}
-              className="ml-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="ml-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-colors cursor-pointer"
             >
               <X size={14} />
             </button>
@@ -1302,7 +1321,7 @@ const ContentTab: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-white/10 w-full max-w-md rounded-[2rem] p-6 shadow-2xl flex flex-col gap-6 text-white select-none shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+              className="glass-panel border border-slate-200 dark:border-white/10 w-full max-w-md rounded-[2rem] p-6 shadow-2xl flex flex-col gap-6 text-slate-900 dark:text-white select-none shadow-[0_0_50px_rgba(0,0,0,0.5)]"
             >
               <div className="flex items-center gap-3 text-rose-400 font-black border-b border-white/5 pb-3">
                 <div className="p-2 bg-rose-500/20 rounded-xl border border-rose-500/30">
@@ -1311,7 +1330,7 @@ const ContentTab: React.FC = () => {
                 <h4 className="text-lg">{confirmDialog.title}</h4>
               </div>
               
-              <p className="text-sm font-bold text-slate-300 leading-relaxed">
+              <p className="text-sm font-bold text-slate-600 dark:text-slate-300 leading-relaxed">
                 {confirmDialog.message}
               </p>
               
@@ -1319,7 +1338,7 @@ const ContentTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
-                  className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-black transition-all border border-white/5 text-slate-300 cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-black transition-all border border-white/5 text-slate-600 dark:text-slate-300 cursor-pointer"
                 >
                   Cancelar
                 </button>

@@ -85,7 +85,7 @@ class TestPhase2Integration(unittest.IsolatedAsyncioTestCase):
             ConfiguracionProgreso(fase_id=2, seccion=101, operacion="suma", cantidad_requerida=2, porcentaje_aprobacion=80, orden_desbloqueo=1, usa_cronometro=False),
             ConfiguracionProgreso(fase_id=2, seccion=102, operacion="suma", cantidad_requerida=2, porcentaje_aprobacion=80, orden_desbloqueo=2, usa_cronometro=False),
             ConfiguracionProgreso(fase_id=2, seccion=401, operacion="mixta", cantidad_requerida=1, porcentaje_aprobacion=80, orden_desbloqueo=14, usa_cronometro=False),
-            ConfiguracionProgreso(fase_id=2, seccion=1011, operacion="mixta", cantidad_requerida=3, porcentaje_aprobacion=90, orden_desbloqueo=15, usa_cronometro=True, tiempo_default_segundos=25)
+            ConfiguracionProgreso(fase_id=2, seccion=1011, operacion="mixta", cantidad_requerida=20, porcentaje_aprobacion=90, orden_desbloqueo=15, usa_cronometro=True, tiempo_default_segundos=25)
         ]
         self.db.add_all(configs)
         await self.db.flush()
@@ -219,6 +219,62 @@ class TestPhase2Integration(unittest.IsolatedAsyncioTestCase):
         l2 = next((l for l in m1.niveles if l.nivel_id == 2), None)
         self.assertIsNotNone(l2)
         self.assertEqual(l2.estado, "bloqueado")
+
+    async def test_module_unlocking_rules(self):
+        """Test that Module 2 only unlocks when BOTH practice levels and challenges of Module 1 are approved."""
+        # 1. Complete all practice levels of Module 1 (Levels 1, 2, 3)
+        for lvl in (1, 2, 3):
+            sec = 100 + lvl
+            prog = ProgresoMaestria(
+                alumno_id=self.test_student.id,
+                fase_id=2,
+                seccion=sec,
+                operacion="suma",
+                estado=EstadoProgresoEnum.APROBADO,
+                aciertos_acumulados=10,
+                intentos_totales=10
+            )
+            self.db.add(prog)
+            
+        # Add config for Module 2 Level 1 so it can unlock
+        m2_cfg = ConfiguracionProgreso(
+            fase_id=2,
+            seccion=201,
+            operacion="multiplicacion",
+            cantidad_requerida=2,
+            porcentaje_aprobacion=80,
+            orden_desbloqueo=4,
+            usa_cronometro=False
+        )
+        self.db.add(m2_cfg)
+        await self.db.commit()
+
+        # Load dashboard: Module 2 should still be locked because challenges are not approved
+        dashboard = await get_fase2_dashboard(db=self.db, alumno=self.test_student)
+        m2 = next((m for m in dashboard.modulos if m.modulo_id == 2), None)
+        self.assertIsNotNone(m2)
+        self.assertEqual(m2.estado, "bloqueado")
+
+        # 2. Complete all challenges of Module 1 (11, 12, 13)
+        for des_id in (11, 12, 13):
+            sec = 1000 + des_id
+            prog = ProgresoMaestria(
+                alumno_id=self.test_student.id,
+                fase_id=2,
+                seccion=sec,
+                operacion="mixta",
+                estado=EstadoProgresoEnum.APROBADO,
+                aciertos_acumulados=10,
+                intentos_totales=10
+            )
+            self.db.add(prog)
+        await self.db.commit()
+
+        # Load dashboard again: Module 2 should now be unlocked (en_progreso)
+        dashboard = await get_fase2_dashboard(db=self.db, alumno=self.test_student)
+        m2 = next((m for m in dashboard.modulos if m.modulo_id == 2), None)
+        self.assertIsNotNone(m2)
+        self.assertEqual(m2.estado, "en_progreso")
 
     async def test_theory_loading(self):
         """Test loading theory content for a level."""

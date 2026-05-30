@@ -92,7 +92,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
 
   return (
     <div 
-      className="apple-admin fixed inset-0 bg-[#0d0e12] text-[#f3f4f6] overflow-hidden w-full h-full flex custom-scrollbar"
+      className="apple-admin fixed inset-0 bg-[#0d0e12] text-slate-900 dark:text-[#f3f4f6] overflow-hidden w-full h-full flex custom-scrollbar"
       style={{ fontFamily: adminFontFamily || undefined }}
     >
       {/* Dynamic CSS Scope Injection */}
@@ -225,7 +225,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
       {/* Botón menú móvil */}
       <button 
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="md:hidden absolute top-6 left-6 z-50 p-2.5 bg-white/5 border border-white/8 rounded-lg backdrop-blur-xl text-[#f3f4f6] hover:bg-white/10 transition-colors"
+        className="md:hidden absolute top-6 left-6 z-50 p-2.5 bg-white/5 border border-white/8 rounded-lg backdrop-blur-xl text-slate-900 dark:text-[#f3f4f6] hover:bg-white/10 transition-colors"
       >
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
@@ -238,7 +238,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 md:hidden"
+            className="fixed inset-0 bg-slate-200/40 dark:bg-black/40 backdrop-blur-xs z-40 md:hidden"
           />
         )}
       </AnimatePresence>
@@ -251,8 +251,8 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
               <Shield className="text-[#007AFF]" size={20} />
             </div>
             <div>
-              <h2 className="text-[17px] font-semibold text-white tracking-tight leading-none">Administrador</h2>
-              <p className="text-[11px] font-medium text-slate-400 tracking-wide mt-1 uppercase">LogicaKids Pro</p>
+              <h2 className="text-[17px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none">Administrador</h2>
+              <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-wide mt-1 uppercase">LogicaKids Pro</p>
             </div>
           </div>
         </div>
@@ -266,8 +266,8 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                 onClick={() => handleTabChange(tab.id as TabType)}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 font-medium text-[14.5px] tracking-normal relative overflow-hidden group ${
                   isActive 
-                    ? 'text-white bg-[#007AFF]' 
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'text-slate-900 dark:text-white bg-[#007AFF]' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/5'
                 }`}
               >
                 <tab.icon size={17} className="relative z-10" />
@@ -284,7 +284,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
           <div className="space-y-4">
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="text-[11.5px] text-slate-400">Escala</label>
+                <label className="text-[11.5px] text-slate-500 dark:text-slate-400">Escala</label>
                 <span className="text-[11.5px] text-[#007AFF] font-medium">{adminScale}%</span>
               </div>
               <input 
@@ -294,16 +294,16 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                 step="5" 
                 value={adminScale} 
                 onChange={(e) => setAdminScale(Number(e.target.value))}
-                className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#007AFF]"
+                className="w-full h-1 bg-white/80 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#007AFF]"
               />
             </div>
             
             <div>
-              <label className="text-[11.5px] text-slate-400 mb-1 block">Familia Tipográfica</label>
+              <label className="text-[11.5px] text-slate-500 dark:text-slate-400 mb-1 block">Familia Tipográfica</label>
               <select 
                 value={adminFontFamily} 
                 onChange={(e) => setAdminFontFamily(e.target.value)}
-                className="w-full bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-white outline-none focus:border-[#007AFF] transition-colors"
+                className="w-full bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#007AFF] transition-colors"
                 style={{ fontFamily: adminFontFamily || undefined }}
               >
                 <option value="">SF Pro Text (Predeterminada)</option>
@@ -320,13 +320,13 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
         <div className="p-4 space-y-2">
           <button
             onClick={onBack}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-[13.5px] font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-900 dark:text-white text-[13.5px] font-medium transition-colors"
           >
             Volver a Fase 4
           </button>
           <button
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-transparent hover:bg-red-500/10 text-slate-400 hover:text-red-400 text-[13.5px] font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-transparent hover:bg-red-500/10 text-slate-500 dark:text-slate-400 hover:text-red-400 text-[13.5px] font-medium transition-colors"
           >
             <LogOut size={14} />
             Cerrar Sesión
@@ -375,10 +375,10 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
               initial={{ scale: 0.95, opacity: 0, y: -20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: -20 }}
-              className="bg-[#1e1f26]/95 backdrop-blur-2xl border border-white/8 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden text-[#f3f4f6]"
+              className="bg-[#1e1f26]/95 backdrop-blur-2xl border border-white/8 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden text-slate-900 dark:text-[#f3f4f6]"
             >
-              <h4 className="text-[16px] font-semibold mb-2 tracking-tight text-white">{dialogState.title}</h4>
-              <p className="text-slate-300 text-[13.5px] mb-6 leading-relaxed whitespace-pre-wrap">{dialogState.message}</p>
+              <h4 className="text-[16px] font-semibold mb-2 tracking-tight text-slate-900 dark:text-white">{dialogState.title}</h4>
+              <p className="text-slate-600 dark:text-slate-300 text-[13.5px] mb-6 leading-relaxed whitespace-pre-wrap">{dialogState.message}</p>
               
               <div className="flex gap-2 justify-end">
                 {dialogState.type === 'confirm' && (
@@ -387,7 +387,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                       if (dialogState.onCancel) dialogState.onCancel();
                       setDialogState(prev => ({ ...prev, isOpen: false }));
                     }}
-                    className="px-4 py-2 rounded-xl font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors text-[13px]"
+                    className="px-4 py-2 rounded-xl font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/5 transition-colors text-[13px]"
                   >
                     Cancelar
                   </button>
@@ -399,7 +399,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                     }
                     setDialogState(prev => ({ ...prev, isOpen: false }));
                   }}
-                  className={`px-4 py-2 rounded-xl font-semibold text-white text-[13px] transition-colors ${
+                  className={`px-4 py-2 rounded-xl font-semibold text-slate-900 dark:text-white text-[13px] transition-colors ${
                     dialogState.type === 'confirm'
                       ? 'bg-red-600 hover:bg-red-500'
                       : dialogState.alertType === 'success'

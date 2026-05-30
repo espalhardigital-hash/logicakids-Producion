@@ -39,7 +39,7 @@ Cada nivel práctico debe tener:
 * explicación profunda obligatoria en el banco;
 * mapeo heurístico de errores para el Tutor Invisible;
 * completitud estándar de 100%;
-* sin requisito de precisión mínima (la completitud al 100% de la batería asignada es el único requisito para avanzar y desbloquear la siguiente lección).
+* sin requisito de precisión mínima (la completitud al 100% de la batería asignada es el único requisito para avanzar y desbloquear la siguiente lección del mismo módulo; el desbloqueo del siguiente módulo requiere haber aprobado todos los niveles de práctica libre y todos los desafíos del módulo anterior).
 
 ### 2.2. Zona de Desafíos
 
@@ -614,13 +614,15 @@ Construye el árbol de progresión de la fase. Para determinar la disponibilidad
 3. **Lógica de Avance Automático Estándar (si no hay override activo):**
    * El backend evalúa si el alumno cumple con las condiciones basadas en su desempeño según la etapa pedagógica:
      * **En Práctica Libre (Entrenamiento Antifrustración):**
-       * El *único* requisito para habilitar el acceso al siguiente bloque es alcanzar la completitud requerida (`completitud_actual >= completitud_requerida`, es decir, 100%).
+       * El *único* requisito para habilitar el acceso al siguiente nivel/bloque *del mismo módulo* es alcanzar la completitud requerida (`completitud_actual >= completitud_requerida`, es decir, 100%).
        * No se requiere alcanzar ningún umbral de precisión (`porcentaje_aprobacion`); la precisión real (`porcentaje_actual`) se registra en la base de datos de manera estadística y de diagnóstico para el Tutor IA, sin actuar jamás como un bloqueo de avance.
      * **En la Zona de Desafíos (Evaluación Estricta):**
        * El backend exige estrictamente el cumplimiento de ambas condiciones basadas en su desempeño:
          1. `completitud_requerida`: el alumno completó el 100% de la batería asignada del desafío.
          2. `precision_minima`: el alumno alcanzó el `porcentaje_aprobacion` (por defecto 90%).
-       * Solo cuando ambas condiciones se cumplen sin haber provocado un `early_exit`, el backend habilita el acceso al siguiente bloque o desafíos en cascada.
+       * Solo cuando ambas condiciones se cumplen sin haber provocado un `early_exit`, el backend habilita el acceso al siguiente desafío en cascada.
+     * **Lógica de Desbloqueo de Módulos (Transición entre Módulos):**
+       * Para desbloquear el primer nivel del siguiente módulo (Módulo N+1), el alumno debe haber aprobado y dominado la totalidad de los bloques del módulo anterior (Módulo N). Esto significa que tanto todos los niveles de práctica libre como los 3 desafíos (Desafíos 1, 2 y Final) del Módulo N deben estar en estado `APROBADO` en `ProgresoMaestria`.
 
 ### 5.4. `GET /api/fases/{fase_id}/pregunta`
 

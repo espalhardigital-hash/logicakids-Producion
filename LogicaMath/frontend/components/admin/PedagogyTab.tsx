@@ -250,14 +250,14 @@ const SliderWithTooltip: React.FC<{
         className="absolute -top-3 transform -translate-x-1/2 pointer-events-none transition-all duration-100 z-30"
         style={{ left: `${percentage}%` }}
       >
-        <div className="bg-slate-900 border border-white/20 text-white font-black text-sm px-2 py-0.5 rounded shadow-xl whitespace-nowrap">
+        <div className="glass-panel border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white font-black text-sm px-2 py-0.5 rounded shadow-xl whitespace-nowrap">
           {value}{unit}
           <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
         </div>
       </div>
 
       {/* Track background */}
-      <div className="relative w-full h-2 bg-slate-800/80 rounded-full">
+      <div className="relative w-full h-2 bg-white/80 dark:bg-slate-800/80 rounded-full">
         {/* Filled portion */}
         <div
           className={`absolute top-0 left-0 h-full rounded-full transition-all duration-150 ${disabled ? 'bg-slate-600' : accentColor}`}
@@ -265,7 +265,7 @@ const SliderWithTooltip: React.FC<{
         />
         {/* Thumb */}
         <div
-          className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 -ml-2 rounded-full border-2 border-white bg-slate-950 shadow-[0_0_8px_rgba(0,0,0,0.5)] pointer-events-none z-20 transition-transform ${disabled ? 'scale-75 opacity-55' : 'group-hover:scale-110'}`}
+          className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 -ml-2 rounded-full border-2 border-white bg-white/80 dark:bg-slate-950 shadow-[0_0_8px_rgba(0,0,0,0.5)] pointer-events-none z-20 transition-transform ${disabled ? 'scale-75 opacity-55' : 'group-hover:scale-110'}`}
           style={{ left: `${percentage}%` }}
         />
       </div>
@@ -671,7 +671,7 @@ const PedagogyTab: React.FC = () => {
       <div className="w-full flex items-center justify-center py-40 select-none">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="text-blue-500 animate-spin" size={48} />
-          <p className="text-slate-400 font-bold text-base">Cargando base de datos pedagógica...</p>
+          <p className="text-slate-500 dark:text-slate-400 font-bold text-base">Cargando base de datos pedagógica...</p>
         </div>
       </div>
     );
@@ -683,15 +683,15 @@ const PedagogyTab: React.FC = () => {
     <motion.div variants={itemVariants} className="w-full flex flex-col gap-6 lg:gap-10 select-none">
       
       {/* Top Header Card */}
-      <div className="flex items-center justify-between bg-white/5 backdrop-blur-2xl border border-white/10 p-6 lg:p-10 rounded-[2.2rem] lg:rounded-[3rem] shadow-2xl">
+      <div className="flex items-center justify-between bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-6 lg:p-10 rounded-[2.2rem] lg:rounded-[3rem] shadow-2xl">
         <div>
-          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-black text-white flex items-center gap-3 lg:gap-5">
+          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-black text-slate-900 dark:text-white flex items-center gap-3 lg:gap-5">
             <div className="p-2.5 bg-blue-500/20 rounded-2xl border border-blue-500/30">
               <Cpu className="text-blue-400" size={24} />
             </div>
             Gestión Pedagógica Avanzada
           </h2>
-          <p className="text-slate-400 text-sm lg:text-base xl:text-lg mt-2 lg:mt-3 leading-relaxed">Configuración jerárquica con sistema de herencia para las fases del Viaje Matemático.</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm lg:text-base xl:text-lg mt-2 lg:mt-3 leading-relaxed">Configuración jerárquica con sistema de herencia para las fases del Viaje Matemático.</p>
         </div>
 
         <button
@@ -703,7 +703,7 @@ const PedagogyTab: React.FC = () => {
               : saveStatus === 'error'
                 ? 'bg-red-600 hover:bg-red-500'
                 : 'bg-blue-600 hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.2)]'
-          } text-white`}
+          } text-slate-900 dark:text-white`}
         >
           {saving ? <Loader2 size={18} className="animate-spin" /> :
            saveStatus === 'success' ? <CheckCircle size={18} /> :
@@ -734,10 +734,10 @@ const PedagogyTab: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10 items-start">
         
         {/* LEFT COLUMN: Hierarchical Accordion Tree */}
-        <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 lg:p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-4 lg:gap-6">
+        <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-5 lg:p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-4 lg:gap-6">
           <div className="flex justify-between items-center px-2">
-            <h3 className="text-sm lg:text-base font-black text-slate-400 uppercase tracking-widest">Viaje del Alumno</h3>
-            <span className="text-[10px] lg:text-xs bg-slate-800 text-slate-400 border border-white/5 px-2 py-0.5 lg:px-3 lg:py-1 rounded-full font-bold">{STATIC_PHASES.length} Fases</span>
+            <h3 className="text-sm lg:text-base font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Viaje del Alumno</h3>
+            <span className="text-[10px] lg:text-xs bg-white/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-white/5 px-2 py-0.5 lg:px-3 lg:py-1 rounded-full font-bold">{STATIC_PHASES.length} Fases</span>
           </div>
 
           <div className="flex flex-col gap-2.5 lg:gap-4 max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -747,11 +747,11 @@ const PedagogyTab: React.FC = () => {
               onClick={() => { setSelectedPhaseId(0); setSelectedModule(null); }}
               className={`w-full flex items-center gap-3 lg:gap-4 px-4 py-3 lg:px-6 lg:py-4 rounded-2xl border transition-all text-left ${
                 selectedPhaseId === 0 
-                  ? 'bg-blue-600/20 text-white border-blue-500/40 shadow-inner' 
-                  : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
+                  ? 'bg-blue-600/20 text-slate-900 dark:text-white border-blue-500/40 shadow-inner' 
+                  : 'bg-white/5 border-white/5 text-slate-600 dark:text-slate-300 hover:bg-white/10'
               }`}
             >
-              <Settings size={18} className={selectedPhaseId === 0 ? "text-blue-400 animate-spin" : "text-slate-400"} />
+              <Settings size={18} className={selectedPhaseId === 0 ? "text-blue-400 animate-spin" : "text-slate-500 dark:text-slate-400"} />
               <div className="flex-1">
                 <span className="text-sm lg:text-base font-black leading-tight">Límites Globales (Plataforma)</span>
                 <p className="text-[9px] lg:text-[11px] text-slate-500 mt-1 lg:mt-1.5 font-bold leading-snug">Valores por defecto ante fallbacks</p>
@@ -767,7 +767,7 @@ const PedagogyTab: React.FC = () => {
               const hasDraftChanges = isPhaseModified(phase.id);
 
               return (
-                <div key={phase.id} className="rounded-2xl border border-white/5 bg-slate-950/20 overflow-hidden">
+                <div key={phase.id} className="rounded-2xl border border-white/5 bg-white/80 dark:bg-slate-950/20 overflow-hidden">
                   
                   {/* Phase Row */}
                   <div 
@@ -776,9 +776,9 @@ const PedagogyTab: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2.5 lg:gap-4 flex-1" onClick={() => selectPhase(phase.id)}>
-                      <Layers size={18} className={isSelected ? "text-blue-400" : "text-slate-400"} />
+                      <Layers size={18} className={isSelected ? "text-blue-400" : "text-slate-500 dark:text-slate-400"} />
                       <span className={`text-sm lg:text-base font-black transition-colors ${
-                        isSelected ? 'text-blue-400' : 'text-white'
+                        isSelected ? 'text-blue-400' : 'text-slate-900 dark:text-white'
                       }`}>
                         {phase.name.split(':')[0]}
                       </span>
@@ -788,7 +788,7 @@ const PedagogyTab: React.FC = () => {
                     </div>
                     <button 
                       onClick={() => togglePhaseExpand(phase.id)}
-                      className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"
+                      className="p-1 hover:bg-white/10 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all"
                     >
                       {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </button>
@@ -850,8 +850,8 @@ const PedagogyTab: React.FC = () => {
                               onClick={() => selectModule(phase.id, mod)}
                               className={`w-full text-left px-3.5 py-2.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-between ${
                                 isModSelected 
-                                  ? 'bg-blue-500/20 text-white border border-blue-500/30 font-black' 
-                                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                                  ? 'bg-blue-500/20 text-slate-900 dark:text-white border border-blue-500/30 font-black' 
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-200 hover:bg-white/5'
                               }`}
                             >
                               <span className="truncate pr-2">{mod.name}</span>
@@ -889,20 +889,20 @@ const PedagogyTab: React.FC = () => {
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -15 }}
-                className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-7"
+                className="bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-7"
               >
                 <div>
                   <div className="inline-flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
                     Límites Globales (Fases estructuradas 2 a 8)
                   </div>
-                  <h3 className="text-2xl font-black text-white mt-3">Configuración de Fallbacks Generales</h3>
-                  <p className="text-slate-400 text-sm mt-1">Estos valores actúan como fallback para las Fases 2 a 8 si no existe un override específico en la fase, módulo o nivel.</p>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-3">Configuración de Fallbacks Generales</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Estos valores actúan como fallback para las Fases 2 a 8 si no existe un override específico en la fase, módulo o nivel.</p>
                 </div>
 
                 <div className="flex flex-col gap-8">
                   {/* SECCIÓN 1: PRÁCTICA LIBRE (Niveles 1-10) */}
-                  <div className="bg-slate-950/20 border border-white/5 p-6 rounded-3xl flex flex-col gap-5">
-                    <h4 className="text-base font-black text-white flex items-center gap-2 border-b border-white/5 pb-2">
+                  <div className="bg-white/80 dark:bg-slate-950/20 border border-white/5 p-6 rounded-3xl flex flex-col gap-5">
+                    <h4 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2 border-b border-white/5 pb-2">
                       <div className="w-2 h-2 rounded-full bg-blue-500" />
                       Práctica Libre (Niveles 1 a 10)
                     </h4>
@@ -912,7 +912,7 @@ const PedagogyTab: React.FC = () => {
                       <div className="flex flex-col gap-5">
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <label className="text-sm text-slate-300 font-bold">Volumen de Ejercicios</label>
+                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios</label>
                             <span className="text-base font-black text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-lg border border-blue-500/20 text-center">
                               {draftGlobalConfig.practica_libre.cantidad_requerida}
                             </span>
@@ -929,7 +929,7 @@ const PedagogyTab: React.FC = () => {
 
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <label className="text-sm text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
+                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
                             <span className="text-base font-black text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-lg border border-green-500/20 text-center">
                               {draftGlobalConfig.practica_libre.porcentaje_aprobacion}%
                             </span>
@@ -950,7 +950,7 @@ const PedagogyTab: React.FC = () => {
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <label className="text-sm text-slate-300 font-bold">Uso de Cronómetro</label>
+                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Uso de Cronómetro</label>
                             <p className="text-[10px] text-slate-500">¿Tiene límite de tiempo por pregunta?</p>
                           </div>
                           <button 
@@ -967,7 +967,7 @@ const PedagogyTab: React.FC = () => {
                         {draftGlobalConfig.practica_libre.usa_cronometro && (
                           <div className="space-y-2">
                             <div className="flex justify-between items-center">
-                              <label className="text-sm text-slate-300 font-bold">Tiempo Límite por Pregunta</label>
+                              <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Tiempo Límite por Pregunta</label>
                               <span className="text-sm font-black text-blue-400">{draftGlobalConfig.practica_libre.tiempo_default_segundos}s</span>
                             </div>
                             <SliderWithTooltip
@@ -982,7 +982,7 @@ const PedagogyTab: React.FC = () => {
                         )}
 
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-300 font-bold block">Feedback Pedagógico</label>
+                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold block">Feedback Pedagógico</label>
                           <div className="flex gap-2">
                             {['simple', 'detallado'].map((ft) => (
                               <button
@@ -991,8 +991,8 @@ const PedagogyTab: React.FC = () => {
                                 onClick={() => updateGlobalField('practica_libre', 'tipo_feedback', ft)}
                                 className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${
                                   draftGlobalConfig.practica_libre.tipo_feedback === ft
-                                    ? 'bg-blue-600 border-blue-500 text-white shadow-md'
-                                    : 'bg-slate-900 border-white/5 text-slate-400 hover:text-slate-300'
+                                    ? 'bg-blue-600 border-blue-500 text-slate-900 dark:text-white shadow-md'
+                                    : 'glass-panel border-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:text-slate-300'
                                 }`}
                               >
                                 {ft === 'simple' ? 'Simple' : 'Detallado'}
@@ -1005,8 +1005,8 @@ const PedagogyTab: React.FC = () => {
                   </div>
 
                   {/* SECCIÓN 2: ZONA DE DESAFÍOS (Niveles 11-13) */}
-                  <div className="bg-slate-950/20 border border-white/5 p-6 rounded-3xl flex flex-col gap-5">
-                    <h4 className="text-base font-black text-white flex items-center gap-2 border-b border-white/5 pb-2">
+                  <div className="bg-white/80 dark:bg-slate-950/20 border border-white/5 p-6 rounded-3xl flex flex-col gap-5">
+                    <h4 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2 border-b border-white/5 pb-2">
                       <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                       Zona de Desafíos (Niveles 11 a 13)
                     </h4>
@@ -1016,7 +1016,7 @@ const PedagogyTab: React.FC = () => {
                       <div className="flex flex-col gap-5">
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <label className="text-sm text-slate-300 font-bold">Volumen de Ejercicios</label>
+                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios</label>
                             <span className="text-base font-black text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-lg border border-purple-500/20 text-center">
                               {draftGlobalConfig.desafios.cantidad_requerida}
                             </span>
@@ -1033,7 +1033,7 @@ const PedagogyTab: React.FC = () => {
 
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <label className="text-sm text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
+                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
                             <span className="text-base font-black text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-lg border border-green-500/20 text-center">
                               {draftGlobalConfig.desafios.porcentaje_aprobacion}%
                             </span>
@@ -1051,7 +1051,7 @@ const PedagogyTab: React.FC = () => {
 
                         <div className="flex items-center justify-between pt-2">
                           <div>
-                            <label className="text-sm text-slate-300 font-bold">Uso de Cronómetro</label>
+                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Uso de Cronómetro</label>
                             <p className="text-[10px] text-slate-500">¿Tienen límite de tiempo los desafíos?</p>
                           </div>
                           <button 
@@ -1069,12 +1069,12 @@ const PedagogyTab: React.FC = () => {
                       {/* Right: Individual Timers for Desafíos */}
                       <div className="flex flex-col gap-4">
                         <div className="space-y-3" style={{ opacity: draftGlobalConfig.desafios.usa_cronometro ? 1 : 0.3, transition: 'opacity 0.2s' }}>
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Tiempos Límite por Desafío</span>
+                          <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Tiempos Límite por Desafío</span>
                           
                           {/* Desafío 1 */}
                           <div className="space-y-1">
                             <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-bold text-slate-300">Desafío 1 (Estándar)</span>
+                              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Desafío 1 (Estándar)</span>
                               <span className="text-sm font-black text-purple-400">{draftGlobalConfig.desafios.tiempo_default_segundos_11}s</span>
                             </div>
                             <SliderWithTooltip
@@ -1091,7 +1091,7 @@ const PedagogyTab: React.FC = () => {
                           {/* Desafío 2 */}
                           <div className="space-y-1">
                             <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-bold text-slate-300">Desafío 2 (Avanzado)</span>
+                              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Desafío 2 (Avanzado)</span>
                               <span className="text-sm font-black text-purple-400">{draftGlobalConfig.desafios.tiempo_default_segundos_12}s</span>
                             </div>
                             <SliderWithTooltip
@@ -1108,7 +1108,7 @@ const PedagogyTab: React.FC = () => {
                           {/* Desafío Final */}
                           <div className="space-y-1">
                             <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-bold text-slate-300">Desafío Final (Maestría)</span>
+                              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Desafío Final (Maestría)</span>
                               <span className="text-sm font-black text-purple-400">{draftGlobalConfig.desafios.tiempo_default_segundos_13}s</span>
                             </div>
                             <SliderWithTooltip
@@ -1124,7 +1124,7 @@ const PedagogyTab: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-300 font-bold block">Feedback Pedagógico</label>
+                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold block">Feedback Pedagógico</label>
                           <div className="flex gap-2">
                             {['simple', 'detallado'].map((ft) => (
                               <button
@@ -1133,8 +1133,8 @@ const PedagogyTab: React.FC = () => {
                                 onClick={() => updateGlobalField('desafios', 'tipo_feedback', ft)}
                                 className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${
                                   draftGlobalConfig.desafios.tipo_feedback === ft
-                                    ? 'bg-purple-600 border-purple-500 text-white shadow-md'
-                                    : 'bg-slate-900 border-white/5 text-slate-400 hover:text-slate-300'
+                                    ? 'bg-purple-600 border-purple-500 text-slate-900 dark:text-white shadow-md'
+                                    : 'glass-panel border-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:text-slate-300'
                                 }`}
                               >
                                 {ft === 'simple' ? 'Simple' : 'Detallado'}
@@ -1156,20 +1156,20 @@ const PedagogyTab: React.FC = () => {
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -15 }}
-                className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-6"
+                className="bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-6"
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="inline-flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
                       Parámetros por Defecto de Fase
                     </div>
-                    <h3 className="text-2xl font-black text-white mt-3">{activePhase.name}</h3>
-                    <p className="text-slate-400 text-sm mt-1">{activePhase.description}</p>
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-3">{activePhase.name}</h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{activePhase.description}</p>
                   </div>
 
                   {/* Override platform defaults toggle */}
-                  <div className="flex flex-col items-end gap-1.5 bg-slate-900/40 p-2.5 rounded-xl border border-white/5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sobrescribir Global</label>
+                  <div className="flex flex-col items-end gap-1.5 glass-panel p-2.5 rounded-xl border border-white/5">
+                    <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sobrescribir Global</label>
                     <button 
                       onClick={() => togglePhaseOverride(!activePhaseDefaultRecord)}
                       className="transition-all hover:scale-105"
@@ -1192,11 +1192,11 @@ const PedagogyTab: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-slate-950/60 backdrop-blur-md z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-white/5 shadow-inner"
+                        className="absolute inset-0 bg-white/80 dark:bg-slate-950/60 backdrop-blur-md z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-white/5 shadow-inner"
                       >
                         <ShieldAlert className="text-blue-400 mb-2" size={28} />
-                        <h4 className="text-sm font-black text-white">Heredando de Límites Globales</h4>
-                        <p className="text-[11px] text-slate-400 max-w-sm mt-1">
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white">Heredando de Límites Globales</h4>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mt-1">
                           Esta Fase está utilizando las reglas por defecto del sistema. Activa el toggle <strong>"Sobrescribir Global"</strong> para definir límites de volumen o tiempo propios para esta fase.
                         </p>
                       </motion.div>
@@ -1208,7 +1208,7 @@ const PedagogyTab: React.FC = () => {
                     <div className="flex flex-col gap-6">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm text-slate-300 font-bold">Volumen de Ejercicios de Fase</label>
+                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios de Fase</label>
                           <span className="text-base font-black text-blue-400 bg-blue-500/10 px-3 py-1 rounded-xl border border-blue-500/20">
                             {activePhaseDefaultRecord?.cantidad_requerida ?? draftGlobalConfig.questionsPerPhase}
                           </span>
@@ -1226,7 +1226,7 @@ const PedagogyTab: React.FC = () => {
 
                       <div className="space-y-3 pt-4 border-t border-white/5">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm text-slate-300 font-bold">Porcentaje de Aprobación</label>
+                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje de Aprobación</label>
                           <span className="text-base font-black text-green-400 bg-green-500/10 px-3 py-1 rounded-xl border border-green-500/20">
                             {activePhaseDefaultRecord?.porcentaje_aprobacion ?? draftGlobalConfig.passingScore}%
                           </span>
@@ -1245,8 +1245,8 @@ const PedagogyTab: React.FC = () => {
                     </div>
 
                     {/* Single default timer override input */}
-                    <div className="bg-slate-950/20 border border-white/5 p-5 rounded-3xl flex flex-col gap-4">
-                      <h4 className="text-sm font-black text-white flex items-center gap-2">
+                    <div className="bg-white/80 dark:bg-slate-950/20 border border-white/5 p-5 rounded-3xl flex flex-col gap-4">
+                      <h4 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <Clock size={14} className="text-amber-400" /> Temporizador de Fase Único
                       </h4>
                       <p className="text-[10px] text-slate-500">
@@ -1256,7 +1256,7 @@ const PedagogyTab: React.FC = () => {
                       <div className="space-y-3 pt-2">
                         <div className="flex items-center justify-between">
                           <div>
-                            <label className="text-sm text-slate-300 font-bold">Habilitar Cronómetro de Fase</label>
+                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Habilitar Cronómetro de Fase</label>
                             <p className="text-[9px] text-slate-500">Uso local para esta fase.</p>
                           </div>
                           <button 
@@ -1273,7 +1273,7 @@ const PedagogyTab: React.FC = () => {
                         {activePhaseDefaultRecord?.usa_cronometro && (
                           <div className="space-y-2 pt-2 border-t border-white/5">
                             <div className="flex justify-between items-center">
-                              <label className="text-[10px] text-slate-400 font-bold">Segundos Límite del Juego</label>
+                              <label className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Segundos Límite del Juego</label>
                               <span className="text-base font-black text-amber-400">
                                 {activePhaseDefaultRecord.tiempo_default_segundos || 12}s
                               </span>
@@ -1305,14 +1305,14 @@ const PedagogyTab: React.FC = () => {
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -15 }}
-                className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-6"
+                className="bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-6"
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="inline-flex items-center gap-2 text-[10px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
                       Configuración de Módulo
                     </div>
-                    <h3 className="text-2xl font-black text-white mt-3">
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-3">
                       {selectedModule.name}
                       {selectedPhaseId > 1 && selectedSubLevelId && (
                         <span className="text-blue-400 ml-2 text-base font-black">
@@ -1320,12 +1320,12 @@ const PedagogyTab: React.FC = () => {
                         </span>
                       )}
                     </h3>
-                    <p className="text-slate-400 text-sm mt-1">Configuración personalizada aplicable a esta disciplina en la Fase {selectedPhaseId}.</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Configuración personalizada aplicable a esta disciplina en la Fase {selectedPhaseId}.</p>
                   </div>
 
                   {/* Override parent default toggle */}
-                  <div className="flex flex-col items-end gap-1.5 bg-slate-900/40 p-2.5 rounded-xl border border-white/5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sobrescribir Padre</label>
+                  <div className="flex flex-col items-end gap-1.5 glass-panel p-2.5 rounded-xl border border-white/5">
+                    <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sobrescribir Padre</label>
                     <button 
                       onClick={() => toggleModuleOverride(!activeModuleRecord)}
                       className="transition-all hover:scale-105"
@@ -1348,11 +1348,11 @@ const PedagogyTab: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-slate-950/60 backdrop-blur-md z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-white/5 shadow-inner"
+                        className="absolute inset-0 bg-white/80 dark:bg-slate-950/60 backdrop-blur-md z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-white/5 shadow-inner"
                       >
                         <ShieldAlert className="text-amber-400 mb-2" size={28} />
-                        <h4 className="text-sm font-black text-white">Heredando de la Fase {selectedPhaseId}</h4>
-                        <p className="text-[11px] text-slate-400 max-w-sm mt-1">
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white">Heredando de la Fase {selectedPhaseId}</h4>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mt-1">
                           Este nivel/desafío está usando los valores por defecto de la Fase superior. Activa el toggle <strong>"Sobrescribir Padre"</strong> superior para definir límites exclusivos.
                         </p>
                       </motion.div>
@@ -1361,8 +1361,8 @@ const PedagogyTab: React.FC = () => {
 
                   {/* Sub-item Selector for Fase 2 & 3 */}
                   {selectedPhaseId > 1 && (
-                    <div className="flex flex-col gap-2 bg-slate-900/40 p-4 rounded-2xl border border-white/5 mb-6">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Selecciona Nivel o Desafío a Configurar</label>
+                    <div className="flex flex-col gap-2 glass-panel p-4 rounded-2xl border border-white/5 mb-6">
+                      <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Selecciona Nivel o Desafío a Configurar</label>
                       <div className="flex flex-wrap gap-2">
                         {/* Levels */}
                         {selectedModule.levels?.map((lvl) => (
@@ -1371,8 +1371,8 @@ const PedagogyTab: React.FC = () => {
                             onClick={() => { setSelectedSubLevelId(lvl.id); setIsSelectedChallenge(false); }}
                             className={`px-3 py-1.5 rounded-xl text-sm font-bold border transition-all ${
                               !isSelectedChallenge && selectedSubLevelId === lvl.id
-                                ? 'bg-blue-600 border-blue-500 text-white font-black'
-                                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                                ? 'bg-blue-600 border-blue-500 text-slate-900 dark:text-white font-black'
+                                : 'bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white'
                             }`}
                           >
                             Nivel {lvl.id}: {lvl.name}
@@ -1385,8 +1385,8 @@ const PedagogyTab: React.FC = () => {
                             onClick={() => { setSelectedSubLevelId(ch.id); setIsSelectedChallenge(true); }}
                             className={`px-3 py-1.5 rounded-xl text-sm font-bold border transition-all ${
                               isSelectedChallenge && selectedSubLevelId === ch.id
-                                ? 'bg-amber-600 border-amber-500 text-white font-black'
-                                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                                ? 'bg-amber-600 border-amber-500 text-slate-900 dark:text-white font-black'
+                                : 'bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white'
                             }`}
                           >
                             {ch.name}
@@ -1402,7 +1402,7 @@ const PedagogyTab: React.FC = () => {
                       {/* Questions Count */}
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm text-slate-300 font-bold">Cantidad de Preguntas</label>
+                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Cantidad de Preguntas</label>
                           <span className="text-base font-black text-blue-400 bg-blue-500/10 px-3 py-1 rounded-xl border border-blue-500/20">
                             {activeModuleRecord?.cantidad_requerida ?? getInheritedQuestionsCount()}
                           </span>
@@ -1421,7 +1421,7 @@ const PedagogyTab: React.FC = () => {
                       {/* Passing Score */}
                       <div className="space-y-3 pt-4 border-t border-white/5">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm text-slate-300 font-bold">Porcentaje de Aprobación</label>
+                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje de Aprobación</label>
                           <span className="text-base font-black text-green-400 bg-green-500/10 px-3 py-1 rounded-xl border border-green-500/20">
                             {activeModuleRecord?.porcentaje_aprobacion ?? getInheritedPassingScore()}%
                           </span>
@@ -1440,11 +1440,11 @@ const PedagogyTab: React.FC = () => {
                     </div>
 
                     {/* Feedback and Timers */}
-                    <div className="flex flex-col gap-5 bg-slate-950/20 border border-white/5 p-5 rounded-3xl">
+                    <div className="flex flex-col gap-5 bg-white/80 dark:bg-slate-950/20 border border-white/5 p-5 rounded-3xl">
                       {/* Feedback choice */}
                       {!isSelectedChallenge && (
                         <div className="space-y-3">
-                          <label className="text-sm text-slate-300 font-bold flex items-center gap-1.5">
+                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold flex items-center gap-1.5">
                             <HelpCircle size={14} className="text-purple-400" /> Tipo de Feedback Pedagógico
                           </label>
                           <div className="grid grid-cols-2 gap-3">
@@ -1453,8 +1453,8 @@ const PedagogyTab: React.FC = () => {
                               disabled={!activeModuleRecord}
                               className={`px-3 py-2.5 rounded-xl border text-[10px] font-black transition-all ${
                                 (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'simple'
-                                  ? 'bg-purple-500/20 border-purple-500/40 text-white'
-                                  : 'bg-white/5 border-white/10 text-slate-400'
+                                  ? 'bg-purple-500/20 border-purple-500/40 text-slate-900 dark:text-white'
+                                  : 'bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400'
                               }`}
                             >
                               Simple (✔/✘)
@@ -1464,8 +1464,8 @@ const PedagogyTab: React.FC = () => {
                               disabled={!activeModuleRecord}
                               className={`px-3 py-2.5 rounded-xl border text-[10px] font-black transition-all ${
                                 (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'detallado'
-                                  ? 'bg-purple-500/20 border-purple-500/40 text-white'
-                                  : 'bg-white/5 border-white/10 text-slate-400'
+                                  ? 'bg-purple-500/20 border-purple-500/40 text-slate-900 dark:text-white'
+                                  : 'bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400'
                               }`}
                             >
                               Tutoría IA / Espejo
@@ -1478,7 +1478,7 @@ const PedagogyTab: React.FC = () => {
                       <div className="pt-3 border-t border-white/5 space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <label className="text-sm text-slate-300 font-bold">Usar Cronómetro</label>
+                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Usar Cronómetro</label>
                             <p className="text-[9px] text-slate-500">Cronómetro específico local.</p>
                           </div>
                           <button 
@@ -1495,7 +1495,7 @@ const PedagogyTab: React.FC = () => {
                         {(activeModuleRecord?.usa_cronometro ?? getInheritedUseTimer()) && (
                           <div className="space-y-2 pt-2 border-t border-white/5">
                             <div className="flex justify-between items-center">
-                              <label className="text-[10px] text-slate-400 font-bold">Tiempo Límite en Segundos</label>
+                              <label className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Tiempo Límite en Segundos</label>
                               <span className="text-base font-black text-amber-400">
                                 {activeModuleRecord?.tiempo_default_segundos ?? getInheritedTimerForLevel('medium')}s
                               </span>

@@ -229,21 +229,39 @@ async def get_dashboard(
             prog = progresos.get(sec_n)
             
             # Condición de desbloqueo: Primer nivel de M1 está abierto de entrada.
-            # Los demás requieren que el nivel anterior de la lista esté aprobado.
+            # Los demás requieren que el nivel anterior de la lista esté aprobado (y para pasar de módulo, requiere además todos los desafíos).
             if m_id == 1 and n_id == 1:
                 is_unlocked = fase_actual_ok
             else:
                 # Nivel anterior
                 if n_id > 1:
                     prev_sec = m_id * 100 + (n_id - 1)
+                    prev_prog = progresos.get(prev_sec)
+                    is_unlocked = prev_prog is not None and prev_prog.estado == EstadoProgresoEnum.APROBADO
                 else:
                     # Último del módulo anterior
                     prev_m = m_id - 1
                     prev_n = 4 if prev_m == 3 else 3
-                    prev_sec = prev_m * 100 + prev_n
                     
-                prev_prog = progresos.get(prev_sec)
-                is_unlocked = prev_prog is not None and prev_prog.estado == EstadoProgresoEnum.APROBADO
+                    # Check all practice levels of previous module
+                    all_practice_ok = True
+                    for p_level in range(1, prev_n + 1):
+                        p_sec = prev_m * 100 + p_level
+                        p_prog = progresos.get(p_sec)
+                        if not p_prog or p_prog.estado != EstadoProgresoEnum.APROBADO:
+                            all_practice_ok = False
+                            break
+                            
+                    # Check all challenges of previous module
+                    all_challenges_ok = True
+                    for des_id in (11, 12, 13):
+                        c_sec = prev_m * 1000 + des_id
+                        c_prog = progresos.get(c_sec)
+                        if not c_prog or c_prog.estado != EstadoProgresoEnum.APROBADO:
+                            all_challenges_ok = False
+                            break
+                            
+                    is_unlocked = all_practice_ok and all_challenges_ok
                 
             estado_n = "bloqueado"
             aciertos_n = 0

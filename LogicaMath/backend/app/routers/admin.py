@@ -681,3 +681,37 @@ async def override_alumno_progress_bulk(
         "processed": processed
     }
 
+
+# ============================================================
+# SYSTEM CONFIGURATION (.env)
+# ============================================================
+import os
+from dotenv import set_key, dotenv_values
+
+class SystemConfigUpdate(BaseModel):
+    vps_host: str
+    ssh_user: str
+    database_url: str
+
+@router.get("/system-config")
+async def get_system_config(admin_user: dict = Depends(get_admin_user)):
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
+    env_vars = dotenv_values(env_path)
+    
+    return {
+        "vps_host": env_vars.get("VPS_HOST", ""),
+        "ssh_user": env_vars.get("SSH_USER", ""),
+        "database_url": env_vars.get("DATABASE_URL", "")
+    }
+
+@router.post("/system-config")
+async def update_system_config(payload: SystemConfigUpdate, admin_user: dict = Depends(get_admin_user)):
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
+    
+    set_key(env_path, "VPS_HOST", payload.vps_host)
+    set_key(env_path, "SSH_USER", payload.ssh_user)
+    set_key(env_path, "DATABASE_URL", payload.database_url)
+    
+    return {"status": "ok", "message": "Configuración del sistema guardada. Se requiere reiniciar el backend para aplicar la nueva base de datos."}
+
+
