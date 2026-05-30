@@ -795,10 +795,8 @@ async def seed_configuracion_progreso(session: AsyncSession):
         })
         
     # 12 challenges: 3 per module (virtual levels 11, 12, 13)
-    # D1 (nivel 11): 25 req, timer 25s, 90%
-    # D2 (nivel 12): 25 req, timer 40s, 90%
-    # DFinal (nivel 13): 10 req, timer 50s, 90%
-    for m in [1, 2, 3, 4]:
+    # Modules 1-2 keep standard times, Modules 3-4 get updated times
+    for m in [1, 2]:
         configs.append({
             "seccion": m * 1000 + 11,
             "operacion": OperacionEnum.MIXTA,
@@ -829,6 +827,38 @@ async def seed_configuracion_progreso(session: AsyncSession):
             "tiempo_default_segundos": 50,
             "tipo_feedback": "simple"
         })
+
+    for m in [3, 4]:
+        configs.append({
+            "seccion": m * 1000 + 11,
+            "operacion": OperacionEnum.MIXTA,
+            "cantidad_requerida": 25,
+            "porcentaje_aprobacion": 90,
+            "orden_desbloqueo": 1,
+            "usa_cronometro": True,
+            "tiempo_default_segundos": 30,
+            "tipo_feedback": "simple"
+        })
+        configs.append({
+            "seccion": m * 1000 + 12,
+            "operacion": OperacionEnum.MIXTA,
+            "cantidad_requerida": 25,
+            "porcentaje_aprobacion": 90,
+            "orden_desbloqueo": 2,
+            "usa_cronometro": True,
+            "tiempo_default_segundos": 45,
+            "tipo_feedback": "simple"
+        })
+        configs.append({
+            "seccion": m * 1000 + 13,
+            "operacion": OperacionEnum.MIXTA,
+            "cantidad_requerida": 10,
+            "porcentaje_aprobacion": 90,
+            "orden_desbloqueo": 3,
+            "usa_cronometro": True,
+            "tiempo_default_segundos": 60,
+            "tipo_feedback": "simple"
+        })
         
     # --- CONFIGURACIÓN GLOBAL DE DESAFÍO MIXTO (MÓDULO 99) ---
     configs.append({
@@ -839,7 +869,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
         "porcentaje_aprobacion": 90,
         "orden_desbloqueo": 4,
         "usa_cronometro": True,
-        "tiempo_default_segundos": 60,
+        "tiempo_default_segundos": 90,
         "tipo_feedback": "simple"
     })
 

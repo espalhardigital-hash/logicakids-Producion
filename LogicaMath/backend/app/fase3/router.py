@@ -533,14 +533,20 @@ async def get_pregunta_fase3(
 
         if config:
             tiene_crono = config.usa_cronometro
-            tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
+            if modulo_id in (1, 2, 3, 4):
+                tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (30 if nivel_id == 11 else (45 if nivel_id == 12 else (90 if modulo_id == 99 else 60)))
+            else:
+                tiempo_lim = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else (25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
             cantidad_req = config.cantidad_requerida
         else:
             global_cfg = await _get_global_config(db)
             des_cfg = global_cfg.get("desafios", {})
             tiene_crono = des_cfg.get("usa_cronometro", True)
             tiempo_key = f"tiempo_default_segundos_{nivel_id}"
-            tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
+            if modulo_id in (1, 2, 3, 4):
+                tiempo_lim = des_cfg.get(tiempo_key, 30 if nivel_id == 11 else (45 if nivel_id == 12 else (90 if modulo_id == 99 else 60)))
+            else:
+                tiempo_lim = des_cfg.get(tiempo_key, 25 if nivel_id == 11 else (40 if nivel_id == 12 else (60 if modulo_id == 99 else 50)))
             cantidad_req = des_cfg.get("cantidad_requerida", 20 if nivel_id != 13 else 10)
 
         if not tiene_crono:

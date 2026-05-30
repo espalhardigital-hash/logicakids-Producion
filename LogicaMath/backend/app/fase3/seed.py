@@ -760,36 +760,69 @@ async def seed_configuracion_progreso(session: AsyncSession):
             })
             
         # Desafíos
-        configs.append({
-            "seccion": mod_id * 1000 + 11,
-            "operacion": "mixta",
-            "cantidad_requerida": 20,
-            "porcentaje_aprobacion": 90,
-            "orden_desbloqueo": 11,
-            "usa_cronometro": True,
-            "tiempo_default_segundos": 25,
-            "tipo_feedback": "early_exit"
-        })
-        configs.append({
-            "seccion": mod_id * 1000 + 12,
-            "operacion": "mixta",
-            "cantidad_requerida": 20,
-            "porcentaje_aprobacion": 90,
-            "orden_desbloqueo": 12,
-            "usa_cronometro": True,
-            "tiempo_default_segundos": 40,
-            "tipo_feedback": "early_exit"
-        })
-        configs.append({
-            "seccion": mod_id * 1000 + 13,
-            "operacion": "mixta",
-            "cantidad_requerida": 10,
-            "porcentaje_aprobacion": 90,
-            "orden_desbloqueo": 13,
-            "usa_cronometro": True,
-            "tiempo_default_segundos": 50,
-            "tipo_feedback": "early_exit"
-        })
+        # Módulos 1-4 (globales 5-8) obtienen tiempos actualizados, módulo 5 (global 9) mantiene estándar
+        if mod_id in [1, 2, 3, 4]:
+            configs.append({
+                "seccion": mod_id * 1000 + 11,
+                "operacion": "mixta",
+                "cantidad_requerida": 20,
+                "porcentaje_aprobacion": 90,
+                "orden_desbloqueo": 11,
+                "usa_cronometro": True,
+                "tiempo_default_segundos": 30,
+                "tipo_feedback": "early_exit"
+            })
+            configs.append({
+                "seccion": mod_id * 1000 + 12,
+                "operacion": "mixta",
+                "cantidad_requerida": 20,
+                "porcentaje_aprobacion": 90,
+                "orden_desbloqueo": 12,
+                "usa_cronometro": True,
+                "tiempo_default_segundos": 45,
+                "tipo_feedback": "early_exit"
+            })
+            configs.append({
+                "seccion": mod_id * 1000 + 13,
+                "operacion": "mixta",
+                "cantidad_requerida": 10,
+                "porcentaje_aprobacion": 90,
+                "orden_desbloqueo": 13,
+                "usa_cronometro": True,
+                "tiempo_default_segundos": 60,
+                "tipo_feedback": "early_exit"
+            })
+        else:
+            configs.append({
+                "seccion": mod_id * 1000 + 11,
+                "operacion": "mixta",
+                "cantidad_requerida": 20,
+                "porcentaje_aprobacion": 90,
+                "orden_desbloqueo": 11,
+                "usa_cronometro": True,
+                "tiempo_default_segundos": 25,
+                "tipo_feedback": "early_exit"
+            })
+            configs.append({
+                "seccion": mod_id * 1000 + 12,
+                "operacion": "mixta",
+                "cantidad_requerida": 20,
+                "porcentaje_aprobacion": 90,
+                "orden_desbloqueo": 12,
+                "usa_cronometro": True,
+                "tiempo_default_segundos": 40,
+                "tipo_feedback": "early_exit"
+            })
+            configs.append({
+                "seccion": mod_id * 1000 + 13,
+                "operacion": "mixta",
+                "cantidad_requerida": 10,
+                "porcentaje_aprobacion": 90,
+                "orden_desbloqueo": 13,
+                "usa_cronometro": True,
+                "tiempo_default_segundos": 50,
+                "tipo_feedback": "early_exit"
+            })
 
     # --- CONFIGURACIÓN GLOBAL DE DESAFÍO MIXTO (MÓDULO 99) ---
     configs.append({
@@ -799,7 +832,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
         "porcentaje_aprobacion": 90,
         "orden_desbloqueo": 4,
         "usa_cronometro": True,
-        "tiempo_default_segundos": 60,
+        "tiempo_default_segundos": 90,
         "tipo_feedback": "simple"
     })
 

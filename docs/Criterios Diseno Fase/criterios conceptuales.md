@@ -198,17 +198,17 @@ Todo módulo debe contener exactamente estos 3 desafíos indexados en el pool es
 
 | Componente | Dificultad | Interfaz | Cantidad estándar | Temporizador estándar | Regla de Cierre |
 | --- | --- | --- | --- | --- | --- |
-| **Desafío 1** | Estándar | Opción múltiple | 25 | 25 segundos por pregunta | Early Exit al 3er error |
-| **Desafío 2** | Avanzada | Opción múltiple | 25 | 40 segundos por pregunta | Early Exit al 3er error |
-| **Desafío Final** | Maestría | Evocación pura (`input`) | 10 | 50 segundos por pregunta | Early Exit al 2do error |
+| **Desafío 1** | Estándar | Opción múltiple | 25 | 25 segundos (30s en Módulos 3-8) | Early Exit al 3er error |
+| **Desafío 2** | Avanzada | Opción múltiple | 25 | 40 segundos (45s en Módulos 3-8) | Early Exit al 3er error |
+| **Desafío Final** | Maestría | Evocación pura (`input`) | 10 | 50 segundos (60s en Módulos 3-8) | Early Exit al 2do error |
 
 ### 6.1. Filosofía del Tiempo Variable
 
 Los tiempos están calculados de forma inversa a la asistencia de la interfaz:
 
-* Desafío 1: menos tiempo porque la opción múltiple permite descarte visual.
-* Desafío 2: más tiempo por mayor complejidad conceptual.
-* Desafío Final: más tiempo porque exige evocación pura sin distractores.
+* Desafío 1: menos tiempo porque la opción múltiple permite descarte visual (25s estándar / 30s en Módulos 3-8).
+* Desafío 2: más tiempo por mayor complejidad conceptual (40s estándar / 45s en Módulos 3-8).
+* Desafío Final: más tiempo porque exige evocación pura sin distractores (50s estándar / 60s en Módulos 3-8).
 
 ### 6.1.B. Interfaz Splash Premium de Desafíos (Challenge Splash Screen)
 

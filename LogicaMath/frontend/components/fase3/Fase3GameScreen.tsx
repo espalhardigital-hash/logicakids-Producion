@@ -88,7 +88,11 @@ export const Fase3GameScreen: React.FC = () => {
   }, [moduloId]);
 
   const displayTimeLimit = useMemo(() => {
-    return moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
+    if (moduloId === 99) return 90;
+    if (moduloId >= 1 && moduloId <= 4) {
+      return nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60;
+    }
+    return nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50;
   }, [moduloId, nivelId]);
 
   const displayQuestionsCount = maxAciertos;
