@@ -30,7 +30,8 @@ export const PHASE_MAPS: PhaseMap[] = [
           { id: 1, name: "Suma Directa", seccion: 1, operacion: "suma" },
           { id: 2, name: "Resta Directa", seccion: 1, operacion: "resta" },
           { id: 3, name: "Multiplicación Directa", seccion: 1, operacion: "multiplicacion" },
-          { id: 4, name: "División Directa", seccion: 1, operacion: "division" }
+          { id: 4, name: "División Directa", seccion: 1, operacion: "division" },
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
         ]
       }
     ]
@@ -88,6 +89,13 @@ export const PHASE_MAPS: PhaseMap[] = [
           { id: 12, name: "Desafío 2 (Avanzado)", seccion: 4012, operacion: "mixta", isChallenge: true },
           { id: 13, name: "Desafío Final (Maestría)", seccion: 4013, operacion: "mixta", isChallenge: true }
         ]
+      },
+      {
+        id: 99,
+        name: "Graduación y Examen Final",
+        levels: [
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
+        ]
       }
     ]
   },
@@ -142,6 +150,25 @@ export const PHASE_MAPS: PhaseMap[] = [
           { id: 11, name: "Desafío 1 (Estándar)", seccion: 4011, operacion: "mixta", isChallenge: true },
           { id: 12, name: "Desafío 2 (Avanzado)", seccion: 4012, operacion: "mixta", isChallenge: true },
           { id: 13, name: "Desafío Final (Maestría)", seccion: 4013, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 5,
+        name: "Módulo 5: Ciclos y Agrupaciones Máximas",
+        levels: [
+          { id: 1, name: "Visualización de Saltos y Empaques", seccion: 501, operacion: "mixta" },
+          { id: 2, name: "Encuentros Periódicos - MCM", seccion: 502, operacion: "mixta" },
+          { id: 3, name: "División Máxima Exacta - MCD", seccion: 503, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 5011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 5012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 5013, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 99,
+        name: "Graduación y Examen Final",
+        levels: [
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
         ]
       }
     ]
