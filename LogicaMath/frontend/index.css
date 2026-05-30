@@ -19,34 +19,34 @@
 
 @layer base {
   body {
-    @apply bg-[#f5f5f7] text-[#1d1d1f] font-sans transition-colors duration-500;
-    @apply dark:bg-[#000000] dark:text-[#f5f5f7];
+    @apply bg-slate-50 text-slate-900 font-sans transition-colors duration-300;
+    @apply dark:bg-[#070b14] dark:text-slate-100;
   }
 }
 
 .glass-card {
-  @apply bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl transition-all duration-300;
-  @apply dark:bg-[#1c1c1e]/60 dark:border-white/10 dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)];
+  @apply bg-white border border-slate-100 shadow-xl rounded-3xl transition-all duration-300;
+  @apply dark:bg-[#162033] dark:border-slate-800 dark:shadow-none;
 }
 
 .glass-panel {
-  @apply bg-white/50 backdrop-blur-xl border border-white/30 rounded-2xl transition-all duration-300;
-  @apply dark:bg-[#2c2c2e]/40 dark:border-white/5;
+  @apply bg-slate-50 border border-slate-200 rounded-2xl transition-all duration-300;
+  @apply dark:bg-[#070b14] dark:border-slate-800;
 }
 
 .glass-button {
-  @apply bg-white/80 hover:bg-white backdrop-blur-lg border border-slate-200/50 text-[#1d1d1f] rounded-full px-5 py-2.5 transition-all duration-300 shadow-sm hover:shadow-md font-medium;
-  @apply dark:bg-[#2c2c2e]/80 dark:hover:bg-[#3a3a3c] dark:border-white/10 dark:text-[#f5f5f7] dark:hover:text-white dark:shadow-none;
+  @apply bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 rounded-full px-5 py-2.5 transition-all duration-300 shadow-sm font-medium;
+  @apply dark:bg-[#162033] dark:hover:bg-slate-800 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white dark:shadow-none;
 }
 
 .glass-button-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white border-none rounded-full px-5 py-2.5 transition-all duration-300 shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] font-medium;
-  @apply dark:bg-blue-500 dark:hover:bg-blue-400 dark:shadow-[0_4px_14px_0_rgba(59,130,246,0.39)];
+  @apply bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 rounded-full px-5 py-2.5 transition-all duration-300 font-medium;
+  @apply dark:shadow-none;
 }
 
 .glass-input {
-  @apply w-full bg-white/60 border border-slate-200/60 text-[#1d1d1f] rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 focus:bg-white transition-all backdrop-blur-md;
-  @apply dark:bg-[#1c1c1e]/60 dark:border-white/10 dark:text-[#f5f5f7] dark:focus:ring-blue-400/50 dark:focus:bg-[#2c2c2e]/80;
+  @apply w-full bg-white border border-slate-200 text-slate-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all;
+  @apply dark:bg-[#0a0f1c] dark:border-slate-800 dark:text-white dark:focus:ring-blue-500/30;
 }
 
 /* Custom Scrollbar */
@@ -54,10 +54,10 @@
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-transparent; 
+  @apply bg-slate-100 dark:bg-[#070b14]; 
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300/80 rounded-full dark:bg-slate-700/80; 
+  @apply bg-slate-300 rounded-full dark:bg-slate-800; 
 }
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-slate-400 dark:bg-slate-600; 

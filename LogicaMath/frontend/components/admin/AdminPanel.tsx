@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut, BookOpen } from 'lucide-react';
+import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut, BookOpen, Server } from 'lucide-react';
 import GeneralTab from './GeneralTab';
 import PedagogyTab from './PedagogyTab';
 import PerformanceTab from './PerformanceTab';
 import ContentTab from './ContentTab';
+import SystemTab from './SystemTab';
 
 interface Props {
   onBack: () => void;
   onLogout: () => void;
 }
 
-type TabType = 'general' | 'pedagogy' | 'performance' | 'content';
+type TabType = 'general' | 'pedagogy' | 'performance' | 'content' | 'system';
 
 const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
   const [activeTab, setActiveTab] = useState<TabType>('general');
@@ -83,6 +84,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
     { id: 'pedagogy', label: 'Config. Pedagógica', icon: Settings },
     { id: 'performance', label: 'Rendimiento Estudiantil', icon: Activity },
     { id: 'content', label: 'Banco de Preguntas', icon: BookOpen },
+    { id: 'system', label: 'Servidor y BD', icon: Server },
   ];
 
   const handleTabChange = (tabId: TabType) => {
@@ -225,7 +227,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
       {/* Botón menú móvil */}
       <button 
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="md:hidden absolute top-6 left-6 z-50 p-2.5 bg-white/5 border border-white/8 rounded-lg backdrop-blur-xl text-slate-900 dark:text-[#f3f4f6] hover:bg-white/10 transition-colors"
+        className="md:hidden absolute top-6 left-6 z-50 p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg backdrop-blur-xl text-slate-900 dark:text-[#f3f4f6] hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-white/10 transition-colors"
       >
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
@@ -244,10 +246,10 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
       </AnimatePresence>
 
       {/* Sidebar - Apple macOS style navigation */}
-      <div className={`fixed md:relative z-40 h-full w-64 flex flex-col bg-[#14151b]/80 backdrop-blur-3xl border-r border-white/5 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <div className={`fixed md:relative z-40 h-full w-64 flex flex-col bg-[#14151b]/80 backdrop-blur-3xl border-r border-slate-200 dark:border-white/5 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/5 rounded-xl border border-white/8 flex items-center justify-center">
+            <div className="p-2 bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 flex items-center justify-center">
               <Shield className="text-[#007AFF]" size={20} />
             </div>
             <div>
@@ -267,7 +269,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 font-medium text-[14.5px] tracking-normal relative overflow-hidden group ${
                   isActive 
                     ? 'text-slate-900 dark:text-white bg-[#007AFF]' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/5'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-white/5'
                 }`}
               >
                 <tab.icon size={17} className="relative z-10" />
@@ -278,7 +280,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
         </nav>
 
         {/* Controles de Ajuste UI (macOS System Preferences style) */}
-        <div className="px-5 py-4 border-t border-white/5 bg-black/10">
+        <div className="px-5 py-4 border-t border-slate-200 dark:border-white/5 bg-black/10">
           <p className="text-[10px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Ajustes Visuales</p>
           
           <div className="space-y-4">
@@ -303,7 +305,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
               <select 
                 value={adminFontFamily} 
                 onChange={(e) => setAdminFontFamily(e.target.value)}
-                className="w-full bg-white/80 dark:bg-slate-950 border border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#007AFF] transition-colors"
+                className="w-full bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#007AFF] transition-colors"
                 style={{ fontFamily: adminFontFamily || undefined }}
               >
                 <option value="">SF Pro Text (Predeterminada)</option>
@@ -320,7 +322,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
         <div className="p-4 space-y-2">
           <button
             onClick={onBack}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-900 dark:text-white text-[13.5px] font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-white/15 text-slate-900 dark:text-white text-[13.5px] font-medium transition-colors"
           >
             Volver a Fase 4
           </button>
@@ -358,6 +360,11 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                 <ContentTab showConfirm={showConfirm} showAlert={showAlert} />
               </motion.div>
             )}
+            {activeTab === 'system' && (
+              <motion.div key="system" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
+                <SystemTab showAlert={showAlert} />
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
       </div>
@@ -375,7 +382,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
               initial={{ scale: 0.95, opacity: 0, y: -20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: -20 }}
-              className="bg-[#1e1f26]/95 backdrop-blur-2xl border border-white/8 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden text-slate-900 dark:text-[#f3f4f6]"
+              className="bg-[#1e1f26]/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden text-slate-900 dark:text-[#f3f4f6]"
             >
               <h4 className="text-[16px] font-semibold mb-2 tracking-tight text-slate-900 dark:text-white">{dialogState.title}</h4>
               <p className="text-slate-600 dark:text-slate-300 text-[13.5px] mb-6 leading-relaxed whitespace-pre-wrap">{dialogState.message}</p>
@@ -387,7 +394,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                       if (dialogState.onCancel) dialogState.onCancel();
                       setDialogState(prev => ({ ...prev, isOpen: false }));
                     }}
-                    className="px-4 py-2 rounded-xl font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/5 transition-colors text-[13px]"
+                    className="px-4 py-2 rounded-xl font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-white/5 transition-colors text-[13px]"
                   >
                     Cancelar
                   </button>

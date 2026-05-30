@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole } from '../../types';
-import { getAllUsers, saveUser, deleteUser, getStorageUsage, getAllScores, getUserDetailedAnalytics, adminCreateUser, adminChangePassword, getAvatarUrl, deleteScoreById, getSystemConfig, updateSystemConfig } from '../../services/storageService';
+import { getAllUsers, saveUser, deleteUser, getStorageUsage, getAllScores, getUserDetailedAnalytics, adminCreateUser, adminChangePassword, getAvatarUrl, deleteScoreById, } from '../../services/storageService';
 import {
   ArrowLeft, Users, Shield, Activity, Database, Search,
-  Edit, Trash2, UserX, UserCheck, Plus, X, Key, Check, BarChart2, Eye, EyeOff, Save, Server
+  Edit, Trash2, UserX, UserCheck, Plus, X, Key, Check, BarChart2, Eye, EyeOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -64,9 +64,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
   const [allScores, setAllScores] = useState<any[]>([]);
   const [sortConfig, setSortConfig] = useState<{key: 'date' | 'score', direction: 'asc' | 'desc'}>({key: 'date', direction: 'desc'});
   
-  // System Config State
-  const [systemConfig, setSystemConfig] = useState({ vps_host: '', ssh_user: '', database_url: '' });
-  const [savingSystemConfig, setSavingSystemConfig] = useState(false);
+  
 
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -90,11 +88,11 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
   const loadData = async () => {
     const allUsers = await getAllUsers();
     const scores = await getAllScores();
-    const sysConf = await getSystemConfig();
+    
 
     setUsers(allUsers);
     setAllScores(scores);
-    setSystemConfig(sysConf);
+    
 
     setStats({
       totalUsers: allUsers.length,
@@ -104,21 +102,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
     });
   };
 
-  const handleSaveSystemConfig = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavingSystemConfig(true);
-    try {
-      const res = await updateSystemConfig(systemConfig);
-      if (showAlert) showAlert('Configuración Guardada', res.message, 'success');
-      else alert(res.message);
-    } catch (err: any) {
-      if (showAlert) showAlert('Error', err.message || 'Error al guardar', 'error');
-      else alert(err.message || 'Error al guardar');
-    } finally {
-      setSavingSystemConfig(false);
-    }
-  };
-
+  
   const handleCreate = () => {
     setEditingUser(null);
     setFormData({ username: '', email: '', password: '', role: 'USER', status: 'ACTIVE' });
@@ -275,7 +259,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
               variants={itemVariants}
               whileHover={{ y: -5, backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
               onClick={item.onClick}
-              className={`bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-6 rounded-[2rem] shadow-2xl flex items-center justify-between ${item.onClick ? 'cursor-pointer group' : ''}`}
+              className={`bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-6 rounded-[2rem] shadow-2xl flex items-center justify-between ${item.onClick ? 'cursor-pointer group' : ''}`}
             >
               <div>
                 <p className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-widest mb-1">{item.label}</p>
@@ -294,10 +278,10 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
         </motion.div>
 
         {/* Main Content Area */}
-        <motion.div variants={itemVariants} className="w-full bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col flex-1 mb-10">
+        <motion.div variants={itemVariants} className="w-full bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col flex-1 mb-10">
           
           {/* Toolbar */}
-          <div className="p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 bg-white/[0.02]">
+          <div className="p-8 border-b border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-50 dark:bg-white/[0.02]">
             <div className="relative flex-1 w-full max-w-md">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
               <input
@@ -305,7 +289,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                 placeholder="Buscar usuario o email..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-14 pr-6 text-slate-900 dark:text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all placeholder:text-slate-500"
+                className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-14 pr-6 text-slate-900 dark:text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all placeholder:text-slate-500"
               />
             </div>
             <button
@@ -319,7 +303,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
           {/* User Table */}
           <div className="flex-1 overflow-auto custom-scrollbar bg-transparent">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-white/5 text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-[0.2em] sticky top-0 z-10 border-b border-white/5">
+              <thead className="bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-[0.2em] sticky top-0 z-10 border-b border-slate-200 dark:border-white/5">
                 <tr>
                   <th className="p-6">Usuario</th>
                   <th className="p-6 hidden sm:table-cell">Detalles</th>
@@ -327,18 +311,18 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                   <th className="p-6 text-center">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.03]">
+              <tbody className="divide-y divide-slate-200 dark:divide-white/[0.03]">
                 {filteredUsers.map((user, index) => (
                   <motion.tr 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.03 }}
                     key={user.id} 
-                    className="hover:bg-white/[0.04] transition-all group"
+                    className="hover:bg-slate-100 dark:bg-white/[0.04] transition-all group"
                   >
                     <td className="p-6">
                       <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 flex items-center justify-center bg-white/5 shadow-2xl relative">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 flex items-center justify-center bg-white dark:bg-white/5 shadow-2xl relative">
                           {user.avatar ? (
                             <img src={getAvatarUrl(user.avatar)} className="w-full h-full object-cover" />
                           ) : (
@@ -361,7 +345,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                       </div>
                     </td>
                     <td className="p-6">
-                      <span className={`px-4 py-1.5 rounded-xl text-sm font-black tracking-wide ${user.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-white/5'}`}>
+                      <span className={`px-4 py-1.5 rounded-xl text-sm font-black tracking-wide ${user.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/5'}`}>
                         {user.status === 'ACTIVE' ? 'Activo' : 'Baneado'}
                       </span>
                     </td>
@@ -398,7 +382,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
             </table>
             {filteredUsers.length === 0 && (
               <div className="p-20 flex flex-col items-center justify-center text-slate-500">
-                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                <div className="w-20 h-20 rounded-full bg-white dark:bg-white/5 flex items-center justify-center mb-6">
                   <Users size={40} className="opacity-20" />
                 </div>
                 <p className="font-bold text-xl tracking-tight">No se encontraron usuarios</p>
@@ -408,59 +392,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
           </div>
         </motion.div>
 
-        {/* System Config Area */}
-        <motion.div variants={itemVariants} className="w-full glass-card p-8 mb-10">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-              <Server size={24} />
-            </div>
-            <div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white">Conexión de Base de Datos y Servidor</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">Configura las credenciales de la base de datos de producción (PostgreSQL) y la VPS.</p>
-            </div>
-          </div>
-          
-          <form onSubmit={handleSaveSystemConfig} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">DATABASE_URL (PostgreSQL)</label>
-              <input 
-                required 
-                value={systemConfig.database_url} 
-                onChange={e => setSystemConfig({...systemConfig, database_url: e.target.value})}
-                className="glass-input text-sm" 
-                placeholder="postgresql+asyncpg://user:pass@host:5432/db" 
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">VPS Host IP</label>
-              <input 
-                value={systemConfig.vps_host} 
-                onChange={e => setSystemConfig({...systemConfig, vps_host: e.target.value})}
-                className="glass-input text-sm" 
-                placeholder="34.9.51.225" 
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">SSH User</label>
-              <input 
-                value={systemConfig.ssh_user} 
-                onChange={e => setSystemConfig({...systemConfig, ssh_user: e.target.value})}
-                className="glass-input text-sm" 
-                placeholder="ssh rominejo@34.9.51.225" 
-              />
-            </div>
-            <div className="flex items-end justify-end">
-              <button 
-                type="submit" 
-                disabled={savingSystemConfig}
-                className="glass-button-primary flex items-center gap-2"
-              >
-                {savingSystemConfig ? <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin"></div> : <Save size={20} />}
-                {savingSystemConfig ? 'Guardando...' : 'Guardar y Reconectar'}
-              </button>
-            </div>
-          </form>
-        </motion.div>
+        
 
       </motion.div>
 
@@ -483,36 +415,36 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
               
               <div className="flex justify-between items-center mb-10">
                 <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
-                <button onClick={() => setShowUserModal(false)} className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all"><X size={22} /></button>
+                <button onClick={() => setShowUserModal(false)} className="w-10 h-10 rounded-2xl bg-white dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all"><X size={22} /></button>
               </div>
 
               <form onSubmit={handleSaveUser} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Nombre de Usuario</label>
-                  <input required value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-600" placeholder="Ej: SuperMath" />
+                  <input required value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-600" placeholder="Ej: SuperMath" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Correo Electrónico</label>
-                  <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all disabled:opacity-30 disabled:cursor-not-allowed" disabled={!!editingUser} placeholder="correo@ejemplo.com" />
+                  <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all disabled:opacity-30 disabled:cursor-not-allowed" disabled={!!editingUser} placeholder="correo@ejemplo.com" />
                 </div>
                 {!editingUser && (
                   <div className="space-y-2">
                     <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Contraseña Inicial</label>
-                    <input required type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" placeholder="••••••••" />
+                    <input required type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" placeholder="••••••••" />
                   </div>
                 )}
                 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Rol</label>
-                    <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer">
+                    <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })} className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer">
                       <option value="USER" className="glass-panel">Usuario</option>
                       <option value="ADMIN" className="glass-panel">Administrador</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] ml-1">Estado</label>
-                    <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer">
+                    <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })} className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white text-base font-bold focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer">
                       <option value="ACTIVE" className="glass-panel">Activo</option>
                       <option value="BANNED" className="glass-panel">Baneado</option>
                     </select>
@@ -520,7 +452,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                 </div>
 
                 <div className="pt-8 flex gap-4">
-                  <button type="button" onClick={() => setShowUserModal(false)} className="flex-1 py-4 rounded-2xl font-black text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/5 text-base transition-all">Cancelar</button>
+                  <button type="button" onClick={() => setShowUserModal(false)} className="flex-1 py-4 rounded-2xl font-black text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-white/5 text-base transition-all">Cancelar</button>
                   <button type="submit" className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 text-slate-900 dark:text-white rounded-2xl font-black text-base flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(37,99,235,0.3)] transition-all">
                     <Check size={20} /> Guardar Cambios
                   </button>
@@ -546,8 +478,8 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
               exit={{ scale: 0.95, opacity: 0, y: 40 }}
               className="glass-panel/90 backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[3rem] w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
             >
-              <div className="bg-white/5 p-10 flex items-center gap-8 border-b border-white/5">
-                <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-4 border-slate-200 dark:border-white/10 flex items-center justify-center bg-white/5 shadow-2xl relative group">
+              <div className="bg-white dark:bg-white/5 p-10 flex items-center gap-8 border-b border-slate-200 dark:border-white/5">
+                <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-4 border-slate-200 dark:border-white/10 flex items-center justify-center bg-white dark:bg-white/5 shadow-2xl relative group">
                   {statsUser.avatar ? (
                     <img src={getAvatarUrl(statsUser.avatar)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   ) : (
@@ -562,7 +494,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                   </div>
                   <p className="text-slate-500 dark:text-slate-400 text-base font-medium mt-1">{statsUser.email}</p>
                 </div>
-                <button onClick={() => setShowStatsModal(false)} className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 transition-all hover:rotate-90"><X size={24} /></button>
+                <button onClick={() => setShowStatsModal(false)} className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 transition-all hover:rotate-90"><X size={24} /></button>
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar p-10 bg-transparent">
@@ -581,9 +513,9 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                       <div className="text-slate-500 text-sm font-bold">Total: {sortedHistory.length} partidas</div>
                     </div>
 
-                    <div className="overflow-hidden rounded-[2rem] border border-white/5 bg-white/[0.02]">
+                    <div className="overflow-hidden rounded-[2rem] border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02]">
                       <table className="w-full text-left border-collapse">
-                        <thead className="text-xs text-slate-500 uppercase font-black tracking-widest bg-white/5 border-b border-white/5">
+                        <thead className="text-xs text-slate-500 uppercase font-black tracking-widest bg-white dark:bg-white/5 border-b border-slate-200 dark:border-white/5">
                           <tr>
                             <th className="p-5 cursor-pointer hover:text-slate-900 dark:text-white transition-colors" onClick={() => toggleSort('date')}>
                               Fecha {sortConfig.key === 'date' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
@@ -596,14 +528,14 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                             <th className="p-5 text-center">Errores</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-slate-200 dark:divide-white/5">
                           {sortedHistory.map((record: any, idx: number) => (
                             <motion.tr 
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: idx * 0.02 }}
                               key={record.id} 
-                              className="hover:bg-white/[0.03] transition-colors"
+                              className="hover:bg-slate-50 dark:bg-white/[0.03] transition-colors"
                             >
                               <td className="p-5 text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap text-base">
                                 {formatFriendlyDate(record.rawDate || record.date)}
@@ -659,7 +591,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
               exit={{ scale: 0.95, opacity: 0, y: 50 }}
               className="glass-panel/90 backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[3rem] w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="bg-white/5 p-10 flex justify-between items-center border-b border-white/5">
+              <div className="bg-white dark:bg-white/5 p-10 flex justify-between items-center border-b border-slate-200 dark:border-white/5">
                 <div>
                   <h3 className="text-5xl font-black text-slate-900 dark:text-white flex items-center gap-5 tracking-tight">
                     <div className="w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
@@ -669,13 +601,13 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                   </h3>
                   <p className="text-slate-500 text-base font-medium mt-2 ml-1">Partidas totales registradas en LogicaKids Pro</p>
                 </div>
-                <button onClick={() => setShowAllScoresModal(false)} className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all"><X size={24} /></button>
+                <button onClick={() => setShowAllScoresModal(false)} className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all"><X size={24} /></button>
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar p-10 bg-transparent">
-                <div className="overflow-hidden rounded-[2.5rem] border border-white/5 bg-white/[0.02]">
+                <div className="overflow-hidden rounded-[2.5rem] border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02]">
                   <table className="w-full text-left border-collapse">
-                    <thead className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] bg-white/5 sticky top-0 z-10 border-b border-white/5">
+                    <thead className="text-xs text-slate-500 uppercase font-black tracking-[0.2em] bg-white dark:bg-white/5 sticky top-0 z-10 border-b border-slate-200 dark:border-white/5">
                       <tr>
                         <th className="p-6">Fecha y Hora</th>
                         <th className="p-6">Usuario</th>
@@ -685,14 +617,14 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                         <th className="p-6 text-center">Acciones</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-slate-200 dark:divide-white/5">
                       {[...allScores].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((record: any, idx: number) => (
                         <motion.tr 
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: idx * 0.01 }}
                           key={record.id} 
-                          className="hover:bg-white/[0.04] transition-all group"
+                          className="hover:bg-slate-100 dark:bg-white/[0.04] transition-all group"
                         >
                           <td className="p-6 text-slate-500 dark:text-slate-400 font-medium text-base">
                             {formatFriendlyDate(record.date)}
@@ -775,7 +707,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                   </div>
                   Cambiar Clave
                 </h3>
-                <button onClick={() => setShowPasswordModal(false)} className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all"><X size={22} /></button>
+                <button onClick={() => setShowPasswordModal(false)} className="w-10 h-10 rounded-2xl bg-white dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all"><X size={22} /></button>
               </div>
 
               <form onSubmit={handleSavePassword} className="space-y-8">
@@ -787,7 +719,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                       type={showPasswordText ? "text" : "password"}
                       value={newPassword}
                       onChange={e => setNewPassword(e.target.value)}
-                      className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-5 pr-14 text-slate-900 dark:text-white font-black text-2xl focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all placeholder:text-slate-700"
+                      className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-5 pr-14 text-slate-900 dark:text-white font-black text-2xl focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all placeholder:text-slate-700"
                       placeholder="••••••••"
                       minLength={6}
                     />
@@ -803,7 +735,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                 </div>
 
                 <div className="pt-4 flex gap-4">
-                  <button type="button" onClick={() => setShowPasswordModal(false)} className="flex-1 py-4 rounded-2xl font-black text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white/5 text-base transition-all">Cancelar</button>
+                  <button type="button" onClick={() => setShowPasswordModal(false)} className="flex-1 py-4 rounded-2xl font-black text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-white/5 text-base transition-all">Cancelar</button>
                   <button type="submit" className="flex-[2] py-4 bg-amber-500 hover:bg-amber-600 text-slate-900 dark:text-white rounded-2xl font-black text-base flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(245,158,11,0.3)] transition-all">
                     <Check size={22} /> Actualizar Ahora
                   </button>

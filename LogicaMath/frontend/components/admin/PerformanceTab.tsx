@@ -54,7 +54,7 @@ const StatusBadge: React.FC<{ status: string; size?: 'sm' | 'xs' }> = ({ status,
   const configs = {
     APROBADO: { icon: CheckCircle2, text: 'APROBADO', cls: 'bg-green-500/20 text-green-400 border-green-500/30' },
     EN_PROGRESO: { icon: CircleDot, text: 'EN PROGRESO', cls: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-    BLOQUEADO: { icon: Circle, text: 'BLOQUEADO', cls: 'bg-white/80 dark:bg-slate-800 text-slate-500 border-white/5' },
+    BLOQUEADO: { icon: Circle, text: 'BLOQUEADO', cls: 'bg-white/80 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-white/5' },
   };
   const config = configs[normalized] || configs.BLOQUEADO;
   const { icon: Icon, text, cls } = config;
@@ -262,7 +262,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
     <div className="w-full flex flex-col gap-6 text-slate-900 dark:text-white select-none">
       
       {/* Top Header Panel */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-6 rounded-[2.2rem] shadow-2xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-6 rounded-[2.2rem] shadow-2xl">
         <div className="w-full">
           <h2 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
             <div className="p-2.5 bg-red-500/20 rounded-2xl border border-red-500/30">
@@ -280,7 +280,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left Column: Student search */}
-        <div className="lg:col-span-1 bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-5 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
+        <div className="lg:col-span-1 bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-5 rounded-[2.2rem] shadow-2xl flex flex-col gap-4">
           <h3 className="text-base font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2">Buscador de Alumnos</h3>
           
           <div className="relative">
@@ -315,12 +315,12 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                   className={`w-full text-left p-4 rounded-2xl border transition-all flex flex-col gap-1 cursor-pointer ${
                     isSelected 
                       ? 'bg-blue-600/20 text-slate-900 dark:text-white border-blue-500/40 shadow-inner' 
-                      : 'bg-white/5 border-white/5 text-slate-600 dark:text-slate-300 hover:bg-white/10'
+                      : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-white/10'
                   }`}
                 >
                   <span className="text-sm font-black">{a.alumno_nombre}</span>
                   <span className="text-xs text-slate-500 font-bold">{a.email}</span>
-                  <span className="text-[10px] bg-white/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full border border-white/5 self-start mt-1 font-bold">
+                  <span className="text-[10px] bg-white/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full border border-slate-200 dark:border-white/5 self-start mt-1 font-bold">
                     Fase Actual: {a.fase_actual_id}
                   </span>
                 </button>
@@ -332,7 +332,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
         {/* Right Column: Detailed progress */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {!selectedAlumno ? (
-            <div className="bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-12 rounded-[2.2rem] shadow-2xl flex flex-col items-center justify-center text-center min-h-[40vh]">
+            <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-12 rounded-[2.2rem] shadow-2xl flex flex-col items-center justify-center text-center min-h-[40vh]">
               <User size={48} className="text-slate-600 mb-4" />
               <h4 className="text-base font-black text-slate-600 dark:text-slate-300">Ningún Alumno Seleccionado</h4>
               <p className="text-sm text-slate-500 max-w-xs mt-1">
@@ -340,10 +340,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
               </p>
             </div>
           ) : (
-            <div className="bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-6">
+            <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-6">
               
               {/* Student profile card */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-slate-950/40 p-5 rounded-3xl border border-white/5">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-slate-950/40 p-5 rounded-3xl border border-slate-200 dark:border-white/5">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-blue-500/20 rounded-2xl border border-blue-500/30">
                     <User className="text-blue-400" size={24} />
@@ -366,7 +366,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
               </div>
 
               {/* Progress Drilldown */}
-              <div className="flex flex-col gap-4 border-t border-white/5 pt-4">
+              <div className="flex flex-col gap-4 border-t border-slate-200 dark:border-white/5 pt-4">
                 <h4 className="text-base font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">Progreso y Control de Maestría</h4>
 
                 {loadingProgress ? (
@@ -383,11 +383,11 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                       const faseBulkLoading = actionInProgress === faseBulkKey;
 
                       return (
-                        <div key={phase.id} className="rounded-3xl border border-white/5 bg-white/80 dark:bg-slate-950/20 overflow-hidden">
+                        <div key={phase.id} className="rounded-3xl border border-slate-200 dark:border-white/5 bg-white/80 dark:bg-slate-950/20 overflow-hidden">
 
                           {/* Phase header */}
                           <div
-                            className="flex justify-between items-center p-4 glass-panel cursor-pointer border-b border-white/5 hover:glass-panel/60 transition-colors"
+                            className="flex justify-between items-center p-4 glass-panel cursor-pointer border-b border-slate-200 dark:border-white/5 hover:glass-panel/60 transition-colors"
                           >
                             {/* Left: expand toggle + name + status */}
                             <div
@@ -420,10 +420,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                                 const moduleBulkLoading = actionInProgress === moduleBulkKey;
 
                                 return (
-                                  <div key={mod.id} className="bg-white/80 dark:bg-slate-950/40 rounded-2xl border border-white/5 overflow-hidden">
+                                  <div key={mod.id} className="bg-white/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden">
                                     
                                     {/* Module header */}
-                                    <div className="flex items-center justify-between p-3 glass-panel/30 border-b border-white/5 hover:glass-panel/50 transition-colors cursor-pointer">
+                                    <div className="flex items-center justify-between p-3 glass-panel/30 border-b border-slate-200 dark:border-white/5 hover:glass-panel/50 transition-colors cursor-pointer">
                                       <div
                                         className="flex items-center gap-2 flex-1 min-w-0"
                                         onClick={() => setExpandedModules(prev => ({ ...prev, [modKey]: !prev[modKey] }))}
@@ -459,7 +459,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                                           return (
                                             <div
                                               key={lvl.id}
-                                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 glass-panel/20 border border-white/5 rounded-xl"
+                                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 glass-panel/20 border border-slate-200 dark:border-white/5 rounded-xl"
                                             >
                                               {/* Level metadata */}
                                               <div className="flex-1 min-w-0">
