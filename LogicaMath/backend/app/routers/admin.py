@@ -149,6 +149,37 @@ async def update_configuracion(config_id: int, config_data: ConfiguracionProgres
         
     await db.commit()
     await db.refresh(config)
+    
+    # Recalcular porcentajes de todos los alumnos afectados, respetando "Derecho Adquirido" (Opción A)
+    result_progresos = await db.execute(
+        select(ProgresoMaestria).where(and_(
+            ProgresoMaestria.fase_id == config.fase_id,
+            ProgresoMaestria.seccion == config.seccion,
+            ProgresoMaestria.operacion == config.operacion
+        ))
+    )
+    progresos = result_progresos.scalars().all()
+    
+    if progresos:
+        from datetime import datetime
+        for progreso in progresos:
+            if progreso.estado == EstadoProgresoEnum.APROBADO:
+                # Opción A: Derecho Adquirido. Mantener 100% independientemente de aciertos
+                progreso.porcentaje_actual = 100
+            else:
+                # Recalcular matemáticamente
+                nuevo_pct = int((progreso.aciertos_acumulados / config.cantidad_requerida) * 100) if config.cantidad_requerida > 0 else 0
+                progreso.porcentaje_actual = min(nuevo_pct, 100)
+                
+                # Evaluar si ahora sí cumple con los nuevos criterios y pasa a Aprobado (ej. si bajaron la cantidad)
+                if progreso.porcentaje_actual >= config.porcentaje_aprobacion and progreso.aciertos_acumulados >= config.cantidad_requerida:
+                    progreso.estado = EstadoProgresoEnum.APROBADO
+                    if not progreso.fecha_aprobacion:
+                        progreso.fecha_aprobacion = datetime.utcnow()
+            db.add(progreso)
+            
+        await db.commit()
+    
     return config
 
 # ============================================================

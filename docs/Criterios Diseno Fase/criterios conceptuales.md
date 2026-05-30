@@ -278,6 +278,8 @@ El servidor debe abortar la sesión automáticamente (Early Exit) si el alumno a
 
 > Nota de flexibilidad operativa: La volumetría, los límites de tiempo, los porcentajes de aprobación, la completitud requerida y los umbrales de Early Exit son parámetros editables desde `configuraciones_progreso`. Los valores de este documento representan la configuración pedagógica estándar, no valores hardcoded. El umbral de Early Exit (Tabla Maestra de Tolerancia) es recalculado de forma determinista por el backend con base en la `cantidad_requerida` configurada en el momento de iniciar la prueba, respetando siempre el principio de tolerancia proporcional del 90%.
 
+> **Regla de Derecho Adquirido (Grandfathering):** Si el administrador modifica dinámicamente los parámetros pedagógicos (ej. aumentar la `cantidad_requerida` de 15 a 20 o cambiar `tiempo_limite`), el backend dispara un recálculo masivo. Los alumnos que ya habían alcanzado el estado `APROBADO` mantendrán su estado intacto y su `porcentaje_actual` se reajustará forzadamente a `100%`, evitando degradaciones del progreso debido a políticas administrativas posteriores.
+
 ### 7.4. Flexibilidad Pedagógica y Vías de Avance (Anulación Manual / Override)
 
 El sistema pedagógico de **LogicaKids Pro** está estructurado para diferenciar rigurosamente la etapa de entrenamiento de la etapa de evaluación:

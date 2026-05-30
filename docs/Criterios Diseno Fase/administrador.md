@@ -184,6 +184,7 @@ Para facilitar las pruebas de campo, la investigación pedagógica y la calibrac
   * **Propósito:** Calibración fina del estrés temporal del juego por pregunta (en desafíos).
 
 Cualquier cambio guardado en la interfaz se asocia al nivel de jerarquía seleccionado (Fase, Módulo, o Nivel específico), actualiza la base de datos de manera inmediata y se propaga en cascada en las siguientes sesiones que inicien los alumnos.
+**Manejo de Transiciones (Regla de Derecho Adquirido):** Al modificar un parámetro en caliente (ej. de 15 a 20 preguntas), la base de datos dispara un recálculo masivo del progreso. Los alumnos que ya habían alcanzado el estado `APROBADO` mantendrán su estado intacto y su porcentaje se reajustará forzadamente a `100%`, aplicando las nuevas métricas únicamente a los estudiantes nuevos o en estado `EN_PROGRESO` o `BLOQUEADO`.
 
 ---
 
@@ -344,7 +345,8 @@ Campos:
 * `intentos_totales`;
 * `porcentaje_actual`;
 * `completitud_actual`;
-* `aprobado_por_admin`.
+* `aprobado_por_admin`;
+* **Derecho Adquirido (Grandfathering):** Si un bloque ya alcanzó el estado `APROBADO`, y el administrador modifica posteriormente los parámetros pedagógicos (ej. aumenta la cantidad requerida en `configuraciones_progreso`), el progreso del alumno NO se degrada. El backend fuerza `porcentaje_actual = 100%` y mantiene el estado `APROBADO` para ese alumno, respetando su esfuerzo previo.
 
 ### 8.3. Tabla `pool_asignado_alumno`
 
