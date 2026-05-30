@@ -1432,6 +1432,82 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
         </>
       ) : null}
 
+      {/* Welcome Splash Overlay */}
+      <AnimatePresence>
+        {showSplash && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="f2-start-splash-overlay" 
+            style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(7, 11, 20, 0.95)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={() => setShowSplash(false)}
+          >
+            {isChallenge ? (
+              <div 
+                className="f2-splash-container-premium"
+                style={{ textAlign: 'center', maxWidth: '600px', width: '90%' }}
+              >
+                <div className="f2-splash-badge-premium" style={{ color: moduleColor, fontSize: '1.2rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                  ZONA DE DESAFÍO
+                </div>
+                <h1 className="f2-splash-title-premium" style={{ fontSize: '2.5rem', fontWeight: 900, color: '#fff', marginBottom: '30px' }}>{challengeName}</h1>
+                
+                <div className="f2-splash-metadata-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '40px' }}>
+                  <div className="f2-splash-meta-card" style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>📚</div>
+                    <span style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', fontWeight: 700 }}>Módulo</span>
+                    <span style={{ display: 'block', fontSize: '1.1rem', color: '#fff', fontWeight: 800 }}>{displayModuleName}</span>
+                  </div>
+                  <div className="f2-splash-meta-card" style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>🎯</div>
+                    <span style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', fontWeight: 700 }}>Preguntas</span>
+                    <span style={{ display: 'block', fontSize: '1.1rem', color: '#fff', fontWeight: 800 }}>{displayQuestionsCount} a superar</span>
+                  </div>
+                  <div className="f2-splash-meta-card" style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>⏱️</div>
+                    <span style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', fontWeight: 700 }}>Tiempo</span>
+                    <span style={{ display: 'block', fontSize: '1.1rem', color: '#fff', fontWeight: 800 }}>{displayTimeLimit}s / pregunta</span>
+                  </div>
+                </div>
+
+                <div className="f2-splash-countdown-wrapper" style={{ position: 'relative', width: '120px', height: '120px', margin: '0 auto' }}>
+                  <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+                    <circle 
+                      cx="50" cy="50" r="45" fill="none" stroke={moduleColor} strokeWidth="6"
+                      strokeDasharray="283" strokeDashoffset={283 - (283 * countdown) / 8}
+                      style={{ transition: 'stroke-dashoffset 1s linear' }}
+                    />
+                  </svg>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 900, color: '#fff' }}>
+                    {countdown}
+                  </div>
+                </div>
+                
+                <div style={{ marginTop: '20px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)' }}>
+                  Haz clic en cualquier lugar para comenzar de inmediato
+                </div>
+              </div>
+            ) : (
+              <div 
+                className="f2-splash-content"
+                style={{ textAlign: 'center' }}
+              >
+                <div className="f2-splash-badge" style={{ color: moduleColor, fontSize: '1.2rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '15px' }}>
+                  PRÁCTICA LIBRE
+                </div>
+                <h1 className="f2-splash-title" style={{ fontSize: '3rem', fontWeight: 900, color: '#fff', marginBottom: '20px' }}>{moduleName}</h1>
+                <div className="f2-splash-level" style={{ display: 'inline-block', padding: '8px 24px', background: `${moduleColor}20`, border: `1px solid ${moduleColor}40`, borderRadius: '30px', color: moduleColor, fontWeight: 800, fontSize: '1.2rem', marginBottom: '40px' }}>
+                  Nivel {nivelId}
+                </div>
+                <div className="f2-splash-hint" style={{ opacity: 0.6 }}>
+                  Preparando el entorno...
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Modals */}
       <AnimatePresence>
         {showReading && readingData && (
