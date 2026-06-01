@@ -553,12 +553,28 @@ async def seed_preguntas_ejemplo(session: AsyncSessionLocal, admin_id: str):
     print("Generando e inyectando pool de preguntas de la Fase 1...")
     
     # Eliminar preguntas y alternativas antiguas de Fase 1 para evitar duplicados y actualizar las secciones
+    # IMPORTANTE: respetar el orden de dependencias FK para evitar ForeignKeyViolationError:
+    #   Intento → Pregunta / Alternativa
+    #   PoolAsignadoAlumno → Pregunta
+    #   Alternativa → Pregunta
     from app.models.sql_models import Alternativa
+    from app.models.progreso import Intento, PoolAsignadoAlumno
+
+    fase1_pregunta_ids_subq = select(Pregunta.id).where(Pregunta.fase_id == 1)
+
+    # 1. Eliminar intentos que apuntan a preguntas de Fase 1
     await session.execute(
-        delete(Alternativa).where(Alternativa.pregunta_id.in_(
-            select(Pregunta.id).where(Pregunta.fase_id == 1)
-        ))
+        delete(Intento).where(Intento.pregunta_id.in_(fase1_pregunta_ids_subq))
     )
+    # 2. Eliminar registros del pool asignado que apuntan a preguntas de Fase 1
+    await session.execute(
+        delete(PoolAsignadoAlumno).where(PoolAsignadoAlumno.pregunta_id.in_(fase1_pregunta_ids_subq))
+    )
+    # 3. Eliminar alternativas de esas preguntas
+    await session.execute(
+        delete(Alternativa).where(Alternativa.pregunta_id.in_(fase1_pregunta_ids_subq))
+    )
+    # 4. Finalmente eliminar las preguntas
     await session.execute(
         delete(Pregunta).where(Pregunta.fase_id == 1)
     )
