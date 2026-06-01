@@ -8,27 +8,43 @@ GEMINI_MODEL = "gemini-1.5-flash" # Use flash for faster/cheaper analysis
 
 async def analyze_student_performance(
     username: str, 
-    recent_scores: List[Dict[str, Any]], 
-    category: str
+    intentos: List[Any], 
+    context_name: str
 ) -> str:
     """
-    Uses Gemini to analyze student performance and provide pedagogical feedback.
+    Uses Gemini to analyze student performance and provide pedagogical feedback based on Intentos.
     """
     if not GOOGLE_API_KEY:
         return "El análisis de IA no está configurado actualmente (Falta API Key)."
 
+    if not intentos:
+        return "No hay suficientes datos (intentos) para generar un análisis."
+
     # Prepare the prompt
-    scores_summary = "\n".join([
-        f"- Fecha: {s['date']}, Puntaje: {s['score']}%, Correctas: {s['correctCount']}, Errores: {s['errorCount']}, Tiempo Promedio: {s['avgTime']}s"
-        for s in recent_scores
-    ])
+    errores_comunes = {}
+    for intento in intentos:
+        if not intento.es_correcta and intento.tipo_error:
+            err_name = intento.tipo_error.value if hasattr(intento.tipo_error, 'value') else str(intento.tipo_error)
+            errores_comunes[err_name] = errores_comunes.get(err_name, 0) + 1
+
+    total_intentos = len(intentos)
+    correctos = sum(1 for i in intentos if i.es_correcta)
+    porcentaje = (correctos / total_intentos) * 100 if total_intentos > 0 else 0
+
+    tiempos = [i.tiempo_respuesta_segundos for i in intentos if i.tiempo_respuesta_segundos is not None]
+    tiempo_promedio = sum(tiempos) / len(tiempos) if tiempos else 0
+
+    errores_str = ", ".join([f"{k} ({v} veces)" for k, v in errores_comunes.items()]) if errores_comunes else "Ninguno detectado"
 
     prompt = f"""
     Eres un tutor pedagógico experto en matemáticas para niños. 
-    Analiza el desempeño reciente del estudiante '{username}' en la categoría '{category}'.
+    Analiza el desempeño reciente del estudiante '{username}' en '{context_name}'.
     
-    Aquí están sus últimos resultados:
-    {scores_summary}
+    Aquí está el resumen de sus últimos {total_intentos} intentos:
+    - Precisión: {porcentaje:.1f}% ({correctos} correctos de {total_intentos})
+    - Tiempo Promedio por Pregunta: {tiempo_promedio:.1f} segundos
+    - Errores Frecuentes Identificados: {errores_str}
+    
     
     Basado en estos datos, proporciona un breve análisis (máximo 3 párrafos) que incluya:
     1. Una felicitación motivadora basada en sus fortalezas.

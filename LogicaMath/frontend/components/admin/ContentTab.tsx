@@ -12,6 +12,48 @@ import {
 import { PHASE_MAPS } from './phaseMaps';
 import { useAdminContent } from './useAdminContent';
 
+const TokenHighlighter: React.FC<{
+  text: string;
+  selectedIndices: number[];
+  onChange: (indices: number[], tokens: string[]) => void;
+}> = ({ text, selectedIndices, onChange }) => {
+  const words = text.split(' ').filter(Boolean);
+
+  const toggleWord = (index: number) => {
+    let newIndices;
+    if (selectedIndices.includes(index)) {
+      newIndices = selectedIndices.filter(i => i !== index);
+    } else {
+      newIndices = [...selectedIndices, index].sort((a,b) => a-b);
+    }
+    const selectedTokens = newIndices.map(i => words[i]);
+    onChange(newIndices, selectedTokens);
+  };
+
+  if (!text) return <p className="text-xs text-slate-500 italic">Escribe el enunciado primero para seleccionar tokens...</p>;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase">Selecciona los tokens correctos (WYSIWYG)</label>
+      <div className="flex flex-wrap gap-1.5 p-3 bg-white/80 dark:bg-slate-950/20 border border-slate-200 dark:border-white/5 rounded-xl min-h-[50px]">
+        {words.map((word, idx) => {
+          const isSelected = selectedIndices.includes(idx);
+          return (
+            <span
+              key={idx}
+              onClick={() => toggleWord(idx)}
+              className={`cursor-pointer px-2.5 py-1 rounded-lg text-sm font-bold transition-all shadow-sm ${isSelected ? 'bg-purple-500 text-white shadow-purple-500/30 scale-105' : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-purple-100 dark:hover:bg-purple-900/30'}`}
+            >
+              {word}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+
 const ContentTab: React.FC = () => {
   // Navigation / Tabs State
   const [activeSubTab, setActiveSubTab] = useState<'theory' | 'questions'>('theory');
@@ -172,6 +214,8 @@ const ContentTab: React.FC = () => {
       respuesta_correcta: "",
       tipo_pregunta: "multiple_opcion",
       requiere_subrayado: false,
+      tokens_correctos_indices: [],
+      tokens_correctos: [],
       alternativas: [
         { texto: "", es_correcta: true, orden: 1 },
         { texto: "", es_correcta: false, orden: 2 },
@@ -197,6 +241,8 @@ const ContentTab: React.FC = () => {
       respuesta_correcta: q.respuesta_correcta,
       tipo_pregunta: q.tipo_pregunta || "multiple_opcion",
       requiere_subrayado: q.requiere_subrayado || false,
+      tokens_correctos_indices: q.tokens_correctos_indices || [],
+      tokens_correctos: q.tokens_correctos || [],
       alternativas: alts
     });
     setShowQuestionModal(true);
@@ -455,8 +501,30 @@ const ContentTab: React.FC = () => {
                 </div>
 
                 {loadingTheory ? (
-                  <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] p-10 flex justify-center shadow-2xl">
-                    <Loader2 className="animate-spin text-purple-400" size={32} />
+                  <div className="flex flex-col gap-6 animate-pulse">
+                    <div className="glass-card p-6 flex flex-col gap-4">
+                      <div className="h-6 w-1/3 bg-slate-200 dark:bg-white/10 rounded-full"></div>
+                      <div className="pt-4 border-t border-slate-200 dark:border-white/5 flex flex-col gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-4">
+                            <div className="h-12 bg-slate-200 dark:bg-white/10 rounded-xl w-full"></div>
+                            <div className="h-24 bg-slate-200 dark:bg-white/10 rounded-xl w-full"></div>
+                          </div>
+                          <div className="flex flex-col gap-4">
+                            <div className="h-40 bg-slate-200 dark:bg-white/10 rounded-xl w-full"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="glass-card p-6 flex flex-col gap-4">
+                      <div className="h-6 w-1/4 bg-slate-200 dark:bg-white/10 rounded-full"></div>
+                      <div className="pt-4 border-t border-slate-200 dark:border-white/5 flex flex-col gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="h-20 bg-slate-200 dark:bg-white/10 rounded-xl w-full"></div>
+                          <div className="h-20 bg-slate-200 dark:bg-white/10 rounded-xl w-full"></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-6">
@@ -966,8 +1034,17 @@ const ContentTab: React.FC = () => {
                   </div>
 
                   {loadingQuestions ? (
-                    <div className="flex justify-center py-20">
-                      <Loader2 className="animate-spin text-blue-400" size={32} />
+                    <div className="w-full flex flex-col gap-4 animate-pulse">
+                      <div className="flex items-center gap-4 border-b border-slate-200 dark:border-white/10 pb-4">
+                        <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-1/3"></div>
+                        <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-1/4"></div>
+                        <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-1/6"></div>
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        {[1, 2, 3, 4, 5].map(i => (
+                          <div key={i} className="h-16 bg-slate-200 dark:bg-white/10 rounded-xl w-full"></div>
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <div className="overflow-x-auto w-full flex flex-col gap-4">
@@ -1150,6 +1227,23 @@ const ContentTab: React.FC = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Token Highlighter for Subrayado */}
+                {editingQuestion.requiere_subrayado && (
+                  <TokenHighlighter 
+                    text={editingQuestion.enunciado}
+                    selectedIndices={editingQuestion.tokens_correctos_indices || []}
+                    onChange={(indices, tokens) => {
+                      setEditingQuestion((prev: any) => ({
+                        ...prev,
+                        tokens_correctos_indices: indices,
+                        tokens_correctos: tokens,
+                        // Automatically update respuesta_correcta to match selected tokens
+                        respuesta_correcta: tokens.join(' ')
+                      }));
+                    }}
+                  />
+                )}
 
                 {/* Alternatives editor (only if Multiple Choice) */}
                 {editingQuestion.tipo_pregunta === "multiple_opcion" && (

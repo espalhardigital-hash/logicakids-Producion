@@ -358,24 +358,62 @@ async def search_alumnos(query: str = "", db: AsyncSession = Depends(get_db), ad
 
 @router.get("/alumnos/{alumno_id}/progress")
 async def get_alumno_progress(alumno_id: int, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    # 1. Obtener los progresos
+    from ..models.sql_models import Intento
+    
     result = await db.execute(
         select(ProgresoMaestria).where(ProgresoMaestria.alumno_id == alumno_id)
     )
     progresos = result.scalars().all()
     
-    return [
-        {
+    # 2. Obtener los últimos 50 errores del alumno para cruzarlos con el progreso
+    result_errores = await db.execute(
+        select(Intento.fase_id, Intento.seccion, Intento.operacion, Intento.tipo_error)
+        .where(and_(
+            Intento.alumno_id == alumno_id,
+            Intento.es_correcta == False,
+            Intento.tipo_error != None
+        ))
+        .order_by(Intento.fecha.desc())
+        .limit(100)
+    )
+    
+    errores_raw = result_errores.all()
+    errores_por_bloque = {}
+    for err in errores_raw:
+        # err[0]=fase_id, err[1]=seccion, err[2]=operacion, err[3]=tipo_error
+        op_val = err[2].value if hasattr(err[2], "value") else err[2]
+        key = f"{err[0]}-{err[1]}-{op_val}"
+        if key not in errores_por_bloque:
+            errores_por_bloque[key] = {}
+            
+        tipo_err = err[3].value if hasattr(err[3], "value") else err[3]
+        errores_por_bloque[key][tipo_err] = errores_por_bloque[key].get(tipo_err, 0) + 1
+    
+    out = []
+    for p in progresos:
+        op_val = p.operacion.value if hasattr(p.operacion, "value") else p.operacion
+        key = f"{p.fase_id}-{p.seccion}-{op_val}"
+        
+        # Format errores as list of top errors
+        errores_dict = errores_por_bloque.get(key, {})
+        ultimos_errores = [{"tipo": k, "count": v} for k, v in errores_dict.items()]
+        ultimos_errores.sort(key=lambda x: x["count"], reverse=True)
+        
+        out.append({
             "id": p.id,
             "fase_id": p.fase_id,
             "seccion": p.seccion,
-            "operacion": p.operacion.value if hasattr(p.operacion, "value") else p.operacion,
+            "operacion": op_val,
             "estado": p.estado.value if hasattr(p.estado, "value") else p.estado,
             "aciertos_acumulados": p.aciertos_acumulados,
             "intentos_totales": p.intentos_totales,
             "porcentaje_actual": p.porcentaje_actual,
             "aprobado_por_admin": getattr(p, "aprobado_por_admin", False),
-        } for p in progresos
-    ]
+            "ultimos_errores": ultimos_errores[:3] # Devolver solo los 3 más frecuentes de este bloque
+        })
+        
+    return out
 
 @router.post("/alumnos/{alumno_id}/progress/override")
 async def override_alumno_progress(alumno_id: int, payload: ProgressOverridePayload, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):

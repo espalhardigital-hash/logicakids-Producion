@@ -6,6 +6,7 @@ import PedagogyTab from './PedagogyTab';
 import PerformanceTab from './PerformanceTab';
 import ContentTab from './ContentTab';
 import SystemTab from './SystemTab';
+import { ThemeToggle } from '../theme/ThemeToggle';
 
 interface Props {
   onBack: () => void;
@@ -94,7 +95,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
 
   return (
     <div 
-      className="apple-admin fixed inset-0 bg-[#0d0e12] text-slate-900 dark:text-[#f3f4f6] overflow-hidden w-full h-full flex custom-scrollbar"
+      className="apple-admin fixed inset-0 bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-[#f3f4f6] overflow-hidden w-full h-full flex custom-scrollbar transition-colors duration-300"
       style={{ fontFamily: adminFontFamily || undefined }}
     >
       {/* Dynamic CSS Scope Injection */}
@@ -244,9 +245,10 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
           />
         )}
       </AnimatePresence>
+      <ThemeToggle />
 
       {/* Sidebar - Apple macOS style navigation */}
-      <div className={`fixed md:relative z-40 h-full w-64 flex flex-col bg-[#14151b]/80 backdrop-blur-3xl border-r border-slate-200 dark:border-white/5 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <div className={`fixed md:relative z-40 h-full w-64 flex flex-col bg-white/80 dark:bg-[#14151b]/80 backdrop-blur-3xl border-r border-slate-200 dark:border-slate-800 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 flex items-center justify-center">
@@ -382,7 +384,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
               initial={{ scale: 0.95, opacity: 0, y: -20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: -20 }}
-              className="bg-[#1e1f26]/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden text-slate-900 dark:text-[#f3f4f6]"
+              className="bg-white/95 dark:bg-[#162033]/90 backdrop-blur-2xl border border-slate-200 dark:border-slate-700/50 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden text-slate-900 dark:text-[#f3f4f6]"
             >
               <h4 className="text-[16px] font-semibold mb-2 tracking-tight text-slate-900 dark:text-white">{dialogState.title}</h4>
               <p className="text-slate-600 dark:text-slate-300 text-[13.5px] mb-6 leading-relaxed whitespace-pre-wrap">{dialogState.message}</p>

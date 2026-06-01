@@ -25,5 +25,6 @@ class Settings(BaseSettings):
     # Security/CORS
     ENABLE_SECURITY_HEADERS: bool = Field(True, description="Enable Security Headers")
     ALLOWED_ORIGINS: str = Field("*", description="Allowed CORS Origins")
+    REDIS_URL: str = Field("redis://redis:6379/0", description="Redis connection string")
 
 settings = Settings()

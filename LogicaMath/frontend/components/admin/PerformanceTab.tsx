@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { 
   searchAlumnos, getAlumnoProgress, overrideAlumnoProgress, overrideAlumnoProgressBulk,
-  AlumnoSearchInfo
+  AlumnoSearchInfo, getAdminAlumnoInsights
 } from '../../services/storageService';
 import { PHASE_MAPS, LevelMap } from './phaseMaps';
 
@@ -135,6 +135,11 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
   // Action tracking: "level-{faseId}-{seccion}-{op}" | "module-{faseId}-{modId}" | "fase-{faseId}"
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
+  // AI Modal States
+  const [aiReport, setAiReport] = useState<string | null>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
+
   // Search trigger on input change
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -173,6 +178,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
 
   const handleSelectAlumno = (alumno: AlumnoSearchInfo) => {
     setSelectedAlumno(alumno);
+    setAiReport(null); // Reset AI report when selecting new student
     fetchProgress(alumno.alumno_id);
     // Default: expand all modules
     const defaults: Record<string, boolean> = {};
@@ -180,6 +186,21 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
       phase.modules.forEach((mod) => { defaults[`${phase.id}-${mod.id}`] = true; })
     );
     setExpandedModules(defaults);
+  };
+
+  const handleFetchAIInsights = async () => {
+    if (!selectedAlumno) return;
+    setLoadingAI(true);
+    setShowAIModal(true);
+    try {
+      const report = await getAdminAlumnoInsights(selectedAlumno.alumno_id);
+      setAiReport(report);
+    } catch (e) {
+      console.error(e);
+      setAiReport("Ocurrió un error al obtener el informe de IA.");
+    } finally {
+      setLoadingAI(false);
+    }
   };
 
   // ── Single-level override ──────────────────────────────────────────────────
@@ -362,6 +383,12 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Estado</span>
                     <span className="text-base font-black text-green-400">{selectedAlumno.estado}</span>
                   </div>
+                  <button
+                    onClick={handleFetchAIInsights}
+                    className="ml-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white text-xs font-black shadow-lg shadow-purple-500/30 flex items-center gap-2 transition-transform hover:scale-105"
+                  >
+                    <User size={14} /> Consultar IA
+                  </button>
                 </div>
               </div>
 
@@ -478,6 +505,15 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                                                   {state !== 'BLOQUEADO' && (
                                                     <span className="text-xs text-slate-500 font-bold">{pct}% Aciertos</span>
                                                   )}
+                                                  {prog && prog.ultimos_errores && prog.ultimos_errores.length > 0 && (
+                                                    <div className="flex gap-1 ml-2">
+                                                      {prog.ultimos_errores.map((err: any, idx: number) => (
+                                                        <span key={idx} className="text-[9px] bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded flex items-center gap-1 font-bold">
+                                                          <AlertTriangle size={8} /> {err.tipo} ({err.count})
+                                                        </span>
+                                                      ))}
+                                                    </div>
+                                                  )}
                                                 </div>
                                               </div>
 
@@ -538,6 +574,56 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
         </div>
 
       </div>
+
+      {/* AI Insights Modal */}
+      {showAIModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col"
+          >
+            <div className="px-6 py-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+              <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="bg-gradient-to-r from-purple-500 to-indigo-500 text-transparent bg-clip-text">Tutor IA: Análisis de Rendimiento</span>
+              </h3>
+              <button 
+                onClick={() => setShowAIModal(false)}
+                className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors"
+              >
+                <div className="w-4 h-4 relative">
+                  <div className="absolute inset-0 w-full h-0.5 bg-slate-500 rotate-45 top-1/2 -translate-y-1/2 rounded" />
+                  <div className="absolute inset-0 w-full h-0.5 bg-slate-500 -rotate-45 top-1/2 -translate-y-1/2 rounded" />
+                </div>
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {loadingAI ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-4">
+                  <Loader2 className="text-purple-500 animate-spin" size={40} />
+                  <p className="text-slate-500 font-bold text-sm">El Tutor IA está analizando los registros de {selectedAlumno?.alumno_nombre}...</p>
+                </div>
+              ) : (
+                <div className="prose prose-slate dark:prose-invert max-w-none text-sm md:text-base leading-relaxed whitespace-pre-wrap font-medium">
+                  {aiReport}
+                </div>
+              )}
+            </div>
+            
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 flex justify-end bg-slate-50 dark:bg-slate-800/50">
+              <button
+                onClick={() => setShowAIModal(false)}
+                className="px-6 py-2.5 rounded-xl bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-700 dark:text-white font-bold transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
     </div>
   );
 };

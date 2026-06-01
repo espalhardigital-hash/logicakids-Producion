@@ -240,8 +240,18 @@ const SliderWithTooltip: React.FC<{
   disabled?: boolean;
   accentColor: string;
   unit?: string;
-}> = ({ value, min, max, step = 1, onChange, disabled = false, accentColor, unit = '' }) => {
+  isThermal?: boolean;
+}> = ({ value, min, max, step = 1, onChange, disabled = false, accentColor, unit = '', isThermal = false }) => {
   const percentage = ((value - min) / (max - min)) * 100;
+
+  const getThermalColor = () => {
+    if (percentage < 25) return 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]'; // High cognitive load / low time
+    if (percentage < 50) return 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)]';
+    if (percentage < 75) return 'bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)]';
+    return 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]'; // Relaxed / high time
+  };
+
+  const activeColor = isThermal ? getThermalColor() : accentColor;
 
   return (
     <div className="relative w-full group pt-2 select-none">
@@ -250,17 +260,17 @@ const SliderWithTooltip: React.FC<{
         className="absolute -top-3 transform -translate-x-1/2 pointer-events-none transition-all duration-100 z-30"
         style={{ left: `${percentage}%` }}
       >
-        <div className="glass-panel border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white font-black text-sm px-2 py-0.5 rounded shadow-xl whitespace-nowrap">
+        <div className={`glass-panel border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white font-black text-sm px-2 py-0.5 rounded shadow-xl whitespace-nowrap ${isThermal ? 'transition-colors duration-300' : ''}`}>
           {value}{unit}
           <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
         </div>
       </div>
 
       {/* Track background */}
-      <div className="relative w-full h-2 bg-white/80 dark:bg-slate-800/80 rounded-full">
+      <div className="relative w-full h-2 bg-white/80 dark:bg-slate-800/80 rounded-full overflow-hidden">
         {/* Filled portion */}
         <div
-          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-150 ${disabled ? 'bg-slate-600' : accentColor}`}
+          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-150 ${disabled ? 'bg-slate-600' : activeColor}`}
           style={{ width: `${percentage}%` }}
         />
         {/* Thumb */}
@@ -977,6 +987,7 @@ const PedagogyTab: React.FC = () => {
                               onChange={(val) => updateGlobalField('practica_libre', 'tiempo_default_segundos', val)}
                               accentColor="bg-blue-500"
                               unit="s"
+                              isThermal
                             />
                           </div>
                         )}
@@ -1085,6 +1096,7 @@ const PedagogyTab: React.FC = () => {
                               onChange={(val) => updateGlobalField('desafios', 'tiempo_default_segundos_11', val)}
                               accentColor="bg-purple-500"
                               unit="s"
+                              isThermal
                             />
                           </div>
 
@@ -1102,6 +1114,7 @@ const PedagogyTab: React.FC = () => {
                               onChange={(val) => updateGlobalField('desafios', 'tiempo_default_segundos_12', val)}
                               accentColor="bg-purple-500"
                               unit="s"
+                              isThermal
                             />
                           </div>
 
@@ -1119,6 +1132,7 @@ const PedagogyTab: React.FC = () => {
                               onChange={(val) => updateGlobalField('desafios', 'tiempo_default_segundos_13', val)}
                               accentColor="bg-purple-500"
                               unit="s"
+                              isThermal
                             />
                           </div>
                         </div>
@@ -1287,6 +1301,7 @@ const PedagogyTab: React.FC = () => {
                               onChange={(val) => handleUpdatePhaseDefault('tiempo_default_segundos', val)}
                               accentColor="bg-amber-500"
                               unit="s"
+                              isThermal
                             />
                           </div>
                         )}
@@ -1509,6 +1524,7 @@ const PedagogyTab: React.FC = () => {
                               onChange={(val) => handleUpdateModuleField('tiempo_default_segundos', val)}
                               accentColor="bg-amber-500"
                               unit="s"
+                              isThermal
                             />
                           </div>
                         )}

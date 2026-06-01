@@ -27,6 +27,16 @@ services:
       - 'traefik.http.middlewares.${NOMBRE_APP:-logica_Kids}-stripprefix.stripprefix.prefixes=/api'
       - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-api.middlewares=${NOMBRE_APP:-logica_Kids}-stripprefix'
       - 'traefik.http.services.${NOMBRE_APP:-logica_Kids}-api.loadbalancer.server.port=8000'
+      - REDIS_URL=redis://redis:6379/0
+
+  # ===== REDIS CACHE =====
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - internal_services
 
   # ===== FRONTEND (React + Nginx) =====
   frontend:

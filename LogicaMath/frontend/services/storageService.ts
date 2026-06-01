@@ -429,6 +429,16 @@ export const getAlumnoProgress = async (alumnoId: number): Promise<any[]> => {
   return await apiRequest<any[]>(`/admin/alumnos/${alumnoId}/progress`);
 };
 
+export const getAdminAlumnoInsights = async (alumnoId: number): Promise<string> => {
+  try {
+    const result = await apiRequest<{ analysis: string }>(`/ai/admin/alumnos/${alumnoId}/insights`);
+    return result.analysis;
+  } catch (error) {
+    console.error("Error fetching admin AI insights:", error);
+    return "No se pudo obtener el informe de IA en este momento.";
+  }
+};
+
 export const overrideAlumnoProgress = async (alumnoId: number, data: {
   fase_id: number;
   seccion: number;

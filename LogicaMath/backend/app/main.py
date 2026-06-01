@@ -5,6 +5,9 @@ LogicaKids Pro API - Punto de Entrada Principal
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from redis import asyncio as aioredis
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 
 from .routers import auth_users, admin, pedagogia, ai
 from .fase2.router import router as fase2_router
@@ -29,6 +32,14 @@ async def lifespan(app: FastAPI):
 
     except Exception as e:
         print(f"❌ Error al verificar/crear tablas: {e}")
+
+    # Inicializar Redis Cache
+    try:
+        redis = aioredis.from_url(settings.REDIS_URL, encoding="utf8", decode_responses=False)
+        FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+        print("✅ Redis cache inicializado exitosamente.")
+    except Exception as e:
+        print(f"❌ Error al inicializar Redis: {e}")
 
     # S3 warning
     if not all([settings.S3_ACCESS_KEY, settings.S3_SECRET_KEY, settings.S3_ENDPOINT_URL, settings.S3_BUCKET_NAME]):
