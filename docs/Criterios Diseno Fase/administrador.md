@@ -33,12 +33,13 @@ La fuente de verdad del progreso académico es `ProgresoMaestria`. El objeto `us
 * **Framer Motion:** Micro-animaciones, hovers, sliders, transiciones y modales.
 * **Lucide React:** Iconografía moderna y limpia.
 * **Zustand:** Estado global de sesión, configuración y datos cargados.
-* **FastAPI + PostgreSQL:** Backend autoritativo y persistencia relacional.
+* **FastAPI + PostgreSQL + Redis:** Backend autoritativo, persistencia relacional y almacenamiento de caché rápido (inicializado en la carga a través de `fastapi-cache2` con el prefijo `fastapi-cache` y URI configurable mediante `REDIS_URL` en variables de entorno o archivo compose).
 
 ### 2.2. Estética High-End & Glassmorphism
 
-El panel implementa una estética premium, oscura y gamificada:
+El panel implementa una estética premium, gamificada y responsiva compatible con modos claro y oscuro:
 
+* **Soporte de Temas (Claro / Oscuro):** Integración del componente `ThemeToggle` en el panel administrativo. La interfaz se adapta dinámicamente (`bg-slate-50 dark:bg-[#070b14]` y bordes `border-slate-200 dark:border-slate-800`) para ofrecer coherencia visual con transiciones suaves (`transition-colors duration-300`).
 * fondos profundos con gradientes radiales;
 * resplandores ambientales semitransparentes;
 * paneles esmerilados con `backdrop-blur`;
@@ -181,7 +182,12 @@ Para facilitar las pruebas de campo, la investigación pedagógica y la calibrac
   * **Propósito:** Permite desactivar por completo la presión del temporizador en fases iniciales de pruebas y activarla progresivamente para la preparación formal.
 * **Límite de Tiempo por Pregunta (`tiempo_default_segundos`):**
   * **Control:** Deslizador (slider) con rango de 10 a 120 segundos.
-  * **Propósito:** Calibración fina del estrés temporal del juego por pregunta (en desafíos).
+  * **Estilo Térmico (`isThermal`):** Para facilitar la evaluación de la carga cognitiva y el nivel de estrés temporal impuesto al alumno, el slider implementa una gradación térmica de color interactiva según el porcentaje configurado:
+    * **Menor a 25%:** Color rosa (`bg-rose-500`) y resplandor neón (`rgba(244,63,94,0.5)`), indicando estrés temporal/carga cognitiva extrema.
+    * **Entre 25% y 49%:** Color naranja (`bg-orange-500`) y resplandor (`rgba(249,115,22,0.5)`), indicando estrés alto.
+    * **Entre 50% y 74%:** Color amarillo (`bg-amber-400`) y resplandor (`rgba(251,191,36,0.5)`), indicando estrés moderado.
+    * **Mayor o igual a 75%:** Color verde (`bg-emerald-500`) y resplandor (`rgba(16,185,129,0.5)`), indicando un ritmo relajado o tiempo holgado.
+  * **Propósito:** Calibración fina y visual del estrés temporal por pregunta en práctica libre global, desafíos de módulo (desafíos 1.1, 1.2, 1.3), por defecto de fase y por módulo específico.
 
 Cualquier cambio guardado en la interfaz se asocia al nivel de jerarquía seleccionado (Fase, Módulo, o Nivel específico), actualiza la base de datos de manera inmediata y se propaga en cascada en las siguientes sesiones que inicien los alumnos.
 **Manejo de Transiciones (Regla de Derecho Adquirido):** Al modificar un parámetro en caliente (ej. de 15 a 20 preguntas), la base de datos dispara un recálculo masivo del progreso. Los alumnos que ya habían alcanzado el estado `APROBADO` mantendrán su estado intacto y su porcentaje se reajustará forzadamente a `100%`, aplicando las nuevas métricas únicamente a los estudiantes nuevos o en estado `EN_PROGRESO` o `BLOQUEADO`.
@@ -198,6 +204,12 @@ Herramienta de tutoría y control para intervenir el progreso académico de un e
 * Visualizar la fase y módulo activo del estudiante.
 * Inspeccionar de forma granular el progreso de cada nivel de práctica libre y cada bloque de desafío.
 * Revisar el porcentaje de acierto real (`porcentaje_precision`), intentos acumulados y el estado actual (`BLOQUEADO`, `EN_PROGRESO`, `APROBADO`).
+* **Visualización de Errores Frecuentes por Bloque:** Para cada bloque académico del listado de progreso, si existen intentos incorrectos registrados, se muestran insignias rojas (`bg-red-500/10 border-red-500/20 text-red-400`) con el tipo de error y su conteo (hasta los 3 más recurrentes de la sección, ej. `ERROR_CALCULO (2)`), calculados del cruce con los últimos 100 intentos fallidos del alumno en el backend.
+* **Integración del Tutor IA en Administración (Consultar IA):**
+  * **Interfaz:** Un botón interactivo con degradado de púrpura a índigo (`bg-gradient-to-r from-purple-500 to-indigo-600`) y efectos de hover/escala (`hover:scale-105`) etiquetado como "Consultar IA" junto a la cabecera del alumno.
+  * **Comportamiento:** Al pulsarse, abre un modal con capa de fondo esmerilada y efecto blur (`backdrop-blur-sm bg-slate-900/60`).
+  * **Estados de Carga:** Muestra un indicador circular giratorio (`Loader2`) y un mensaje interactivo: *"El Tutor IA está analizando los registros de [Nombre]..."* mientras obtiene el reporte desde el endpoint `/api/ai/admin/alumnos/{alumno_id}/insights`.
+  * **Renderizado de Informe:** Una vez recibido, formatea y muestra en pantalla de forma interactiva (en markdown/HTML fluido con scroll y espaciado adecuado) la retroalimentación pedagógica, fortalezas, debilidades y plan de acción recomendado a partir de los últimos 20 intentos en base de datos.
 * **Normalización de Estados de Progreso (`normalizeState`):** Al consumir la API de progreso estudiantil, el componente `PerformanceTab` normaliza de manera segura el estatus retornado para evitar páginas en blanco o errores catastróficos en caso de inconsistencias de datos o cadenas indefinidas en la base de datos.
 * Identificar claramente si el estado de maestría actual fue obtenido automáticamente por desempeño del alumno o mediante una intervención administrativa previa (mostrando el logo o indicador visual correspondiente).
 
@@ -286,12 +298,21 @@ Editor para:
 
 El toggle de requerimiento de subrayado debe estar asociado a:
 
-* `modo_interaccion`;
-* `requiere_subrayado`;
-* `tokens_texto`;
-* `tokens_correctos`.
+* `modo_interaccion` (debe ser `SUBRAYADO_TOKENS` o configurado para tal fin);
+* `requiere_subrayado` (booleano);
+* `tokens_texto` (representa los tokens del enunciado);
+* `tokens_correctos` (tokens que son la respuesta esperada).
 
-El frontend debe enviar `tokens_seleccionados`, no texto crudo.
+**Componente de Selección Visual WYSIWYG (`TokenHighlighter`):**
+Cuando se edita una pregunta y se habilita el toggle `requiere_subrayado`, el panel administrativo despliega de manera reactiva el editor de tokens:
+* **Generación de Tokens:** Toma el texto ingresado en el enunciado y lo divide automáticamente en palabras individuales mediante espacios, excluyendo vacíos.
+* **Interacción Directa:** Renderiza cada palabra como un elemento interactivo que el administrador puede seleccionar haciendo clic. Los tokens seleccionados se iluminan con fondo púrpura y sombra neón (`bg-purple-500 text-white shadow-purple-500/30`).
+* **Sincronización Automática:** Al seleccionar/deseleccionar tokens, el componente actualiza inmediatamente:
+  - `tokens_correctos_indices`: Los índices de los tokens en el orden de la frase.
+  - `tokens_correctos`: La lista de palabras/cadenas correspondientes.
+  - `respuesta_correcta`: Se autocompleta concatenando los tokens seleccionados separados por un espacio (ej: `"Lucas manzanas rojas"`).
+  
+El frontend del juego debe recibir y enviar `tokens_seleccionados` (o índices de tokens correctos) en base a este mapeo para validar la exactitud de la interacción en el backend, sin enviar cadenas de texto libre.
 
 ---
 
@@ -615,6 +636,13 @@ DELETE /api/admin/desafios/{id}
 GET /api/admin/teoria?fase_id={fase_id}&modulo_id={modulo_id}&nivel_id={nivel_id}
 PUT /api/admin/teoria
 ```
+
+### 12.6. Tutoría e Insights de IA (Admin)
+
+```text
+GET /api/ai/admin/alumnos/{alumno_id}/insights
+```
+
 
 ---
 

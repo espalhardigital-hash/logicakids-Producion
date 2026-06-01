@@ -409,23 +409,29 @@ Ejemplo:
 
 ## 8. Tutor IA LogicaKids
 
-El Tutor IA debe consumir datos ya autorizados por el backend. No debe inferir aprobación ni desbloqueo.
+El Tutor IA no utiliza datos de configuración estáticos ni registros en `user.settings["scores"]`. En su lugar, el backend realiza un análisis pedagógico autoritativo consultando directamente los registros reales en la tabla `intentos` de PostgreSQL.
 
-Debe analizar:
+### 8.1. Arquitectura y Obtención de Datos
 
-* fase;
-* módulo;
-* nivel o desafío;
-* operación;
-* historial de intentos;
-* tipos de error;
-* tiempos de respuesta;
-* completitud;
-* precisión;
-* si hubo Bucle Espejo;
-* si hubo Rescate;
-* si hubo Early Exit;
-* si el bloque fue liberado o aprobado por administrador.
+El backend (`ai_service.py`) y sus endpoints asociados implementan la siguiente lógica de análisis:
+* **Entornos de Consulta:**
+  * **Dashboard de Alumno (`/api/ai/performance`):** El backend recupera el perfil del alumno (`AlumnoModel`), busca sus últimos **15 intentos** en orden cronológico descendente y realiza el análisis en base a ellos.
+  * **Panel de Administración (`/api/ai/admin/alumnos/{alumno_id}/insights`):** El backend recupera el perfil del estudiante seleccionado y busca sus últimos **20 intentos** para generar el reporte de auditoría docente.
+* **Límite de Datos:** Si el alumno no registra al menos un intento válido en base de datos, el sistema retorna un mensaje invitándolo a jugar para poder recopilar datos analíticos.
+
+### 8.2. Variables y Cómputo Analítico del Prompt
+
+El backend calcula en caliente las siguientes métricas analíticas a partir del conjunto de intentos recuperados y las inyecta en el prompt enviado al LLM (Gemini):
+* **Precisión Real:** Porcentaje calculado como `(correctos / total_intentos) * 100` sobre la muestra recuperada.
+* **Tiempo Promedio de Respuesta:** Promedio aritmético en segundos de los tiempos de respuesta individuales (`tiempo_respuesta_segundos`) excluyendo nulos.
+* **Frecuencia de Errores Comunes:** Agrupación y conteo de los intentos fallidos por su tipo de error heurístico (`tipo_error`), generando un reporte ordenado de fallas frecuentes (ej: `calculo (3 veces), problema_incompleto (1 vez)`).
+
+### 8.3. Directrices de Respuesta del Tutor IA
+
+El modelo (configurado por defecto con `gemini-1.5-flash` para optimizar latencia) debe responder con un informe de un **máximo de 3 párrafos** estructurado según el siguiente criterio de diseño pedagógico:
+1. **Felicitación Motivadora:** Resaltar las fortalezas del alumno de forma empática basadas en sus aciertos o persistencia.
+2. **Diagnóstico Cognitivo:** Analizar sus patrones de error (vinculándolos a la frecuencia de `tipo_error` registrada) y debilidades.
+3. **Plan de Acción / Consejos Prácticos:** Brindar una recomendación y guía pedagógica clara para el estudio en las siguientes sesiones.
 
 En caso de finalizaciones de familias de preguntas mediante `"Bypass de Explicación"`, el Tutor IA debe interpretar este evento como un indicador valioso de diagnóstico conceptual (identificando la necesidad de repasar el tema teórico específico en sesiones subsiguientes) y no como un error insalvable o una métrica de fracaso, adaptando sus recomendaciones pedagógicas de forma empática y constructiva, y manteniéndose totalmente libre de la computación de penalizaciones por transcripción.
 
