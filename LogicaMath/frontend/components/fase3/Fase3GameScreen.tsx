@@ -506,6 +506,19 @@ export const Fase3GameScreen: React.FC = () => {
   const moduleName = MODULE_NAMES[moduloId] ?? `Módulo ${moduloId}`;
   const moduleColor = MODULE_COLORS[moduloId] ?? '#F97316';
 
+  const maxErroresPermitidos = useMemo(() => {
+    if (!isChallenge) return 0;
+    const porcAprobacion = 90;
+    let minAciertosReq = maxAciertos;
+    for (let c = 0; c <= maxAciertos; c++) {
+      if (Math.floor((c / maxAciertos) * 100) >= porcAprobacion) {
+        minAciertosReq = c;
+        break;
+      }
+    }
+    return maxAciertos - minAciertosReq;
+  }, [isChallenge, maxAciertos]);
+
   // Premium splash welcome control
   const [showSplash, setShowSplash] = useState(true);
   const [countdown, setCountdown] = useState(8);
@@ -959,6 +972,14 @@ export const Fase3GameScreen: React.FC = () => {
             <span className="f3-badge-level">NIVEL {nivelId}</span>
             <span className="f3-badge-divider">|</span>
             <span className="f3-badge-challenge">{isChallenge ? 'DESAFÍO' : 'PREGUNTA'} {progreso.aciertos}/{maxAciertos}</span>
+            {isChallenge && (
+              <>
+                <span className="f3-badge-divider">|</span>
+                <span className="f3-badge-errors animate-pulse" style={{ color: (progreso.intentos - progreso.aciertos) >= maxErroresPermitidos ? '#EF4444' : '#F59E0B', fontWeight: 800 }}>
+                  ERRORES: {progreso.intentos - progreso.aciertos}/{maxErroresPermitidos}
+                </span>
+              </>
+            )}
             {timer !== null && (
               <>
                 <span className="f3-badge-divider">|</span>

@@ -703,6 +703,19 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   const [maxAciertos, setMaxAciertos] = useState<number>(moduloId === 99 ? 20 : (nivelId >= 11 && nivelId <= 13 ? (nivelId === 13 ? 10 : 25) : 15));
   const barWidth    = useMemo(() => Math.min(100, (progreso.aciertos / maxAciertos) * 100), [progreso.aciertos, maxAciertos]);
 
+  const maxErroresPermitidos = useMemo(() => {
+    if (!isChallenge) return 0;
+    const porcAprobacion = 90;
+    let minAciertosReq = maxAciertos;
+    for (let c = 0; c <= maxAciertos; c++) {
+      if (Math.floor((c / maxAciertos) * 100) >= porcAprobacion) {
+        minAciertosReq = c;
+        break;
+      }
+    }
+    return maxAciertos - minAciertosReq;
+  }, [isChallenge, maxAciertos]);
+
   // Premium splash memos
   const challengeName = useMemo(() => {
     if (moduloId === 99) return "Maestría Final";
@@ -1199,6 +1212,14 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 <span className="f2-badge-level">NIVEL {nivelId}</span>
                 <span className="f2-badge-divider">|</span>
                 <span className="f2-badge-challenge">{isChallenge ? 'DESAFÍO' : 'PROGRESO'} {progreso.aciertos}/{maxAciertos}</span>
+                {isChallenge && (
+                  <>
+                    <span className="f2-badge-divider">|</span>
+                    <span className="f2-badge-errors animate-pulse" style={{ color: (progreso.intentos - progreso.aciertos) >= maxErroresPermitidos ? '#EF4444' : '#F59E0B', fontWeight: 800 }}>
+                      ERRORES: {progreso.intentos - progreso.aciertos}/{maxErroresPermitidos}
+                    </span>
+                  </>
+                )}
                 {timer !== null && (
                   <><span className="f2-badge-divider">|</span><span className="f2-badge-timer" style={{ color: timer <= 5 ? '#EF4444' : '#ffffff' }}>{timer}S</span></>
                 )}

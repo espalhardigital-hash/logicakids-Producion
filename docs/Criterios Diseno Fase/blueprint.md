@@ -236,11 +236,20 @@ Antes de iniciar cualquier desafío (incluyendo los Desafíos 1, 2 y Desafío Fi
   - Un número indicador dinámico gigante en el centro del anillo que decrece del **8** al **1** con un efecto periódico de escala y opacidad cada segundo.
 * **Mecanismo de Oclusión (Skip):** Para mantener el control del usuario, la interfaz debe descartarse de inmediato al hacer clic en cualquier parte de la pantalla o presionar cualquier tecla del teclado físico, dando paso inmediato a la primera pregunta del desafío.
 
-### 4.2. Modal de Salida Temprana (Early Exit Modal)
-Ante una expulsión de la zona de desafíos, el frontend no debe cerrar la pantalla abruptamente. Debe seguir la siguiente directriz técnica:
-* **Estructura del Componente:** Modal prioritario sobre `AnimatePresence` de `framer-motion`. Utiliza una tarjeta esmerilada con `glass-card` con un grosor de borde superior destacado de `6px solid #EF4444` (rojo neón de advertencia).
-* **Elementos Visuales:** Icono representativo de escudo protector (`🛡️`) en tamaño destacado (`3.5rem` / `56px`), título en negrita (`fontWeight: 900`) y copia motivacional con emojis para inspirar resiliencia.
-* **Acción de Cierre:** Botón principal de tamaño completo con un degradado en la tonalidad cromática del módulo (`moduleColor`) que llama a `onBack()` para liberar la sesión limpiamente.
+### 4.2. Modal de Salida Temprana (Early Exit Modal) y Live Errors HUD
+
+Ante una expulsión de la zona de desafíos o durante el desarrollo del desafío mismo, la interfaz debe actuar bajo las siguientes directrices técnicas para asegurar la transparencia de la evaluación y la resiliencia del alumno:
+
+* **Indicador de Errores Activos en Vivo (Live Errors HUD):** Durante cualquier desafío, el encabezado (HUD) del juego debe inyectar de forma destacada una badge interactiva (`f2-badge-errors`, `f3-badge-errors`, `f4-badge-errors`, etc.) con animación de pulso (`animate-pulse`). Esta badge debe mostrar el conteo exacto de errores en vivo respecto al máximo de errores permitidos en la sesión (ej. `ERRORES: 1/2`). El color de la badge debe cambiar dinámicamente: amarillo neón (`#F59E0B`) como advertencia inicial y rojo neón (`#EF4444`) cuando se alcanza la tolerancia máxima de fallas. Esto ayuda a regular la concentración del estudiante en tiempo real.
+* **Estructura del Componente del Modal:** Modal prioritario montado sobre `AnimatePresence` de `framer-motion` (`zIndex` de `1000` o `1100`). Utiliza una tarjeta esmerilada con clase `glass-card` con un borde superior destacado en color rojo neón (`#EF4444`) y el escudo protector (`🛡️`) como icono destacado (`3.5rem` / `56px`).
+* **Ficha de Reporte de Desempeño Integrada:** Dentro de la tarjeta de salida temprana, se debe presentar de manera muy visible una caja de reporte que especifique:
+  - **Nombre del Módulo:** Ej. *Módulo 1: Suma* (o el nombre cromático/académico correspondiente).
+  - **Nombre del Desafío:** Ej. *Desafío 1: Estándar*, *Desafío Final: Maestría*, etc.
+* **Tarjetas de Estadísticas en Cuadrícula:** Debajo del título del desafío en curso, se debe renderizar una grilla de dos columnas con fondos semi-transparentes y bordes sutiles para mostrar de manera nítida:
+  - **Aciertos:** En color verde neón (`#10B981`) y fondo suave (`rgba(16, 185, 129, 0.05)`).
+  - **Errores:** En color rojo neón (`#EF4444`) y fondo suave (`rgba(239, 68, 68, 0.05)`).
+* **Acción de Cierre y Retorno Limpio:** Botón principal de tamaño completo con un degradado en la tonalidad cromática del módulo (`moduleColor`) que llama a `onClose` o `onBack()` para liberar la sesión y retornar limpiamente al dashboard de selección.
+
 
 ### 4.3. Modal de Celebración de Logros (Completion Achievements Modal)
 Al terminar exitosamente un nivel o desafío, el frontend debe suspender temporalmente el flujo y gatillar un modal interactivo que premie la persistencia:
