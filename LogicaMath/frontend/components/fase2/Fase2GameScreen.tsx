@@ -677,12 +677,17 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
   }, [moduloId]);
 
   const displayTimeLimit = useMemo(() => {
+    if (pregunta && !pregunta.tiene_cronometro) return "Sin límite";
     if (pregunta?.tiene_cronometro && pregunta?.tiempo_limite_segundos) {
-      return pregunta.tiempo_limite_segundos;
+      return `${pregunta.tiempo_limite_segundos}s / pregunta`;
     }
-    if (moduloId === 99) return 90;
-    return nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60;
-  }, [moduloId, nivelId, pregunta]);
+    // Si la pregunta aún no carga, pero sabemos que es un desafío, mostramos un fallback provisional
+    if (isChallenge) {
+      if (moduloId === 99) return "90s / pregunta";
+      return nivelId === 11 ? "30s / pregunta" : nivelId === 12 ? "45s / pregunta" : "60s / pregunta";
+    }
+    return "15s / pregunta";
+  }, [moduloId, nivelId, pregunta, isChallenge]);
 
   const displayQuestionsCount = maxAciertos;
 
@@ -775,14 +780,11 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
       // Sync dynamic required count from backend config
       if (data.cantidad_requerida) setMaxAciertos(data.cantidad_requerida);
       
-      if (isChallenge) {
-        const fallbackLimit = moduloId === 99 ? 90 : (nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60);
+      if (data.tiene_cronometro) {
+        const fallbackLimit = isChallenge ? (moduloId === 99 ? 90 : (nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60)) : 15;
         const limit = data.tiempo_limite_segundos || fallbackLimit;
         setTimer(limit);
         setMaxTimer(limit);
-      } else if (data.tiene_cronometro && data.tiempo_limite_segundos) {
-        setTimer(data.tiempo_limite_segundos);
-        setMaxTimer(data.tiempo_limite_segundos);
       } else {
         setTimer(null);
       }
@@ -1060,13 +1062,15 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     <span className="f2-splash-meta-value">{displayQuestionsCount} a superar</span>
                   </div>
 
-                  <div className="f2-splash-meta-card">
-                    <div className="f2-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
-                      <Clock size={22} style={{ color: moduleColor }} />
+                  {displayTimeLimit !== "Sin límite" && (
+                    <div className="f2-splash-meta-card">
+                      <div className="f2-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
+                        <Clock size={22} style={{ color: moduleColor }} />
+                      </div>
+                      <span className="f2-splash-meta-label">Tiempo</span>
+                      <span className="f2-splash-meta-value">{displayTimeLimit}</span>
                     </div>
-                    <span className="f2-splash-meta-label">Tiempo</span>
-                    <span className="f2-splash-meta-value">{displayTimeLimit}s / pregunta</span>
-                  </div>
+                  )}
                 </div>
 
                 {/* Animación de cuenta regresiva circular */}
@@ -1457,6 +1461,18 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                     <span style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', fontWeight: 700 }}>Módulo</span>
                     <span style={{ display: 'block', fontSize: '1.1rem', color: '#fff', fontWeight: 800 }}>{displayModuleName}</span>
                   </div>
+                  <div className="f2-splash-meta-card" style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>🎯</div>
+                    <span style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', fontWeight: 700 }}>Preguntas</span>
+                    <span style={{ display: 'block', fontSize: '1.1rem', color: '#fff', fontWeight: 800 }}>{displayQuestionsCount} a superar</span>
+                  </div>
+                  {displayTimeLimit !== "Sin límite" && (
+                    <div className="f2-splash-meta-card" style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>⏳</div>
+                      <span style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', fontWeight: 700 }}>Tiempo</span>
+                      <span style={{ display: 'block', fontSize: '1.1rem', color: '#fff', fontWeight: 800 }}>{displayTimeLimit}</span>
+                    </div>
+                  )}
                   <div className="f2-splash-meta-card" style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>🎯</div>
                     <span style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', fontWeight: 700 }}>Preguntas</span>

@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 from datetime import datetime
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from app.db.session import engine, AsyncSessionLocal
 from app.db.base import Base
@@ -12,6 +12,7 @@ from app.models.sql_models import (
     Pregunta,
     Alternativa,
     ConfiguracionProgreso,
+    ProgresoMaestria,
     PlatformSettings,
     StatusEnum,
     OperacionEnum,
@@ -25,7 +26,7 @@ from app.auth import get_password_hash
 # ============================================================
 SEED_VERSIONS_KEY = "database_seed_versions"
 SEED_VERSIONS = {
-    "fase_1": "1.0",
+    "fase_1": "20260601_v1",
     "fase_2": "20260527_v1",
     "fase_3": "20260527_v2",
     "fase_4": "20260529_v3"
@@ -111,11 +112,50 @@ FASES_DATA = [
     },
 ]
 
-# ============================================================
-# DATOS: CONFIGURACION DE PROGRESO (Disciplinas Base)
-# ============================================================
-CONFIGURACION_DATA = [
-    # --- FASE 1 (Aritmética Básica) ---
+CONFIGURACION_DATA = []
+
+# Suma: seccion 101 a 105
+for lvl in range(1, 6):
+    time_limit = {1: 15, 2: 15, 3: 20, 4: 25, 5: 30}[lvl]
+    CONFIGURACION_DATA.append({
+        "fase_id": 1, "seccion": 100 + lvl, "operacion": OperacionEnum.SUMA,
+        "cantidad_requerida": 15, "porcentaje_aprobacion": 90,
+        "orden_desbloqueo": lvl, "tipo_feedback": "simple",
+        "usa_cronometro": True, "tiempo_default_segundos": time_limit
+    })
+
+# Resta: seccion 201 a 205
+for lvl in range(1, 6):
+    time_limit = {1: 15, 2: 15, 3: 20, 4: 25, 5: 30}[lvl]
+    CONFIGURACION_DATA.append({
+        "fase_id": 1, "seccion": 200 + lvl, "operacion": OperacionEnum.RESTA,
+        "cantidad_requerida": 15, "porcentaje_aprobacion": 90,
+        "orden_desbloqueo": lvl, "tipo_feedback": "simple",
+        "usa_cronometro": True, "tiempo_default_segundos": time_limit
+    })
+
+# Multiplicación: seccion 301 a 306
+for lvl in range(1, 7):
+    time_limit = {1: 15, 2: 15, 3: 20, 4: 25, 5: 30, 6: 20}[lvl]
+    CONFIGURACION_DATA.append({
+        "fase_id": 1, "seccion": 300 + lvl, "operacion": OperacionEnum.MULTIPLICACION,
+        "cantidad_requerida": 15, "porcentaje_aprobacion": 90,
+        "orden_desbloqueo": lvl, "tipo_feedback": "simple",
+        "usa_cronometro": True, "tiempo_default_segundos": time_limit
+    })
+
+# División: seccion 401 a 405
+for lvl in range(1, 6):
+    time_limit = {1: 15, 2: 15, 3: 20, 4: 25, 5: 30}[lvl]
+    CONFIGURACION_DATA.append({
+        "fase_id": 1, "seccion": 400 + lvl, "operacion": OperacionEnum.DIVISION,
+        "cantidad_requerida": 15, "porcentaje_aprobacion": 90,
+        "orden_desbloqueo": lvl, "tipo_feedback": "simple",
+        "usa_cronometro": True, "tiempo_default_segundos": time_limit
+    })
+
+# Agregar también las configuraciones legacy seccion = 1 para compatibilidad/fallback
+CONFIGURACION_DATA.extend([
     {"fase_id": 1, "seccion": 1, "operacion": OperacionEnum.SUMA,
      "cantidad_requerida": 50, "porcentaje_aprobacion": 90,
      "orden_desbloqueo": 1, "tipo_feedback": "simple",
@@ -132,7 +172,7 @@ CONFIGURACION_DATA = [
      "cantidad_requerida": 50, "porcentaje_aprobacion": 90,
      "orden_desbloqueo": 4, "tipo_feedback": "simple",
      "usa_cronometro": True, "tiempo_default_segundos": 14},
-]
+])
 
 # ============================================================
 # DATOS: PREGUNTAS DE EJEMPLO
@@ -208,6 +248,7 @@ def generar_preguntas_fase1(admin_id: str) -> list:
             "enunciado": f"¿Cuánto es {a} + {b}?",
             "respuesta_correcta": ans_str,
             "operacion": OperacionEnum.SUMA,
+            "seccion": 101 + (i // 20),
             "datos_numericos": {"a": a, "b": b, "operacion_esperada": "suma"},
             "explicacion_paso_a_paso": {
                 "titulo": "Sumemos paso a paso",
@@ -290,6 +331,7 @@ def generar_preguntas_fase1(admin_id: str) -> list:
             "enunciado": f"¿Cuánto es {a} - {b}?",
             "respuesta_correcta": ans_str,
             "operacion": OperacionEnum.RESTA,
+            "seccion": 201 + (i // 20),
             "datos_numericos": {"a": a, "b": b, "operacion_esperada": "resta"},
             "explicacion_paso_a_paso": {
                 "titulo": "Restemos paso a paso",
@@ -310,7 +352,7 @@ def generar_preguntas_fase1(admin_id: str) -> list:
     rng.shuffle(mult_pairs)
     mult_pairs = mult_pairs[:100]
     
-    for a, b in mult_pairs:
+    for i, (a, b) in enumerate(mult_pairs):
         ans = a * b
         ans_str = str(ans)
         
@@ -364,6 +406,7 @@ def generar_preguntas_fase1(admin_id: str) -> list:
             "enunciado": f"¿Cuánto es {a} x {b}?",
             "respuesta_correcta": ans_str,
             "operacion": OperacionEnum.MULTIPLICACION,
+            "seccion": 301 + min(i // 17, 5),
             "datos_numericos": {"a": a, "b": b, "operacion_esperada": "multiplicacion"},
             "explicacion_paso_a_paso": {
                 "titulo": "Multiplicación paso a paso",
@@ -382,7 +425,7 @@ def generar_preguntas_fase1(admin_id: str) -> list:
     rng.shuffle(div_pairs)
     div_pairs = div_pairs[:100]
     
-    for b, q in div_pairs:
+    for i, (b, q) in enumerate(div_pairs):
         a = b * q
         ans = q
         ans_str = str(ans)
@@ -433,6 +476,7 @@ def generar_preguntas_fase1(admin_id: str) -> list:
             "enunciado": f"¿Cuánto es {a} / {b}?",
             "respuesta_correcta": ans_str,
             "operacion": OperacionEnum.DIVISION,
+            "seccion": 401 + (i // 20),
             "datos_numericos": {"a": a, "b": b, "operacion_esperada": "division"},
             "explicacion_paso_a_paso": {
                 "titulo": "División paso a paso",
@@ -507,6 +551,19 @@ async def seed_configuracion_progreso(session: AsyncSessionLocal):
 
 async def seed_preguntas_ejemplo(session: AsyncSessionLocal, admin_id: str):
     print("Generando e inyectando pool de preguntas de la Fase 1...")
+    
+    # Eliminar preguntas y alternativas antiguas de Fase 1 para evitar duplicados y actualizar las secciones
+    from app.models.sql_models import Alternativa
+    await session.execute(
+        delete(Alternativa).where(Alternativa.pregunta_id.in_(
+            select(Pregunta.id).where(Pregunta.fase_id == 1)
+        ))
+    )
+    await session.execute(
+        delete(Pregunta).where(Pregunta.fase_id == 1)
+    )
+    await session.flush()
+    
     preguntas_pool = generar_preguntas_fase1(admin_id)
     
     # Llevar cuenta de cuántas se insertan
@@ -525,7 +582,7 @@ async def seed_preguntas_ejemplo(session: AsyncSessionLocal, admin_id: str):
 
         pregunta = Pregunta(
             fase_id=1, # Aritmética Básica
-            seccion=1,
+            seccion=p_data.get("seccion", 1),
             operacion=p_data["operacion"],
             tipo_pregunta=TipoPreguntaEnum.MULTIPLE_OPCION,
             enunciado=p_data["enunciado"],
@@ -670,6 +727,102 @@ async def update_seed_version(session, fase_key: str, version: str):
     settings.value = current_val
     print(f"  Updated database seed version registry: '{fase_key}' -> {version}")
 
+from sqlalchemy import and_
+
+async def migrar_datos_fase1_legacy(session):
+    print("Ejecutando migración de datos legacy de Fase 1...")
+    
+    # 1. Obtener todos los progresos de Fase 1 con seccion = 1
+    result = await session.execute(
+        select(ProgresoMaestria).where(and_(
+            ProgresoMaestria.fase_id == 1,
+            ProgresoMaestria.seccion == 1
+        ))
+    )
+    progresos_legacy = result.scalars().all()
+    
+    migrados = 0
+    from app.models.sql_models import EstadoProgresoEnum, Intento
+    for p_leg in progresos_legacy:
+        # Determinar qué secciones dinámicas corresponden a esta operación
+        secciones_destino = []
+        op_val = (p_leg.operacion.value if hasattr(p_leg.operacion, "value") else p_leg.operacion).upper()
+        if op_val == "SUMA":
+            secciones_destino = [101, 102, 103, 104, 105]
+        elif op_val == "RESTA":
+            secciones_destino = [201, 202, 203, 204, 205]
+        elif op_val == "MULTIPLICACION":
+            secciones_destino = [301, 302, 303, 304, 305, 306]
+        elif op_val == "DIVISION":
+            secciones_destino = [401, 402, 403, 404, 405]
+            
+        for sec in secciones_destino:
+            # Verificar si ya existe progreso para esta sección
+            result_ex = await session.execute(
+                select(ProgresoMaestria).where(and_(
+                    ProgresoMaestria.alumno_id == p_leg.alumno_id,
+                    ProgresoMaestria.fase_id == 1,
+                    ProgresoMaestria.seccion == sec,
+                    ProgresoMaestria.operacion == p_leg.operacion
+                ))
+            )
+            progreso_ex = result_ex.scalar_one_or_none()
+            
+            if not progreso_ex:
+                # Crear progreso para la sección dinámica heredando el estado legacy
+                new_p = ProgresoMaestria(
+                    alumno_id=p_leg.alumno_id,
+                    fase_id=1,
+                    seccion=sec,
+                    operacion=p_leg.operacion,
+                    estado=p_leg.estado,
+                    aciertos_acumulados=p_leg.aciertos_acumulados,
+                    intentos_totales=p_leg.intentos_totales,
+                    porcentaje_actual=p_leg.porcentaje_actual,
+                    aprobado_por_admin=p_leg.aprobado_por_admin,
+                    fecha_inicio=p_leg.fecha_inicio,
+                    fecha_aprobacion=p_leg.fecha_aprobacion
+                )
+                session.add(new_p)
+                migrados += 1
+            else:
+                # Si el legacy estaba aprobado pero el dinámico no, actualizarlo
+                if p_leg.estado == EstadoProgresoEnum.APROBADO and progreso_ex.estado != EstadoProgresoEnum.APROBADO:
+                    progreso_ex.estado = EstadoProgresoEnum.APROBADO
+                    progreso_ex.aciertos_acumulados = max(progreso_ex.aciertos_acumulados, p_leg.aciertos_acumulados)
+                    progreso_ex.intentos_totales = max(progreso_ex.intentos_totales, p_leg.intentos_totales)
+                    progreso_ex.porcentaje_actual = 100
+                    progreso_ex.fecha_aprobacion = p_leg.fecha_aprobacion or datetime.utcnow()
+                    session.add(progreso_ex)
+                    migrados += 1
+                    
+        # También duplicar los intentos para que aparezcan en el historial
+        result_intentos = await session.execute(
+            select(Intento).where(and_(
+                Intento.alumno_id == p_leg.alumno_id,
+                Intento.fase_id == 1,
+                Intento.seccion == 1,
+                Intento.operacion == p_leg.operacion
+            ))
+        )
+        intentos_legacy = result_intentos.scalars().all()
+        for int_leg in intentos_legacy:
+            # Sincronizar el intento al nivel 3 (medio) como default
+            default_sec = 103
+            if op_val == "SUMA":
+                default_sec = 103
+            elif op_val == "RESTA":
+                default_sec = 203
+            elif op_val == "MULTIPLICACION":
+                default_sec = 303
+            elif op_val == "DIVISION":
+                default_sec = 403
+                
+            int_leg.seccion = default_sec
+            session.add(int_leg)
+            
+    print(f"  Sincronizados {migrados} registros de progreso para secciones dinámicas.")
+
 # ============================================================
 # MAIN SEEDER EXECUTION
 # ============================================================
@@ -695,6 +848,9 @@ async def run_seed():
         if await should_seed_phase(session, "fase_1", 1):
             await seed_preguntas_ejemplo(session, admin_id)
             await update_seed_version(session, "fase_1", SEED_VERSIONS["fase_1"])
+            
+        # 6. Sincronizar progresos antiguos a secciones dinámicas
+        await migrar_datos_fase1_legacy(session)
         
         await session.commit()
 

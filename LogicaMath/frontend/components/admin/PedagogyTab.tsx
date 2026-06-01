@@ -45,16 +45,30 @@ interface StaticPhase {
 // ==========================================
 // STATIC MAP OF PEDAGOGICAL FASES
 // ==========================================
+const fase1Levels = [
+  { id: 1, name: "Nivel 1: Fácil" },
+  { id: 2, name: "Nivel 2: Medio-Fácil" },
+  { id: 3, name: "Nivel 3: Medio" },
+  { id: 4, name: "Nivel 4: Medio-Difícil" },
+  { id: 5, name: "Nivel 5: Difícil" },
+];
+
+const fase1LevelsConTablas = [
+  ...fase1Levels,
+  { id: 6, name: "Nivel 6: Tablas Aleatorias" }
+];
+
 const STATIC_PHASES: StaticPhase[] = [
   {
     id: 1, // Fase 1 (Aritmética Básica)
     name: "Fase 1: Aritmética Básica",
     description: "Sumas, restas, multiplicaciones y divisiones. ¡Calentamiento mental!",
     modules: [
-      { seccion: 1, operacion: "suma", name: "Suma Directa" },
-      { seccion: 1, operacion: "resta", name: "Resta Directa" },
-      { seccion: 1, operacion: "multiplicacion", name: "Multiplicación Directa" },
-      { seccion: 1, operacion: "division", name: "División Directa" }
+      { seccion: 1, modulo_id: 1, operacion: "suma", name: "Suma Directa", levels: fase1Levels },
+      { seccion: 1, modulo_id: 2, operacion: "resta", name: "Resta Directa", levels: fase1Levels },
+      { seccion: 1, modulo_id: 3, operacion: "multiplicacion", name: "Multiplicación Directa", levels: fase1LevelsConTablas },
+      { seccion: 1, modulo_id: 4, operacion: "division", name: "División Directa", levels: fase1Levels },
+      { seccion: 1, modulo_id: 5, operacion: "mixta", name: "Desafío Mixto", levels: fase1Levels }
     ]
   },
   {
@@ -368,7 +382,7 @@ const PedagogyTab: React.FC = () => {
   const selectModule = (phaseId: number, mod: StaticModule) => {
     setSelectedPhaseId(phaseId);
     setSelectedModule(mod);
-    if (phaseId > 1 && mod.levels && mod.levels.length > 0) {
+    if (mod.levels && mod.levels.length > 0) {
       setSelectedSubLevelId(mod.levels[0].id);
       setIsSelectedChallenge(false);
     } else {
@@ -389,7 +403,7 @@ const PedagogyTab: React.FC = () => {
   // Mapped DB keys for selected sub-item
   const getSelectedSubItemKeys = () => {
     if (!selectedModule) return { seccion: 0, operacion: '' };
-    if (selectedPhaseId === 1 || selectedSubLevelId === null) {
+    if (selectedSubLevelId === null) {
       return { seccion: selectedModule.seccion, operacion: selectedModule.operacion };
     }
     const modId = selectedModule.modulo_id || 1;
@@ -565,7 +579,7 @@ const PedagogyTab: React.FC = () => {
         // Fallback for default values if challenge is selected
         let defaultTime = getInheritedTimerForLevel('medium');
         let defaultQty = getInheritedQuestionsCount();
-        if (selectedPhaseId > 1 && isSelectedChallenge && selectedSubLevelId) {
+        if (isSelectedChallenge && selectedSubLevelId) {
           const chDef = selectedModule.challenges?.find(c => c.id === selectedSubLevelId);
           if (chDef) {
             defaultTime = chDef.defaultTime;
@@ -606,18 +620,14 @@ const PedagogyTab: React.FC = () => {
 
     const phaseModules = STATIC_PHASES.find(p => p.id === phaseId)?.modules || [];
     for (const mod of phaseModules) {
-      if (phaseId === 1) {
-        if (isModuleModified(phaseId, mod.seccion, mod.operacion)) return true;
-      } else {
-        const modId = mod.modulo_id || 1;
-        const levelIds = mod.levels?.map(l => l.id) || [];
-        const challengeIds = mod.challenges?.map(c => c.id) || [];
-        for (const lid of levelIds) {
-          if (isModuleModified(phaseId, modId * 100 + lid, mod.operacion)) return true;
-        }
-        for (const cid of challengeIds) {
-          if (isModuleModified(phaseId, modId * 1000 + cid, 'mixta')) return true;
-        }
+      const modId = mod.modulo_id || 1;
+      const levelIds = mod.levels?.map(l => l.id) || [];
+      const challengeIds = mod.challenges?.map(c => c.id) || [];
+      for (const lid of levelIds) {
+        if (isModuleModified(phaseId, modId * 100 + lid, mod.operacion)) return true;
+      }
+      for (const cid of challengeIds) {
+        if (isModuleModified(phaseId, modId * 1000 + cid, 'mixta')) return true;
       }
     }
     return false;
@@ -818,16 +828,7 @@ const PedagogyTab: React.FC = () => {
                           const isModSelected = selectedPhaseId === phase.id && 
                                                 selectedModule?.name === mod.name;
                           
-                          // Check if it has override record in draft
-                          const checkModuleHasOverride = () => {
-                            if (phase.id === 1) {
-                              return draftModularConfigs.some(
-                                c => c.fase_id === phase.id && 
-                                     c.seccion === mod.seccion && 
-                                     c.operacion === mod.operacion && 
-                                     c.activo !== false
-                              );
-                            }
+                          const checkModuleHasActiveOverride = () => {
                             const modId = mod.modulo_id || 1;
                             return draftModularConfigs.some(
                               c => c.fase_id === phase.id && 
@@ -835,12 +836,9 @@ const PedagogyTab: React.FC = () => {
                                    c.activo !== false
                             );
                           };
-                          const hasOverride = checkModuleHasOverride();
+                          const hasOverride = checkModuleHasActiveOverride();
 
                           const checkModuleIsModified = () => {
-                            if (phase.id === 1) {
-                              return isModuleModified(phase.id, mod.seccion, mod.operacion);
-                            }
                             const modId = mod.modulo_id || 1;
                             const levelIds = mod.levels?.map(l => l.id) || [];
                             const challengeIds = mod.challenges?.map(c => c.id) || [];

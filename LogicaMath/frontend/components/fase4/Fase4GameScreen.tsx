@@ -537,11 +537,15 @@ export const Fase4GameScreen: React.FC = () => {
   }, [moduloId]);
 
   const displayTimeLimit = useMemo(() => {
+    if (pregunta && !pregunta.tiene_cronometro) return "Sin límite";
     if (pregunta?.tiene_cronometro && pregunta?.tiempo_limite_segundos) {
-      return pregunta.tiempo_limite_segundos;
+      return `${pregunta.tiempo_limite_segundos}s / pregunta`;
     }
-    return moduloId === 99 ? 60 : (nivelId === 11 ? 25 : nivelId === 12 ? 40 : 50);
-  }, [moduloId, nivelId, pregunta]);
+    if (isChallenge) {
+      return moduloId === 99 ? "60s / pregunta" : (nivelId === 11 ? "25s / pregunta" : nivelId === 12 ? "40s / pregunta" : "50s / pregunta");
+    }
+    return "15s / pregunta";
+  }, [moduloId, nivelId, pregunta, isChallenge]);
 
   const displayQuestionsCount = maxAciertos;
 
@@ -910,13 +914,15 @@ export const Fase4GameScreen: React.FC = () => {
                     <span className="f4-splash-meta-value">{displayQuestionsCount} a superar</span>
                   </div>
 
-                  <div className="f4-splash-meta-card">
-                    <div className="f4-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
-                      <Clock size={22} style={{ color: moduleColor }} />
+                  {displayTimeLimit !== "Sin límite" && (
+                    <div className="f4-splash-meta-card">
+                      <div className="f4-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
+                        <Clock size={22} style={{ color: moduleColor }} />
+                      </div>
+                      <span className="f4-splash-meta-label">Tiempo</span>
+                      <span className="f4-splash-meta-value">{displayTimeLimit}</span>
                     </div>
-                    <span className="f4-splash-meta-label">Tiempo</span>
-                    <span className="f4-splash-meta-value">{displayTimeLimit}s / pregunta</span>
-                  </div>
+                  )}
                 </div>
 
                 {/* Animación de cuenta regresiva circular */}

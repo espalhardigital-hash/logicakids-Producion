@@ -52,6 +52,19 @@ La zona de desafíos corresponde a niveles virtuales `11`, `12` y `13`.
 
 Cada desafío debe contar con un mínimo de 150 preguntas independientes precargadas.
 
+### 2.3. Fase 1: Estandarización Modular y Retrocompatibilidad
+
+Originalmente implementada bajo una estructura estática y rígida con un único código de sección (`seccion = 1`) para todas las operaciones, la **Fase 1 (Aritmética Básica)** ha sido completamente estandarizada y migrada a la arquitectura dinámica de niveles y módulos:
+* **Módulos Académicos**: Las operaciones se dividen en 4 módulos independientes:
+  - **Módulo 1: Suma** (secciones `101` a `105`, correspondientes a los Niveles 1 a 5 de dificultad progresiva).
+  - **Módulo 2: Resta** (secciones `201` a `205`, correspondientes a los Niveles 1 a 5).
+  - **Módulo 3: Multiplicación** (secciones `301` a `306`, correspondientes a los Niveles 1 a 6).
+  - **Módulo 4: División** (secciones `401` a `405`, correspondientes a los Niveles 1 a 5).
+* **Compatibilidad Retrospectiva y Fallbacks**:
+  - **Consultas del Dashboard**: El endpoint `/pedagogia/dashboard` ahora acepta parámetros opcionales de query `seccion` y `operacion` para buscar o inicializar el progreso específico.
+  - **Fallbacks de Configuración y Preguntas**: Si un estudiante solicita jugar en un nivel dinámico (ej. sección `101` de suma) que carece de una configuración específica o un banco de preguntas dedicados, el backend realiza un fallback automático hacia la configuración legacy de la sección `1` (o en su defecto, a la de la sección `0` de la fase) y selecciona preguntas correspondientes del pool general de la operación, garantizando la continuidad del juego sin errores offline en el cliente.
+  - **Migración de Datos Semilla**: El script de semilla (`seed.py`) incorpora la rutina `migrar_datos_fase1_legacy` que duplica automáticamente la maestría y progreso de los alumnos que poseían aprobación en la sección legacy `1` de una operación hacia todas las nuevas secciones dinámicas (`101..105`, etc.) de esa misma operación, preservando los derechos adquiridos y evitando pérdidas de progreso.
+
 ---
 
 ## 3. Paso 1: Definición del Modelo y Base de Datos (Pools Segmentados por Fase)

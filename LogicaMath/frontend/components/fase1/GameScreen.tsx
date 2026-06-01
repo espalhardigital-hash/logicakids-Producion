@@ -220,7 +220,7 @@ const GameScreen: React.FC<Props> = ({
     if (isOnline) {
       try {
         const { getPedagogiaDashboard } = await import('../../services/storageService');
-        const res = await getPedagogiaDashboard();
+        const res = await getPedagogiaDashboard(sec, oper);
         if (res && res.siguiente_pregunta) {
           const sp = res.siguiente_pregunta;
           const q: Question = {

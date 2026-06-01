@@ -509,12 +509,16 @@ export const Fase3GameScreen: React.FC = () => {
   }, [moduloId]);
 
   const displayTimeLimit = useMemo(() => {
+    if (pregunta && !pregunta.tiene_cronometro) return "Sin límite";
     if (pregunta?.tiene_cronometro && pregunta?.tiempo_limite_segundos) {
-      return pregunta.tiempo_limite_segundos;
+      return `${pregunta.tiempo_limite_segundos}s / pregunta`;
     }
-    if (moduloId === 99) return 90;
-    return nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60;
-  }, [moduloId, nivelId, pregunta]);
+    if (isChallenge) {
+      if (moduloId === 99) return "90s / pregunta";
+      return nivelId === 11 ? "30s / pregunta" : nivelId === 12 ? "45s / pregunta" : "60s / pregunta";
+    }
+    return "15s / pregunta";
+  }, [moduloId, nivelId, pregunta, isChallenge]);
 
   const displayQuestionsCount = maxAciertos;
 
@@ -820,13 +824,15 @@ export const Fase3GameScreen: React.FC = () => {
                     <span className="f3-splash-meta-value">{displayQuestionsCount} a superar</span>
                   </div>
 
-                  <div className="f3-splash-meta-card">
-                    <div className="f3-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
-                      <Clock size={22} style={{ color: moduleColor }} />
+                  {displayTimeLimit !== "Sin límite" && (
+                    <div className="f3-splash-meta-card">
+                      <div className="f3-splash-meta-icon" style={{ background: `${moduleColor}15` }}>
+                        <Clock size={22} style={{ color: moduleColor }} />
+                      </div>
+                      <span className="f3-splash-meta-label">Tiempo</span>
+                      <span className="f3-splash-meta-value">{displayTimeLimit}</span>
                     </div>
-                    <span className="f3-splash-meta-label">Tiempo</span>
-                    <span className="f3-splash-meta-value">{displayTimeLimit}s / pregunta</span>
-                  </div>
+                  )}
                 </div>
 
                 {/* Animación de cuenta regresiva circular */}

@@ -325,8 +325,12 @@ export const graduateToFase2 = async (): Promise<void> => {
 };
 
 
-export const getPedagogiaDashboard = async (): Promise<any> => {
-  return await apiRequest<any>('/pedagogia/dashboard');
+export const getPedagogiaDashboard = async (seccion?: number, operacion?: string): Promise<any> => {
+  let endpoint = '/pedagogia/dashboard';
+  if (seccion !== undefined && operacion !== undefined) {
+    endpoint += `?seccion=${seccion}&operacion=${encodeURIComponent(operacion)}`;
+  }
+  return await apiRequest<any>(endpoint);
 };
 
 export const responderPreguntaPedagogica = async (data: {

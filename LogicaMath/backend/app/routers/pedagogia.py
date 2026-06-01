@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import selectinload
-from typing import List
+from typing import List, Optional
 import random
 from datetime import datetime
 
@@ -24,7 +24,12 @@ router = APIRouter(prefix="/pedagogia", tags=["pedagogia"])
 @router.get("/dashboard", response_model=DashboardAlumno)
 # NOTA: Este endpoint genérico es actualmente utilizado exclusivamente por la Fase 1.
 # Las Fases 2, 3 y 4 tienen sus propios routers especializados en app/faseX/router.py
-async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+async def get_dashboard(
+    seccion: Optional[int] = None,
+    operacion: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
     alumno_id = current_user.get("alumno_id")
     if not alumno_id:
         raise HTTPException(status_code=400, detail="El usuario no tiene un perfil de alumno asociado.")
@@ -68,8 +73,35 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                 fase_completada=False # Simplificado
             )
             
-            # Buscar el bloque activo (el primero que no esté aprobado, o el último si todos lo están)
-            bloque_activo = next((p for p in progresos if p.estado != EstadoProgresoEnum.APROBADO), None)
+            # Buscar el bloque activo
+            bloque_activo = None
+            if seccion is not None and operacion is not None:
+                # Si el frontend pide una sección y operación específica, buscamos/creamos ese progreso
+                bloque_activo = next((p for p in progresos if p.seccion == seccion and p.operacion == operacion), None)
+                if not bloque_activo:
+                    # Crear progreso inicial si no existe
+                    bloque_activo = ProgresoMaestria(
+                        alumno_id=alumno_id,
+                        fase_id=fase.id,
+                        seccion=seccion,
+                        operacion=operacion,
+                        estado=EstadoProgresoEnum.EN_PROGRESO,
+                        aciertos_acumulados=0,
+                        intentos_totales=0
+                    )
+                    db.add(bloque_activo)
+                    await db.flush()
+                    
+                    # Volver a obtener progresos y reconstruir bloques en el resumen
+                    result = await db.execute(
+                        select(ProgresoMaestria)
+                        .where(and_(ProgresoMaestria.alumno_id == alumno_id, ProgresoMaestria.fase_id == fase.id))
+                    )
+                    progresos = result.scalars().all()
+                    progreso_fase.bloques = [ProgresoMaestriaResponse.model_validate(p) for p in progresos]
+            else:
+                # Comportamiento legacy: el primero que no esté aprobado
+                bloque_activo = next((p for p in progresos if p.estado != EstadoProgresoEnum.APROBADO), None)
             
             if bloque_activo:
                 # Obtener la configuración de este bloque (específica e activa)
@@ -84,7 +116,20 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                 )
                 config = result.scalar_one_or_none()
                 
-                # Fallback a la configuración por defecto de la fase
+                # Fallback a la configuración legacy (seccion = 1) para compatibilidad
+                if not config and bloque_activo.seccion != 1:
+                    result_legacy = await db.execute(
+                        select(ConfiguracionProgreso)
+                        .where(and_(
+                            ConfiguracionProgreso.fase_id == fase.id,
+                            ConfiguracionProgreso.seccion == 1,
+                            ConfiguracionProgreso.operacion == bloque_activo.operacion,
+                            ConfiguracionProgreso.activo == True
+                        ))
+                    )
+                    config = result_legacy.scalar_one_or_none()
+                
+                # Fallback a la configuración por defecto de la fase (seccion = 0)
                 if not config:
                     result_phase = await db.execute(
                         select(ConfiguracionProgreso)
@@ -113,7 +158,7 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                     )
                     solved_ids = result_solved.scalars().all()
 
-                    # 2. Intentar buscar una pregunta no resuelta
+                    # 2. Intentar buscar una pregunta no resuelta para esta seccion específica
                     query = (
                         select(Pregunta)
                         .options(selectinload(Pregunta.alternativas))
@@ -127,13 +172,30 @@ async def get_dashboard(db: AsyncSession = Depends(get_db), current_user: dict =
                     if solved_ids:
                         query = query.where(~Pregunta.id.in_(solved_ids))
 
-                    result = await db.execute(
+                    result_q = await db.execute(
                         query.order_by(func.random()).limit(1)
                     )
-                    pregunta_db = result.scalar_one_or_none()
+                    pregunta_db = result_q.scalar_one_or_none()
 
-                    # 3. Si no hay preguntas no resueltas (o resolvió todas), no devolver una pregunta repetida
-                    # Dejamos pregunta_db como None. El frontend puede hacer fallback o mostrar un mensaje.
+                    # Fallback a seccion = 1 si no encontramos preguntas para la sección dinámica
+                    if not pregunta_db and bloque_activo.seccion != 1:
+                        query_legacy = (
+                            select(Pregunta)
+                            .options(selectinload(Pregunta.alternativas))
+                            .where(and_(
+                                Pregunta.fase_id == fase.id,
+                                Pregunta.seccion == 1,
+                                Pregunta.operacion == bloque_activo.operacion,
+                                Pregunta.estado == StatusEnum.ACTIVO
+                            ))
+                        )
+                        if solved_ids:
+                            query_legacy = query_legacy.where(~Pregunta.id.in_(solved_ids))
+                            
+                        result_legacy = await db.execute(
+                            query_legacy.order_by(func.random()).limit(1)
+                        )
+                        pregunta_db = result_legacy.scalar_one_or_none()
 
                     if pregunta_db:
                         # Mapear a schema de alumno (sin revelar respuesta)

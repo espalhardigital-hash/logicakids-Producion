@@ -475,17 +475,40 @@ const AppContent: React.FC = () => {
           } />
 
           <Route path="/play" element={
-            <GameScreen
-              category={category}
-              difficulty={difficulty}
-              userSettings={currentUser?.settings}
-              adminConfig={adminConfig}
-              modularConfigs={modularConfigs}
-              faseId={currentUser?.fase_actual_id || 1}
-              seccion={1}
-              onEndGame={handleEndGame}
-              onExit={() => navigate(currentUser ? '/map' : '/welcome')}
-            />
+            (() => {
+              const categoryToModId: Record<string, number> = {
+                'addition': 1,
+                'subtraction': 2,
+                'multiplication': 3,
+                'division': 4,
+                'challenge': 5
+              };
+              const difficultyToLevelId: Record<string, number> = {
+                'easy': 1,
+                'easy_medium': 2,
+                'medium': 3,
+                'medium_hard': 4,
+                'hard': 5,
+                'random_tables': 6
+              };
+              const modId = categoryToModId[category] || 1;
+              const levelId = difficultyToLevelId[difficulty] || 3;
+              const computedSeccion = modId * 100 + levelId;
+
+              return (
+                <GameScreen
+                  category={category}
+                  difficulty={difficulty}
+                  userSettings={currentUser?.settings}
+                  adminConfig={adminConfig}
+                  modularConfigs={modularConfigs}
+                  faseId={currentUser?.fase_actual_id || 1}
+                  seccion={computedSeccion}
+                  onEndGame={handleEndGame}
+                  onExit={() => navigate(currentUser ? '/map' : '/welcome')}
+                />
+              );
+            })()
           } />
 
           <Route path="/results" element={
