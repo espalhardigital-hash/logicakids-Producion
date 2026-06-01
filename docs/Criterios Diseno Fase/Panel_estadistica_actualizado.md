@@ -504,3 +504,9 @@ El modelo anterior basado en `ScoreRecord`, `CategoryProgress`, `/scores`, `cate
 * endpoints `/api/me/...`;
 * estados pedagógicos resueltos por backend;
 * visualización explícita de intervenciones administrativas.
+
+### 11.1. Estandarización de la Fase 1
+En la arquitectura legacy, la **Fase 1 (Aritmética Básica)** se trataba como una sección monolítica única (`seccion = 1`) y no admitía la flexibilidad de progresar a través de niveles de dificultad estructurados por operación. Con la actualización implementada:
+* La Fase 1 ha sido migrada a la estructura modular dinámica, de modo que cada una de las 4 operaciones principales actúa como un módulo con múltiples niveles de dificultad (secciones `101..105` para Suma, `201..205` para Resta, `301..306` para Multiplicación y `401..405` para División).
+* El Panel de Estadísticas consume estos bloques académicos de manera granular e individualizada.
+* Se implementa un **mecanismo de migración automática de base de datos** para retrocompatibilidad, de modo que los alumnos antiguos con avances aprobados en la sección legacy `1` de una operación heredan automáticamente el estado `APROBADO` en todos los niveles dinámicos de esa operación.

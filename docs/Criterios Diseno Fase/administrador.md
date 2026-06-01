@@ -332,9 +332,10 @@ Campos:
 * `nivel_id`: Identifica el nivel de práctica libre. Nullable en desafíos o defaults de fase.
 * `desafio_id`: Identifica el desafío virtual (`1`, `2`, `3`). Nullable en práctica.
 * `seccion`: Código derivado para compatibilidad y consultas rápidas.
-  * En práctica libre: `modulo_id * 100 + nivel_id`.
-  * En desafíos: `modulo_id * 1000 + nivel_virtual`, donde `nivel_virtual` es `11`, `12` o `13`.
-  * En defaults de fase puede usarse `0`.
+  * En práctica libre (incluyendo Fase 1 y fases superiores): `modulo_id * 100 + nivel_id`.
+  * En desafíos (fases 2 a 9): `modulo_id * 1000 + nivel_virtual`, donde `nivel_virtual` es `11`, `12` o `13`.
+  * En defaults de fase se utiliza `0`.
+  * En configuraciones de soporte legacy de Fase 1 se utiliza `1`.
 * `operacion`: Enum (`suma`, `resta`, `multiplicacion`, `division`, `mixta`).
 * `cantidad_requerida`: Número de preguntas que componen el bloque.
 * `completitud_requerida`: Porcentaje de avance requerido para terminar el bloque. Valor estándar: `100`.
@@ -495,8 +496,18 @@ Campos:
 
 ### 10.1. Fase 1: Aritmética Básica
 
-* **Módulo:** Operaciones Directas.
-* Contenido: suma, resta, multiplicación y división directa.
+* **Estructura Modular Estándar**: Fase 1 se encuentra completamente estandarizada y dividida en 4 operaciones matemáticas fundamentales. Cada una de ellas actúa como un módulo con sus respectivos niveles y secciones dinámicas calculadas como `modulo_id * 100 + level_id`:
+  * **Módulo 1: Suma** (secciones `101` a `105`, correspondientes a los Niveles 1 a 5).
+  * **Módulo 2: Resta** (secciones `201` a `205`, correspondientes a los Niveles 1 a 5).
+  * **Módulo 3: Multiplicación** (secciones `301` a `306`, correspondientes a los Niveles 1 a 6).
+  * **Módulo 4: División** (secciones `401` a `405`, correspondientes a los Niveles 1 a 5).
+* **Métricas de Configuración Pedagógica**: Al igual que en las fases superiores, el administrador puede modificar para cada uno de estos niveles:
+  * El **tiempo límite** (`usa_cronometro` y `tiempo_default_segundos`).
+  * El **porcentaje de aprobación** (`porcentaje_aprobacion`).
+  * La **cantidad de preguntas** por bloque (`cantidad_requerida`).
+* **Soporte y Compatibilidad Legacy**:
+  * Para garantizar que los alumnos que iniciaron su progreso bajo el esquema antiguo (donde toda la Fase 1 se agrupaba bajo la sección estática `seccion = 1`) no pierdan sus avances, se implementó una **migración automática de base de datos** que duplica y propaga la aprobación de la sección legacy `1` a todas las nuevas secciones dinámicas de la misma operación.
+  * Adicionalmente, el backend cuenta con una lógica de **fallback de lectura**: si se solicita una configuración para una sección dinámica y no existe, se intentará cargar el registro heredado (`seccion = 1`) antes de usar la configuración general de la fase (`seccion = 0`).
 
 ### 10.2. Fase 2: Desarrollo Numérico
 
