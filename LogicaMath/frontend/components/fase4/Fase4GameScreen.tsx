@@ -66,8 +66,19 @@ const getFractionForPercentage = (pct: number) => {
 // ─── Componente: Modal de Salida Temprana (Early Exit) ─────────────────────
 const Fase4EarlyExitModal: React.FC<{
   moduleColor: string;
+  moduloId: number;
+  nivelId: number;
+  aciertos: number;
+  intentos: number;
   onClose: () => void;
-}> = ({ moduleColor, onClose }) => {
+}> = ({ moduleColor, moduloId, nivelId, aciertos, intentos, onClose }) => {
+  const moduloText = moduloId === 99 ? 'Desafío Mixto' : MODULE_NAMES[moduloId] || `Módulo ${moduloId}`;
+  const challengeText = moduloId === 99 
+    ? 'Maestría Final' 
+    : (nivelId === 11 ? 'Desafío 1: Estándar' : nivelId === 12 ? 'Desafío 2: Avanzado' : 'Desafío Final: Maestría');
+  
+  const errores = intentos - aciertos;
+
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
@@ -95,6 +106,35 @@ const Fase4EarlyExitModal: React.FC<{
         <p style={{ color: 'rgba(255,255,255,0.85)', marginBottom: '20px', fontSize: '1.1rem', lineHeight: 1.5 }}>
           Dado el número de errores acumulados, ya no es posible alcanzar el puntaje mínimo de aprobación para este desafío.
         </p>
+
+        {/* Reporte de Desempeño */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '24px',
+          padding: '20px',
+          marginBottom: '24px',
+          textAlign: 'left'
+        }}>
+          <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: moduleColor, fontWeight: 700, marginBottom: '4px' }}>
+            {moduloText}
+          </div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
+            {challengeText}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.15)', borderRadius: '16px', padding: '12px' }}>
+              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginBottom: '2px' }}>Aciertos</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#10B981' }}>{aciertos}</div>
+            </div>
+            <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: '16px', padding: '12px' }}>
+              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginBottom: '2px' }}>Errores</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#EF4444' }}>{errores}</div>
+            </div>
+          </div>
+        </div>
+
         <p style={{ color: 'rgba(255,255,255,0.65)', marginBottom: '30px', fontSize: '1rem', lineHeight: 1.5 }}>
           ¡No te preocupes! Cada error es una excelente oportunidad para aprender y ser más fuerte. Repasa la teoría, practica con calma y ¡vuelve a intentarlo! Tú puedes lograrlo. 💪🚀
         </p>
@@ -113,6 +153,7 @@ const Fase4EarlyExitModal: React.FC<{
     </motion.div>
   );
 };
+
 
 // ─── Componente: Modal de Logros / Nivel Completado (Completion Modal) ───
 const Fase4CompletionModal: React.FC<{
@@ -1463,6 +1504,10 @@ export const Fase4GameScreen: React.FC = () => {
         {showEarlyExit && (
           <Fase4EarlyExitModal 
             moduleColor={moduleColor} 
+            moduloId={moduloId}
+            nivelId={nivelId}
+            aciertos={progreso.aciertos}
+            intentos={progreso.intentos}
             onClose={() => {
               setShowEarlyExit(false);
               navigate('/welcome-fase4');
