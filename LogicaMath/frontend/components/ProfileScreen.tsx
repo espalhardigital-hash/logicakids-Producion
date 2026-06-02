@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Difficulty, CategoryProgress } from '../types';
-import { saveUser, uploadAvatar, getAvatarUrl, updateOwnProfile, getUserProgress } from '../services/storageService';
-import { ArrowLeft, Camera, Save, Settings, User as UserIcon, Clock, BarChart2, CheckCircle, XCircle } from 'lucide-react';
+import { User, Difficulty, AcademicBlockProgress } from '../types';
+import { saveUser, uploadAvatar, getAvatarUrl, updateOwnProfile, getUserProgressBlocks } from '../services/storageService';
+import { ArrowLeft, Camera, Save, Settings, User as UserIcon, Clock, BarChart2, CheckCircle, XCircle, Lock, Unlock, ChevronDown, ChevronUp, Award, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
@@ -44,14 +44,20 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
     type: 'idle', message: ''
   });
 
-  const [activeTab, setActiveTab] = useState<'settings' | 'stats'>('settings');
-  const [statsData, setStatsData] = useState<CategoryProgress[]>([]);
+  const isAdmin = user.role === 'ADMIN';
+  const [activeTab, setActiveTab] = useState<'settings' | 'stats'>(isAdmin ? 'settings' : 'stats');
+  const [statsData, setStatsData] = useState<AcademicBlockProgress[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+
+  // Accordion state
+  const [expandedFase, setExpandedFase] = useState<number | null>(null);
+  const [expandedModulo, setExpandedModulo] = useState<string | null>(null); // "faseId-moduloId"
+  const [expandedBlock, setExpandedBlock] = useState<string | null>(null); // "faseId-seccion-operacion"
 
   useEffect(() => {
     if (activeTab === 'stats' && statsData.length === 0) {
       setIsLoadingStats(true);
-      getUserProgress()
+      getUserProgressBlocks()
         .then(data => setStatsData(data || []))
         .catch(console.error)
         .finally(() => setIsLoadingStats(false));
@@ -273,13 +279,15 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
           {/* ── RIGHT: Tabs Area ── */}
           <div className="md:w-3/5 p-8 flex flex-col relative">
             <div className="flex items-center gap-6 mb-6 border-b border-white/10">
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`pb-3 text-sm font-black tracking-wider transition-colors relative flex items-center gap-2 ${activeTab === 'settings' ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}
-              >
-                <Settings size={18} /> Configuración
-                {activeTab === 'settings' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className={`pb-3 text-sm font-black tracking-wider transition-colors relative flex items-center gap-2 ${activeTab === 'settings' ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  <Settings size={18} /> Configuración
+                  {activeTab === 'settings' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
+                </button>
+              )}
               <button
                 onClick={() => setActiveTab('stats')}
                 className={`pb-3 text-sm font-black tracking-wider transition-colors relative flex items-center gap-2 ${activeTab === 'stats' ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}
@@ -348,32 +356,212 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
             ) : statsData.length === 0 ? (
               <div className="text-center py-10 text-slate-500">Aún no hay estadísticas disponibles.</div>
             ) : (
-              statsData.map((stat, idx) => (
-                <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col gap-3">
-                  <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                    <span className="font-bold text-lg text-white capitalize">{stat.category}</span>
-                    <span className="text-xs font-black bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">Nivel {stat.unlocked_level}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] uppercase text-slate-400 font-bold">Puntuación</span>
-                      <span className="text-xl font-black text-yellow-400">{stat.total_score} pts</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] uppercase text-slate-400 font-bold">Precisión</span>
-                      <span className="text-xl font-black text-emerald-400">{stat.accuracy_rate || 0}%</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle size={14} className="text-emerald-500" />
-                      <span className="text-sm font-bold text-slate-300">{stat.total_correct} correctas</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <XCircle size={14} className="text-rose-500" />
-                      <span className="text-sm font-bold text-slate-300">{stat.total_errors} errores</span>
-                    </div>
-                  </div>
-                </div>
-              ))
+              <div className="space-y-4">
+                {(() => {
+                  const groupedProgress: Record<number, {
+                    faseTitulo: string;
+                    modulos: Record<number, {
+                      moduloTitulo: string;
+                      blocks: AcademicBlockProgress[];
+                    }>;
+                  }> = {};
+
+                  statsData.forEach(block => {
+                    if (!groupedProgress[block.fase_id]) {
+                      groupedProgress[block.fase_id] = {
+                        faseTitulo: block.fase_titulo,
+                        modulos: {}
+                      };
+                    }
+                    const mId = block.modulo_id;
+                    if (!groupedProgress[block.fase_id].modulos[mId]) {
+                      groupedProgress[block.fase_id].modulos[mId] = {
+                        moduloTitulo: block.modulo_titulo,
+                        blocks: []
+                      };
+                    }
+                    groupedProgress[block.fase_id].modulos[mId].blocks.push(block);
+                  });
+
+                  return Object.keys(groupedProgress).map(faseKey => {
+                    const faseId = parseInt(faseKey);
+                    const fase = groupedProgress[faseId];
+                    const isFaseExpanded = expandedFase === faseId;
+
+                    return (
+                      <div key={faseId} className="bg-white/5 border border-white/10 rounded-[1.8rem] overflow-hidden transition-all duration-300">
+                        {/* Fase Header */}
+                        <button
+                          onClick={() => setExpandedFase(isFaseExpanded ? null : faseId)}
+                          className="w-full p-5 flex items-center justify-between text-left hover:bg-white/5 transition-all duration-200"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Award className="text-yellow-400" size={20} />
+                            <span className="font-black text-lg text-white">{fase.faseTitulo}</span>
+                          </div>
+                          <div className="p-2 rounded-xl bg-white/5 text-gray-400">
+                            {isFaseExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          </div>
+                        </button>
+
+                        {/* Fase Collapsible */}
+                        {isFaseExpanded && (
+                          <div className="p-4 pt-0 border-t border-white/5 bg-black/20 space-y-3">
+                            {Object.keys(fase.modulos).map(modKey => {
+                              const modId = parseInt(modKey);
+                              const modulo = fase.modulos[modId];
+                              const moduloUniqueKey = `${faseId}-${modId}`;
+                              const isModExpanded = expandedModulo === moduloUniqueKey;
+
+                              return (
+                                <div key={modId} className="bg-white/5 border border-white/5 rounded-2xl overflow-hidden">
+                                  {/* Modulo Header */}
+                                  <button
+                                    onClick={() => setExpandedModulo(isModExpanded ? null : moduloUniqueKey)}
+                                    className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-all duration-200"
+                                  >
+                                    <div className="flex items-center gap-2.5">
+                                      <span className="text-xs font-black bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-md">M{modId}</span>
+                                      <span className="font-bold text-sm text-slate-200">{modulo.moduloTitulo}</span>
+                                    </div>
+                                    <div className="text-gray-400">
+                                      {isModExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                    </div>
+                                  </button>
+
+                                  {/* Modulo Collapsible */}
+                                  {isModExpanded && (
+                                    <div className="p-3 pt-0 border-t border-white/5 bg-black/10 space-y-2.5">
+                                      {modulo.blocks.map(block => {
+                                        const blockUniqueKey = `${block.fase_id}-${block.seccion}-${block.operacion}`;
+                                        const isApproved = block.estado === 'APROBADO';
+                                        const isInProgress = block.estado === 'EN_PROGRESO';
+                                        const isBlocked = block.estado === 'BLOQUEADO';
+                                        
+                                        const isTutorApproved = block.aprobado_por_admin;
+                                        const isTutorUnlocked = block.desbloqueado_por_admin;
+                                        const isTutorOverridden = isTutorApproved || isTutorUnlocked;
+
+                                        let cardStyle = "border-white/5 opacity-50";
+                                        let statusBadge = (
+                                          <span className="text-[10px] font-black bg-white/5 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                            Bloqueado
+                                          </span>
+                                        );
+
+                                        if (isApproved) {
+                                          if (isTutorApproved) {
+                                            cardStyle = "border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)] bg-cyan-950/10";
+                                            statusBadge = (
+                                              <span className="text-[10px] font-black bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                                                <Sparkles size={10} /> Tutor Aprobó
+                                              </span>
+                                            );
+                                          } else {
+                                            cardStyle = "border-yellow-500/30 shadow-[0_0_15px_rgba(250,204,21,0.15)] bg-yellow-500/5";
+                                            statusBadge = (
+                                              <span className="text-[10px] font-black bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                                                <Sparkles size={10} /> Aprobado
+                                              </span>
+                                            );
+                                          }
+                                        } else if (isInProgress) {
+                                          if (isTutorUnlocked) {
+                                            cardStyle = "border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)] bg-cyan-950/5";
+                                            statusBadge = (
+                                              <span className="text-[10px] font-black bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                                                <Unlock size={10} /> Tutor Habilitó
+                                              </span>
+                                            );
+                                          } else {
+                                            cardStyle = "border-blue-500/20 bg-blue-500/5";
+                                            statusBadge = (
+                                              <span className="text-[10px] font-black bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                                En Progreso
+                                              </span>
+                                            );
+                                          }
+                                        }
+
+                                        const titleText = block.nivel_titulo || block.desafio_titulo || `Bloque ${block.seccion}`;
+                                        const opLabel = block.operacion.charAt(0).toUpperCase() + block.operacion.slice(1);
+
+                                        return (
+                                          <div 
+                                            key={blockUniqueKey}
+                                            className={`border rounded-xl p-4 bg-slate-900/40 backdrop-blur-sm transition-all duration-300 ${cardStyle}`}
+                                          >
+                                            <div className="flex justify-between items-start gap-2">
+                                              <div>
+                                                <h4 className="font-extrabold text-sm text-white">{titleText}</h4>
+                                                <span className="text-[10px] text-slate-400 capitalize">{opLabel}</span>
+                                              </div>
+                                              {statusBadge}
+                                            </div>
+
+                                            {/* Progress bar for EN_PROGRESO */}
+                                            {isInProgress && (
+                                              <div className="mt-2 space-y-1">
+                                                <div className="flex justify-between text-[9px] text-slate-500 font-bold">
+                                                  <span>COMPLETITUD</span>
+                                                  <span>{block.completitud_actual}%</span>
+                                                </div>
+                                                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                                  <div 
+                                                    className={`h-full rounded-full transition-all duration-500 ${isTutorUnlocked ? 'bg-cyan-500' : 'bg-blue-500'}`} 
+                                                    style={{ width: `${block.completitud_actual}%` }} 
+                                                  />
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {/* Metrics */}
+                                            {!isBlocked && block.intentos_totales > 0 && (
+                                              <div className="grid grid-cols-2 gap-2 mt-2.5 pt-2.5 border-t border-white/5 text-[11px] text-slate-400">
+                                                <div>
+                                                  <span className="block text-[8px] uppercase tracking-wider text-slate-500 font-bold">Aciertos</span>
+                                                  <span className="font-extrabold text-slate-200">{block.aciertos_acumulados} / {block.intentos_totales}</span>
+                                                </div>
+                                                <div>
+                                                  <span className="block text-[8px] uppercase tracking-wider text-slate-500 font-bold">Precisión</span>
+                                                  <span className={`font-extrabold ${block.porcentaje_actual >= 80 ? 'text-emerald-400' : block.porcentaje_actual >= 60 ? 'text-yellow-400' : 'text-rose-400'}`}>
+                                                    {block.porcentaje_actual}%
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {/* Tutor Override details */}
+                                            {isTutorOverridden && (
+                                              <div className="mt-2.5 p-2 bg-cyan-950/40 border border-cyan-500/20 rounded-xl text-[10px] space-y-1 text-cyan-200 backdrop-blur-md">
+                                                <div className="flex items-center gap-1 font-bold text-cyan-400">
+                                                  <Sparkles size={10} />
+                                                  <span>Autorización Académica</span>
+                                                </div>
+                                                <p><span className="text-cyan-400/60">Supervisor:</span> Dirección Académica LogicaKids</p>
+                                                <p><span className="text-cyan-400/60">Motivo:</span> {block.override_motivo || (isTutorApproved ? "Aprobación directa por el tutor" : "Habilitado por el tutor")}</p>
+                                                {block.override_fecha && (
+                                                  <p><span className="text-cyan-400/60">Fecha:</span> {new Date(block.override_fecha).toLocaleDateString(undefined, {
+                                                    year: 'numeric', month: 'long', day: 'numeric'
+                                                  })}</p>
+                                                )}
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
             )}
           </motion.div>
         )}

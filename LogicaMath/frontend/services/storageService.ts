@@ -300,6 +300,34 @@ export const getUserProgress = async (): Promise<import('../types').CategoryProg
   }
 };
 
+export const getUserProgressSummary = async (): Promise<import('../types').ProgressSummary | null> => {
+  try {
+    return await apiRequest<import('../types').ProgressSummary>('/users/me/progress/summary');
+  } catch (error) {
+    console.error("Error fetching progress summary:", error);
+    return null;
+  }
+};
+
+export const getUserProgressBlocks = async (): Promise<import('../types').AcademicBlockProgress[]> => {
+  try {
+    return await apiRequest<import('../types').AcademicBlockProgress[]>('/users/me/progress/blocks');
+  } catch (error) {
+    console.error("Error fetching progress blocks:", error);
+    return [];
+  }
+};
+
+export const getUserProgressHistory = async (): Promise<import('../types').StudentAttemptSummary[]> => {
+  try {
+    return await apiRequest<import('../types').StudentAttemptSummary[]>('/users/me/progress/history');
+  } catch (error) {
+    console.error("Error fetching progress history:", error);
+    return [];
+  }
+};
+
+
 export const unlockLevel = async (category: import('../types').GameCategory, newLevel: number): Promise<void> => {
   try {
     await apiRequest('/users/me/progress/level', 'PATCH', { category, new_level: newLevel });

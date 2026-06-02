@@ -168,3 +168,81 @@ export interface ConfiguracionProgreso {
   ultima_modificacion?: string;
 }
 
+export interface AcademicBlockProgress {
+  fase_id: number;
+  fase_titulo: string;
+  modulo_id: number;
+  modulo_titulo: string;
+  nivel_id?: number | null;
+  nivel_titulo?: string | null;
+  desafio_id?: number | null;
+  desafio_titulo?: string | null;
+  seccion: number;
+  operacion: 'suma' | 'resta' | 'multiplicacion' | 'division' | 'mixta';
+
+  estado: 'BLOQUEADO' | 'EN_PROGRESO' | 'APROBADO';
+  porcentaje_actual: number;
+  completitud_actual: number;
+  aciertos_acumulados: number;
+  intentos_totales: number;
+
+  desbloqueado_por_admin: boolean;
+  aprobado_por_admin: boolean;
+  override_tipo?: 'unlock' | 'approve' | 'lock' | 'reset' | null;
+  override_motivo?: string | null;
+  override_fecha?: string | null;
+
+  ultimo_intento_at?: string | null;
+  siguiente_bloque_disponible?: boolean;
+}
+
+export interface StudentAttemptSummary {
+  id: string;
+  alumno_id: string;
+  session_id: string;
+
+  fase_id: number;
+  modulo_id: number;
+  nivel_id?: number | null;
+  desafio_id?: number | null;
+  seccion: number;
+  operacion: 'suma' | 'resta' | 'multiplicacion' | 'division' | 'mixta';
+
+  porcentaje: number;
+  completitud: number;
+  aciertos: number;
+  errores: number;
+  intentos_totales: number;
+  tiempo_promedio_segundos: number;
+
+  tipo_pool: 'practica' | 'desafio';
+  estado_resultado:
+    | 'APROBADO'
+    | 'NO_APROBADO'
+    | 'EN_PROGRESO'
+    | 'EARLY_EXIT'
+    | 'RESCATE_COMPLETADO'
+    | 'ADMIN_UNLOCK'
+    | 'ADMIN_APPROVE';
+
+  tiempo_limite_configurado?: number | null;
+  preguntas_configuradas?: number | null;
+
+  fecha_inicio: string;
+  fecha_fin: string;
+}
+
+export interface ProgressSummary {
+  alumno_id: string;
+  total_bloques_trabajados: number;
+  total_bloques_aprobados: number;
+  total_bloques_liberados_admin: number;
+  total_bloques_aprobados_admin: number;
+  precision_promedio: number;
+  completitud_promedio: number;
+  total_aciertos: number;
+  total_errores: number;
+  tiempo_total_segundos: number;
+}
+
+
