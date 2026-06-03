@@ -92,7 +92,7 @@ interface Props {
   userRole?: string;
 }
 
-const WelcomeScreenPhase2: React.FC<Props> = ({
+const WelcomeScreenPhase6: React.FC<Props> = ({
   onModuleSelect,
   onBack,
   studentName = 'Estudiante',
@@ -225,8 +225,8 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
                 ¡Hola, {nombre}! <span>👋</span>
               </div>
               <div className="f6-header-subtitle">
-                <span className="f6-badge-fase">FASE 2</span>
-                <span className="f6-header-fasename">Desarrollo Numérico y Razonamiento</span>
+                <span className="f6-badge-fase">FASE 6</span>
+                <span className="f6-header-fasename">Geometría Espacial, Volumen y Magnitudes Físicas</span>
               </div>
             </div>
           </div>
@@ -545,4 +545,4 @@ function MOCK_DASHBOARD(nombre: string): Fase6Dashboard {
   };
 }
 
-export default WelcomeScreenPhase2;
+export default WelcomeScreenPhase6;
