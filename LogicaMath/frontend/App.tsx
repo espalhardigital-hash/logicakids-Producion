@@ -265,13 +265,20 @@ const AppContent: React.FC = () => {
       // --- GRADUATION LOGIC ---
       if (category === 'challenge' && score >= 90) { // Require 90% for graduation
         import('./services/storageService').then(service => {
-          const currentPhase = currentUser?.fase_actual_id || 1;
-          const gradPromise = currentPhase === 1 ? service.graduateToFase2() : service.graduateToFase1();
-          gradPromise.then(() => {
-            service.getCurrentUserFull().then(updatedUser => {
-              setCurrentUser(updatedUser);
-            }).catch(err => console.error("Error syncing user:", err));
-          }).catch(err => console.error("Error in graduation:", err));
+          const currentPhase = currentUser?.fase_actual_id || 0;
+          let gradPromise: Promise<void> | null = null;
+          if (currentPhase === 1) {
+            gradPromise = service.graduateToFase2();
+          } else if (currentPhase === 0) {
+            gradPromise = service.graduateToFase1();
+          }
+          if (gradPromise) {
+            gradPromise.then(() => {
+              service.getCurrentUserFull().then(updatedUser => {
+                setCurrentUser(updatedUser);
+              }).catch(err => console.error("Error syncing user:", err));
+            }).catch(err => console.error("Error in graduation:", err));
+          }
         }).catch(err => console.error("Error importando storageService:", err));
       }
     }

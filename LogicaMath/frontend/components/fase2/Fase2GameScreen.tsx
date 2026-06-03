@@ -9,7 +9,7 @@
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import './Fase2Styles.css';
-import { getFase2Question, submitFase2Answer, getFase2Reading, closeFase2Rescate } from './Fase2Service';
+import { getFase2Question, submitFase2Answer, getFase2Reading, closeFase2Rescate, graduateFase2 } from './Fase2Service';
 import { Fase2TheoryModal } from './Fase2TheoryModal';
 import { Fase2MirrorModal } from './Fase2MirrorModal';
 import type {
@@ -1617,7 +1617,15 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
           />
         )}
         {showGraduation && (
-          <Fase2PhaseGraduationModal studentName={studentName} onClose={() => { setShowGraduation(false); navigate('/map'); }} />
+          <Fase2PhaseGraduationModal studentName={studentName} onClose={async () => {
+            try {
+              await graduateFase2();
+            } catch (err) {
+              console.error("Error graduating to Fase 3:", err);
+            }
+            setShowGraduation(false);
+            navigate('/map');
+          }} />
         )}
         {showCompletion && (
           <Fase2CompletionModal 
