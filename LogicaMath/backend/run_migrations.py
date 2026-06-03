@@ -28,18 +28,23 @@ async def main():
     run_alembic_upgrade()
 
     # 3. Seed database
-    print("=============================================")
-    print("Seeding Database...")
-    print("=============================================")
-    from app.seed import run_seed
-    try:
-        await run_seed()
-        print("✅ Database seeding completed successfully.")
-    except Exception as e:
-        import traceback
-        print(f"❌ Error seeding database: {e}")
-        traceback.print_exc()
-        sys.exit(1)
+    if os.environ.get("SEED_DB", "false").lower() == "true":
+        print("=============================================")
+        print("Seeding Database...")
+        print("=============================================")
+        from app.seed import run_seed
+        try:
+            await run_seed()
+            print("✅ Database seeding completed successfully.")
+        except Exception as e:
+            import traceback
+            print(f"❌ Error seeding database: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+    else:
+        print("=============================================")
+        print("Skipping Database Seeding (SEED_DB != true)")
+        print("=============================================")
 
     # 4. Create users
     print("=============================================")

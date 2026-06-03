@@ -3,28 +3,28 @@ import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation, usePa
 import { ThemeProvider } from './components/theme/ThemeContext';
 import { ThemeToggle } from './components/theme/ThemeToggle';
 import { GameScreenState, GameStats, GameCategory, ScoreRecord, Difficulty, User, PedagogyConfig } from './types';
-import WelcomeScreen from './components/fase1/WelcomeScreen';
-import WelcomeScreenPhase2 from './components/fase2/WelcomeScreenPhase2';
-import Fase2GameScreen from './components/fase2/Fase2GameScreen';
-import WelcomeScreenPhaseGeneric from './components/fase_generic/WelcomeScreenPhaseGeneric';
-import FaseGenericGameScreen from './components/fase_generic/FaseGenericGameScreen';
-import { WelcomeScreenPhase3 } from './components/fase3/WelcomeScreenPhase3';
-import { Fase3GameScreen } from './components/fase3/Fase3GameScreen';
-import { WelcomeScreenPhase4 } from './components/fase4/WelcomeScreenPhase4';
-import { Fase4GameScreen } from './components/fase4/Fase4GameScreen';
-import WelcomeScreenPhase5 from './components/fase5/WelcomeScreenPhase5';
-import Fase5GameScreen from './components/fase5/Fase5GameScreen';
-import WelcomeScreenPhase6 from './components/fase6/WelcomeScreenPhase6';
-import Fase6GameScreen from './components/fase6/Fase6GameScreen';
-import PhaseMapScreen from './components/map/PhaseMapScreen';
-import GameScreen from './components/fase1/GameScreen';
-import ResultsScreen from './components/fase1/ResultsScreen';
-import ProgressScreen from './components/ProgressScreen';
-import StudyTablesScreen from './components/fase1/StudyTablesScreen';
+const WelcomeScreen = React.lazy(() => import('./components/fase1/WelcomeScreen'));
+const WelcomeScreenPhase2 = React.lazy(() => import('./components/fase2/WelcomeScreenPhase2'));
+const Fase2GameScreen = React.lazy(() => import('./components/fase2/Fase2GameScreen'));
+const WelcomeScreenPhaseGeneric = React.lazy(() => import('./components/fase_generic/WelcomeScreenPhaseGeneric'));
+const FaseGenericGameScreen = React.lazy(() => import('./components/fase_generic/FaseGenericGameScreen'));
+const WelcomeScreenPhase3 = React.lazy(() => import('./components/fase3/WelcomeScreenPhase3').then(module => ({ default: module.WelcomeScreenPhase3 })));
+const Fase3GameScreen = React.lazy(() => import('./components/fase3/Fase3GameScreen').then(module => ({ default: module.Fase3GameScreen })));
+const WelcomeScreenPhase4 = React.lazy(() => import('./components/fase4/WelcomeScreenPhase4').then(module => ({ default: module.WelcomeScreenPhase4 })));
+const Fase4GameScreen = React.lazy(() => import('./components/fase4/Fase4GameScreen').then(module => ({ default: module.Fase4GameScreen })));
+const WelcomeScreenPhase5 = React.lazy(() => import('./components/fase5/WelcomeScreenPhase5'));
+const Fase5GameScreen = React.lazy(() => import('./components/fase5/Fase5GameScreen'));
+const WelcomeScreenPhase6 = React.lazy(() => import('./components/fase6/WelcomeScreenPhase6'));
+const Fase6GameScreen = React.lazy(() => import('./components/fase6/Fase6GameScreen'));
+const PhaseMapScreen = React.lazy(() => import('./components/map/PhaseMapScreen'));
+const GameScreen = React.lazy(() => import('./components/fase1/GameScreen'));
+const ResultsScreen = React.lazy(() => import('./components/fase1/ResultsScreen'));
+const ProgressScreen = React.lazy(() => import('./components/ProgressScreen'));
+const StudyTablesScreen = React.lazy(() => import('./components/fase1/StudyTablesScreen'));
 import LoginScreen from './components/LoginScreen';
 import ProfileScreen from './components/ProfileScreen';
 import AdminPanel from './components/admin/AdminPanel';
-import LevelSelectionScreen from './components/fase1/LevelSelectionScreen';
+const LevelSelectionScreen = React.lazy(() => import('./components/fase1/LevelSelectionScreen'));
 import { saveScore, saveUser, getCurrentUserFull, getAdminSettings, getModularConfigs } from './services/storageService';
 import * as authService from './services/authService';
 
@@ -367,6 +367,7 @@ const AppContent: React.FC = () => {
       <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/5 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="w-full max-w-4xl flex justify-center items-center relative z-10 min-h-[600px]">
+        <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
         <Routes>
           <Route path="/login" element={
             <LoginScreen
@@ -669,6 +670,7 @@ const AppContent: React.FC = () => {
           <Route path="/" element={<Navigate to={currentUser ? "/map" : "/login"} replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </React.Suspense>
       </div>
       <ThemeToggle />
     </div>

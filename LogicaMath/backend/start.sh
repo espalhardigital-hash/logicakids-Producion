@@ -7,6 +7,10 @@ echo "============================================="
 echo "Starting LogicaKids Backend Startup Flow..."
 echo "============================================="
 
+# Ensure SEED_DB is set (defaults to false if not passed by docker)
+export SEED_DB=${SEED_DB:-false}
+echo "SEED_DB is set to: $SEED_DB"
+
 # Execute the unified migration, seeding, and user creation script
 python run_migrations.py
 
