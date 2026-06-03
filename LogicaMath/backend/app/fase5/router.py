@@ -33,7 +33,7 @@ from ..models.sql_models import (
     PlatformSettings, User,
 )
 from ..utils.math_utils import normalize_response, calcular_max_errores
-from .models import NivelTeoria, IntentoPregunta, IntentoPaso
+from ..fase2.models import NivelTeoria, IntentoPregunta, IntentoPaso
 from .schemas import (
     Fase5Dashboard, Fase5ModuloInfo, Fase5NivelInfo,
     Fase5PreguntaParaAlumno, Fase5Token,

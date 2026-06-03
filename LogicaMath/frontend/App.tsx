@@ -12,6 +12,10 @@ import { WelcomeScreenPhase3 } from './components/fase3/WelcomeScreenPhase3';
 import { Fase3GameScreen } from './components/fase3/Fase3GameScreen';
 import { WelcomeScreenPhase4 } from './components/fase4/WelcomeScreenPhase4';
 import { Fase4GameScreen } from './components/fase4/Fase4GameScreen';
+import WelcomeScreenPhase5 from './components/fase5/WelcomeScreenPhase5';
+import Fase5GameScreen from './components/fase5/Fase5GameScreen';
+import WelcomeScreenPhase6 from './components/fase6/WelcomeScreenPhase6';
+import Fase6GameScreen from './components/fase6/Fase6GameScreen';
 import PhaseMapScreen from './components/map/PhaseMapScreen';
 import GameScreen from './components/fase1/GameScreen';
 import ResultsScreen from './components/fase1/ResultsScreen';
@@ -52,6 +56,50 @@ const Fase3GameScreenWrapper: React.FC = () => {
 
 const Fase4GameScreenWrapper: React.FC = () => {
   return <Fase4GameScreen />;
+};
+
+const Fase5GameScreenWrapper: React.FC = () => {
+  const location = useLocation();
+  const moduloId = location.state?.moduloId || 1;
+  const nivelId = location.state?.nivelId || 1;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!location.state?.moduloId) {
+      navigate('/welcome-fase5', { replace: true });
+    }
+  }, [location.state, navigate]);
+
+  return (
+    <Fase5GameScreen
+      moduloId={parseInt(moduloId as string, 10)}
+      nivelId={parseInt(nivelId as string, 10)}
+      onComplete={() => navigate('/welcome-fase5')}
+      onBack={() => navigate('/welcome-fase5')}
+    />
+  );
+};
+
+const Fase6GameScreenWrapper: React.FC = () => {
+  const location = useLocation();
+  const moduloId = location.state?.moduloId || 1;
+  const nivelId = location.state?.nivelId || 1;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!location.state?.moduloId) {
+      navigate('/welcome-fase6', { replace: true });
+    }
+  }, [location.state, navigate]);
+
+  return (
+    <Fase6GameScreen
+      moduloId={parseInt(moduloId as string, 10)}
+      nivelId={parseInt(nivelId as string, 10)}
+      onComplete={() => navigate('/welcome-fase6')}
+      onBack={() => navigate('/welcome-fase6')}
+    />
+  );
 };
 
 const AppContent: React.FC = () => {
@@ -340,7 +388,11 @@ const AppContent: React.FC = () => {
                     navigate('/welcome-fase3');
                   } else if (phaseIndex === 4) {
                     navigate('/welcome-fase4');
-                  } else if (phaseIndex >= 5 && phaseIndex <= 8) {
+                  } else if (phaseIndex === 5) {
+                    navigate('/welcome-fase5');
+                  } else if (phaseIndex === 6) {
+                    navigate('/welcome-fase6');
+                  } else if (phaseIndex >= 7 && phaseIndex <= 8) {
                     navigate(`/welcome-fase`, { state: { faseId: phaseIndex } });
                   } else {
                     alert(`¡La Fase ${phaseIndex} está desbloqueada! Muy pronto implementaremos sus dinámicas de juego.`);
@@ -376,6 +428,38 @@ const AppContent: React.FC = () => {
                 userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId) => {
                   navigate('/fase2/play', { state: { moduloId, nivelId: nivelId || 1 } });
+                }}
+                onBack={() => navigate('/map')}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/welcome-fase5" element={
+            currentUser ? (
+              <WelcomeScreenPhase5
+                studentName={currentUser.username}
+                userAvatar={currentUser.avatar}
+                userRole={currentUser.role}
+                onModuleSelect={(moduloId, nivelId) => {
+                  navigate('/fase5/play', { state: { moduloId, nivelId: nivelId || 1 } });
+                }}
+                onBack={() => navigate('/map')}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/welcome-fase6" element={
+            currentUser ? (
+              <WelcomeScreenPhase6
+                studentName={currentUser.username}
+                userAvatar={currentUser.avatar}
+                userRole={currentUser.role}
+                onModuleSelect={(moduloId, nivelId) => {
+                  navigate('/fase6/play', { state: { moduloId, nivelId: nivelId || 1 } });
                 }}
                 onBack={() => navigate('/map')}
               />
@@ -451,6 +535,22 @@ const AppContent: React.FC = () => {
           <Route path="/fase4/play" element={
             currentUser ? (
               <Fase4GameScreenWrapper />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/fase5/play" element={
+            currentUser ? (
+              <Fase5GameScreenWrapper />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/fase6/play" element={
+            currentUser ? (
+              <Fase6GameScreenWrapper />
             ) : (
               <Navigate to="/login" replace />
             )
