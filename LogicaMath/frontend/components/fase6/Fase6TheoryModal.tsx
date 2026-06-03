@@ -283,9 +283,8 @@ export const Fase6TheoryModal: React.FC<Fase6TheoryModalProps> = ({
                         <div 
                           className="f6-int-q"
                           style={isLocked ? { filter: 'blur(5px)', opacity: 0.3, pointerEvents: 'none', userSelect: 'none' } : {}}
-                        >
-                          {qText}
-                        </div>
+                          dangerouslySetInnerHTML={{ __html: qText }}
+                        />
                         
                         {isLocked ? (
                           <div style={{

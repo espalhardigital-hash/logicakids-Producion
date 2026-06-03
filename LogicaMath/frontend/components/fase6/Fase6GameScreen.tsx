@@ -1244,7 +1244,7 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 {/* Contenido adaptativo */}
                 {pregunta.tipo_pregunta === 'respuesta_numerica' && (
                   <div className="flex flex-col h-full justify-between">
-                    <div className="f6-question-text-box"><div className={(pregunta.enunciado || '').length < 25 ? "f6-question-text short" : "f6-question-text"}>{pregunta.enunciado}</div></div>
+                    <div className="f6-question-text-box"><div className={(pregunta.enunciado || '').length < 25 ? "f6-question-text short" : "f6-question-text"} dangerouslySetInnerHTML={{ __html: pregunta.enunciado }} /></div>
                     <div className="f6-numeric-input-wrap">
                       <div className={`f6-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`} onClick={() => inputRef.current?.focus()}>
                         <input ref={inputRef} type="text" value={respuesta} onChange={e => !feedback.visible && /^[0-9,.\-]*$/.test(e.target.value) && setRespuesta(e.target.value)} onKeyDown={handleKeyDown} className="f6-hidden-input" autoFocus autoComplete="off" inputMode="none" />
@@ -1285,7 +1285,7 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 {/* Otros tipos (constructor, tokens, etc) simplificados para brevedad pero funcionales */}
                 {pregunta.tipo_pregunta === 'multiple_opcion' && (
                   <div className="flex flex-col h-full justify-between">
-                     <div className="f6-question-text-box"><div className="f6-question-text">{pregunta.enunciado}</div></div>
+                     <div className="f6-question-text-box"><div className="f6-question-text" dangerouslySetInnerHTML={{ __html: pregunta.enunciado }} /></div>
                      <div className="grid gap-3 mt-6">
                        {pregunta.alternativas?.map(alt => (
                          <button key={alt.id} disabled={feedback.visible} onClick={() => setSelectedAltId(alt.id)}
@@ -1319,7 +1319,7 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
                 {pregunta.tipo_pregunta === 'constructor_soluciones_chained' && (
                   <div className="flex flex-col h-full justify-between gap-4">
                     <div className="f6-question-text-box">
-                      <div className="f6-question-text">{cleanEnunciado(pregunta.enunciado)}</div>
+                      <div className="f6-question-text" dangerouslySetInnerHTML={{ __html: cleanEnunciado(pregunta.enunciado) }} />
                     </div>
 
                     <div className="flex flex-col gap-4 my-2">

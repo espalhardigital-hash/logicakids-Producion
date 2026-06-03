@@ -76,7 +76,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 1,
             "nivel_id": 1,
             "titulo": "Lectura de Fracciones",
-            "texto_descubrimiento": "¡Bienvenido a la Fase 4! Los números pueden representar 'pedazos' de un bloque total. En una fracción, el denominador (abajo) es el creador de partes idénticas, y el numerador (arriba) indica cuántas de esas partes tomas o coloreas.",
+            "texto_descubrimiento": "¡Hola, pequeña gran matemática! 🌟 ¿Sabías que los números pueden vestirse de astronautas y partir cosas por la mitad? Las fracciones nos ayudan a representar 'pedacitos' de un total delicioso, como una pizza o un chocolate. En este viaje, el de abajo (Denominador) es el cortador oficial de partes idénticas, y el de arriba (Numerador) es el que cuenta cuántas porciones te vas a comer o pintar. ¡A explorar!",
             "diccionario": {
                 "Numerador": "Número de partes coloreadas o seleccionadas de la unidad.",
                 "Denominador": "Número total de partes idénticas en las que se divide el todo."
@@ -109,7 +109,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 1,
             "nivel_id": 2,
             "titulo": "Fracciones Equivalentes",
-            "texto_descubrimiento": "Las fracciones pueden usar disfraces. 1/2 pizza es lo mismo que 2/4. Representan la misma cantidad geométrica pero dividida de diferente manera. Multiplicar o dividir arriba y abajo por el mismo número crea un clon exacto.",
+            "texto_descubrimiento": "¡Las fracciones son maestras del disfraz! 🎭 A veces, dos fracciones usan disfraces de números distintos, ¡pero representan la misma cantidad de comida! Por ejemplo, comer 1/2 de pizza es exactamente lo mismo que comer 2/4. Si multiplicas o divides el de arriba y el de abajo por la misma cifra, creas un clon equivalente perfecto. ¡Es pura magia matemática!",
             "diccionario": {
                 "Amplificación": "Multiplicar numerador y denominador por el mismo número para obtener una fracción equivalente.",
                 "Equivalencia": "Fracciones con diferentes números que representan exactamente la misma porción del todo."
@@ -142,7 +142,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 1,
             "nivel_id": 3,
             "titulo": "Áreas y Asimetrías",
-            "texto_descubrimiento": "¡Cuidado con las divisiones desiguales! Para definir una fracción directamente contando pedazos, todas las porciones deben tener exactamente la misma área. Si son asimétricas, debemos usar deducción geométrica.",
+            "texto_descubrimiento": "¡Peligro, trampa en el camino! ⚠️ Para poder decir 'esta porción es 1/4' solo contando trozos, todas las divisiones deben ser del mismo tamaño, como los lados de un espejo. Si los cortes son desiguales (asimétricos), no puedes contar a ciegas. Tienes que usar tu súper visión geométrica para cortar mentalmente la figura en cuadritos iguales y descubrir la fracción real.",
             "diccionario": {
                 "Simetría": "Porciones de forma y tamaño idénticos.",
                 "Asimetría": "Partes de tamaños diferentes. Requiere subdivisión mental para hallar la fracción real."
@@ -170,14 +170,14 @@ async def seed_teoria_niveles(session: AsyncSession):
                 }
             ]
         },
-
+        
         # --- MÓDULO 2: FRACCIÓN DE CANTIDAD ---
         # Nivel 1: Cálculo de porciones unitarias (1/n) sobre grupos
         {
             "modulo_id": 2,
             "nivel_id": 1,
             "titulo": "Porciones de un Grupo",
-            "texto_descubrimiento": "Las fracciones también operan sobre conjuntos de cosas: monedas, cartas o amigos. Calcular 1/n de un grupo significa repartir el grupo en n cajas de igual tamaño. El resultado de 1 caja es la porción unitaria.",
+            "texto_descubrimiento": "¡Las fracciones no solo cortan pizzas, también organizan grupos de juguetes, amigos o monedas! 🪙 Calcular 1/n de un grupo significa repartir tus objetos en n cajas iguales. Lo que quede en una sola caja es la porción unitaria. ¡Repartir es la clave de este truco!",
             "diccionario": {
                 "Grupo Finito": "Un conjunto cerrado de unidades u objetos.",
                 "Porción Unitaria": "El valor de una de las partes en que se divide el conjunto (1/n)."
@@ -210,7 +210,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 2,
             "nivel_id": 2,
             "titulo": "El Motor de Dos Pasos",
-            "texto_descubrimiento": "Para fracciones complejas como 3/4 de un número, aplicamos un motor de dos pasos: 1) Divide el total entre el denominador (abajo) para saber cuántos objetos van por caja. 2) Multiplica ese valor por el numerador (arriba) para reunir las cajas deseadas. Fórmula: (Total ÷ Denominador) × Numerador.",
+            "texto_descubrimiento": "¡Rumbo a los cálculos avanzados! 🚀 Si te piden 3/4 de 20 manzanas, encendemos el Motor de Dos Pasos:\nPaso 1: Divide tu total (20) entre el de abajo (4) para saber cuántos objetos caben en una caja. (20 ÷ 4 = 5).\nPaso 2: Multiplica el resultado por el de arriba (3) para reunir las cajas que necesitas. (5 × 3 = 15). ¡Listo!",
             "diccionario": {
                 "Paso de División": "Dividir el total entre el denominador para armar grupos.",
                 "Paso de Multiplicación": "Multiplicar por el numerador para tomar los grupos deseados."
@@ -243,7 +243,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 2,
             "nivel_id": 3,
             "titulo": "Lógica del Complemento",
-            "texto_descubrimiento": "Los matemáticos listos usan el 'complemento': si gastas 2/5 de tu dinero, sabes de inmediato que te queda 3/5, sin tener que calcular el gasto intermedio. La suma de lo que gastas y lo que te queda siempre debe dar la unidad completa (5/5).",
+            "texto_descubrimiento": "¡Las mentes ágiles usan atajos mentales! Si sabes que gastas 2/5 de tus ahorros, ¿cuántos te quedan? ¡Pues 3/5! 💡 No necesitas hacer cuentas largas. El total siempre equivale a la unidad completa (5/5). Si restas lo gastado, sabes al instante lo que queda. A esto lo llamamos la lógica del complemento.",
             "diccionario": {
                 "Complemento": "La fracción necesaria para alcanzar la unidad entera.",
                 "Fracción Restante": "Lo que queda después de restar la porción gastada o perdida."
@@ -278,7 +278,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 3,
             "nivel_id": 1,
             "titulo": "Porcentajes Intuitivos",
-            "texto_descubrimiento": "Un porcentaje es solo una fracción que usa el 100 como denominador. Por ejemplo, 50% es 50/100, es decir, la mitad. Aprender a mapear los porcentajes comunes te dará velocidad sobrehumana de cálculo.",
+            "texto_descubrimiento": "¡Bienvenida a los súper porcentajes! ⚡ Un porcentaje es solo una fracción elegante que usa el 100 como base. Para calcular rápido, apréndete estos atajos mentales:\n- El 50% es la mitad exacta (divide entre 2).\n- El 25% es una cuarta parte (divide entre 4).\n- El 10% es una décima parte (divide entre 10). ¡Hazlo en segundos!",
             "diccionario": {
                 "Porcentaje": "Relación numérica expresada como fracción de 100 partes.",
                 "Mapeo Rápido": "50% es dividir entre 2, 25% es dividir entre 4, y 10% es dividir entre 10."
@@ -311,7 +311,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 3,
             "nivel_id": 2,
             "titulo": "Gráficos Circulares",
-            "texto_descubrimiento": "Los gráficos circulares dividen un círculo completo en porciones que representan porcentajes. La suma de todos los sectores siempre equivale al 100% (la unidad entera).",
+            "texto_descubrimiento": "¡Los gráficos circulares son pasteles de datos! 🎂 Cada rebanada representa un porcentaje de las preferencias de la gente. La regla de oro de estos gráficos es que, si sumas todas las porciones, el total siempre debe sumar 100%. Si conoces algunas rebanadas, ¡puedes averiguar la que falta restando de 100!",
             "diccionario": {
                 "Gráfico Circular": "Diagrama de sectores para visualizar la proporción de cada categoría.",
                 "Porcentaje de Sector": "La porción de pastel asignada a cada variable."
@@ -344,7 +344,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 3,
             "nivel_id": 3,
             "titulo": "Gráficos de Barras",
-            "texto_descubrimiento": "Las barras nos permiten comparar cantidades rápidamente. La altura de la barra es el valor numérico. Podemos sumar barras para hallar totales o restarlas para ver diferencias.",
+            "texto_descubrimiento": "¡Las barras son edificios de información! 🏢 La altura de cada barra nos dice el valor de una categoría de forma súper visual. Al mirar las alturas, puedes comparar qué barra es la más alta (el ganador), sumar varias barras para hallar un gran total, o restar sus alturas para ver por cuánto le gana una a otra.",
             "diccionario": {
                 "Gráfico de Barras": "Diagrama que representa datos mediante columnas rectangulares.",
                 "Eje Y": "La escala numérica vertical que define el valor de cada barra."
@@ -377,7 +377,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 3,
             "nivel_id": 4,
             "titulo": "La Media Aritmética",
-            "texto_descubrimiento": "El promedio o media es el 'punto de equilibrio'. Imagina tener tres torres de bloques desiguales. Si juntas todos los bloques en una gran pila y luego los repartes en partes iguales para que todas las torres midan lo mismo, ¡ese es el promedio!",
+            "texto_descubrimiento": "¡Vamos a nivelar las cosas! ⚖️ Imagina que tienes tres torres de bloques de alturas diferentes y quieres que las tres queden a la misma altura. ¿El secreto? Junta todos los bloques en una gran pila central (Paso 1: Sumar) y luego repártelos en partes iguales entre las 3 torres (Paso 2: Dividir). ¡Eso es el promedio o media aritmética!",
             "diccionario": {
                 "Promedio (Media)": "La suma de todos los valores dividida entre la cantidad de valores.",
                 "Pila Única": "La suma acumulativa de todos los datos antes de dividir."
@@ -412,7 +412,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 4,
             "nivel_id": 1,
             "titulo": "Razones y Proporciones",
-            "texto_descubrimiento": "Una razón es cómo se relacionan dos cantidades. Si preparas limonada usando 3 tazas de agua por 1 de limón, la razón es 3:1. Para mantener el sabor en una jarra más grande, debes aplicar el mismo factor de escala a ambos ingredientes.",
+            "texto_descubrimiento": "¡La Receta de la Poción Mágica! 🧪✨ Si preparas una limonada de hadas usando 3 tazas de agua dulce por cada taza de zumo de limón mágico, la proporción es 3 a 1 (o 3:1). Para que siempre tenga el mismo sabor delicioso en jarras más grandes, ¡tienes que multiplicar o dividir todos los ingredientes usando la misma varita mágica (el factor de escala)! Si duplicas el limón, ¡debes duplicar el agua!",
             "diccionario": {
                 "Razón (a:b)": "La relación proporcional entre dos cantidades.",
                 "Factor de Escala": "El número por el cual multiplicas ambos ingredientes para ampliar la receta."
@@ -445,7 +445,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 4,
             "nivel_id": 2,
             "titulo": "Reparto de Volúmenes",
-            "texto_descubrimiento": "A veces debes preparar una cantidad total final. Para hacer 5 litros de verde mezclas 2 de azul y 3 de amarillo. ¿Qué pasa si te piden 50 litros de verde? Divides el pedido entre el total de tu receta (50 ÷ 5 = 10 veces) y escalas cada ingrediente por 10.",
+            "texto_descubrimiento": "¡El Caldero Gigante! 🥣 Imagina que para pintar una súper capa verde mezclas 2 botes de pintura azul y 3 de pintura amarilla, haciendo 5 botes en total. Pero, ¿y si tus amigos dragones te piden 50 botes de ese mismo verde? ¡No te asustes! Primero dividimos el gran pedido entre nuestra receta base (50 ÷ 5 = 10 veces) y luego multiplicamos cada color por 10. ¡Tendrás el tono exacto de verde!",
             "diccionario": {
                 "Volumen Macro": "La cantidad total final deseada de la mezcla.",
                 "Receta Base": "La suma inicial de las partes de cada ingrediente."
@@ -478,7 +478,7 @@ async def seed_teoria_niveles(session: AsyncSession):
             "modulo_id": 4,
             "nivel_id": 3,
             "titulo": "Mezclas Complejas",
-            "texto_descubrimiento": "Las mezclas avanzadas operan con proporciones porcentuales. Si un perfume tiene 1 parte de esencia y 4 de alcohol, hay 5 partes totales. La esencia es 1/5 del total, lo que equivale al 20%.",
+            "texto_descubrimiento": "¡El Secreto de los Perfumes! 🌸🧪 En la alta perfumería de los duendes, si mezclas 1 gota de esencia de flores con 4 gotas de rocío de alcohol, tienes un perfume delicioso de 5 gotas en total. La esencia representa 1 pedacito de las 5 partes totales, lo que significa la fracción 1/5. Y si convertimos esa fracción a porcentaje mágico... ¡es un 20% de puro aroma floral!",
             "diccionario": {
                 "Homogeneidad": "Distribución uniforme de los ingredientes en toda la mezcla.",
                 "Fracción de Mezcla": "La relación entre un ingrediente y el volumen total de la mezcla."

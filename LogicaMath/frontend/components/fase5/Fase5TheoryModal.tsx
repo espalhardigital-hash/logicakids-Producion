@@ -283,9 +283,8 @@ export const Fase5TheoryModal: React.FC<Fase5TheoryModalProps> = ({
                         <div 
                           className="f5-int-q"
                           style={isLocked ? { filter: 'blur(5px)', opacity: 0.3, pointerEvents: 'none', userSelect: 'none' } : {}}
-                        >
-                          {qText}
-                        </div>
+                          dangerouslySetInnerHTML={{ __html: qText }}
+                        />
                         
                         {isLocked ? (
                           <div style={{
