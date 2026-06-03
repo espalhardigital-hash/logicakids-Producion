@@ -13,6 +13,8 @@ from .routers import auth_users, admin, pedagogia, ai
 from .fase2.router import router as fase2_router
 from .fase3.router import router as fase3_router
 from .fase4.router import router as fase4_router
+from .fase5.router import router as fase5_router
+from .fase6.router import router as fase6_router
 from .config import settings
 from .db.session import engine
 from .db.base import Base
@@ -86,4 +88,6 @@ app.include_router(ai.router)
 app.include_router(fase2_router)
 app.include_router(fase3_router)
 app.include_router(fase4_router)
+app.include_router(fase5_router)
+app.include_router(fase6_router)
 
