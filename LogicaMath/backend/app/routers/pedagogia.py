@@ -361,10 +361,10 @@ async def responder_pregunta(
             result_progresos = await db.execute(select(ProgresoMaestria).where(and_(ProgresoMaestria.alumno_id == alumno_id, ProgresoMaestria.fase_id == pregunta.fase_id, ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO)))
             progresos_aprobados = result_progresos.scalars().all()
             
-            aprobados_set = {(p.seccion, p.operacion) for p in progresos_aprobados}
-            aprobados_set.add((progreso.seccion, progreso.operacion))
+            aprobados_set = {(p.seccion, p.operacion.value if hasattr(p.operacion, "value") else p.operacion) for p in progresos_aprobados}
+            aprobados_set.add((progreso.seccion, progreso.operacion.value if hasattr(progreso.operacion, "value") else progreso.operacion))
             
-            fase_completada = all((c.seccion, c.operacion) in aprobados_set for c in configs_fase)
+            fase_completada = all((c.seccion, c.operacion.value if hasattr(c.operacion, "value") else c.operacion) in aprobados_set for c in configs_fase)
         
     # 5. Registrar Intento
     intento = Intento(
