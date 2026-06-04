@@ -1088,6 +1088,76 @@ async def seed_preguntas_desafios(session: AsyncSession):
     await session.commit()
     print("Pool de Desafíos de Fase 4 insertado.")
 
+async def seed_desafio_mixto(session: AsyncSession):
+    # Seed Desafío Mixto (99099) for Fase 4 to avoid sufficiency warnings
+    print("  Generando 150 preguntas del Desafío Mixto (99099) para Fase 4...")
+    
+    for q_idx in range(1, 151):
+        rng = random.Random(99099 * 1000 + q_idx)
+        modulo_id = rng.randint(1, 4)
+        desafio_id = 13  # Emulate final challenge difficulty
+        
+        q_data = generate_challenge_question_fase4(modulo_id, desafio_id, q_idx)
+        
+        datos_numericos = {
+            "es_desafio": True,
+            "indice": q_idx,
+            **q_data.get("valores", {})
+        }
+        
+        pregunta = Pregunta(
+            fase_id=FASE4_ID,
+            seccion=99099,
+            operacion=OperacionEnum.MIXTA,
+            tipo_pregunta=q_data["tipo_pregunta"],
+            enunciado=q_data["enunciado"],
+            respuesta_correcta=q_data["respuesta_correcta"],
+            estructura_padre_id=f"f4_m99_d99_q_{q_idx:03d}",
+            datos_numericos=datos_numericos,
+            explicacion_paso_a_paso={
+                "html": f"<b>Resolución de Desafío:</b> La respuesta correcta es {q_data['respuesta_correcta']}."
+            },
+            estado=StatusEnum.ACTIVO
+        )
+        session.add(pregunta)
+        await session.flush()
+        
+        if q_data["tipo_pregunta"] == TipoPreguntaEnum.MULTIPLE_OPCION:
+            correct_val = q_data["respuesta_correcta"]
+            incorrect_choices = set()
+            
+            while len(incorrect_choices) < 3:
+                if "/" in correct_val:
+                    n_str, d_str = correct_val.split("/")
+                    n, d = int(n_str), int(d_str)
+                    dist_n = max(1, n + rng.choice([-1, 1, 2]))
+                    dist_d = max(2, d + rng.choice([-1, 1, 2]))
+                    val = f"{dist_n}/{dist_d}"
+                else:
+                    c_val = int(correct_val)
+                    dist = c_val + rng.choice([-2, -1, 1, 2, 5, 10])
+                    val = str(max(0, dist))
+                
+                if val != correct_val:
+                    incorrect_choices.add(val)
+                    
+            choices = list(incorrect_choices) + [correct_val]
+            rng.shuffle(choices)
+            
+            for o_idx, opt in enumerate(choices):
+                alt = Alternativa(
+                    pregunta_id=pregunta.id,
+                    texto=opt,
+                    es_correcta=(opt == correct_val),
+                    orden=o_idx + 1,
+                    tipo_error=TipoErrorEnum.CALCULO if opt != correct_val else None,
+                    feedback_error="Esa alternativa es incorrecta. Vuelve a calcular." if opt != correct_val else None
+                )
+                session.add(alt)
+                
+    await session.commit()
+    print("  Pool de Desafío Mixto (99099) sembrado correctamente para Fase 4.")
+
 async def run_fase4_seed():
     print("Iniciando inyección de Fase 4 en base de datos...")
     async with AsyncSessionLocal() as session:
@@ -1105,6 +1175,9 @@ async def run_fase4_seed():
         
         # 4. Seed challenges
         await seed_preguntas_desafios(session)
+        
+        # 5. Seed mixed challenge
+        await seed_desafio_mixto(session)
         
     print("Fase 4 seeded successfully!")
 
