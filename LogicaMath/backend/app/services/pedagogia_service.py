@@ -90,8 +90,11 @@ async def recalcular_y_sincronizar_fase_actual(alumno_id: int, db: AsyncSession)
 
     # 3. Actualizar en base de datos si hubo cambios
     if alumno.fase_actual_id != nueva_fase_id:
-        alumno.fase_actual_id = nueva_fase_id
-        db.add(alumno)
-        await db.commit()
+        # Prevenir regresiones accidentales: solo actualizamos si la nueva fase es mayor o si no tenía fase.
+        # Si un administrador desea regresar a un alumno de fase manualmente, deberá actualizar fase_actual_id directamente en DB.
+        if not alumno.fase_actual_id or nueva_fase_id > alumno.fase_actual_id:
+            alumno.fase_actual_id = nueva_fase_id
+            db.add(alumno)
+            await db.commit()
         
     return nueva_fase_id

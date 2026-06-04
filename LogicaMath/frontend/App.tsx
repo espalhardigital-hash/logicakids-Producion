@@ -240,9 +240,6 @@ const AppContent: React.FC = () => {
 
     try {
       await saveScore(record);
-      // Sync user data to get updated progress/settings
-      const updatedUser = await getCurrentUserFull();
-      handleUpdateUser(updatedUser);
     } catch (error: any) {
       console.error("Failed to save score:", error);
     }
@@ -255,32 +252,37 @@ const AppContent: React.FC = () => {
         const requiredScore = adminConfig?.passingScore || 90;
         if (score >= requiredScore) {
           const nextLevel = currentDiffIndex + 2;
-
-          import('./services/storageService').then(service => {
-            service.unlockLevel(category, nextLevel).catch(err => console.error("Error unlocking level:", err));
-          }).catch(err => console.error("Error importando storageService:", err));
+          try {
+            const service = await import('./services/storageService');
+            await service.unlockLevel(category, nextLevel);
+          } catch (err) {
+            console.error("Error unlocking level:", err);
+          }
         }
       }
 
       // --- GRADUATION LOGIC ---
       if (category === 'challenge' && score >= 90) { // Require 90% for graduation
-        import('./services/storageService').then(service => {
+        try {
+          const service = await import('./services/storageService');
           const currentPhase = currentUser?.fase_actual_id || 0;
-          let gradPromise: Promise<void> | null = null;
           if (currentPhase === 1) {
-            gradPromise = service.graduateToFase2();
+            await service.graduateToFase2();
           } else if (currentPhase === 0) {
-            gradPromise = service.graduateToFase1();
+            await service.graduateToFase1();
           }
-          if (gradPromise) {
-            gradPromise.then(() => {
-              service.getCurrentUserFull().then(updatedUser => {
-                setCurrentUser(updatedUser);
-              }).catch(err => console.error("Error syncing user:", err));
-            }).catch(err => console.error("Error in graduation:", err));
-          }
-        }).catch(err => console.error("Error importando storageService:", err));
+        } catch (err) {
+          console.error("Error in graduation:", err);
+        }
       }
+    }
+
+    // Finally, sync user data to get updated progress/settings and phase
+    try {
+      const updatedUser = await getCurrentUserFull();
+      handleUpdateUser(updatedUser);
+    } catch (err) {
+      console.error("Error syncing user:", err);
     }
 
     setGameStats(stats);
