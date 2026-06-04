@@ -1597,7 +1597,7 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
             setShowRescate(false); loadPregunta();
           }} />
         )}
-        {showMirrorModal && mirrorPregunta && (
+        {!showReading && showMirrorModal && mirrorPregunta && (
           <Fase2MirrorModal pregunta={mirrorPregunta} moduleColor={moduleColor} lastCorrectAnswer={lastCorrectAnswer} lastQuestionEnunciado={lastQuestionEnunciado} lastWrongAnswer={lastWrongAnswer} onClose={(res) => {
             if (res) {
               setProgreso({ aciertos: res.aciertos_acumulados, intentos: res.intentos_totales, porcentaje: res.porcentaje_actual });
