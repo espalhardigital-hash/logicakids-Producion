@@ -83,6 +83,23 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
   };
 
   const currentPhaseId = user?.fase_actual_id ?? 1;
+  const isChallengeCompleted = getCategoryLevel('challenge') >= 6;
+  const [isGraduating, setIsGraduating] = useState(false);
+
+  const handleGraduateClick = () => {
+    setIsGraduating(true);
+    import('../../services/storageService').then(async (service) => {
+      try {
+        await service.graduateToFase2();
+        window.location.href = '/map';
+      } catch (err) {
+        console.error("Error graduating:", err);
+        alert("Error al intentar avanzar de fase. Inténtalo de nuevo.");
+      } finally {
+        setIsGraduating(false);
+      }
+    });
+  };
 
   return (
     <div className="fixed inset-0 bg-slate-50 text-slate-900 dark:bg-[#070b14] dark:text-white overflow-y-auto w-full h-full custom-scrollbar transition-colors duration-300">
@@ -267,31 +284,60 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
         {/* Bottom Banner (Fills horizontally and presents progress or challenge launch) */}
         <motion.div variants={itemVariants} className="w-full">
           {remainingLevels === 0 || user?.role === 'ADMIN' ? (
-            /* Premium Banner for Dominating all 4 basic disciplines -> Ready for Challenge */
-            <div className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] p-8 md:p-10 shadow-[0_20px_45px_rgba(37,99,235,0.35)] flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500 relative overflow-hidden group">
-              {/* Soft visual background bubbles */}
-              <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] bg-white/5 rounded-full blur-2xl pointer-events-none" />
-              
-              <div className="flex items-center">
-                <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mr-5 shrink-0 border border-white/20 shadow-inner">
-                  <Trophy size={32} className="text-white" />
+            isChallengeCompleted ? (
+              /* Premium Banner for completed challenge -> Ready to Graduate */
+              <div className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 rounded-[2.5rem] p-8 md:p-10 shadow-[0_20px_45px_rgba(16,185,129,0.35)] flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500 relative overflow-hidden group">
+                {/* Soft visual background bubbles */}
+                <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] bg-white/5 rounded-full blur-2xl pointer-events-none" />
+                
+                <div className="flex items-center">
+                  <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mr-5 shrink-0 border border-white/20 shadow-inner animate-bounce">
+                    <Trophy size={32} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-white mb-1 font-display tracking-tight">
+                      ¡Fase 1 Completada! 🎉
+                    </h3>
+                    <p className="text-emerald-100 text-sm leading-relaxed font-medium max-w-xl">
+                      Has superado con éxito el Desafío Mixto final. ¡Ya estás listo para comenzar tu aventura en la Fase 2!
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-2xl font-black text-white mb-1 font-display tracking-tight">
-                    Tu Camino a la Fase {currentPhaseId + 1}
-                  </h3>
-                  <p className="text-blue-100 text-sm leading-relaxed font-medium max-w-xl">
-                    ¡Has dominado las 4 disciplinas! Ahora debes superar el Desafío Mixto final para avanzar a la Fase {currentPhaseId + 1}.
-                  </p>
-                </div>
+                <button 
+                  onClick={handleGraduateClick}
+                  disabled={isGraduating}
+                  className="px-8 py-3.5 bg-white hover:bg-slate-50 text-emerald-600 font-bold rounded-2xl shadow-lg transition-all shrink-0 text-base font-sans cursor-pointer active:scale-95 disabled:opacity-50"
+                >
+                  {isGraduating ? 'Procesando...' : 'Avanzar a Fase 2'}
+                </button>
               </div>
-              <button 
-                onClick={() => handleCategoryClick('challenge')}
-                className="px-8 py-3.5 bg-white hover:bg-slate-50 text-blue-600 font-bold rounded-2xl shadow-lg transition-all shrink-0 text-base font-sans cursor-pointer active:scale-95"
-              >
-                Iniciar Prueba Final
-              </button>
-            </div>
+            ) : (
+              /* Premium Banner for Dominating all 4 basic disciplines -> Ready for Challenge */
+              <div className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] p-8 md:p-10 shadow-[0_20px_45px_rgba(37,99,235,0.35)] flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500 relative overflow-hidden group">
+                {/* Soft visual background bubbles */}
+                <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] bg-white/5 rounded-full blur-2xl pointer-events-none" />
+                
+                <div className="flex items-center">
+                  <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mr-5 shrink-0 border border-white/20 shadow-inner">
+                    <Trophy size={32} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-white mb-1 font-display tracking-tight">
+                      Tu Camino a la Fase {currentPhaseId + 1}
+                    </h3>
+                    <p className="text-blue-100 text-sm leading-relaxed font-medium max-w-xl">
+                      ¡Has dominado las 4 disciplinas! Ahora debes superar el Desafío Mixto final para avanzar a la Fase {currentPhaseId + 1}.
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleCategoryClick('challenge')}
+                  className="px-8 py-3.5 bg-white hover:bg-slate-50 text-blue-600 font-bold rounded-2xl shadow-lg transition-all shrink-0 text-base font-sans cursor-pointer active:scale-95"
+                >
+                  Iniciar Prueba Final
+                </button>
+              </div>
+            )
           ) : (
             /* Progress Banner showing outstanding levels to unlock challenge */
             <div className="w-full bg-white dark:bg-[#162033] border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:shadow-none transition-all duration-300">

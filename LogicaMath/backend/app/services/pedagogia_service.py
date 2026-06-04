@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
-from app.models.sql_models import Alumno, Fase, ConfiguracionProgreso, ProgresoMaestria, EstadoProgresoEnum
+from app.models.sql_models import Alumno, Fase, ConfiguracionProgreso, ProgresoMaestria, EstadoProgresoEnum, User
 
 async def recalcular_y_sincronizar_fase_actual(alumno_id: int, db: AsyncSession) -> int:
     """
@@ -53,7 +53,31 @@ async def recalcular_y_sincronizar_fase_actual(alumno_id: int, db: AsyncSession)
         aprobados_set = {(p.seccion, p.operacion.value if hasattr(p.operacion, "value") else p.operacion) for p in progresos_aprobados}
         
         # Verificar si todos los bloques de la fase están aprobados
-        fase_completa = all((c.seccion, c.operacion.value if hasattr(c.operacion, "value") else c.operacion) in aprobados_set for c in configs)
+        if fase.id == 1:
+            # Para la Fase 1, la progresión se maneja en user.settings.unlockedLevels y no en ProgresoMaestria
+            result_user = await db.execute(select(User).where(User.id == alumno.user_id))
+            user = result_user.scalar_one_or_none()
+            if user:
+                settings = user.settings or {}
+                unlocked_levels = settings.get("unlockedLevels", {})
+                
+                addition = unlocked_levels.get("addition", 1)
+                subtraction = unlocked_levels.get("subtraction", 1)
+                multiplication = unlocked_levels.get("multiplication", 1)
+                division = unlocked_levels.get("division", 1)
+                challenge = unlocked_levels.get("challenge", 1)
+                
+                fase_completa = (
+                    addition >= 6 and
+                    subtraction >= 6 and
+                    multiplication >= 6 and
+                    division >= 6 and
+                    challenge >= 6
+                )
+            else:
+                fase_completa = False
+        else:
+            fase_completa = all((c.seccion, c.operacion.value if hasattr(c.operacion, "value") else c.operacion) in aprobados_set for c in configs)
 
         if not fase_completa:
             # La primera fase que no esté completada al 100% es la Fase Actual del alumno
