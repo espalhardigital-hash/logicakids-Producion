@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { getFase4Question, submitFase4Answer, getFase4Reading, submitFase4CloseRescue, graduateFase4 } from './Fase4Service';
 import { Fase4Pregunta, Fase4AnswerResult, Fase4Lectura } from './Fase4Types';
 import { PizzaFractionVisualizer } from './PizzaFractionVisualizer';
-import { ThermometerVisualizer } from './ThermometerVisualizer';
+import { BeakerVisualizer } from './BeakerVisualizer';
 import { PieChartVisualizer } from './PieChartVisualizer';
-import { PercentageThermometer } from './PercentageThermometer';
+import { PercentageBeaker } from './PercentageBeaker';
 import { Fase4TheoryModal } from './Fase4TheoryModal';
 import { CustomKeyboard } from '../common/CustomKeyboard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1329,8 +1329,8 @@ export const Fase4GameScreen: React.FC = () => {
                     shape={getDeterministicShape(pregunta.enunciado)}
                   />
                 )
-              ) : pregunta.datos_numericos?.tipo_visual === 'thermometer' ? (
-                <ThermometerVisualizer
+              ) : (pregunta.datos_numericos?.tipo_visual === 'thermometer' || pregunta.datos_numericos?.tipo_visual === 'beaker') ? (
+                <BeakerVisualizer
                   divisions={pregunta.datos_numericos?.cortes || 5}
                   initialLevel={pregunta.datos_numericos?.nivel || 0}
                   interactive={!!pregunta.datos_numericos?.es_interactivo}
@@ -1357,25 +1357,12 @@ export const Fase4GameScreen: React.FC = () => {
                   }}
                   color={moduleColor}
                 />
-              ) : pregunta.datos_numericos?.tipo_visual === 'percentage_thermometer' ? (
-                (() => {
-                  const pct = pregunta.datos_numericos?.pct || 50;
-                  const { slices, sombreados } = getFractionForPercentage(pct);
-                  const shape = getDeterministicShape(pregunta.enunciado);
-                  return (
-                    <div className="flex flex-col items-center justify-center my-4 scale-[0.9] origin-top">
-                      <PizzaFractionVisualizer
-                        slices={slices}
-                        initialSombreados={sombreados}
-                        interactive={false}
-                        hideText={true}
-                        color={moduleColor}
-                        shape={shape}
-                      />
-                      <div className="text-2xl font-black text-slate-300 mt-2">{pct}%</div>
-                    </div>
-                  );
-                })()
+              ) : (pregunta.datos_numericos?.tipo_visual === 'percentage_thermometer' || pregunta.datos_numericos?.tipo_visual === 'percentage_beaker') ? (
+                <PercentageBeaker
+                  inputValue={respuestaNum}
+                  total={pregunta.datos_numericos?.total || 100}
+                  color={moduleColor}
+                />
               ) : (
                 <div className="text-center font-display text-4xl font-black text-white p-4">
                   🍕 🧪

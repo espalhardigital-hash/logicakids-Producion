@@ -17,7 +17,7 @@ export interface Fase4Pregunta {
   tiene_cronometro: boolean;
   tiempo_limite_segundos?: number;
   datos_numericos?: {
-    tipo_visual?: 'pizza' | 'thermometer' | 'pie' | 'percentage_thermometer';
+    tipo_visual?: 'pizza' | 'thermometer' | 'pie' | 'percentage_thermometer' | 'beaker' | 'percentage_beaker';
     cortes?: number;
     sombreados?: number[];
     nivel?: number;

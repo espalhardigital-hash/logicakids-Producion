@@ -48,7 +48,7 @@ export const Fase5TheoryModal: React.FC<Fase5TheoryModalProps> = ({
     s.push({ type: 'intro', data: null });
     
     if (readingData.ejemplos && readingData.ejemplos.length > 0) {
-      const chunks = chunkArray(readingData.ejemplos, 2);
+      const chunks = chunkArray(readingData.ejemplos, 1);
       chunks.forEach(c => s.push({ type: 'examples', data: c }));
     } else {
       s.push({ type: 'examples', data: [] });
@@ -56,7 +56,7 @@ export const Fase5TheoryModal: React.FC<Fase5TheoryModalProps> = ({
 
     if (readingData.interactivos && readingData.interactivos.length > 0) {
       const withIndex = readingData.interactivos.map((item, index) => ({ ...item, globalIndex: index }));
-      const chunks = chunkArray(withIndex, 2);
+      const chunks = chunkArray(withIndex, 1);
       chunks.forEach(c => s.push({ type: 'interactives', data: c }));
     }
 

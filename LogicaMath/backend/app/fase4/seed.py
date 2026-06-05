@@ -762,7 +762,7 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
             enunciado = f"{prefix}Tenías {total} tazos. Regalaste {num}/{den} del total. ¿Cuántos tazos te QUEDAN?"
             feedback = f"Si regalaste {num}/{den}, te quedan {comp_num}/{den} del total. Calculamos {comp_num}/{den} de {total} = ({total} ÷ {den}) × {comp_num} = {ans}."
             vals = {
-                "tipo_visual": "thermometer",
+                "tipo_visual": "beaker",
                 "cortes": den,
                 "nivel": comp_num,
                 "es_interactivo": False,
@@ -789,7 +789,7 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
                 feedback = f"El 10% representa una décima parte. Dividimos {total} entre 10: {ans}."
             enunciado = f"{prefix}Halla rápidamente el {pct}% de {total} tazas de café."
             vals = {
-                "tipo_visual": "percentage_thermometer",
+                "tipo_visual": "percentage_beaker",
                 "total": total,
                 "pct": pct
             }
@@ -848,7 +848,7 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
                 enunciado = f"{prefix}Una pintura mezcla {azul}L de azul con {amarillo}L de amarillo. Representa la cantidad de litros de azul requeridos para preparar {pedido}L de mezcla interactuando con la probeta."
                 feedback = f"Primero divide el pedido total ({pedido}) entre la receta base ({receta_total}) para hallar el lote ({pedido} ÷ {receta_total} = {factor}). Luego, multiplica las partes de azul por {factor} ({azul} × {factor} = {ans}) e interactúa con el medidor."
                 vals = {
-                    "tipo_visual": "thermometer",
+                    "tipo_visual": "beaker",
                     "cortes": azul * factor + amarillo * factor,
                     "nivel": 0,
                     "es_interactivo": True,
@@ -860,7 +860,7 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
                 enunciado = f"{prefix}Una pintura mezcla {azul} litros de azul con {amarillo} litros de amarillo (haciendo {receta_total} litros de verde). Para preparar {pedido} litros de verde, ¿cuántos litros de azul necesitas?"
                 feedback = f"Divide el pedido total ({pedido}) entre la receta base ({receta_total}) para hallar el lote: {pedido} ÷ {receta_total} = {factor} veces. Multiplica el azul: {azul} × {factor} = {ans}."
                 vals = {
-                    "tipo_visual": "thermometer",
+                    "tipo_visual": "beaker",
                     "cortes": azul * factor + amarillo * factor,
                     "nivel": azul * factor,
                     "es_interactivo": False,
@@ -878,7 +878,7 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
                 enunciado = f"{prefix}Una colonia mezcla {ess} parte de esencia con {alc} partes de alcohol. Representa las partes de esencia interactuando con la probeta y escribe qué porcentaje representa del volumen total."
                 feedback = f"La esencia representa 1 de un total de {total} partes (1/{total}). Haz clic en el primer nivel de la probeta para representarlo, e introduce el porcentaje correspondiente: 100 ÷ {total} = {ans}%."
                 vals = {
-                    "tipo_visual": "thermometer",
+                    "tipo_visual": "beaker",
                     "cortes": total,
                     "nivel": 0,
                     "es_interactivo": True,
@@ -890,7 +890,7 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
                 enunciado = f"{prefix}Una colonia se hace mezclando {ess} parte de esencia por {alc} partes de alcohol (haciendo {total} partes en total). ¿Qué porcentaje representa la esencia en la colonia?"
                 feedback = f"La fracción de esencia es 1 de {total} partes totales (1/{total}). Multiplicamos por 100 para hallar el porcentaje: 100 ÷ {total} = {ans}%."
                 vals = {
-                    "tipo_visual": "thermometer",
+                    "tipo_visual": "beaker",
                     "cortes": total,
                     "nivel": ess,
                     "es_interactivo": False,
@@ -1000,7 +1000,7 @@ def generate_challenge_question_fase4(modulo_id: int, desafio_id: int, idx: int)
         factor = rng.choice([2, 3, 4])
         ans = str(agua * factor)
         enunciado = f"Un perfume requiere {agua} partes de solvente por 1 parte de fragancia. Si se elabora un frasco usando {factor} partes de fragancia, ¿cuánto solvente lleva para mantener la razón?"
-        vals = {"tipo_visual": "thermometer", "cortes": agua * factor + factor, "nivel": agua * factor, "es_interactivo": False}
+        vals = {"tipo_visual": "beaker", "cortes": agua * factor + factor, "nivel": agua * factor, "es_interactivo": False}
         
     return {
         "enunciado": enunciado,
@@ -1110,3 +1110,4 @@ async def run_fase4_seed():
 
 if __name__ == "__main__":
     asyncio.run(run_fase4_seed())
+

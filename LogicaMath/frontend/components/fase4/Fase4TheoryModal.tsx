@@ -74,7 +74,7 @@ export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
     s.push({ type: 'intro', data: null });
     
     if (readingData.ejemplos && readingData.ejemplos.length > 0) {
-      const chunks = chunkArray(readingData.ejemplos, 1);
+      const chunks = chunkArray(readingData.ejemplos.slice(0, 1), 1);
       chunks.forEach(c => s.push({ type: 'examples', data: c }));
     } else {
       s.push({ type: 'examples', data: [] });
