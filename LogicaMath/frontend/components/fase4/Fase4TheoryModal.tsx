@@ -4,6 +4,7 @@ import { BookOpen, CheckCircle, XCircle, ArrowRight, ArrowLeft, LogOut, Sparkles
 import { Fase4Lectura } from './Fase4Types';
 import { PizzaFractionVisualizer } from './PizzaFractionVisualizer';
 import { PieChartVisualizer } from './PieChartVisualizer';
+import { ThermometerVisualizer } from './ThermometerVisualizer';
 import './Fase4Styles.css';
 
 interface Fase4TheoryModalProps {
@@ -291,12 +292,71 @@ export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
                             const pct = parseInt(match[1], 10);
                             const { slices, sombreados } = getFractionForPercentage(pct);
                             const shape = getDeterministicShape(ex.enunciado);
+                            
+                            // For PieChart module (level 2), we could use PieChartVisualizer
+                            if (readingData.nivel_id === 2) {
+                               const restPct = 100 - pct;
+                               // To make it simple, split pct into 2 parts if it's large, or just use 2 categories
+                               const pctA = Math.floor(pct / 2);
+                               const pctB = pct - pctA;
+                               fractionVisualizer = (
+                                  <div className="flex flex-col items-center justify-center my-4 scale-[0.9] origin-top">
+                                     <PieChartVisualizer 
+                                        pctA={pctA}
+                                        pctB={pctB}
+                                        pctC={restPct}
+                                        categorias={['Categoría 1', 'Categoría 2', 'Resto']}
+                                        color={moduleColor}
+                                        interactive={false}
+                                     />
+                                     <span className="text-slate-300 font-black text-lg mt-4">{pct}%</span>
+                                  </div>
+                               );
+                            } else {
+                               fractionVisualizer = (
+                                  <div className="flex flex-col items-center justify-center my-4 scale-[0.9] origin-top">
+                                     <PizzaFractionVisualizer slices={slices} initialSombreados={sombreados} color={moduleColor} interactive={false} hideText={true} shape={shape} />
+                                     <span className="text-slate-300 font-black text-lg mt-4">{pct}%</span>
+                                  </div>
+                               );
+                            }
+                         }
+                      } else if (readingData.modulo_id === 2) {
+                         const match = (ex.enunciado || '').match(/(\d+)\/(\d+)/);
+                         if (match) {
+                            const num = parseInt(match[1], 10);
+                            const den = parseInt(match[2], 10);
                             fractionVisualizer = (
                                <div className="flex flex-col items-center justify-center my-4 scale-[0.9] origin-top">
-                                  <PizzaFractionVisualizer slices={slices} initialSombreados={sombreados} color={moduleColor} interactive={false} hideText={true} shape={shape} />
-                                  <span className="text-slate-300 font-black text-lg">{pct}%</span>
+                                  <ThermometerVisualizer cortes={den} nivel={num} color={moduleColor} interactive={false} hideText={true} />
+                                  <span className="text-slate-300 font-black text-lg mt-4">{num}/{den}</span>
                                </div>
                             );
+                         }
+                      } else if (readingData.modulo_id === 4) {
+                         const ratioMatch = (ex.enunciado || '').match(/(\d+):(\d+)/);
+                         if (ratioMatch) {
+                             const p1 = parseInt(ratioMatch[1], 10);
+                             const p2 = parseInt(ratioMatch[2], 10);
+                             fractionVisualizer = (
+                                 <div className="flex flex-col items-center justify-center my-4 scale-[0.9] origin-top">
+                                    <ThermometerVisualizer cortes={p1 + p2} nivel={p1} color={moduleColor} interactive={false} hideText={true} />
+                                    <span className="text-slate-300 font-black text-lg mt-4">{p1} : {p2}</span>
+                                 </div>
+                             );
+                         } else {
+                             // Try to parse '1 parte de esencia y 4 de alcohol' -> generic match '1 parte de .* (\d+)'
+                             const pMatch = (ex.enunciado || '').match(/(\d+) parte[s]? de .* (\d+) parte[s]?/);
+                             if (pMatch) {
+                                 const p1 = parseInt(pMatch[1], 10);
+                                 const p2 = parseInt(pMatch[2], 10);
+                                 fractionVisualizer = (
+                                     <div className="flex flex-col items-center justify-center my-4 scale-[0.9] origin-top">
+                                        <ThermometerVisualizer cortes={p1 + p2} nivel={p1} color={moduleColor} interactive={false} hideText={true} />
+                                        <span className="text-slate-300 font-black text-lg mt-4">{p1} : {p2}</span>
+                                     </div>
+                                 );
+                             }
                          }
                       }
                       

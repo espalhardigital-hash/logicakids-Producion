@@ -97,4 +97,5 @@ async def recalcular_y_sincronizar_fase_actual(alumno_id: int, db: AsyncSession)
             db.add(alumno)
             await db.commit()
         
-    return nueva_fase_id
+    return alumno.fase_actual_id
+

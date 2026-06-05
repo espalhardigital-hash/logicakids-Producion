@@ -575,6 +575,7 @@ export const Fase4GameScreen: React.FC = () => {
   const [showEarlyExit, setShowEarlyExit] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [showGraduation, setShowGraduation] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Memos de metadatos para la pantalla Splash Premium
   const challengeName = useMemo(() => {
@@ -1040,7 +1041,7 @@ export const Fase4GameScreen: React.FC = () => {
       <header className="f4-game-header-modern">
         <button 
           className="f4-nav-back-btn text-red-400 border-red-500/20" 
-          onClick={() => navigate('/welcome-fase4')}
+          onClick={() => setShowExitConfirm(true)}
         >
           <ArrowLeft size={18} />
         </button>
@@ -1569,6 +1570,76 @@ export const Fase4GameScreen: React.FC = () => {
               navigate('/map');
             }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Confirm Exit Modal */}
+      <AnimatePresence>
+        {showExitConfirm && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="f4-feedback-overlay"
+            style={{ zIndex: 1100 }}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="f4-feedback-card glass-card"
+              style={{ 
+                maxWidth: '400px', 
+                width: '90%', 
+                padding: '30px',
+                textAlign: 'center'
+              }}
+            >
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
+                ¿Abandonar el Nivel?
+              </h2>
+              <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '30px', fontSize: '1rem', lineHeight: 1.5 }}>
+                {isChallenge 
+                  ? "Si sales ahora, perderás todo el progreso de este desafío y tendrás que empezar de cero. ¿Estás seguro?" 
+                  : "Tu progreso se guardará, pero interrumpirás la sesión actual. ¿Estás seguro?"}
+              </p>
+              
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button
+                  onClick={() => setShowExitConfirm(false)}
+                  style={{
+                    padding: '12px 24px',
+                    borderRadius: '16px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    flex: 1
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    setShowExitConfirm(false);
+                    navigate('/welcome-fase4');
+                  }}
+                  style={{
+                    padding: '12px 24px',
+                    borderRadius: '16px',
+                    background: '#EF4444',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    border: 'none',
+                    flex: 1
+                  }}
+                >
+                  Salir
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

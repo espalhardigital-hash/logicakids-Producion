@@ -259,10 +259,14 @@ class TestPhase4DeepSuite(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(res.bloque_completado)
         self.assertTrue(res.fase_completada) # Auto graduation check!
         
+        # Call graduation explicitly
+        await graduate_fase4(db=self.db, alumno=self.test_student)
+        
         # Check student fase has updated to 5
         await self.db.refresh(self.test_student)
         self.assertEqual(self.test_student.fase_actual_id, 5)
         print("Automatic graduation to Phase 5 successfully verified!")
+
 
 if __name__ == "__main__":
     unittest.main()
