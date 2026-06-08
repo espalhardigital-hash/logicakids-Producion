@@ -60,7 +60,7 @@ const ProgressScreen: React.FC<Props> = ({ username, onBack }) => {
       initial="hidden"
       animate="show"
       variants={containerVariants}
-      className="w-full max-w-4xl bg-white dark:bg-[--color-surface-card] border border-slate-200 dark:border-slate-800 backdrop-blur-2xl rounded-[2.5rem] p-8 shadow-2xl dark:shadow-none flex flex-col min-h-[650px] relative overflow-hidden"
+      className="w-full max-w-4xl bg-white dark:bg-[#162033] border border-slate-200 dark:border-slate-800 backdrop-blur-2xl rounded-[2.5rem] p-8 shadow-2xl dark:shadow-none flex flex-col min-h-[650px] relative overflow-hidden"
     >
       {/* Premium Decorative elements inside card */}
       <div className="absolute top-[-20%] right-[-20%] w-[350px] h-[350px] bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-[80px] pointer-events-none"></div>

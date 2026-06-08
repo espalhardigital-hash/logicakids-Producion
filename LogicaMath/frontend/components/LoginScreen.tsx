@@ -161,12 +161,12 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
 
   if (mode === 'emailVerification') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[--color-surface-base] p-4 relative overflow-hidden font-display">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#070b14] p-4 relative overflow-hidden font-display">
         {/* Background blobs */}
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/20 rounded-full blur-[100px] animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-[100px] animate-pulse delay-700" />
 
-        <div className="bg-white border border-slate-200 dark:bg-[--color-surface-card] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-2xl dark:shadow-none text-center space-y-6 animate-fade-in">
+        <div className="bg-white border border-slate-200 dark:bg-[#162033] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-2xl dark:shadow-none text-center space-y-6 animate-fade-in">
           <div className="w-20 h-20 bg-blue-50 dark:bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Mail size={40} className="text-blue-600 dark:text-blue-400" />
           </div>
@@ -201,11 +201,11 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
 
   if (mode === 'passwordReset') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[--color-surface-base] p-4 relative overflow-hidden font-display">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#070b14] p-4 relative overflow-hidden font-display">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/20 rounded-full blur-[100px] animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-[100px] animate-pulse delay-700" />
 
-        <div className="bg-white border border-slate-200 dark:bg-[--color-surface-card] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-2xl dark:shadow-none animate-fade-in">
+        <div className="bg-white border border-slate-200 dark:bg-[#162033] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-2xl dark:shadow-none animate-fade-in">
           <button
             onClick={() => {
               setMode('login');
@@ -253,11 +253,11 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
 
   if (mode === 'passwordResetSent') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[--color-surface-base] p-4 relative overflow-hidden font-display">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#070b14] p-4 relative overflow-hidden font-display">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/20 rounded-full blur-[100px] animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-[100px] animate-pulse delay-700" />
 
-        <div className="bg-white border border-slate-200 dark:bg-[--color-surface-card] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-2xl dark:shadow-none text-center space-y-6 animate-fade-in">
+        <div className="bg-white border border-slate-200 dark:bg-[#162033] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-2xl dark:shadow-none text-center space-y-6 animate-fade-in">
           <div className="w-20 h-20 bg-green-50 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={40} className="text-green-600 dark:text-green-400" />
           </div>
@@ -305,7 +305,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
         </div>
 
         {/* Auth Card */}
-        <div className="bg-white border border-slate-200 dark:bg-[--color-surface-card] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full shadow-2xl dark:shadow-none">
+        <div className="bg-white border border-slate-200 dark:bg-[#162033] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full shadow-2xl dark:shadow-none">
           {/* Header title removed as requested */}
 
           <form onSubmit={handleSubmit} className="space-y-4">

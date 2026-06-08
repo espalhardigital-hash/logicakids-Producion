@@ -15,7 +15,7 @@ export const ThemeToggle: React.FC = () => {
       whileTap={{ scale: 0.95 }}
       className="fixed bottom-6 right-6 z-[999] p-4 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.15)] border cursor-pointer select-none
                  bg-white border-slate-200 text-amber-500 hover:bg-slate-50
-                 dark:bg-[--color-surface-card] dark:border-slate-800 dark:text-indigo-400 dark:hover:bg-slate-800
+                 dark:bg-[#162033] dark:border-slate-800 dark:text-indigo-400 dark:hover:bg-slate-800
                  transition-colors duration-300"
       aria-label="Alternar Tema Claro/Oscuro"
     >

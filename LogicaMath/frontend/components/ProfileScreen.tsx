@@ -170,7 +170,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
   const currentAvatar = previewAvatar || getAvatarUrl(user.avatar);
 
   return (
-    <div className="fixed inset-0 bg-slate-50 dark:bg-[--color-surface-base] text-slate-900 dark:text-white overflow-y-auto custom-scrollbar font-display">
+    <div className="fixed inset-0 bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-white overflow-y-auto custom-scrollbar font-display">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -189,7 +189,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
         </div>
 
         {/* Main Card */}
-        <div className="bg-white dark:bg-[--color-surface-card] backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl dark:shadow-none flex flex-col md:flex-row min-h-[600px]">
+        <div className="bg-white dark:bg-[#162033] backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl dark:shadow-none flex flex-col md:flex-row min-h-[600px]">
 
           {/* ── LEFT: Personal Info ── */}
           <div className="md:w-2/5 bg-slate-50/50 dark:bg-black/20 p-8 flex flex-col items-center gap-6 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/10">
