@@ -222,7 +222,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
           </h2>
           <p className="text-muted mb-6 text-sm">Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
 
-          <form onSubmit={handlePasswordReset} className="space-y-4">
+          <form onSubmit={handlePasswordReset} noValidate className="space-y-4">
             <div className="relative group">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" size={20} />
               <input
@@ -308,7 +308,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
         <div className="bg-white border border-slate-200 dark:bg-[#162033] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full shadow-2xl dark:shadow-none">
           {/* Header title removed as requested */}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {mode === 'register' && (
               <div className="relative group">
                 <UserCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 group-focus-within:text-purple-500 dark:group-focus-within:text-purple-400 transition-colors" size={20} />

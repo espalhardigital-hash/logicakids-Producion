@@ -3,6 +3,7 @@ LogicaKids Pro API - Punto de Entrada Principal
 ===============================================
 """
 from contextlib import asynccontextmanager
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from redis import asyncio as aioredis
@@ -29,13 +30,18 @@ from .models.sql_models import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Inicializar Base de Datos (crear tablas si no existen)
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            print("✅ Tablas de base de datos verificadas/creadas exitosamente.")
-
-    except Exception as e:
-        print(f"❌ Error al verificar/crear tablas: {e}")
+    if os.environ.get("SKIP_DB_ALTERATIONS", "false").lower() == "true":
+        print("=============================================")
+        print("⚠️ SKIP_DB_ALTERATIONS is ENABLED.")
+        print("⚠️ Skipping Base.metadata.create_all to protect remote DB.")
+        print("=============================================")
+    else:
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+                print("✅ Tablas de base de datos verificadas/creadas exitosamente.")
+        except Exception as e:
+            print(f"❌ Error al verificar/crear tablas: {e}")
 
     # Inicializar Redis Cache
     try:
@@ -51,7 +57,34 @@ async def lifespan(app: FastAPI):
         
     yield
 
+class StripAPIPrefixMiddleware:
+    """
+    Middleware ASGI para eliminar el prefijo '/api' de las rutas entrantes.
+    Esto permite que el entorno local funcione de forma idéntica al entorno
+    del VPS (donde Traefik elimina el prefijo '/api' antes de pasar la solicitud).
+    """
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            path = scope.get("path", "")
+            if path.startswith("/api"):
+                new_path = path[4:]
+                if not new_path:
+                    new_path = "/"
+                scope["path"] = new_path
+                
+                if "raw_path" in scope:
+                    raw_path = scope["raw_path"]
+                    if raw_path.startswith(b"/api"):
+                        scope["raw_path"] = raw_path[4:] or b"/"
+                        
+        await self.app(scope, receive, send)
+
 app = FastAPI(title="LogicaKids Pro API", version="3.0.0", lifespan=lifespan)
+
+app.add_middleware(StripAPIPrefixMiddleware)
 
 # Security Headers
 if settings.ENABLE_SECURITY_HEADERS:

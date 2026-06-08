@@ -24,8 +24,16 @@ async def main():
     from wait_for_db import wait_for_db
     wait_for_db()
 
+    skip_alterations = os.environ.get("SKIP_DB_ALTERATIONS", "false").lower() == "true"
+
     # 2. Run migrations
-    run_alembic_upgrade()
+    if skip_alterations:
+        print("=============================================")
+        print("⚠️ SKIP_DB_ALTERATIONS is ENABLED.")
+        print("⚠️ Skipping Alembic Migrations to protect remote DB.")
+        print("=============================================")
+    else:
+        run_alembic_upgrade()
 
     # 3. Seed database
     if os.environ.get("SEED_DB", "false").lower() == "true":
@@ -47,18 +55,24 @@ async def main():
         print("=============================================")
 
     # 4. Create users
-    print("=============================================")
-    print("Creating Admin and Test Users...")
-    print("=============================================")
-    from manual_scripts.create_users import create_users
-    try:
-        await create_users()
-        print("✅ User creation completed successfully.")
-    except Exception as e:
-        import traceback
-        print(f"❌ Error creating users: {e}")
-        traceback.print_exc()
-        sys.exit(1)
+    if skip_alterations:
+        print("=============================================")
+        print("⚠️ SKIP_DB_ALTERATIONS is ENABLED.")
+        print("⚠️ Skipping Admin and Test User creation to protect remote DB.")
+        print("=============================================")
+    else:
+        print("=============================================")
+        print("Creating Admin and Test Users...")
+        print("=============================================")
+        from manual_scripts.create_users import create_users
+        try:
+            await create_users()
+            print("✅ User creation completed successfully.")
+        except Exception as e:
+            import traceback
+            print(f"❌ Error creating users: {e}")
+            traceback.print_exc()
+            sys.exit(1)
 
     print("=============================================")
     print("Database Startup Flow Finished Successfully!")

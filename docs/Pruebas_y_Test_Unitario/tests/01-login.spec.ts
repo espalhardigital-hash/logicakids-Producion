@@ -142,4 +142,62 @@ test.describe('01 - Flujo de Autenticación', () => {
     await expect(usernameInput).not.toBeVisible();
     await expect(submitBtn).toContainText('Entrar');
   });
+
+  // ─── Test: Login con interfaz Claro y Oscuro (Verificando cambio de tema) ───
+  test('Login funciona correctamente en tema Claro y Tema Oscuro', async ({ page, consoleLogger }) => {
+    // 1. Ir a login y asegurar tema claro
+    await page.goto(ROUTES.LOGIN);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector(SELECTORS.EMAIL_INPUT, { state: 'visible' });
+
+    const htmlElement = page.locator('html');
+    const themeToggleBtn = page.locator('button[aria-label="Alternar Tema Claro/Oscuro"]');
+    await expect(themeToggleBtn).toBeVisible();
+
+    // Si está en modo oscuro inicialmente, hacer clic para pasar a claro
+    let isDark = await htmlElement.evaluate(el => el.classList.contains('dark'));
+    if (isDark) {
+      await themeToggleBtn.click();
+      await expect(htmlElement).not.toHaveClass(/dark/);
+    }
+
+    // Realizar login en modo claro
+    await page.locator(SELECTORS.EMAIL_INPUT).fill(TEST_USER.email);
+    await page.locator(SELECTORS.PASSWORD_INPUT).fill(TEST_USER.password);
+    await page.locator(SELECTORS.SUBMIT_BUTTON_LOGIN).click();
+    await page.waitForURL('**/map', { timeout: 20000 });
+    expect(page.url()).toContain('/map');
+
+    // Desloguear
+    await logout(page);
+
+    // 2. Volver a login, alternar a modo oscuro y loguearse
+    await page.waitForSelector(SELECTORS.EMAIL_INPUT, { state: 'visible' });
+    isDark = await htmlElement.evaluate(el => el.classList.contains('dark'));
+    if (!isDark) {
+      await themeToggleBtn.click();
+      await expect(htmlElement).toHaveClass(/dark/);
+    }
+
+    // Realizar login en modo oscuro
+    await page.locator(SELECTORS.EMAIL_INPUT).fill(TEST_USER.email);
+    await page.locator(SELECTORS.PASSWORD_INPUT).fill(TEST_USER.password);
+    await page.locator(SELECTORS.SUBMIT_BUTTON_LOGIN).click();
+    await page.waitForURL('**/map', { timeout: 20000 });
+    expect(page.url()).toContain('/map');
+
+    // Volver a desloguear y dejar el tema en claro por defecto
+    await logout(page);
+    await page.waitForSelector(SELECTORS.EMAIL_INPUT, { state: 'visible' });
+    isDark = await htmlElement.evaluate(el => el.classList.contains('dark'));
+    if (isDark) {
+      await themeToggleBtn.click();
+    }
+
+    // Sin errores críticos en consola
+    expect(
+      consoleLogger.hasCriticalErrors(),
+      `Errores en consola:\n${consoleLogger.getCriticalErrorsSummary()}`
+    ).toBe(false);
+  });
 });
