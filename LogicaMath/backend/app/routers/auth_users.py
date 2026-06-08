@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Body, UploadFile,
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, and_
 import uuid
 import io
 import os
