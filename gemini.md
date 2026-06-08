@@ -68,6 +68,7 @@ Cualquier otro comando propuesto en PowerShell (ej: `git`, `docker`, `docker com
 * **Conexión a VPS**: El agente tiene permiso para conectarse a la VPS utilizando los datos y credenciales definidos en los archivos `.env` (ej: `rominejo@34.9.51.225`).
 * **Gestión de Contenedores y Stacks**: El agente está autorizado a alterar, modificar, reiniciar y redesplegar (redeploy/rebuild) los contenedores y stacks de Docker existentes con el fin de resolver fallos y mantener la funcionalidad.
 * **Restricción de Creación de Contenedores**: El agente **NUNCA** creará nuevos contenedores o stacks de forma independiente, a menos que el usuario lo autorice o solicite de forma explícita en su prompt.
+* **Actualización de Repositorios (Desarrollo y Producción)**: El agente puede actualizar los repositorios (tanto locales como en la VPS) correspondientes a los entornos de desarrollo y producción cuando el usuario lo autorice explícitamente en el prompt, utilizando las credenciales provistas en los archivos `.env`.
 
 ---
 
