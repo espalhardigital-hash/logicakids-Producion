@@ -1,0 +1,14 @@
+# Evitar copiar venv local y archivos de cache de python
+venv
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+.git
+.gitignore
+.dockerignore
+.pytest_cache
+tests/.pytest_cache

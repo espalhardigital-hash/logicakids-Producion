@@ -1,0 +1,9 @@
+# Evitar copiar dependencias locales y archivos de compilación de desarrollo
+node_modules
+.env
+.env.*
+.env.local
+.git
+.gitignore
+.dockerignore
+README.md
