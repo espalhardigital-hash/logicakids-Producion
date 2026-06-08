@@ -17,10 +17,9 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
     networks:
       - traefik_proxy
-      - internal_services # Permite comunicarse con el contenedor base_postgres_general
+      - internal_services
     labels:
       - 'traefik.enable=true'
-      # Configuración del enrutador usando el nuevo dominio por defecto: logica.espalhar.shop
       - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-api.rule=Host(`${DOMINIO:-logica.espalhar.shop}`) && PathPrefix(`/api`, `/docs`, `/redoc`, `/openapi.json`)'
       - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-api.entrypoints=websecure'
       - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-api.tls.certresolver=letsencrypt'
@@ -34,14 +33,12 @@ services:
       context: ../LogicaMath/frontend
       dockerfile: Dockerfile
       args:
-        # Se actualiza la URL de la API apuntando al nuevo subdominio de producción /api
         - VITE_API_URL=${VITE_API_URL:-https://logica.espalhar.shop/api}
     restart: always
     networks:
       - traefik_proxy
     labels:
       - 'traefik.enable=true'
-      # Configuración del enrutador Web para el nuevo dominio por defecto: logica.espalhar.shop
       - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-web.rule=Host(`${DOMINIO:-logica.espalhar.shop}`)'
       - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-web.entrypoints=websecure'
       - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-web.tls.certresolver=letsencrypt'
