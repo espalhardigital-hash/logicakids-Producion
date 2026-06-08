@@ -21,6 +21,14 @@ Este documento detalla las capacidades, herramientas, permisos y restricciones a
   * `D:\Antigravity\Apps_LogicaKids - Desarrollo\.env`
   * `d:\Antigravity\logica kig clone dase 2 producion\.env`
   * `D:\Antigravity\APP_Logica_Matematicas_kids\.env`
+  * `.env` y configuraciones en `D:\Antigravity\APP_Logica_Matematicas_kids\Datos_Desarrollo\` (Entorno de Desarrollo)
+  * `.env` y configuraciones en `D:\Antigravity\APP_Logica_Matematicas_kids\Datos_Producion\` (Entorno de Producción)
+
+### Diferenciación de Entornos (Desarrollo vs. Producción)
+El agente **debe diferenciar estrictamente** según el contexto indicado en el prompt del usuario:
+* **Entorno de Desarrollo**: Utiliza los archivos ubicados en `d:\Antigravity\APP_Logica_Matematicas_kids\Datos_Desarrollo` (su `.env` y su `docker-compose_desarrollo.yml`).
+* **Entorno de Producción**: Utiliza los archivos ubicados en `d:\Antigravity\APP_Logica_Matematicas_kids\Datos_Producion` (su `.env` y su `docker-compose_Producion.yml`).
+* **Regla**: El agente **bajo ninguna circunstancia debe confundir o mezclar** estos archivos de configuración, debiendo operar exclusivamente sobre el directorio correspondiente a la orden dada por el usuario.
 
 ### Permisos que Requieren Confirmación Explícita ("Ask")
 Para interactuar con cualquiera de los siguientes archivos de configuración o credenciales sensibles, el agente solicitará permiso explícito al usuario en tiempo de ejecución:
