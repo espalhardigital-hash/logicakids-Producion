@@ -338,7 +338,7 @@ export const unlockLevel = async (category: import('../types').GameCategory, new
 
 export const graduateToFase1 = async (): Promise<void> => {
   try {
-    await apiRequest('/pedagogia/graduate-to-fase1', 'POST');
+    await apiRequest('/fase1/graduate-to-fase1', 'POST');
   } catch (error) {
     console.error("Error graduating to Fase 1:", error);
   }
@@ -346,7 +346,7 @@ export const graduateToFase1 = async (): Promise<void> => {
 
 export const graduateToFase2 = async (): Promise<void> => {
   try {
-    await apiRequest('/pedagogia/graduate-to-fase2', 'POST');
+    await apiRequest('/fase1/graduate-to-fase2', 'POST');
   } catch (error) {
     console.error("Error graduating to Fase 2:", error);
   }
@@ -354,7 +354,7 @@ export const graduateToFase2 = async (): Promise<void> => {
 
 
 export const getPedagogiaDashboard = async (seccion?: number, operacion?: string): Promise<any> => {
-  let endpoint = '/pedagogia/dashboard';
+  let endpoint = '/fase1/dashboard';
   if (seccion !== undefined && operacion !== undefined) {
     endpoint += `?seccion=${seccion}&operacion=${encodeURIComponent(operacion)}`;
   }
@@ -366,7 +366,7 @@ export const responderPreguntaPedagogica = async (data: {
   respuesta_dada: string;
   tiempo_respuesta_segundos: number;
 }): Promise<import('../types').ResultadoRespuesta> => {
-  return await apiRequest<import('../types').ResultadoRespuesta>('/pedagogia/responder', 'POST', data);
+  return await apiRequest<import('../types').ResultadoRespuesta>('/fase1/responder', 'POST', data);
 };
 
 export const updateOwnProfile = async (data: {

@@ -174,7 +174,6 @@ async def _get_config(db: AsyncSession, seccion: int, operacion: str) -> Optiona
         select(ConfiguracionProgreso).where(and_(
             ConfiguracionProgreso.fase_id == FASE2_ID,
             ConfiguracionProgreso.seccion == seccion,
-            ConfiguracionProgreso.operacion == operacion,
             ConfiguracionProgreso.activo == True
         ))
     )
@@ -202,7 +201,6 @@ async def _get_or_create_progreso(
             ProgresoMaestria.alumno_id == alumno_id,
             ProgresoMaestria.fase_id == FASE2_ID,
             ProgresoMaestria.seccion == seccion,
-            ProgresoMaestria.operacion == operacion,
         ))
     )
     progreso = result.scalar_one_or_none()
@@ -228,7 +226,7 @@ def _is_nivel_unlocked(progresos: dict, modulo_id: int, nivel_id: int) -> bool:
     
     if nivel_id > 1:
         prev_seccion, prev_op = _seccion_operacion(modulo_id, nivel_id - 1)
-        prev_prog = progresos.get((prev_seccion, prev_op))
+        prev_prog = progresos.get(prev_seccion)
         return prev_prog is not None and prev_prog.estado == EstadoProgresoEnum.APROBADO
     
     if nivel_id == 1 and modulo_id > 1:
@@ -238,14 +236,14 @@ def _is_nivel_unlocked(progresos: dict, modulo_id: int, nivel_id: int) -> bool:
         # Check all practice levels of previous module
         for p_level in range(1, prev_mod_levels + 1):
             p_sec, p_op = _seccion_operacion(prev_mod, p_level)
-            p_prog = progresos.get((p_sec, p_op))
+            p_prog = progresos.get(p_sec)
             if not p_prog or p_prog.estado != EstadoProgresoEnum.APROBADO:
                 return False
                 
         # Check all challenges of previous module
         for des_id in (11, 12, 13):
             c_sec, c_op = _seccion_operacion(prev_mod, des_id)
-            c_prog = progresos.get((c_sec, c_op))
+            c_prog = progresos.get(c_sec)
             if not c_prog or c_prog.estado != EstadoProgresoEnum.APROBADO:
                 return False
                 
@@ -262,11 +260,11 @@ def _is_desafio_unlocked(progresos: dict, modulo_id: int, desafio_id: int, all_p
         return True
     if desafio_id == 12:
         sec_d1, op_d1 = _seccion_operacion(modulo_id, 11)
-        prog_d1 = progresos.get((sec_d1, op_d1))
+        prog_d1 = progresos.get(sec_d1)
         return prog_d1 is not None and prog_d1.estado == EstadoProgresoEnum.APROBADO
     if desafio_id == 13:
         sec_d2, op_d2 = _seccion_operacion(modulo_id, 12)
-        prog_d2 = progresos.get((sec_d2, op_d2))
+        prog_d2 = progresos.get(sec_d2)
         return prog_d2 is not None and prog_d2.estado == EstadoProgresoEnum.APROBADO
     return False
 
@@ -292,13 +290,13 @@ async def get_fase2_dashboard(
             ProgresoMaestria.fase_id == FASE2_ID,
         ))
     )
-    progresos = {(p.seccion, p.operacion.value if hasattr(p.operacion, "value") else p.operacion): p for p in result.scalars().all()}
+    progresos = {p.seccion: p for p in result.scalars().all()}
 
     # Cargar configuraciones
     result = await db.execute(
         select(ConfiguracionProgreso).where(ConfiguracionProgreso.fase_id == FASE2_ID)
     )
-    configs = {(c.seccion, c.operacion.value if hasattr(c.operacion, "value") else c.operacion): c for c in result.scalars().all()}
+    configs = {c.seccion: c for c in result.scalars().all()}
 
     global_cfg = await _get_global_config(db)
     pl_cfg = global_cfg.get("practica_libre", {})
@@ -318,8 +316,8 @@ async def get_fase2_dashboard(
         for niv_id in range(1, num_niveles + 1):
             seccion, operacion = _seccion_operacion(mod_id, niv_id)
             niv_meta = NIVELES_META.get((mod_id, niv_id), {"nombre": f"Nivel {niv_id}", "descripcion": ""})
-            config = configs.get((seccion, operacion))
-            progreso = progresos.get((seccion, operacion))
+            config = configs.get(seccion)
+            progreso = progresos.get(seccion)
 
             if config is None:
                 estado = "bloqueado"
@@ -366,8 +364,8 @@ async def get_fase2_dashboard(
         for des_id in [11, 12, 13]:
             seccion, operacion = _seccion_operacion(mod_id, des_id)
             d_conf = desafio_configs[des_id]
-            config = configs.get((seccion, operacion))
-            progreso = progresos.get((seccion, operacion))
+            config = configs.get(seccion)
+            progreso = progresos.get(seccion)
 
             if config is None:
                 estado = "bloqueado"

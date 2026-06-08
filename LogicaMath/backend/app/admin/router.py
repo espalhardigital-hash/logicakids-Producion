@@ -260,31 +260,7 @@ async def update_pregunta(pregunta_id: int, pregunta_data: PreguntaUpdate, db: A
 # ADMINISTRACION ADICIONAL (PREGUNTAS, TEORIA, ALUMNOS)
 # ============================================================
 
-class NivelTeoriaSave(BaseModel):
-    fase_id: int
-    modulo_id: int
-    nivel_id: int
-    titulo: str
-    texto_descubrimiento: str
-    diccionario: Optional[dict] = None
-    advertencia: Optional[str] = None
-    ejemplos: Optional[list] = None
-    interactivos: Optional[list] = None
-
-class ProgressOverridePayload(BaseModel):
-    fase_id: int
-    seccion: int
-    operacion: str
-    action: str # "approve", "unlock", "lock"
-
-class ProgressOverrideItem(BaseModel):
-    fase_id: int
-    seccion: int
-    operacion: str
-
-class ProgressOverrideBulkPayload(BaseModel):
-    items: List[ProgressOverrideItem]
-    action: str # "approve", "unlock", "lock"
+from .schemas import NivelTeoriaSave, ProgressOverridePayload, ProgressOverrideItem, ProgressOverrideBulkPayload, SystemConfigUpdate
 
 @router.delete("/preguntas/{pregunta_id}")
 async def delete_pregunta(pregunta_id: int, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
@@ -726,10 +702,7 @@ async def override_alumno_progress_bulk(
 import os
 from dotenv import set_key, dotenv_values
 
-class SystemConfigUpdate(BaseModel):
-    vps_host: str
-    ssh_user: str
-    database_url: str
+
 
 @router.get("/system-config")
 async def get_system_config(admin_user: dict = Depends(get_admin_user)):

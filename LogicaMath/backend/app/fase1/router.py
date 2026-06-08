@@ -19,7 +19,7 @@ from ..models.sql_models import (
 from ..auth import get_current_user
 from ..services.pedagogia_service import recalcular_y_sincronizar_fase_actual
 
-router = APIRouter(prefix="/pedagogia", tags=["pedagogia"])
+router = APIRouter(prefix="/fase1", tags=["fase1"])
 
 @router.get("/dashboard", response_model=DashboardAlumno)
 # NOTA: Este endpoint genérico es actualmente utilizado exclusivamente por la Fase 1.

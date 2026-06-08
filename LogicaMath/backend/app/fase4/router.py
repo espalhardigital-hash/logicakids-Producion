@@ -140,7 +140,6 @@ async def _get_config(db: AsyncSession, seccion: int, operacion: str) -> Optiona
         select(ConfiguracionProgreso).where(and_(
             ConfiguracionProgreso.fase_id == FASE4_ID,
             ConfiguracionProgreso.seccion == seccion,
-            ConfiguracionProgreso.operacion == operacion,
             ConfiguracionProgreso.activo == True
         ))
     )
@@ -163,8 +162,7 @@ async def _get_progreso(db: AsyncSession, alumno_id: int, seccion: int, operacio
         select(ProgresoMaestria).where(and_(
             ProgresoMaestria.alumno_id == alumno_id,
             ProgresoMaestria.fase_id == FASE4_ID,
-            ProgresoMaestria.seccion == seccion,
-            ProgresoMaestria.operacion == operacion
+            ProgresoMaestria.seccion == seccion
         ))
     )
     progreso = result.scalar_one_or_none()
@@ -198,7 +196,7 @@ async def get_dashboard(
             ProgresoMaestria.fase_id == FASE4_ID
         ))
     )
-    progresos = {(p.seccion, p.operacion.value if hasattr(p.operacion, "value") else p.operacion): p for p in result_prog.scalars().all()}
+    progresos = {p.seccion: p for p in result_prog.scalars().all()}
     
     # Cargar todas las configuraciones activas de Fase 4
     result_configs = await db.execute(
@@ -207,7 +205,7 @@ async def get_dashboard(
             ConfiguracionProgreso.activo == True
         ))
     )
-    configs = {(c.seccion, c.operacion.value if hasattr(c.operacion, "value") else c.operacion): c for c in result_configs.scalars().all()}
+    configs = {c.seccion: c for c in result_configs.scalars().all()}
     
     # El primer nivel de Fase 4 se autodesbloquea si el alumno está en la Fase 4 o superior, o si es Admin
     fase_actual_ok = alumno.fase_actual_id >= FASE4_ID
@@ -226,7 +224,7 @@ async def get_dashboard(
         
         for n_id in n_ids:
             sec_n, op_n = _seccion_operacion(m_id, n_id)
-            prog = progresos.get((sec_n, op_n))
+            prog = progresos.get(sec_n)
             
             # Condición de desbloqueo: Primer nivel de M1 está abierto de entrada.
             # Los demás requieren que el nivel anterior de la lista esté aprobado (y para pasar de módulo, requiere además todos los desafíos).
@@ -236,7 +234,7 @@ async def get_dashboard(
                 # Nivel anterior
                 if n_id > 1:
                     prev_sec, prev_op = _seccion_operacion(m_id, n_id - 1)
-                    prev_prog = progresos.get((prev_sec, prev_op))
+                    prev_prog = progresos.get(prev_sec)
                     is_unlocked = prev_prog is not None and prev_prog.estado == EstadoProgresoEnum.APROBADO
                 else:
                     # Último del módulo anterior
@@ -247,7 +245,7 @@ async def get_dashboard(
                     all_practice_ok = True
                     for p_level in range(1, prev_n + 1):
                         p_sec, p_op = _seccion_operacion(prev_m, p_level)
-                        p_prog = progresos.get((p_sec, p_op))
+                        p_prog = progresos.get(p_sec)
                         if not p_prog or p_prog.estado != EstadoProgresoEnum.APROBADO:
                             all_practice_ok = False
                             break
@@ -256,7 +254,7 @@ async def get_dashboard(
                     all_challenges_ok = True
                     for des_id in (11, 12, 13):
                         c_sec, c_op = _seccion_operacion(prev_m, des_id)
-                        c_prog = progresos.get((c_sec, c_op))
+                        c_prog = progresos.get(c_sec)
                         if not c_prog or c_prog.estado != EstadoProgresoEnum.APROBADO:
                             all_challenges_ok = False
                             break
@@ -294,7 +292,7 @@ async def get_dashboard(
         
         for d_id in [11, 12, 13]:
             sec_d, op_d = _seccion_operacion(m_id, d_id)
-            prog = progresos.get((sec_d, op_d))
+            prog = progresos.get(sec_d)
             
             # Desbloqueo de desafíos: D11 requiere todos los niveles prácticos dominados.
             # D12 requiere D11 dominado. D13 requiere D12 dominado.
@@ -302,11 +300,11 @@ async def get_dashboard(
                 is_d_unlocked = all_m_levels_dominated
             elif d_id == 12:
                 d11_sec, d11_op = _seccion_operacion(m_id, 11)
-                d11_prog = progresos.get((d11_sec, d11_op))
+                d11_prog = progresos.get(d11_sec)
                 is_d_unlocked = d11_prog is not None and d11_prog.estado == EstadoProgresoEnum.APROBADO
             else:
                 d12_sec, d12_op = _seccion_operacion(m_id, 12)
-                d12_prog = progresos.get((d12_sec, d12_op))
+                d12_prog = progresos.get(d12_sec)
                 is_d_unlocked = d12_prog is not None and d12_prog.estado == EstadoProgresoEnum.APROBADO
                 
             estado_d = "bloqueado"
@@ -329,7 +327,7 @@ async def get_dashboard(
             d_diff_map = {11: "estandar", 12: "avanzada", 13: "maestria"}
             d_time_map = {11: 25, 12: 40, 13: 50}
 
-            config_d = configs.get((sec_d, op_d))
+            config_d = configs.get(sec_d)
             if config_d:
                 usa_crono = config_d.usa_cronometro
                 tiempo_limite = config_d.tiempo_default_segundos if (config_d.tiempo_default_segundos is not None and config_d.tiempo_default_segundos > 0) else d_time_map[d_id]

@@ -9,7 +9,9 @@ from redis import asyncio as aioredis
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
-from .routers import auth_users, admin, pedagogia, ai
+from .routers import auth_users, ai
+from .admin.router import router as admin_router
+from .fase1.router import router as fase1_router
 from .fase2.router import router as fase2_router
 from .fase3.router import router as fase3_router
 from .fase4.router import router as fase4_router
@@ -82,8 +84,8 @@ def read_root():
 # ============================================================
 
 app.include_router(auth_users.router)
-app.include_router(admin.router)
-app.include_router(pedagogia.router)
+app.include_router(admin_router)
+app.include_router(fase1_router)
 app.include_router(ai.router)
 app.include_router(fase2_router)
 app.include_router(fase3_router)
