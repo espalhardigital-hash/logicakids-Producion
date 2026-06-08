@@ -170,7 +170,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
   const currentAvatar = previewAvatar || getAvatarUrl(user.avatar);
 
   return (
-    <div className="fixed inset-0 bg-[#0B1A3A] text-white overflow-y-auto custom-scrollbar">
+    <div className="fixed inset-0 bg-slate-50 dark:bg-[--color-surface-base] text-slate-900 dark:text-white overflow-y-auto custom-scrollbar font-display">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -181,24 +181,24 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
         <div className="flex items-center gap-4 mb-10">
           <button
             onClick={onBack}
-            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all hover:scale-105"
+            className="p-3 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-2xl transition-all hover:scale-105 text-slate-600 dark:text-white"
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-2xl font-black tracking-tight">Mi Perfil y Configuración</h1>
+          <h1 className="text-2xl font-black text-heading tracking-tight">Mi Perfil y Configuración</h1>
         </div>
 
         {/* Main Card */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px]">
+        <div className="bg-white dark:bg-[--color-surface-card] backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl dark:shadow-none flex flex-col md:flex-row min-h-[600px]">
 
           {/* ── LEFT: Personal Info ── */}
-          <div className="md:w-2/5 bg-black/20 p-8 flex flex-col items-center gap-6 border-b md:border-b-0 md:border-r border-white/10">
+          <div className="md:w-2/5 bg-slate-50/50 dark:bg-black/20 p-8 flex flex-col items-center gap-6 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/10">
             {/* Avatar */}
             <div
               className="relative group cursor-pointer mt-4"
               onClick={() => fileInputRef.current?.click()}
             >
-              <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-white/10 group-hover:border-blue-500 transition-all duration-300 bg-slate-800 flex items-center justify-center shadow-xl">
+              <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-slate-200 dark:border-white/10 group-hover:border-blue-500 transition-all duration-300 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-xl">
                 {currentAvatar ? (
                   <img src={currentAvatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -223,7 +223,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                   name="username"
                   value={formData.username}
                   onChange={handleInputChange}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all"
+                  className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                 />
               </div>
               <div>
@@ -233,7 +233,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all"
+                  className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                 />
               </div>
               <div>
@@ -254,7 +254,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder={isEditingPassword ? "Escribe tu nueva contraseña" : "••••••••"}
-                  className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all ${!isEditingPassword ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all ${!isEditingPassword ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
               {formData.password && isEditingPassword && (
@@ -269,7 +269,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                     autoComplete="new-password"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-blue-500 focus:bg-white/10 outline-none transition-all"
+                    className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                   />
                 </motion.div>
               )}
@@ -278,7 +278,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
 
           {/* ── RIGHT: Tabs Area ── */}
           <div className="md:w-3/5 p-8 flex flex-col relative">
-            <div className="flex items-center gap-6 mb-6 border-b border-white/10">
+            <div className="flex items-center gap-6 mb-6 border-b border-slate-200 dark:border-white/10">
               {isAdmin && (
                 <button
                   onClick={() => setActiveTab('settings')}
@@ -300,11 +300,11 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 relative">
               {activeTab === 'settings' ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 mb-2">
-                    <p className="text-sm text-blue-200 leading-relaxed">
+                  <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-2xl p-4 mb-2">
+                    <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
                       Ajusta el tiempo límite por pregunta según la dificultad.
                     </p>
-                    <p className="text-xs text-blue-300/60 mt-1">(Mínimo 3s - Máximo 60s. "Default" usa el valor estándar de la plataforma)</p>
+                    <p className="text-xs text-blue-600/70 dark:text-blue-300/60 mt-1">(Mínimo 3s - Máximo 60s. "Default" usa el valor estándar de la plataforma)</p>
                   </div>
 
                   <div className="space-y-5">
@@ -316,9 +316,9 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                       return (
                         <div key={diff} className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <label className="text-sm font-semibold text-slate-300">{difficultyLabels[diff]}</label>
+                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{difficultyLabels[diff]}</label>
                             <div className="flex items-center gap-2">
-                              <span className={`text-sm font-black px-3 py-1 rounded-lg ${isCustom ? 'bg-blue-600 text-white' : 'bg-white/10 text-slate-400'}`}>
+                              <span className={`text-sm font-black px-3 py-1 rounded-lg ${isCustom ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'}`}>
                                 {isCustom ? `${displayVal} s` : 'Default s'}
                               </span>
                               {isCustom && (
@@ -341,7 +341,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                         step="1"
                         value={displayVal}
                         onChange={(e) => handleTimerChange(diff, parseInt(e.target.value))}
-                        className="flex-1 h-2 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+                        className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500"
                       />
                     </div>
                   </div>
@@ -354,7 +354,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
             {isLoadingStats ? (
               <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>
             ) : statsData.length === 0 ? (
-              <div className="text-center py-10 text-slate-500">Aún no hay estadísticas disponibles.</div>
+              <div className="text-center py-10 text-muted">Aún no hay estadísticas disponibles.</div>
             ) : (
               <div className="space-y-4">
                 {(() => {
@@ -389,24 +389,24 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                     const isFaseExpanded = expandedFase === faseId;
 
                     return (
-                      <div key={faseId} className="bg-white/5 border border-white/10 rounded-[1.8rem] overflow-hidden transition-all duration-300">
+                      <div key={faseId} className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[1.8rem] overflow-hidden transition-all duration-300">
                         {/* Fase Header */}
                         <button
                           onClick={() => setExpandedFase(isFaseExpanded ? null : faseId)}
-                          className="w-full p-5 flex items-center justify-between text-left hover:bg-white/5 transition-all duration-200"
+                          className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-200"
                         >
                           <div className="flex items-center gap-3">
                             <Award className="text-yellow-400" size={20} />
-                            <span className="font-black text-lg text-white">{fase.faseTitulo}</span>
+                            <span className="font-black text-lg text-heading">{fase.faseTitulo}</span>
                           </div>
-                          <div className="p-2 rounded-xl bg-white/5 text-gray-400">
+                          <div className="p-2 rounded-xl bg-slate-200 dark:bg-white/5 text-slate-500 dark:text-gray-400">
                             {isFaseExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                           </div>
                         </button>
 
                         {/* Fase Collapsible */}
                         {isFaseExpanded && (
-                          <div className="p-4 pt-0 border-t border-white/5 bg-black/20 space-y-3">
+                          <div className="p-4 pt-0 border-t border-slate-200 dark:border-white/5 bg-slate-100/50 dark:bg-black/20 space-y-3">
                             {Object.keys(fase.modulos).map(modKey => {
                               const modId = parseInt(modKey);
                               const modulo = fase.modulos[modId];
@@ -414,24 +414,24 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                               const isModExpanded = expandedModulo === moduloUniqueKey;
 
                               return (
-                                <div key={modId} className="bg-white/5 border border-white/5 rounded-2xl overflow-hidden">
+                                <div key={modId} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
                                   {/* Modulo Header */}
                                   <button
                                     onClick={() => setExpandedModulo(isModExpanded ? null : moduloUniqueKey)}
-                                    className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-all duration-200"
+                                    className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-200"
                                   >
                                     <div className="flex items-center gap-2.5">
                                       <span className="text-xs font-black bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-md">M{modId}</span>
-                                      <span className="font-bold text-sm text-slate-200">{modulo.moduloTitulo}</span>
+                                      <span className="font-bold text-sm text-slate-700 dark:text-slate-200">{modulo.moduloTitulo}</span>
                                     </div>
-                                    <div className="text-gray-400">
+                                    <div className="text-slate-400 dark:text-gray-400">
                                       {isModExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                     </div>
                                   </button>
 
                                   {/* Modulo Collapsible */}
                                   {isModExpanded && (
-                                    <div className="p-3 pt-0 border-t border-white/5 bg-black/10 space-y-2.5">
+                                    <div className="p-3 pt-0 border-t border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-black/10 space-y-2.5">
                                       {modulo.blocks.map(block => {
                                         const blockUniqueKey = `${block.fase_id}-${block.seccion}-${block.operacion}`;
                                         const isApproved = block.estado === 'APROBADO';
@@ -442,9 +442,9 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                                         const isTutorUnlocked = block.desbloqueado_por_admin;
                                         const isTutorOverridden = isTutorApproved || isTutorUnlocked;
 
-                                        let cardStyle = "border-white/5 opacity-50";
+                                        let cardStyle = "border-slate-200 dark:border-white/5 opacity-50";
                                         let statusBadge = (
-                                          <span className="text-[10px] font-black bg-white/5 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                          <span className="text-[10px] font-black bg-slate-200 dark:bg-white/5 text-slate-600 dark:text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-wider">
                                             Bloqueado
                                           </span>
                                         );
@@ -458,7 +458,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                                               </span>
                                             );
                                           } else {
-                                            cardStyle = "border-yellow-500/30 shadow-[0_0_15px_rgba(250,204,21,0.15)] bg-yellow-500/5";
+                                            cardStyle = "border-yellow-500/30 shadow-[0_0_15px_rgba(250,204,21,0.15)] bg-yellow-50 dark:bg-yellow-500/5";
                                             statusBadge = (
                                               <span className="text-[10px] font-black bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
                                                 <Sparkles size={10} /> Aprobado
@@ -474,7 +474,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                                               </span>
                                             );
                                           } else {
-                                            cardStyle = "border-blue-500/20 bg-blue-500/5";
+                                            cardStyle = "border-blue-500/20 bg-blue-50 dark:bg-blue-500/5";
                                             statusBadge = (
                                               <span className="text-[10px] font-black bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
                                                 En Progreso
@@ -489,12 +489,12 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                                         return (
                                           <div 
                                             key={blockUniqueKey}
-                                            className={`border rounded-xl p-4 bg-slate-900/40 backdrop-blur-sm transition-all duration-300 ${cardStyle}`}
+                                            className={`border rounded-xl p-4 bg-white dark:bg-slate-900/40 backdrop-blur-sm transition-all duration-300 ${cardStyle}`}
                                           >
                                             <div className="flex justify-between items-start gap-2">
                                               <div>
-                                                <h4 className="font-extrabold text-sm text-white">{titleText}</h4>
-                                                <span className="text-[10px] text-slate-400 capitalize">{opLabel}</span>
+                                                <h4 className="font-extrabold text-sm text-heading">{titleText}</h4>
+                                                <span className="text-[10px] text-muted capitalize">{opLabel}</span>
                                               </div>
                                               {statusBadge}
                                             </div>
@@ -502,11 +502,11 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                                             {/* Progress bar for EN_PROGRESO */}
                                             {isInProgress && (
                                               <div className="mt-2 space-y-1">
-                                                <div className="flex justify-between text-[9px] text-slate-500 font-bold">
+                                                <div className="flex justify-between text-[9px] text-muted font-bold">
                                                   <span>COMPLETITUD</span>
                                                   <span>{block.completitud_actual}%</span>
                                                 </div>
-                                                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                                <div className="w-full h-1 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden">
                                                   <div 
                                                     className={`h-full rounded-full transition-all duration-500 ${isTutorUnlocked ? 'bg-cyan-500' : 'bg-blue-500'}`} 
                                                     style={{ width: `${block.completitud_actual}%` }} 
@@ -517,13 +517,13 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
 
                                             {/* Metrics */}
                                             {!isBlocked && block.intentos_totales > 0 && (
-                                              <div className="grid grid-cols-2 gap-2 mt-2.5 pt-2.5 border-t border-white/5 text-[11px] text-slate-400">
+                                              <div className="grid grid-cols-2 gap-2 mt-2.5 pt-2.5 border-t border-slate-100 dark:border-white/5 text-[11px] text-muted">
                                                 <div>
-                                                  <span className="block text-[8px] uppercase tracking-wider text-slate-500 font-bold">Aciertos</span>
-                                                  <span className="font-extrabold text-slate-200">{block.aciertos_acumulados} / {block.intentos_totales}</span>
+                                                  <span className="block text-[8px] uppercase tracking-wider text-faint font-bold">Aciertos</span>
+                                                  <span className="font-extrabold text-heading">{block.aciertos_acumulados} / {block.intentos_totales}</span>
                                                 </div>
                                                 <div>
-                                                  <span className="block text-[8px] uppercase tracking-wider text-slate-500 font-bold">Precisión</span>
+                                                  <span className="block text-[8px] uppercase tracking-wider text-faint font-bold">Precisión</span>
                                                   <span className={`font-extrabold ${block.porcentaje_actual >= 80 ? 'text-emerald-400' : block.porcentaje_actual >= 60 ? 'text-yellow-400' : 'text-rose-400'}`}>
                                                     {block.porcentaje_actual}%
                                                   </span>
@@ -568,7 +568,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
       </div>
 
             {/* Save Button + Status */}
-            <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between gap-4">
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-4">
               <AnimatePresence mode="wait">
                 {status.type !== 'idle' && (
                   <motion.span
@@ -578,7 +578,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
                     exit={{ opacity: 0 }}
                     className={`text-sm font-semibold ${
                       status.type === 'success' ? 'text-green-400' :
-                      status.type === 'error' ? 'text-red-400' : 'text-blue-300 animate-pulse'
+                      status.type === 'error' ? 'text-red-500 dark:text-red-400' : 'text-blue-600 dark:text-blue-300 animate-pulse'
                     }`}
                   >
                     {status.message}

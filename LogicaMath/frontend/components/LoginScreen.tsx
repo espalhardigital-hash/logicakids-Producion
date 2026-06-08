@@ -161,22 +161,22 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
 
   if (mode === 'emailVerification') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a1f] p-4 relative overflow-hidden font-outfit">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[--color-surface-base] p-4 relative overflow-hidden font-display">
         {/* Background blobs */}
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[100px] animate-pulse delay-700" />
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/20 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-[100px] animate-pulse delay-700" />
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl text-center space-y-6 animate-fade-in">
-          <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Mail size={40} className="text-blue-400" />
+        <div className="bg-white border border-slate-200 dark:bg-[--color-surface-card] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-2xl dark:shadow-none text-center space-y-6 animate-fade-in">
+          <div className="w-20 h-20 bg-blue-50 dark:bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Mail size={40} className="text-blue-600 dark:text-blue-400" />
           </div>
 
-          <h2 className="text-2xl font-bold text-white">Verifica tu Correo</h2>
+          <h2 className="text-2xl font-bold text-heading">Verifica tu Correo</h2>
 
-          <div className="text-gray-300 space-y-2">
+          <div className="text-body space-y-2">
             <p>Hemos enviado un correo de verificación a:</p>
-            <p className="font-semibold text-white text-lg">{verificationEmail}</p>
-            <p className="text-sm text-gray-400 mt-4">Por favor revisa tu bandeja de entrada (y spam) y haz clic en el enlace para activar tu cuenta.</p>
+            <p className="font-semibold text-heading text-lg">{verificationEmail}</p>
+            <p className="text-sm text-muted mt-4">Por favor revisa tu bandeja de entrada (y spam) y haz clic en el enlace para activar tu cuenta.</p>
           </div>
 
           <div className="space-y-3 pt-4">
@@ -185,12 +185,12 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
                 setMode('login');
                 setError('');
               }}
-              className="w-full py-3 rounded-xl font-bold bg-white text-[#0a0a1f] hover:bg-gray-100 transition-all shadow-lg flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-lg shadow-blue-200 dark:shadow-none flex items-center justify-center gap-2"
             >
               <LogIn size={18} /> Volver a Iniciar Sesión
             </button>
 
-            <p className="text-xs text-gray-500 mt-4">
+            <p className="text-xs text-muted mt-4">
               ¿No recibiste el correo? Intenta iniciar sesión nuevamente.
             </p>
           </div>
@@ -201,46 +201,46 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
 
   if (mode === 'passwordReset') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a1f] p-4 relative overflow-hidden font-outfit">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[100px] animate-pulse delay-700" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[--color-surface-base] p-4 relative overflow-hidden font-display">
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/20 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-[100px] animate-pulse delay-700" />
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl animate-fade-in">
+        <div className="bg-white border border-slate-200 dark:bg-[--color-surface-card] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-2xl dark:shadow-none animate-fade-in">
           <button
             onClick={() => {
               setMode('login');
               setError('');
             }}
-            className="flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
+            className="flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white mb-6 transition-colors"
           >
             <ArrowLeft size={18} className="mr-2" /> Volver
           </button>
 
-          <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-            <Lock size={24} className="text-blue-400" />
+          <h2 className="text-2xl font-bold text-heading mb-2 flex items-center gap-2">
+            <Lock size={24} className="text-blue-600 dark:text-blue-400" />
             Recuperar Contraseña
           </h2>
-          <p className="text-gray-400 mb-6 text-sm">Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
+          <p className="text-muted mb-6 text-sm">Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
 
           <form onSubmit={handlePasswordReset} className="space-y-4">
             <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors" size={20} />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" size={20} />
               <input
                 type="email"
                 placeholder="Correo Electrónico"
-                className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                className="w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
-            {error && <p className="text-red-400 text-sm font-medium text-center">{error}</p>}
+            {error && <p className="text-red-500 dark:text-red-400 text-sm font-medium text-center">{error}</p>}
 
             <button
               type="submit"
               disabled={isLoading}
               className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2
-                bg-blue-600 hover:bg-blue-500 shadow-blue-500/20
+                bg-blue-600 hover:bg-blue-700 shadow-blue-200 dark:shadow-blue-500/20
                 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               {isLoading ? 'Enviando...' : 'Obtener Enlace de Restablecimiento'}
@@ -253,21 +253,21 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
 
   if (mode === 'passwordResetSent') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a1f] p-4 relative overflow-hidden font-outfit">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[100px] animate-pulse delay-700" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[--color-surface-base] p-4 relative overflow-hidden font-display">
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/20 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-[100px] animate-pulse delay-700" />
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl text-center space-y-6 animate-fade-in">
-          <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle size={40} className="text-green-400" />
+        <div className="bg-white border border-slate-200 dark:bg-[--color-surface-card] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-2xl dark:shadow-none text-center space-y-6 animate-fade-in">
+          <div className="w-20 h-20 bg-green-50 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={40} className="text-green-600 dark:text-green-400" />
           </div>
 
-          <h2 className="text-2xl font-bold text-white">¡Correo Enviado!</h2>
+          <h2 className="text-2xl font-bold text-heading">¡Correo Enviado!</h2>
 
-          <div className="text-gray-300 space-y-2">
+          <div className="text-body space-y-2">
             <p>Hemos enviado un enlace para restablecer tu contraseña a:</p>
-            <p className="font-semibold text-white text-lg">{email}</p>
-            <p className="text-sm text-gray-400 mt-4">Revisa tu bandeja de entrada y sigue las instrucciones.</p>
+            <p className="font-semibold text-heading text-lg">{email}</p>
+            <p className="text-sm text-muted mt-4">Revisa tu bandeja de entrada y sigue las instrucciones.</p>
           </div>
 
           <div className="pt-4">
@@ -277,7 +277,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
                 setError('');
                 setPassword('');
               }}
-              className="w-full py-3 rounded-xl font-bold bg-white text-[#0a0a1f] hover:bg-gray-100 transition-all shadow-lg flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-lg shadow-blue-200 dark:shadow-none flex items-center justify-center gap-2"
             >
               <LogIn size={18} /> Iniciar Sesión
             </button>
@@ -288,7 +288,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
   }
 
   return (
-    <div className="w-full max-w-4xl flex justify-center items-center relative z-10 min-h-[600px] font-outfit">
+    <div className="w-full max-w-4xl flex justify-center items-center relative z-10 min-h-[600px] font-display">
       {/* Clean Radial Gradient matching reference image - No Orbs */}
 
       {/* Main Container */}
@@ -296,26 +296,26 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
 
         {/* Logo/Title Section */}
         <div className="text-center space-y-2">
-          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 drop-shadow-lg tracking-tight">
+          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 drop-shadow-lg tracking-tight">
             Logica Kids
           </h1>
-          <p className="text-gray-400 text-lg font-light tracking-wide">
+          <p className="text-slate-500 dark:text-slate-400 text-lg font-light tracking-wide">
             Domina las matemáticas jugando
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="bg-slate-900 backdrop-blur-xl border border-white/10 p-8 rounded-3xl w-full shadow-2xl">
+        <div className="bg-white border border-slate-200 dark:bg-[--color-surface-card] dark:border-slate-800 backdrop-blur-xl p-8 rounded-3xl w-full shadow-2xl dark:shadow-none">
           {/* Header title removed as requested */}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <div className="relative group">
-                <UserCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-400 transition-colors" size={20} />
+                <UserCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 group-focus-within:text-purple-500 dark:group-focus-within:text-purple-400 transition-colors" size={20} />
                 <input
                   type="text"
                   placeholder="Nombre de Jugador"
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                  className="w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
@@ -323,29 +323,29 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
             )}
 
             <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors" size={20} />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" size={20} />
               <input
                 type="email"
                 placeholder="Correo Electrónico"
-                className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                className="w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
             <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors" size={20} />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" size={20} />
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Contraseña"
-                className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-12 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                className="w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-700 rounded-xl py-3 pl-10 pr-12 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors focus:outline-none"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -356,20 +356,20 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
                 <button
                   type="button"
                   onClick={() => setMode('passwordReset')}
-                  className="text-sm text-blue-400 hover:text-blue-300 font-medium hover:underline"
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium hover:underline"
                 >
                   ¿Olvidaste tu contraseña?
                 </button>
               </div>
             )}
 
-            {error && <p className="text-red-400 text-sm font-medium text-center">{error}</p>}
+            {error && <p className="text-red-500 dark:text-red-400 text-sm font-medium text-center">{error}</p>}
 
             <button
               type="submit"
               disabled={isLoading}
               className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2
-                ${mode === 'login' ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20' : 'bg-purple-600 hover:bg-purple-500 shadow-purple-500/20'}
+                ${mode === 'login' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200 dark:shadow-blue-500/20' : 'bg-purple-600 hover:bg-purple-700 shadow-purple-200 dark:shadow-purple-500/20'}
                 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               {isLoading ? 'Procesando...' : (mode === 'login' ? 'Entrar' : 'Registrarse')} {!isLoading && <ArrowRight size={18} />}
@@ -377,7 +377,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
           </form>
 
           <div className="mt-6 text-center space-y-4">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted">
               {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
               <button
                 onClick={() => {
@@ -387,21 +387,21 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onGuestPlay }) => {
                   setPassword('');
                   setUsername('');
                 }}
-                className="ml-2 text-blue-400 hover:text-blue-300 font-semibold hover:underline"
+                className="ml-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-semibold hover:underline"
               >
                 {mode === 'login' ? 'Regístrate' : 'Inicia Sesión'}
               </button>
             </p>
 
             <div className="flex items-center gap-4 py-2 opacity-70">
-              <div className="h-px bg-white/10 flex-1" />
-              <span className="text-gray-500 text-xs uppercase font-medium">O bien</span>
-              <div className="h-px bg-white/10 flex-1" />
+              <div className="h-px bg-slate-200 dark:bg-white/10 flex-1" />
+              <span className="text-slate-400 dark:text-slate-600 text-xs uppercase font-medium">O bien</span>
+              <div className="h-px bg-slate-200 dark:bg-white/10 flex-1" />
             </div>
 
             <button
               onClick={onGuestPlay}
-              className="w-full py-3 rounded-xl font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors border border-white/10"
+              className="w-full py-3 rounded-xl font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5 transition-colors border border-slate-200 dark:border-slate-800"
             >
               Continuar como Invitado
             </button>

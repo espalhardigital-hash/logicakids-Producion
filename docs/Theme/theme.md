@@ -103,26 +103,62 @@ Cada fase utiliza un color de acento vibrante idéntico en ambos modos:
 
 ## 🛠️ 5. Configuración de Tailwind CSS v4 (`index.css`)
 
-El archivo principal `index.css` de la aplicación define el comportamiento semántico de base e inyecta las tipografías y animaciones de sacudida (`shake`) requeridas.
+El archivo principal `index.css` de la aplicación define el comportamiento semántico de base, variables de color del tema oscuro y clases utilitarias (`.glass-card`, `.text-heading`, etc.).
+
+### 5.1 Variables Semánticas del Tema Oscuro
+
+Tailwind v4 utiliza `@theme` para definir tokens. Se han implementado variables CSS globales para unificar los colores de las superficies oscuras:
 
 ```css
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
   --animate-shake: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-  
-  @keyframes shake {
-    10%, 90% { transform: translate3d(-1px, 0, 0); }
-    20%, 80% { transform: translate3d(2px, 0, 0); }
-    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-    40%, 60% { transform: translate3d(4px, 0, 0); }
-  }
-}
 
+  /* Colores de Superficie (Tema Oscuro) */
+  --color-surface-base: #070b14;
+  --color-surface-card: #162033;
+  --color-surface-deep: #0a0f1c;
+  --color-surface-hover: #1a263d;
+}
+```
+
+### 5.2 Transiciones Globales
+
+Para evitar saltos visuales abruptos al cambiar entre temas, se aplica una transición global a todos los elementos:
+
+```css
 @layer base {
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 font-sans transition-colors duration-300;
-    @apply dark:bg-[#070b14] dark:text-slate-100;
+    @apply bg-slate-50 text-slate-900 font-sans;
+    @apply dark:bg-[--color-surface-base] dark:text-slate-100;
   }
 }
 ```
+
+---
+
+## 🧱 6. Clases Utilitarias (Design System)
+
+Para evitar repetir largas cadenas de clases responsivas (`bg-white dark:bg-[#162033]...`), se han creado clases base en `index.css`:
+
+### 6.1 Superficies y Componentes Glass
+- **`.glass-card`**: Tarjetas elevadas con sombra en modo claro y fondo sólido (`surface-card`) en modo oscuro.
+- **`.glass-panel`**: Contenedores de fondo plano (`bg-slate-50`) que se oscurecen al nivel base en modo oscuro.
+- **`.glass-surface-deep`**: Paneles de fondo profundo para destacar elementos anidados (`surface-deep`).
+- **`.glass-button`**: Botón secundario estandarizado.
+- **`.glass-button-primary`**: Botón principal azul con brillo.
+- **`.glass-input`**: Campo de entrada con bordes responsivos y contraste correcto.
+- **`.glass-overlay`**: Fondo semi-transparente para modales (`backdrop-blur`).
+
+### 6.2 Tipografía Semántica
+- **`.text-heading`**: Para títulos principales (`text-slate-900` → `dark:text-white`).
+- **`.text-body`**: Para párrafos normales (`text-slate-600` → `dark:text-slate-300`).
+- **`.text-muted`**: Para texto secundario (`text-slate-500` → `dark:text-slate-400`).
+- **`.text-faint`**: Para etiquetas diminutas o texto muy sutil (`text-slate-400` → `dark:text-slate-600`).
