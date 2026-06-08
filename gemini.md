@@ -74,6 +74,8 @@ Cualquier otro comando propuesto en PowerShell (ej: `git`, `docker`, `docker com
 
 ### Restricción de Operaciones Git
 * El agente **NUNCA** ejecutará de forma automática comandos que alteren el historial remoto o local como `git commit` o `git push`, a menos que el usuario lo autorice o solicite de forma expresa y explícita en su prompt.
+* **Actualización del Repositorio**: Siempre que el usuario solicite actualizar el repositorio de GitHub (ej. `git push`, `git commit`), el agente operará **exclusivamente sobre la rama de desarrollo** (`desarrollo`). Bajo ninguna circunstancia se actualizará la rama o repositorio de producción a menos que el prompt lo solicite de manera expresa y explícita.
+
 
 ### Acceso y Control de VPS / Docker
 * **Conexión a VPS**: El agente tiene permiso para conectarse a la VPS utilizando los datos y credenciales definidos en los archivos `.env` (ej: `rominejo@34.9.51.225`).
