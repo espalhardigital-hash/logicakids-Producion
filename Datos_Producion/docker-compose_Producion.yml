@@ -4,7 +4,7 @@ services:
   # ===== BACKEND API (FastAPI) =====
   backend:
     build:
-      context: ./backend
+      context: ../LogicaMath/backend
       dockerfile: Dockerfile
     restart: always
     environment:
@@ -31,7 +31,7 @@ services:
   # ===== FRONTEND (React + Nginx) =====
   frontend:
     build:
-      context: ./frontend
+      context: ../LogicaMath/frontend
       dockerfile: Dockerfile
       args:
         # Se actualiza la URL de la API apuntando al nuevo subdominio de producción /api
@@ -44,10 +44,3 @@ services:
       # Configuración del enrutador Web para el nuevo dominio por defecto: logica.espalhar.shop
       - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-web.rule=Host(`${DOMINIO:-logica.espalhar.shop}`)'
       - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-web.entrypoints=websecure'
-      - 'traefik.http.routers.${NOMBRE_APP:-logica_Kids}-web.tls.certresolver=letsencrypt'
-
-networks:
-  traefik_proxy:
-    external: true
-  internal_services:
-    external: true
