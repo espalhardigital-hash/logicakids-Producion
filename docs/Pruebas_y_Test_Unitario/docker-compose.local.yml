@@ -1,20 +1,6 @@
 version: '3.8'
 
 services:
-  # ===== BASE DE DATOS (PostgreSQL) =====
-  base_postgres_general:
-    image: postgres:15-alpine
-    container_name: base_postgres_general_local
-    environment:
-      POSTGRES_USER: logicakids_admin_desarrollo
-      POSTGRES_PASSWORD: logicakids_admin_desarrollo20258187
-      POSTGRES_DB: bd_logicakids_desarrollo
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata_local:/var/lib/postgresql/data
-    restart: always
-
   # ===== BACKEND API (FastAPI) =====
   backend:
     build:
@@ -26,9 +12,9 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://logicakids_admin_desarrollo:logicakids_admin_desarrollo20258187@base_postgres_general:5432/bd_logicakids_desarrollo
-    depends_on:
-      - base_postgres_general
+      - DATABASE_URL=${DATABASE_URL}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: always
 
   # ===== FRONTEND (React + Nginx) =====
@@ -44,6 +30,3 @@ services:
     depends_on:
       - backend
     restart: always
-
-volumes:
-  pgdata_local:

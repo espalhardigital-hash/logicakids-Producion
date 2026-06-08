@@ -26,40 +26,12 @@ import {
   generarReporteConsolidado,
   buscarSolucionPrevia,
 } from './bug-reporter';
-
-// ─── Flag para inicializar una sola vez por ejecución ────────────────
-let ejecucionIniciada = false;
-
-/**
- * Tipos extendidos para los fixtures personalizados.
- */
 type TestFixtures = {
   consoleLogger: BrowserConsoleLogger;
 };
 
-/**
- * Test extendido con fixtures automáticos.
- *
- * Cada test recibe automáticamente:
- * - `consoleLogger`: instancia de BrowserConsoleLogger adjunta a la página
- *
- * Al finalizar cada test:
- * - Si el test FALLÓ → registra el bug en la lista de la ejecución actual
- * - Si hay soluciones previas en el historial → las muestra en consola
- */
 export const test = base.extend<TestFixtures>({
   consoleLogger: async ({ page }, use, testInfo) => {
-    // Inicializar la ejecución (solo la primera vez)
-    if (!ejecucionIniciada) {
-      iniciarEjecucion();
-      ejecucionIniciada = true;
-
-      // Registrar hook para generar el reporte al final de TODA la ejecución
-      process.once('beforeExit', () => {
-        generarReporteConsolidado();
-      });
-    }
-
     // Crear el logger y adjuntarlo a la página
     const logger = new BrowserConsoleLogger(page);
 

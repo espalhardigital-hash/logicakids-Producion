@@ -23,6 +23,12 @@ const REPORTS_DIR = path.resolve(__dirname, '..', 'reportes_bugs');
 const SCREENSHOTS_DIR = path.resolve(REPORTS_DIR, 'screenshots');
 const REPORTE_ULTIMA_EJECUCION = path.resolve(REPORTS_DIR, 'reporte_ultima_ejecucion.md');
 const HISTORIAL_BUGS = path.resolve(REPORTS_DIR, 'historial_bugs.md');
+const TEMP_SESSION_FILE = path.resolve(REPORTS_DIR, 'temp_session.json');
+
+interface SessionData {
+  fechaInicio: string;
+  bugs: BugEntry[];
+}
 
 /**
  * Interfaz para un bug encontrado durante una ejecución.
@@ -99,20 +105,37 @@ function getSeveridadEmoji(sev: string): string {
  * Limpia los bugs acumulados de la ejecución anterior.
  */
 export function iniciarEjecucion(): void {
-  bugsEjecucionActual = [];
-  fechaInicioEjecucion = new Date().toISOString();
+  ensureDirs();
+  const data: SessionData = {
+    fechaInicio: new Date().toISOString(),
+    bugs: []
+  };
+  fs.writeFileSync(TEMP_SESSION_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
 /**
  * Registra un bug encontrado durante la ejecución actual.
- * NO genera archivos todavía — solo acumula en memoria.
+ * Guarda el bug en el archivo de sesión temporal para compartirlo entre workers de Playwright.
  *
  * @param bug - Datos del bug (sin ID, se genera automáticamente)
  */
 export function registrarBug(bug: Omit<BugEntry, 'id'>): string {
+  ensureDirs();
   const id = generateBugId(bug.suite);
   const bugCompleto: BugEntry = { ...bug, id };
-  bugsEjecucionActual.push(bugCompleto);
+
+  let session: SessionData = { fechaInicio: new Date().toISOString(), bugs: [] };
+  if (fs.existsSync(TEMP_SESSION_FILE)) {
+    try {
+      session = JSON.parse(fs.readFileSync(TEMP_SESSION_FILE, 'utf-8'));
+    } catch (e) {
+      // Fallback
+    }
+  }
+
+  session.bugs.push(bugCompleto);
+  fs.writeFileSync(TEMP_SESSION_FILE, JSON.stringify(session, null, 2), 'utf-8');
+
   console.log(`🐛 Bug registrado: ${id} — ${bug.test}`);
   return id;
 }
@@ -121,7 +144,13 @@ export function registrarBug(bug: Omit<BugEntry, 'id'>): string {
  * Retorna la cantidad de bugs registrados en la ejecución actual.
  */
 export function getBugsCount(): number {
-  return bugsEjecucionActual.length;
+  if (fs.existsSync(TEMP_SESSION_FILE)) {
+    try {
+      const session: SessionData = JSON.parse(fs.readFileSync(TEMP_SESSION_FILE, 'utf-8'));
+      return session.bugs.length;
+    } catch (e) {}
+  }
+  return 0;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -141,14 +170,28 @@ export function generarReporteConsolidado(): string | null {
   ensureDirs();
 
   const fechaFin = new Date().toISOString();
+  let sessionBugs: BugEntry[] = [];
+  let fechaInicio = fechaInicioEjecucion || fechaFin;
 
-  if (bugsEjecucionActual.length === 0) {
+  if (fs.existsSync(TEMP_SESSION_FILE)) {
+    try {
+      const session: SessionData = JSON.parse(fs.readFileSync(TEMP_SESSION_FILE, 'utf-8'));
+      sessionBugs = session.bugs;
+      fechaInicio = session.fechaInicio;
+      // Eliminar el archivo de sesión temporal al terminar
+      fs.unlinkSync(TEMP_SESSION_FILE);
+    } catch (e) {
+      console.error('Error al leer temp_session.json:', e);
+    }
+  }
+
+  if (sessionBugs.length === 0) {
     // Si no hubo bugs, generar un reporte limpio
     const contenidoLimpio = `# ✅ Reporte de Última Ejecución — Sin Bugs
 
 | Campo | Valor |
 |---|---|
-| **Fecha inicio** | ${fechaInicioEjecucion || fechaFin} |
+| **Fecha inicio** | ${fechaInicio} |
 | **Fecha fin** | ${fechaFin} |
 | **Bugs encontrados** | 0 |
 
@@ -160,19 +203,19 @@ export function generarReporteConsolidado(): string | null {
   }
 
   // Clasificar bugs por severidad
-  const criticos = bugsEjecucionActual.filter((b) => b.severidad === 'critico');
-  const altos = bugsEjecucionActual.filter((b) => b.severidad === 'alto');
-  const medios = bugsEjecucionActual.filter((b) => b.severidad === 'medio');
-  const bajos = bugsEjecucionActual.filter((b) => b.severidad === 'bajo');
+  const criticos = sessionBugs.filter((b) => b.severidad === 'critico');
+  const altos = sessionBugs.filter((b) => b.severidad === 'alto');
+  const medios = sessionBugs.filter((b) => b.severidad === 'medio');
+  const bajos = sessionBugs.filter((b) => b.severidad === 'bajo');
 
   // Generar el contenido del reporte consolidado
   let contenido = `# 🐛 Reporte de Última Ejecución — Bugs a Corregir
 
 | Campo | Valor |
 |---|---|
-| **Fecha inicio** | ${fechaInicioEjecucion || fechaFin} |
+| **Fecha inicio** | ${fechaInicio} |
 | **Fecha fin** | ${fechaFin} |
-| **Total bugs encontrados** | ${bugsEjecucionActual.length} |
+| **Total bugs encontrados** | ${sessionBugs.length} |
 | 🔴 Críticos | ${criticos.length} |
 | 🟠 Altos | ${altos.length} |
 | 🟡 Medios | ${medios.length} |
@@ -189,15 +232,15 @@ export function generarReporteConsolidado(): string | null {
 
 | # | ID | Severidad | Categoría | Suite | Test | Estado |
 |---|---|---|---|---|---|---|
-${bugsEjecucionActual.map((b, i) => `| ${i + 1} | \`${b.id}\` | ${getSeveridadEmoji(b.severidad)} ${b.severidad} | ${b.categoria} | ${b.suite} | ${b.test} | 🔴 Pendiente |`).join('\n')}
+${sessionBugs.map((b, i) => `| ${i + 1} | \`${b.id}\` | ${getSeveridadEmoji(b.severidad)} ${b.severidad} | ${b.categoria} | ${b.suite} | ${b.test} | 🔴 Pendiente |`).join('\n')}
 
 ---
 
 `;
 
   // Detalle de cada bug
-  for (let i = 0; i < bugsEjecucionActual.length; i++) {
-    const bug = bugsEjecucionActual[i];
+  for (let i = 0; i < sessionBugs.length; i++) {
+    const bug = sessionBugs[i];
     contenido += `## Bug ${i + 1}: \`${bug.id}\`
 
 | Campo | Valor |
@@ -244,7 +287,7 @@ ${bug.errores_consola.join('\n')}
   fs.writeFileSync(REPORTE_ULTIMA_EJECUCION, contenido, 'utf-8');
   console.log(`\n🐛 ═══ REPORTE DE EJECUCIÓN GENERADO ═══`);
   console.log(`   📄 Archivo: ${REPORTE_ULTIMA_EJECUCION}`);
-  console.log(`   🔢 Total bugs: ${bugsEjecucionActual.length}`);
+  console.log(`   🔢 Total bugs: ${sessionBugs.length}`);
   console.log(`   🔴 Críticos: ${criticos.length} | 🟠 Altos: ${altos.length} | 🟡 Medios: ${medios.length} | 🔵 Bajos: ${bajos.length}`);
   console.log(`═════════════════════════════════════════\n`);
 
