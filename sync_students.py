@@ -25,7 +25,7 @@ def fetch_rows(db, sql):
         print(f"Failed to parse JSON: {e}\nOutput was: {output}")
         return []
 
-def insert_rows(db, table, rows):
+def insert_rows(db, table, rows, omit_id=False):
     if not rows:
         return
     
@@ -35,6 +35,8 @@ def insert_rows(db, table, rows):
             cols = []
             vals = []
             for col, val in row.items():
+                if omit_id and col == "id":
+                    continue
                 cols.append(f'"{col}"')
                 if val is None:
                     vals.append("NULL")
@@ -57,30 +59,6 @@ def insert_rows(db, table, rows):
 def main():
     prod_db = "bd_logicakids_producion"
     dev_db = "bd_logicakids_desarrollo"
-    
-    print("Step 1: Reassigning Jhon (ID 4 -> 6) in development DB...")
-    jhon_reassign_sql = """
-    BEGIN;
-    ALTER TABLE progreso_maestria DISABLE TRIGGER ALL;
-    ALTER TABLE intentos DISABLE TRIGGER ALL;
-    ALTER TABLE intento_preguntas DISABLE TRIGGER ALL;
-    ALTER TABLE pool_asignado_alumno DISABLE TRIGGER ALL;
-    ALTER TABLE alumnos DISABLE TRIGGER ALL;
-
-    UPDATE progreso_maestria SET alumno_id = 6 WHERE alumno_id = 4;
-    UPDATE intentos SET alumno_id = 6 WHERE alumno_id = 4;
-    UPDATE intento_preguntas SET alumno_id = 6 WHERE alumno_id = 4;
-    UPDATE pool_asignado_alumno SET alumno_id = 6 WHERE alumno_id = 4;
-    UPDATE alumnos SET id = 6 WHERE id = 4;
-
-    ALTER TABLE progreso_maestria ENABLE TRIGGER ALL;
-    ALTER TABLE intentos ENABLE TRIGGER ALL;
-    ALTER TABLE intento_preguntas ENABLE TRIGGER ALL;
-    ALTER TABLE pool_asignado_alumno ENABLE TRIGGER ALL;
-    ALTER TABLE alumnos ENABLE TRIGGER ALL;
-    COMMIT;
-    """
-    query_db(dev_db, jhon_reassign_sql)
     
     print("Step 2: Cleaning up existing Eloisa and Joaquin records in development DB...")
     cleanup_sql = """
@@ -149,10 +127,10 @@ def main():
     print("Step 6: Copying student progress, attempts, and history records...")
     
     progreso_data = fetch_rows(prod_db, "SELECT * FROM progreso_maestria WHERE alumno_id IN (4, 5)")
-    insert_rows(dev_db, "progreso_maestria", progreso_data)
+    insert_rows(dev_db, "progreso_maestria", progreso_data, omit_id=True)
     
     intentos_data = fetch_rows(prod_db, "SELECT * FROM intentos WHERE alumno_id IN (4, 5)")
-    insert_rows(dev_db, "intentos", intentos_data)
+    insert_rows(dev_db, "intentos", intentos_data, omit_id=True)
     
     intento_preguntas_data = fetch_rows(prod_db, "SELECT * FROM intento_preguntas WHERE alumno_id IN (4, 5)")
     insert_rows(dev_db, "intento_preguntas", intento_preguntas_data)
@@ -161,7 +139,7 @@ def main():
     insert_rows(dev_db, "intento_pasos", intento_pasos_data)
     
     pool_data = fetch_rows(prod_db, "SELECT * FROM pool_asignado_alumno WHERE alumno_id IN (4, 5)")
-    insert_rows(dev_db, "pool_asignado_alumno", pool_data)
+    insert_rows(dev_db, "pool_asignado_alumno", pool_data, omit_id=True)
     
     print("Step 7: Synchronizing database auto-increment sequences in development...")
     sequences = [

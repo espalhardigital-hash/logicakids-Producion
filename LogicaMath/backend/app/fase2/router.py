@@ -292,13 +292,13 @@ async def get_fase2_dashboard(
             ProgresoMaestria.fase_id == FASE2_ID,
         ))
     )
-    progresos = {(p.seccion, p.operacion): p for p in result.scalars().all()}
+    progresos = {(p.seccion, p.operacion.value if hasattr(p.operacion, "value") else p.operacion): p for p in result.scalars().all()}
 
     # Cargar configuraciones
     result = await db.execute(
         select(ConfiguracionProgreso).where(ConfiguracionProgreso.fase_id == FASE2_ID)
     )
-    configs = {(c.seccion, c.operacion): c for c in result.scalars().all()}
+    configs = {(c.seccion, c.operacion.value if hasattr(c.operacion, "value") else c.operacion): c for c in result.scalars().all()}
 
     global_cfg = await _get_global_config(db)
     pl_cfg = global_cfg.get("practica_libre", {})
