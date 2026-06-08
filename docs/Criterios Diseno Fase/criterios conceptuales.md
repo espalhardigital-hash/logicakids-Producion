@@ -1,5 +1,7 @@
 # Documento Rector para la Creación de Fases — LogicaKids Pro
 
+> **Versión:** 3.0 | **Última actualización:** 2026-06-08 | **Prioridad documental:** 1 (Máxima)
+
 > Nota de autoridad documental: Este documento es la fuente principal de verdad pedagógica y conceptual de LogicaKids Pro. En caso de conflicto, prevalece primero este Documento Rector Conceptual, luego el Blueprint Técnico, luego el Manual del Administrador y finalmente la Guía UX/UI.
 
 ---
@@ -192,7 +194,7 @@ La meta de la práctica libre no es exigir perfección rígida, sino construir d
 
 Al terminar los niveles de práctica, el alumno transita de un entorno de **Entrenamiento** a un entorno de **Evaluación Estricta**. Aquí **se elimina por completo el Bucle Espejo y no existe el Bloque de Rescate**. 
 
-Ante un error en la zona de desafíos, la respuesta incorrecta se computa directamente, no se dan variantes espejo de segunda oportunidad y el temporizador sigue corriendo de forma implacable. El alumno debe demostrar su dominio bajo presión de tiempo y cumplir con el porcentaje de precisión mínima estándar (90%) para poder aprobar, enfrentando la expulsión por **Early Exit** si supera el umbral máximo de errores permitidos.
+Ante un error en la zona de desafíos, la respuesta incorrecta se computa directamente, no se dan variantes espejo de segunda oportunidad y el temporizador sigue corriendo de forma implacable. El alumno debe demostrar su dominio bajo presión de tiempo y cumplir con el porcentaje de precisión mínima (cuyo estándar por defecto es **90%**, pero es **dinámicamente configurable desde el Panel de Administrador**) para poder aprobar, enfrentando la expulsión por **Early Exit** si supera el umbral máximo de errores permitidos.
 
 Todo módulo debe contener exactamente estos 3 desafíos indexados en el pool estático:
 
@@ -205,7 +207,10 @@ Todo módulo debe contener exactamente estos 3 desafíos indexados en el pool es
 
 ### 6.1. Filosofía del Tiempo Variable
 
-Los tiempos están calculados de forma inversa a la asistencia de la interfaz:
+> [!IMPORTANT]
+> **Flexibilidad de Configuración:** Los tiempos y umbrales presentados en la tabla anterior representan el **estándar pedagógico de diseño por defecto**. Todos estos parámetros (`tiempo_limite`, `porcentaje_aprobacion`, `cantidad_requerida`) pueden ser **modificados libremente desde el Panel de Administrador**. El backend siempre debe consumir los valores dinámicos guardados en la tabla `configuraciones_progreso` (o su cascada de resolución), y **nunca** debe utilizar valores "hardcoded" (rígidos) en el código.
+
+Los tiempos por defecto están calculados de forma inversa a la asistencia de la interfaz:
 
 * Desafío 1: menos tiempo porque la opción múltiple permite descarte visual (25s estándar / 30s en Módulos 3-8).
 * Desafío 2: más tiempo por mayor complejidad conceptual (40s estándar / 45s en Módulos 3-8).
@@ -266,7 +271,7 @@ Para superar y aprobar un Desafío, el alumno debe cumplir estrictamente ambas c
 1. `completitud_requerida = 100%` de las preguntas resueltas.
 2. `precision_minima = porcentaje_aprobacion`, por defecto 90%.
 
-El servidor debe abortar la sesión automáticamente (Early Exit) si el alumno alcanza un número de errores que vuelve matemáticamente imposible alcanzar el 90% de precisión.
+El servidor debe abortar la sesión automáticamente (Early Exit) si el alumno alcanza un número de errores que vuelve matemáticamente imposible alcanzar el porcentaje de precisión mínima exigido en la configuración (por defecto 90%).
 * **Reset y Limpieza Total en Salida Temprana:** Al gatillarse el Early Exit, el backend realiza un reset absoluto de la sesión de progreso (`aciertos_acumulados = 0`, `porcentaje_actual = 0`, `intentos_totales = 0`) y purga de forma segura todos los intentos guardados para ese desafío (`Intento` e `IntentoPregunta` si aplica) para evitar colisiones lógicas y permitir al alumno volver a intentar el nivel desde cero de forma totalmente limpia y motivadora.
 * **Robustez en el Conteo de Errores de Sesión (Consistencia sin Aciertos):** Para evitar que el contador de errores consecutivos de sesión quede atascado en `1` cuando el alumno inicia un desafío con `0` aciertos acumulados (lo que causaría que el bucle de validación omitiera los errores previos), el backend evalúa incondicionalmente todos los intentos anteriores de la sesión actual. De esta manera, el Early Exit se activa de forma determinista y consistente al cometer el número límite de fallas (por ejemplo, 3er error en Desafíos 1 y 2, y 2do error en Desafío Final).
 
@@ -282,6 +287,9 @@ El servidor debe abortar la sesión automáticamente (Early Exit) si el alumno a
 
 > Nota de flexibilidad operativa: La volumetría, los límites de tiempo, los porcentajes de aprobación, la completitud requerida y los umbrales de Early Exit son parámetros editables desde `configuraciones_progreso`. Los valores de este documento representan la configuración pedagógica estándar, no valores hardcoded. El umbral de Early Exit (Tabla Maestra de Tolerancia) es recalculado de forma determinista por el backend con base en la `cantidad_requerida` configurada en el momento de iniciar la prueba, respetando siempre el principio de tolerancia proporcional del 90%.
 
+> [!IMPORTANT]
+> **Excepción de la Tabla de Tolerancia:** El Desafío Mixto de Fase (20 preguntas) utiliza Early Exit al **2do error** (no al 3er error como indicaría la tabla genérica), porque su nivel de dificultad "Élite" requiere un umbral de precisión más estricto. La tabla §6 de desafíos prevalece sobre la tabla genérica §7.3 cuando hay conflicto para un tipo de desafío específico.
+
 > **Regla de Derecho Adquirido (Grandfathering):** Si el administrador modifica dinámicamente los parámetros pedagógicos (ej. aumentar la `cantidad_requerida` de 15 a 20 o cambiar `tiempo_limite`), el backend dispara un recálculo masivo. Los alumnos que ya habían alcanzado el estado `APROBADO` mantendrán su estado intacto y su `porcentaje_actual` se reajustará forzadamente a `100%`, evitando degradaciones del progreso debido a políticas administrativas posteriores.
 
 ### 7.4. Flexibilidad Pedagógica y Vías de Avance (Anulación Manual / Override)
@@ -289,7 +297,7 @@ El servidor debe abortar la sesión automáticamente (Early Exit) si el alumno a
 El sistema pedagógico de **LogicaKids Pro** está estructurado para diferenciar rigurosamente la etapa de entrenamiento de la etapa de evaluación:
 
 1. **En Práctica Libre (Entrenamiento Antifrustración):** El objetivo exclusivo es que el estudiante practique y asimile activamente los microconceptos. **No se exige ningún umbral o porcentaje de precisión mínima para aprobar**. El estudiante aprueba de forma automática y desbloquea el siguiente nivel *del mismo módulo* con solo alcanzar el **100% de completitud** de la batería asignada, independientemente de si responde correctamente o comete errores y avanza a través de los bypasses explicativos. La precisión real (con un estándar sugerido de 90%) se registra e informa **exclusivamente con fines estadísticos y de diagnóstico pedagógico para el Tutor IA y el Panel del Administrador**, sin actuar jamás como un bloqueo para el avance del alumno.
-2. **En la Zona de Desafíos (Evaluación Estricta):** El avance automático exige de forma rígida cumplir tanto el **100% de completitud** como alcanzar una precisión real **igual o superior al porcentaje de aprobación (90%)**, además de superar el cronómetro y no incurrir en expulsión por Early Exit.
+2. **En la Zona de Desafíos (Evaluación Estricta):** El avance automático exige de forma rígida cumplir tanto el **100% de completitud** como alcanzar una precisión real **igual o superior al porcentaje de aprobación configurado (por defecto 90%)**, además de superar el cronómetro y no incurrir en expulsión por Early Exit.
 
 Por tanto, el sistema pedagógico implementa dos vías legítimas y paralelas para el avance de un estudiante:
 
@@ -304,7 +312,7 @@ Por tanto, el sistema pedagógico implementa dos vías legítimas y paralelas pa
      * **Aprobar (`approve`):** Declara manualmente un nivel o módulo como `APROBADO` sin que el alumno complete la práctica o los desafíos. El backend simula un **100% de completitud** y un **90% de porcentaje de precisión**, marcando la bandera `aprobado_por_admin = true`, y guardando de forma obligatoria un *Motivo pedagógico* y la *Fecha* de intervención.
         * **Regla Crítica de Aprobación Retrógada (Retro-Approval):** Para evitar colisiones lógicas al activar desafíos y garantizar la integridad de la progresión lineal, **la aprobación manual de un bloque aprueba automáticamente todos los niveles y módulos anteriores de esa fase**. El backend actualiza en reversa el estado de todos los prerrequisitos anteriores a `APROBADO` en `ProgresoMaestria` (simulando 100% completitud y 90% precisión).
         * Esta aprobación en reversa desencadena la cascada estándar para habilitar el bloque inmediatamente posterior de forma segura.
-     * **Restablecer o Bloquear (`lock` o `reset`):** Regresa un nivel o módulo al estado `BLOQUEADO` o reinicializa su progreso a cero (limpiando contadores de fallas consecutivas y reiniciando barras de avance), obligando al estudiante a cursarlo de nuevo.
+     * **Restablecer / Bloquear (`reset`):** Acción única que regresa un nivel o módulo al estado `BLOQUEADO` y reinicializa completamente su progreso a cero (limpiando contadores de fallas consecutivas, aciertos acumulados y reiniciando barras de avance), obligando al estudiante a cursarlo de nuevo. En la API, se envía como `accion: "reset"`. Los términos `lock` y `reset` son sinónimos funcionales; ambos producen el mismo efecto en la base de datos.
 
 #### Regla Crítica de Integridad y Sincronización de Datos:
 Cualquier intervención manual de override que cambie el estado de un bloque o nivel en la tabla autoritativa `ProgresoMaestria` **debe disparar obligatoriamente una sincronización inmediata con el espejo de compatibilidad** `user.settings["unlockedLevels"]` (por ejemplo, asignando el valor `6` en caso de aprobación total, `1` en caso de liberación activa, o `0` en caso de bloqueo). Esto garantiza que el frontend heredado visualice coherentemente el estado administrativo sin desajustes de interfaz.

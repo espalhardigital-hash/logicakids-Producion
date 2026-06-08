@@ -1,5 +1,9 @@
 # Manual Técnico y de Arquitectura: Panel de Administrador (Superusuario)
 
+> **Versión:** 3.0 | **Última actualización:** 2026-06-08 | **Prioridad documental:** 3
+>
+> **Dependencia:** Las reglas pedagógicas (Server-Authoritative, ProgresoMaestria, aprobación, Bucle Espejo, Early Exit, Overrides) están definidas en el [Documento Rector](criterios%20conceptuales.md). Los modelos de datos técnicos están en el [Blueprint](blueprint.md). Este manual se enfoca exclusivamente en la interfaz y lógica del Panel de Administrador.
+
 > Nota de autoridad documental: Este documento define la implementación del Panel de Administrador. En caso de conflicto, prevalece primero el Documento Rector Conceptual, luego el Blueprint Técnico, luego este Manual del Administrador y finalmente la Guía UX/UI.
 
 ---
@@ -20,7 +24,7 @@ El Panel de Administrador permite:
 * revisar analíticas de intentos;
 * mantener coherencia entre contenido, progreso y reglas didácticas.
 
-La fuente de verdad del progreso académico es `ProgresoMaestria`. El objeto `user.settings["unlockedLevels"]` existe únicamente como espejo de compatibilidad visual para componentes heredados del frontend. Ninguna decisión de aprobación, bloqueo, desbloqueo o avance debe depender exclusivamente de `user.settings`.
+> **Principios fundamentales:** El backend es Server-Authoritative. La fuente de verdad del progreso académico es `ProgresoMaestria`. Ver [Documento Rector](criterios%20conceptuales.md) §1 para más detalles.
 
 ---
 
@@ -217,20 +221,7 @@ Herramienta de tutoría y control para intervenir el progreso académico de un e
 
 La interfaz expone para cada bloque tres controles críticos de anulación pedagógica, agrupados en un submódulo de seguridad:
 
-1. **Liberar (`unlock`):**
-   * **Propósito:** Abrir el bloque seleccionado para que el estudiante pueda jugar e interactuar con la teoría y práctica directamente, sin haber aprobado los bloques anteriores.
-   * **Efecto DB:** El backend establece el estado del bloque en `EN_PROGRESO` en `ProgresoMaestria` y coloca `desbloqueado_por_admin = true`.
-   * **Espejo Legacy:** Sincroniza `user.settings["unlockedLevels"]` asignándole el valor `1` para el nivel correspondiente.
-2. **Aprobar (`approve`):**
-   * **Propósito:** Aprobar de forma directa y por decreto pedagógico el bloque seleccionado (por ejemplo, para alumnos con conocimientos avanzados previos).
-   * **Efecto DB:** El backend establece el estado del bloque en `APROBADO` en `ProgresoMaestria`, coloca `aprobado_por_admin = true`, simula un `porcentaje_precision = 90` y `completado = true`.
-   * **Regla de Aprobación Retrógada (Retro-Approval):** Al aplicar la aprobación manual, el motor del backend **actualizará y aprobará automáticamente todos los niveles y módulos anteriores de esa fase** para ese estudiante, resguardando la integridad lineal del avance y eliminando colisiones al habilitar los desafíos.
-   * **Cascada Automática:** El motor del backend calcula inmediatamente el bloque siguiente lineal y lo cambia al estado `EN_PROGRESO` (`desbloqueado = true`), abriendo la cascada estándar de avance.
-   * **Espejo Legacy:** Sincroniza `user.settings["unlockedLevels"]` asignándole el valor `6` para el nivel correspondiente (e integrando en reversa el valor `6` para todas las claves namespaced de los niveles anteriores de esa fase).
-3. **Restablecer / Bloquear (`reset` / `lock`):**
-   * **Propósito:** Limpiar todo el progreso de un alumno en un nivel o bloquear su acceso para obligarlo a reevaluarse o repetir la práctica.
-   * **Efecto DB:** El backend reinicia todos los contadores de progreso (`aciertos_acumulados = 0`, `intentos_totales = 0`, `fallas_consecutivas_bucle = 0`, `completado = false`), establece el estado a `BLOQUEADO` y limpia las banderas `aprobado_por_admin` y `desbloqueado_por_admin`.
-   * **Espejo Legacy:** Sincroniza `user.settings["unlockedLevels"]` asignándole el valor `0` para el nivel correspondiente.
+> **Acciones de Override (Unlock, Approve, Reset):** Ver [Documento Rector](criterios%20conceptuales.md) §7.4 para la definición exacta de los efectos en base de datos, regla de aprobación retrógada y sincronización con el espejo legacy. El panel admin expone estos 3 controles.
 
 ### 6.2.b Acciones en Lote (Bulk Overrides por Módulo/Fase)
 Para facilitar la gestión administrativa, la plataforma soporta acciones en lote a nivel de Módulo o Fase completa:
@@ -368,7 +359,7 @@ Campos:
 * `porcentaje_actual`;
 * `completitud_actual`;
 * `aprobado_por_admin`;
-* **Derecho Adquirido (Grandfathering):** Si un bloque ya alcanzó el estado `APROBADO`, y el administrador modifica posteriormente los parámetros pedagógicos (ej. aumenta la cantidad requerida en `configuraciones_progreso`), el progreso del alumno NO se degrada. El backend fuerza `porcentaje_actual = 100%` y mantiene el estado `APROBADO` para ese alumno, respetando su esfuerzo previo.
+* **Derecho Adquirido (Grandfathering):** Ver [Documento Rector](criterios%20conceptuales.md) §7.3.
 
 ### 8.3. Tabla `pool_asignado_alumno`
 
@@ -406,89 +397,9 @@ Campos:
 
 ---
 
-## 9. Modelo de Datos de Contenido Pedagógico (Tablas Segmentadas `fase{X}_...`)
+## 9. Modelo de Datos de Contenido Pedagógico
 
-Además de configuración y progreso, el panel administra contenido pedagógico en tablas físicas independientes y aisladas para cada Fase `X`.
-
-### 9.1. Tabla `fase{X}_teoria_pool`
-
-Almacena contenido teórico pre-renderizado e interactivos de evocación para la Fase `X`.
-
-Campos:
-
-* `fase_id`;
-* `modulo_id`;
-* `nivel_id`;
-* `titulo`;
-* `bienvenida_superpoder`;
-* `cuerpo_teoria`;
-* `trampa_advertencia`;
-* `diccionario_nivel`;
-* `ejemplo_guiado`;
-* `interactivos_desbloqueo`.
-
-### 9.2. Tabla `fase{X}_practica_pool`
-
-Almacena preguntas de entrenamiento con Bucle Espejo y Tutor Invisible para la Fase `X`.
-
-Campos:
-
-* `fase_id`;
-* `modulo_id`;
-* `nivel_id`;
-* `seccion`;
-* `estructura_padre_id`;
-* `operacion`;
-* `enunciado_visual`;
-* `respuesta_correcta`;
-* `explicacion_profunda`;
-* `datos_numericos`;
-* `modo_interaccion`;
-* `requiere_subrayado`;
-* `tokens_texto`;
-* `tokens_correctos`.
-
-### 9.3. Tabla `fase{X}_desafios_pool`
-
-Almacena preguntas de evaluación cronometrada para la Fase `X`.
-
-Campos:
-
-* `fase_id`;
-* `modulo_id`;
-* `desafio_id`;
-* `seccion`;
-* `tipo_segmento`;
-* `tipo_pregunta`;
-* `enunciado_visual`;
-* `respuesta_correcta`;
-* `datos_numericos`;
-* `modo_interaccion`;
-* `requiere_subrayado`;
-* `tokens_texto`;
-* `tokens_correctos`.
-
-### 9.4. Tabla `fase{X}_alternativas_desafios_pool`
-
-Almacena alternativas de opción múltiple para desafíos, vinculada a `fase{X}_desafios_pool`.
-
-Campos:
-
-* `desafio_id`;
-* `texto`;
-* `texto_opcion`;
-* `es_correcta`;
-* `orden`;
-* `tipo_error`.
-
-### 9.5. Tabla `fase{X}_respuestas_erroneas`
-
-Almacena mapeos heurísticos para el Tutor Invisible, vinculada a `fase{X}_practica_pool`.
-
-Campos:
-
-* `pregunta_id`;
-* `mapeo_errores`.
+> **Especificación completa:** El esquema de las tablas segmentadas (`fase{X}_teoria_pool`, `fase{X}_practica_pool`, `fase{X}_desafios_pool`, etc.) está definido en el [Blueprint Técnico](blueprint.md) §3. El panel administrador consulta estas tablas dinámicamente según la fase seleccionada.
 
 ---
 
@@ -538,6 +449,8 @@ Cuando un estudiante inicia una partida, el backend debe resolver dinámicamente
 3. Configuración global de plataforma.
 
 Ejemplo conceptual:
+
+> **Nota Técnica:** El siguiente bloque de código está escrito en sintaxis TypeScript para fácil comprensión de la estructura lógica, pero **esta cascada de resolución se ejecuta estrictamente en el Backend (Python/FastAPI)** antes de enviar la configuración al cliente, para asegurar la autoridad del servidor (Server-Authoritative).
 
 ```typescript
 const resolveActiveParams = () => {

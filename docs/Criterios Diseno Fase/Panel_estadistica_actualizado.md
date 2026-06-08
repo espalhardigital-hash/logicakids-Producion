@@ -1,5 +1,9 @@
 # Manual Técnico y de Arquitectura: Panel de Estadísticas y Resultados (Mi Progreso & Tutoría IA)
 
+> **Versión:** 3.0 | **Última actualización:** 2026-06-08 | **Prioridad documental:** 5
+>
+> **Dependencia:** Las reglas de aprobación, desbloqueo y progresión están definidas en el [Documento Rector](criterios%20conceptuales.md) §7. Los Overrides administrativos están en el [Manual del Administrador](administrador.md) §6. Este documento se enfoca exclusivamente en la visualización del progreso y la pantalla de resultados.
+
 > Nota de autoridad documental: Este documento define la visualización del progreso del alumno y la pantalla de resultados. No define reglas de aprobación ni desbloqueo. En caso de conflicto, prevalece primero el Documento Rector Conceptual, luego el Blueprint Técnico, luego el Manual del Administrador y finalmente este documento de estadísticas.
 
 ---
@@ -10,22 +14,13 @@ Este documento detalla el diseño, la configuración de datos, la integración c
 
 El Panel de Estadísticas es una interfaz de lectura, análisis y motivación para el alumno. Su función es mostrar progreso, resultados, historial, recomendaciones y estados académicos ya resueltos por el backend.
 
-### 1.1. Regla de autoridad
+> **Principios Fundamentales:** Ver [Documento Rector](criterios%20conceptuales.md) §1 para las reglas sobre la autoridad del backend (`Server-Authoritative`) y la fuente de verdad (`ProgresoMaestria`). El frontend del alumno no calcula aprobación ni modifica el progreso.
 
-El frontend del alumno no calcula aprobación, no desbloquea niveles, no gradúa fases y no modifica el progreso académico real.
+### 1.2. Representación Visual de las Vías de Avance
 
-La fuente de verdad del progreso académico es `ProgresoMaestria`. La bitácora de respuestas individuales se registra en `intentos`. Cualquier espejo visual heredado como `user.settings["unlockedLevels"]` solo puede sincronizarse desde el backend y nunca debe actuar como fuente principal.
+> **Vías de Avance:** Las reglas pedagógicas para avance automático (Práctica Libre vs Desafíos) y override administrativo están definidas en el [Documento Rector](criterios%20conceptuales.md) §7.4.
 
-### 1.2. Vías legítimas de avance
-
-El sistema reconoce dos vías de avance académico:
-
-1. **Avance automático por desempeño:** El backend aprueba o desbloquea bloques automáticamente basándose en las reglas pedagógicas de cada etapa:
-   * **En Práctica Libre (Entrenamiento Antifrustración):** Se aprueba y desbloquea el siguiente nivel de forma automática cuando el alumno alcanza el **100% de completitud** en la batería de práctica, independientemente de los errores cometidos o de los bypasses explicativos activados. La precisión de referencia (90%) sirve exclusivamente para diagnóstico y reportería estadística.
-   * **En Zona de Desafíos (Evaluación Estricta):** El avance automático exige de forma rígida cumplir tanto el **100% de completitud** como un **porcentaje de precisión ≥90%** (sin haber incurrido en Early Exit).
-2. **Intervención manual por administrador (Override):** Un administrador autorizado (Superusuario/Tutor) puede liberar (`unlock`), aprobar (`approve`) o bloquear/restablecer (`reset`/`lock`) módulos, niveles o desafíos específicos para un alumno concreto.
-
-El Panel de Estadísticas ("Mi Progreso") debe reflejar ambas situaciones con absoluta claridad visual y transparencia. Los bloques superados por desempeño ordinario lucirán una aureola dorada, mientras que los bloques intervenidos por administración mostrarán marcos cromáticos cian, distintivos especiales e información detallada de la tutoría (motivo, fecha y firma del autorizador), garantizando la transparencia para los padres y tutores.
+El Panel de Estadísticas ("Mi Progreso") debe reflejar ambas vías con absoluta claridad visual y transparencia. Los bloques superados por desempeño ordinario lucirán una aureola dorada, mientras que los bloques intervenidos por administración mostrarán marcos cromáticos cian, distintivos especiales e información detallada de la tutoría (motivo, fecha y firma del autorizador), garantizando la transparencia para los padres y tutores.
 
 ---
 
@@ -111,9 +106,7 @@ Cada bloque debe mostrar:
 * `fase_id`, `modulo_id`, `nivel_id`, `desafio_id` y `seccion` como metadatos técnicos internos;
 * precisión (`porcentaje_actual`);
 * completitud (`completitud_actual`);
-* estado (`BLOQUEADO`, `EN_PROGRESO`, `APROBADO`):
-  * En Práctica Libre, el estado pasa a `APROBADO` al alcanzar el **100% de completitud**, independientemente de la precisión obtenida.
-  * En Zona de Desafíos, exige alcanzar el **100% de completitud Y precisión ≥90%** sin haber sido expulsado por Early Exit.
+* estado (`BLOQUEADO`, `EN_PROGRESO`, `APROBADO`): *Ver [Documento Rector](criterios%20conceptuales.md) §7.1 para las reglas de estado.*
 * origen del estado: automático, liberado por admin, aprobado por admin, bloqueado por admin o restablecido por admin;
 * fecha de última actividad;
 * indicadores visuales de Bucle Espejo, Rescate o Early Exit si aplican.

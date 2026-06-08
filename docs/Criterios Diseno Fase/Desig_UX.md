@@ -1,5 +1,9 @@
 # Arquitectura Integral y Estándares UX/UI — LogicaKids Pro
 
+> **Versión:** 3.0 | **Última actualización:** 2026-06-08 | **Prioridad documental:** 4
+>
+> **Dependencia:** Las reglas pedagógicas y de progresión están definidas en el [Documento Rector](criterios%20conceptuales.md). Los modelos de datos y endpoints están en el [Blueprint](blueprint.md). Esta guía se enfoca exclusivamente en experiencia visual, navegación y comportamiento de interfaz.
+
 > Nota de autoridad documental: Este documento define la experiencia visual, navegación y comportamiento de interfaz. En caso de conflicto, prevalece primero el Documento Rector Conceptual, luego el Blueprint Técnico, luego el Manual del Administrador y finalmente esta Guía UX/UI.
 
 ---
@@ -18,16 +22,7 @@ La plataforma se construye sobre dos pilares complementarios.
 
 ### 2.1. Filosofía Sistema-Céntrica
 
-La estructura y la verdad de los datos lo son todo. El frontend obedece al motor pedagógico del backend.
-
-Reglas:
-
-* el backend decide preguntas;
-* el backend valida respuestas;
-* el backend controla progreso;
-* el backend activa rescate;
-* el backend aplica Early Exit;
-* el frontend solo renderiza y envía interacciones.
+> **Principio Server-Authoritative:** Ver [Documento Rector](criterios%20conceptuales.md) §1 para las reglas sobre cómo el backend controla la progresión, validación y rescate, mientras que el frontend obedece y renderiza.
 
 ### 2.2. Filosofía Usuario-Céntrica
 
@@ -69,19 +64,7 @@ Los nombres `faseId`, `moduloId` y `nivelId` deben usarse de forma consistente p
 
 ### 3.2. API Canónica de Juego y Enrutamiento de Pools Segmentados
 
-El motor de juego del cliente interactúa exclusivamente con endpoints server-authoritative normalizados y estructurados por fase:
-
-```text
-GET  /api/fases/{fase_id}/dashboard
-GET  /api/fases/{fase_id}/pregunta
-POST /api/fases/{fase_id}/responder
-POST /api/fases/{fase_id}/cerrar-rescate
-```
-
-#### Transparencia de Pools en Frontend:
-Bajo esta arquitectura de aislamiento, el enrutador del backend intercepta el `{fase_id}` de la URL y dirige internamente la consulta a las tablas físicas segmentadas correspondientes (ej: `fase{fase_id}_practica_pool`). Esta separación física es enteramente transparente para el cliente frontend, el cual procesa los payloads estandarizados y unificados sin conocer los detalles de particionamiento subyacentes.
-
-No se deben usar endpoints sueltos como `/pregunta`, `/responder`, `/cerrar-rescate` o `/pedagogia` como rutas oficiales. Si existen en código heredado, deben considerarse rutas legacy y migrarse al patrón `/api/fases/{fase_id}/...`.
+> **Especificación completa:** Ver [Blueprint Técnico](blueprint.md) §6.1 para la definición de los endpoints canónicos (`/api/fases/{fase_id}/...`) y la transparencia de pools segmentados.
 
 ### 3.3. Estado Global
 
@@ -89,7 +72,7 @@ Toda la lógica de sesión, progreso de fase, parámetros de juego e hidratació
 
 El frontend no calcula estado académico. Solo refleja el JSON entregado por backend.
 
-La fuente de verdad del progreso es `ProgresoMaestria`. El objeto `user.settings["unlockedLevels"]` existe únicamente como espejo de compatibilidad visual para componentes heredados.
+> **Fuente de Verdad:** Ver [Documento Rector](criterios%20conceptuales.md) §1 para las reglas sobre `ProgresoMaestria` vs `user.settings["unlockedLevels"]`.
 
 ---
 
@@ -319,7 +302,7 @@ Las fases se desbloquean dinámicamente según `ProgresoMaestria` y el dashboard
 | **5** | Geometría Plana | Figuras 2D, perímetros y áreas. | Canvas espaciales y manipulación visual. |
 | **6** | Geometría Espacial | Visualización 3D, volumen y cuerpos geométricos. | CSS/HTML 3D. |
 | **7** | Coordenadas y Trayectos | Plano cartesiano, rutas y desplazamientos. | Grillas cartesianas. |
-| **8** | Estadística y Probabilidad | Lectura de datos, azar, comparación y predicción. | Gráficos interactivos y simulaciones. |
+| **8** | Probabilidad, Combinatoria y Lógica | Casos posibles, patrones de secuencias, lectura de datos y razonamiento abstracto. | Gráficos interactivos y simulaciones. |
 | **9** | Simulacro Final Pedro II | Integración completa de contenidos del examen. | Evaluación mixta con cronómetro y análisis de errores. |
 
 > Nota de alcance: El mapa global contempla 9 fases. Las Fases 1 a 3 representan el núcleo actualmente construido y configurable desde el panel administrativo. Las Fases 4 a 9 pueden mostrarse visualmente como fases futuras, bloqueadas o en desarrollo hasta que su contenido relacional esté completamente implementado.
@@ -378,7 +361,7 @@ La experiencia debe contemplar:
 
 ## 12. Reglas Finales de Coherencia UX
 
-* No revelar respuesta final antes del rescate.
+* No revelar respuesta correcta en la Zona de Desafíos (en Práctica Libre sí se revela inmediatamente tras cada error, ver §5.2).
 * No permitir avanzar en teoría sin completar interactivos.
 * No permitir que el frontend calcule progreso.
 * No mostrar información interna como `es_correcta`.

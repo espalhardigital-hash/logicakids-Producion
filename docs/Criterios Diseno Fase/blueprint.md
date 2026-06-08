@@ -1,5 +1,9 @@
 # Blueprint de Implementación para Futuras Fases — LogicaKids Pro
 
+> **Versión:** 3.0 | **Última actualización:** 2026-06-08 | **Prioridad documental:** 2
+>
+> **Dependencia:** Las reglas pedagógicas de aprobación, desbloqueo, Early Exit, Bucle Espejo y Overrides están definidas en el [Documento Rector](criterios%20conceptuales.md). Este blueprint las implementa sin redefinirlas.
+
 > Nota de autoridad documental: Este documento traduce el Documento Rector Conceptual a una guía técnica de implementación. En caso de conflicto, prevalece primero el Documento Rector Conceptual, luego este Blueprint Técnico, luego el Manual del Administrador y finalmente la Guía UX/UI.
 
 ---
@@ -8,9 +12,7 @@
 
 Este documento sirve como guía maestra y plantilla técnica para la replicación y creación estandarizada de futuras fases en LogicaKids Pro. La arquitectura de aprendizaje sigue un patrón repetitivo, robusto y altamente parametrizado: cualquier nueva fase debe implementarse respetando la estructura descrita aquí.
 
-El backend es **Server-Authoritative**. El frontend no calcula aprobación, respuestas correctas, desbloqueos, errores, avance, Early Exit ni rescates. El frontend renderiza el estado que recibe del backend.
-
-La fuente de verdad del progreso académico es `ProgresoMaestria`. El objeto `user.settings["unlockedLevels"]` existe únicamente como espejo de compatibilidad visual para componentes heredados del frontend. Ninguna decisión de aprobación, bloqueo, desbloqueo o avance debe depender exclusivamente de `user.settings`.
+> **Principios fundamentales (ver [Documento Rector](criterios%20conceptuales.md) §1):** El backend es **Server-Authoritative**; el frontend solo renderiza. La fuente de verdad del progreso es `ProgresoMaestria`; `user.settings["unlockedLevels"]` es solo un espejo de compatibilidad visual.
 
 ---
 
@@ -192,7 +194,7 @@ Esta tabla es la fuente única de verdad autoritativa para el avance y nivel de 
 
 Campos obligatorios:
 
-* `id`: UUID Primary Key.
+* `id`: Integer Primary Key (autoincremental).
 * `alumno_id`: ForeignKey hacia `alumnos`.
 * `fase_id`: ID de la fase.
 * `modulo_id`: ID del módulo.
@@ -225,49 +227,16 @@ Al finalizar el carrusel de teoría (Paso 3), antes de que el alumno inicie la p
 
 ### 4.1.B. Interfaz Splash Premium de Desafíos (Challenge Splash Screen)
 
-Antes de iniciar cualquier desafío (incluyendo los Desafíos 1, 2 y Desafío Final de Maestría de cada módulo o fase), se debe desplegar una pantalla de bienvenida inmersiva con las siguientes especificaciones técnicas y UX/UI:
-* **Duración Activa Obligatoria:** Exactamente **8 segundos** (8000ms).
-* **Contenido Informativo del Desafío:** Debe presentar de forma estructurada en un grid responsivo con *glassmorphism* y micro-iconos (Trophy/Compass, Target, Clock) los siguientes datos:
-  - **Módulo:** Nombre descriptivo del módulo actual.
-  - **Preguntas:** Cantidad de aciertos requeridos para aprobar la prueba (`maxAciertos` o `cantidad_requerida`).
-  - **Tiempo por Pregunta:** Límite de tiempo asignado a cada ejercicio.
-* **Animación de Cuenta Regresiva Circular:**
-  - Anillo circular SVG en el centro de la pantalla cuyo trazo de color característico del módulo se vacía linealmente de 100% a 0% a lo largo de los **8 segundos** de duración.
-  - Un número indicador dinámico gigante en el centro del anillo que decrece del **8** al **1** con un efecto periódico de escala y opacidad cada segundo.
-* **Mecanismo de Oclusión (Skip):** Para mantener el control del usuario, la interfaz debe descartarse de inmediato al hacer clic en cualquier parte de la pantalla o presionar cualquier tecla del teclado físico, dando paso inmediato a la primera pregunta del desafío.
+> **Especificación completa:** Ver [Documento Rector](criterios%20conceptuales.md) §6.1.B para las reglas detalladas de duración (8 segundos), contenido informativo, animación de cuenta regresiva SVG y mecanismo de skip.
 
 ### 4.2. Modal de Salida Temprana (Early Exit Modal) y Live Errors HUD
 
-Ante una expulsión de la zona de desafíos o durante el desarrollo del desafío mismo, la interfaz debe actuar bajo las siguientes directrices técnicas para asegurar la transparencia de la evaluación y la resiliencia del alumno:
-
-* **Indicador de Errores Activos en Vivo (Live Errors HUD):** Durante cualquier desafío, el encabezado (HUD) del juego debe inyectar de forma destacada una badge interactiva (`f2-badge-errors`, `f3-badge-errors`, `f4-badge-errors`, etc.) con animación de pulso (`animate-pulse`). Esta badge debe mostrar el conteo exacto de errores en vivo respecto al máximo de errores permitidos en la sesión (ej. `ERRORES: 1/2`). El color de la badge debe cambiar dinámicamente: amarillo neón (`#F59E0B`) como advertencia inicial y rojo neón (`#EF4444`) cuando se alcanza la tolerancia máxima de fallas. Esto ayuda a regular la concentración del estudiante en tiempo real.
-* **Estructura del Componente del Modal:** Modal prioritario montado sobre `AnimatePresence` de `framer-motion` (`zIndex` de `1000` o `1100`). Utiliza una tarjeta esmerilada con clase `glass-card` con un borde superior destacado en color rojo neón (`#EF4444`) y el escudo protector (`🛡️`) como icono destacado (`3.5rem` / `56px`).
-* **Ficha de Reporte de Desempeño Integrada:** Dentro de la tarjeta de salida temprana, se debe presentar de manera muy visible una caja de reporte que especifique:
-  - **Nombre del Módulo:** Ej. *Módulo 1: Suma* (o el nombre cromático/académico correspondiente).
-  - **Nombre del Desafío:** Ej. *Desafío 1: Estándar*, *Desafío Final: Maestría*, etc.
-* **Tarjetas de Estadísticas en Cuadrícula:** Debajo del título del desafío en curso, se debe renderizar una grilla de dos columnas con fondos semi-transparentes y bordes sutiles para mostrar de manera nítida:
-  - **Aciertos:** En color verde neón (`#10B981`) y fondo suave (`rgba(16, 185, 129, 0.05)`).
-  - **Errores:** En color rojo neón (`#EF4444`) y fondo suave (`rgba(239, 68, 68, 0.05)`).
-* **Acción de Cierre y Retorno Limpio:** Botón principal de tamaño completo con un degradado en la tonalidad cromática del módulo (`moduleColor`) que llama a `onClose` o `onBack()` para liberar la sesión y retornar limpiamente al dashboard de selección.
+> **Especificación completa:** Ver [Documento Rector](criterios%20conceptuales.md) §6.3 para las reglas de implementación del Live Errors HUD y el Modal de Salida Temprana.
 
 
-### 4.3. Modal de Celebración de Logros (Completion Achievements Modal)
-Al terminar exitosamente un nivel o desafío, el frontend debe suspender temporalmente el flujo y gatillar un modal interactivo que premie la persistencia:
-* **Estructura:** Montado en un overlay prioritario (`zIndex: 1100`) con `AnimatePresence`. Tarjeta principal con borde superior de color del módulo actual (`6px solid ${moduleColor}`).
-* **Efecto de Corona:** Un trofeo animado (`🏆`) con animaciones periódicas de rotación y escalamiento (`rotate: [0, -10, 10, -10, 10, 0]`, `scale: [1, 1.1, 1.1, 1]`) mediante variables de transición infinitas.
-* **Grid de Logros:** Un contenedor flexible de 3 columnas para mostrar tarjetas secundarias (Aciertos, Precisión % y Puntos) con Lucide Icons (`Award`, `Target`, `Star`) de colores temáticos para jerarquía de información.
-* **Caja de Recomendación Pedagógica:** Caja con fondo semi-transparente y borde izquierdo destacado que muestra una recomendación inteligente basada en el nivel actual para guiar al estudiante a su próximo paso didáctico.
-* **Botón de Continuidad Dinámico:** Botón de confirmación destacado cuyo texto se calcula en caliente (ej: *"Ir al Nivel X+1 🚀"*, *"Siguiente Módulo 🚀"*) y que al pulsarse redirige de forma segura al dashboard.
+### 4.3. Modales de Celebración de Logros
 
-### 4.3.B. Pantalla Completa de Módulo Completado (Module Completed Screen - Duolingo Style)
-Al completar el 100% de los niveles de un módulo, se renderiza la pantalla de celebración inmersiva (`ModuleCompletedScreen.tsx`):
-* **Librerías Requeridas:** `framer-motion` para transiciones complejas y rebotes; `lucide-react` para íconos vectoriales.
-* **Animación Staggered:**
-  - El contenedor principal de la mascota entra con un efecto de resorte (`type: 'spring', stiffness: 260, damping: 15`).
-  - Los destellos/fuegos artificiales estallan radialmente alrededor utilizando un retraso de 0.3s a 0.7s.
-  - El título `"¡Completaste el módulo!"` entra con un deslizamiento vertical y fade-in.
-  - Las tarjetas de estadísticas entran de abajo hacia arriba de forma secuencial.
-* **Lógica de Conteo (Count-Up Helper):** Utilización de `window.requestAnimationFrame` para animar las estadísticas de puntos y precisión incrementando linealmente desde cero hasta el valor final en 1 segundo de duración.
+> **Especificación completa:** Ver [Documento Rector](criterios%20conceptuales.md) §7.5 para las reglas del Completion Achievements Modal y §7.5.B para la Pantalla Completa de Módulo Completado.
 
 ### 4.4. Botones de Confirmación Inline Obligatorios
 Todo tipo de interacción y pregunta (numérica, opción múltiple o pasos encadenados) debe contar con su botón de acción inline (`Confirmar` / `Continuar`) directamente integrado en la tarjeta de juego para consistencia táctil en móviles y tabletas:
@@ -275,16 +244,8 @@ Todo tipo de interacción y pregunta (numérica, opción múltiple o pasos encad
 * **Micro-interacciones CSS:** Al pasar el cursor (`:hover`), el botón debe escalar suavemente (`transform: translateY(-2px)`), brillar (`filter: brightness(1.15)`) y proyectar una sombra suave (`box-shadow: 0 6px 20px rgba(0,0,0,0.3)`). Al presionarse (`:active`), debe retornar a su posición original (`transform: translateY(0)`). Si está deshabilitado (`:disabled`), se reduce su opacidad a `0.5` y cambia el cursor a `not-allowed`.
 
 ### 4.5. Pantalla Monumental de Graduación de Fase (Phase Graduation Modal)
-Al completar exitosamente toda la fase (por ejemplo, superando la batería final de maestría de modulo 99), el frontend debe bloquear la pantalla y gatillar una interfaz conmemorativa espectacular:
-* **Estructura Técnica:** Overlay prioritario (`zIndex: 1200`) a pantalla completa esmerilada (`rgba(7, 11, 20, 0.95)`). Tarjeta principal destacada con borde superior de color de éxito (`6px solid #10B981`) y una gran sombra exterior (`box-shadow: 0 0 40px rgba(16, 185, 129, 0.15)`).
-* **Animaciones de la Corona:** Icono de corona real (`👑`) en tamaño monumental (`5rem` / `80px`) que ejecuta giros tridimensionales y escalados continuos periódicos mediante variables infinitas de Framer Motion.
-* **Infografía de Ruta Conquistada:** Contenedor con borde tenue que dibuja una línea horizontal o vertical con gradiente de colores neón representando la pista vial de la fase. Cada parada o nodo del módulo se representa por su círculo de color correspondiente con una marca animada de chequeo (`✓`), sirviendo como recuento dinámico.
-* **Estadísticas de Gran Impacto (Grid de 2x2):** Renderización en dos columnas de tarjetas de logros secundarios que muestran de forma estructurada con Lucide Icons (`Award`, `Trophy`, `Star`, `Target` en tamaño `36px` y colores de prioridad) las marcas históricas:
-  * **Niveles Superados:** ej: `26 / 26`
-  * **Módulos Dominados:** ej: `4 / 4`
-  * **Ejercicios Logrados:** ej: `300+`
-  * **Conceptos Clave:** ej: `12+`
-* **Botón de Enlace de Fase:** Botón de acción con degradado y sombreado luminoso destacado que llama al redireccionamiento inmediato hacia el mapamundi general (`/map`), promoviendo el inicio de la siguiente fase académica desbloqueada.
+
+> **Especificación completa:** Ver [Documento Rector](criterios%20conceptuales.md) §7.6 para las reglas de la interfaz conmemorativa de Graduación de Fase.
 * **Mapeo de Endpoints y Lógica de Graduación de Fases:** Para garantizar que el alumno avance de fase en la base de datos de manera consistente, cada fase de la plataforma debe contar con su propio endpoint de graduación en el backend (ej: `/pedagogia/graduate-to-fase1`, `/pedagogia/graduate-to-fase2`, `/fase2/graduate`, etc.) y su respectivo servicio en el frontend. La lógica del cliente en `handleEndGame` debe evaluar condicionalmente la fase actual del alumno (`currentUser.fase_actual_id`) para invocar el endpoint de graduación correspondiente a esa fase específica, garantizando que el usuario no sea redirigido de forma inconsistente o quede atascado.
 
 ### 4.6. Dinámica del Banner del Dashboard General (Bottom Banner State Integration)
@@ -304,7 +265,7 @@ El banner inferior de seguimiento en la selección de niveles del frontend (`Wel
 
 El archivo `seed.py` de la fase debe crearse en `app/fase{X}/seed.py` y estructurarse en secciones deterministas. Cualquier error durante la inserción no debe silenciarse. Los bloques `try/except` deben imprimir el traceback completo y relanzar la excepción para que el contenedor falle explícitamente.
 
-### 4.0. Estrategias de Robustez de Datos y Ejecución
+### 5.0. Estrategias de Robustez de Datos y Ejecución
 
 Al construir y sembrar pools de base de datos, se deben aplicar las siguientes directrices obligatorias:
 
@@ -338,7 +299,7 @@ Al construir y sembrar pools de base de datos, se deben aplicar las siguientes d
      - Que no existan preguntas en estado `INACTIVO`.
      - Que la coherencia matemática de todas las preguntas de la base de datos sea del 100% mediante un motor de resolución autónomo.
 
-### 4.1. Parte A: Textos de Teoría y Validación Estricta
+### 5.1. Parte A: Textos de Teoría y Validación Estricta
 
 Para asegurar que el formato de datos coincide al 100% con las columnas relacionales, el seeder debe validar cada elemento mediante Pydantic.
 
@@ -435,7 +396,7 @@ except Exception as e:
     raise
 ```
 
-### 4.2. Parte B: Configuración de Progreso
+### 5.2. Parte B: Configuración de Progreso
 
 Crear registros en `configuraciones_progreso` para cada nivel práctico y desafío virtual.
 
@@ -485,7 +446,7 @@ configs.append({
 
 > Nota de implementación: Aunque los valores del seeder se inicializan con estándares pedagógicos, toda la lógica del backend debe consumir estos parámetros dinámicamente desde la base de datos y no de forma hardcoded.
 
-### 4.3. Parte C: Generación de Pool de Práctica y Rescate
+### 5.3. Parte C: Generación de Pool de Práctica y Rescate
 
 Cada nivel debe poseer 120 familias. Cada familia contiene 1 pregunta original y 3 variantes espejo.
 
@@ -546,7 +507,7 @@ for fam in range(1, 121):
         session.add(registro_errores)
 ```
 
-### 4.4. Parte D: Generación de Pool de Desafíos
+### 5.4. Parte D: Generación de Pool de Desafíos
 
 Cada desafío debe tener mínimo 150 preguntas independientes.
 
@@ -588,11 +549,11 @@ session.add(desafio)
 
 ---
 
-## 5. Paso 3: Router del Backend (`router.py`)
+## 6. Paso 3: Router del Backend (`router.py`)
 
 Crear `app/fase{X}/router.py` heredando los endpoints estándar de FastAPI.
 
-### 5.1. Endpoints Canónicos de Juego
+### 6.1. Endpoints Canónicos de Juego
 
 Los endpoints de juego deben seguir esta convención:
 
@@ -605,7 +566,7 @@ POST /api/fases/{fase_id}/cerrar-rescate
 
 No usar endpoints sueltos como `/pregunta` o `/responder` sin prefijo de fase.
 
-### 5.2. Optimización de Consultas de Base de Datos
+### 6.2. Optimización de Consultas de Base de Datos
 
 Para evitar sobrecarga de consultas frecuentes, implementar sesión compartida:
 
@@ -621,7 +582,7 @@ async def _get_alumno(db: AsyncSession, current_user: dict) -> Alumno:
     # fallback query solo si no existe en contexto
 ```
 
-### 5.3. `GET /api/fases/{fase_id}/dashboard`
+### 6.3. `GET /api/fases/{fase_id}/dashboard`
 
 Construye el árbol de progresión de la fase. Para determinar la disponibilidad y estado de cada bloque, el backend debe priorizar los campos de **Override Administrativo**:
 
@@ -646,7 +607,7 @@ Construye el árbol de progresión de la fase. Para determinar la disponibilidad
      * **Lógica de Desbloqueo de Módulos (Transición entre Módulos):**
        * Para desbloquear el primer nivel del siguiente módulo (Módulo N+1), el alumno debe haber aprobado y dominado la totalidad de los bloques del módulo anterior (Módulo N). Esto significa que tanto todos los niveles de práctica libre como los 3 desafíos (Desafíos 1, 2 y Final) del Módulo N deben estar en estado `APROBADO` en `ProgresoMaestria`.
 
-### 5.4. `GET /api/fases/{fase_id}/pregunta`
+### 6.4. `GET /api/fases/{fase_id}/pregunta`
 
 Reglas:
 
@@ -665,7 +626,7 @@ else:
     # El rescate debe haber sido activado desde /responder
 ```
 
-### 5.5. `POST /api/fases/{fase_id}/responder`
+### 6.5. `POST /api/fases/{fase_id}/responder`
 
 Reglas de práctica libre:
 
@@ -720,7 +681,7 @@ Cuando el router procesa un override `approve` en la base de datos, inicia una t
 2. Actualiza en reversa (`UPDATE progreso_maestria SET estado = 'APROBADO', completado = true, porcentaje_precision = 90 WHERE alumno_id = :alumno_id AND fase_id = :fase_id AND seccion < :seccion_actual`).
 3. Sincroniza en reversa el objeto `user.settings["unlockedLevels"]` para todos los niveles correspondientes.
 
-### 5.6. `POST /api/fases/{fase_id}/cerrar-rescate`
+### 6.6. `POST /api/fases/{fase_id}/cerrar-rescate`
 
 Endpoint invocado cuando el frontend confirma que el alumno leyó y asimiló la explicación del Bloque de Rescate para avanzar de forma fluida.
 
@@ -735,9 +696,9 @@ Reglas:
 
 ---
 
-## 6. Paso 4: Integración del Frontend
+## 7. Paso 4: Integración del Frontend
 
-### 6.1. Deduplicación de Peticiones Concurrentes
+### 7.1. Deduplicación de Peticiones Concurrentes
 
 Para mitigar llamadas duplicadas por re-renderizados, implementar un despachador en servicios API.
 
@@ -760,7 +721,7 @@ async function fetchDeduplicated<T>(
 }
 ```
 
-### 6.2. Consistencia de Tipos y Seguridad del Cliente
+### 7.2. Consistencia de Tipos y Seguridad del Cliente
 
 * El frontend debe determinar su layout exclusivamente a partir de `tipo_pregunta` y `modo_interaccion`.
 * El frontend debe ignorar flags frágiles o redundantes en JSONB.

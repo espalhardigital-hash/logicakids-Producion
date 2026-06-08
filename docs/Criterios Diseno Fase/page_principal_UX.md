@@ -1,5 +1,9 @@
 # Especificación de Diseño UI/UX: Pantalla de Mapa General (`PhaseMapScreen.tsx`) - Versión 3.0 (Certificada)
 
+> **Versión:** 3.0 | **Última actualización:** 2026-06-08 | **Prioridad documental:** 4 (Extensión de [Guía UX/UI](Desig_UX.md))
+>
+> **Nota:** Este documento es una extensión especializada de la [Guía UX/UI](Desig_UX.md) centrada exclusivamente en la pantalla `PhaseMapScreen.tsx`.
+
 Esta especificación actúa como guía técnica y estética para la pantalla del mapa interactivo de niveles para **LogicaKids Pro**. Tras la auditoría final, la pantalla se ha integrado en el sistema de enrutamiento declarativo de **React Router DOM v6+** y consume el estado global de **Zustand** y del **Contexto de Autenticación**, garantizando un rendimiento premium y eliminando el antipatrón de prop-drilling.
 
 ---
