@@ -18,9 +18,19 @@ def wait_for_db():
     cleaned_url = db_url.replace("postgresql+asyncpg://", "http://").replace("postgresql://", "http://")
     
     try:
-        parsed = urlparse(cleaned_url)
-        host = parsed.hostname or "localhost"
-        port = parsed.port or 5432
+        # Fallback for hostnames with underscores which urlparse rejects
+        if "@" in cleaned_url:
+            host_port_str = cleaned_url.split("@")[1].split("/")[0]
+            if ":" in host_port_str:
+                host, port_str = host_port_str.split(":")
+                port = int(port_str)
+            else:
+                host = host_port_str
+                port = 5432
+        else:
+            parsed = urlparse(cleaned_url)
+            host = parsed.hostname or "localhost"
+            port = parsed.port or 5432
     except Exception as e:
         print(f"❌ Error parsing DATABASE_URL: {e}. Skipping check.")
         return
