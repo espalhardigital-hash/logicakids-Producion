@@ -52,6 +52,9 @@ La zona de desafíos corresponde a niveles virtuales `11`, `12` y `13`.
 * Desafío Final: evocación pura, 10 preguntas, 50 segundos por pregunta (60 segundos para Módulos 3 al 8), Early Exit al 2do error.
 * Desafío Mixto de la Fase (Módulo 99): evocación o múltiple, 20 preguntas, 60 segundos por pregunta (90 segundos para Módulos 3 al 8), Early Exit al 2do error.
 
+> [!NOTE]
+> **Naturaleza Dinámica:** Los tiempos límite, cantidades de preguntas y reglas de Early Exit listadas arriba son los **valores estándar de diseño**. Todos estos parámetros (incluyendo el umbral de aprobación del 90%) son almacenados en `configuraciones_progreso` y pueden ser **modificados libremente** desde el Panel de Administrador sin generar conflictos con el código fuente.
+
 Cada desafío debe contar con un mínimo de 150 preguntas independientes precargadas.
 
 ### 2.3. Fase 1: Estandarización Modular y Retrocompatibilidad
