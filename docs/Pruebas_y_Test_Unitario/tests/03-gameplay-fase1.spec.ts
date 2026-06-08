@@ -1,7 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test-fixtures';
 import { ROUTES, API, SELECTORS } from '../helpers/constants';
 import { ensureAuthenticated, loginAsTestUser } from '../helpers/auth';
-import { BrowserConsoleLogger } from '../helpers/console-logger';
 
 /**
  * Suite 03: Gameplay Fase 1 — Validación de Lógica
@@ -15,15 +14,12 @@ import { BrowserConsoleLogger } from '../helpers/console-logger';
  * - Ausencia de errores en la consola del browser
  */
 test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
-  let consoleLogger: BrowserConsoleLogger;
-
   test.beforeEach(async ({ page }) => {
-    consoleLogger = new BrowserConsoleLogger(page);
     await ensureAuthenticated(page);
   });
 
   // ─── Test: Interfaz de juego Fase 1 carga correctamente ──────────
-  test('La pantalla de juego de Fase 1 se renderiza sin errores', async ({ page }) => {
+  test('La pantalla de juego de Fase 1 se renderiza sin errores', async ({ page, consoleLogger }) => {
     // Navegar al welcome de fase 1
     await page.goto(ROUTES.WELCOME_FASE1);
     await page.waitForLoadState('domcontentloaded');
@@ -53,7 +49,7 @@ test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
   });
 
   // ─── Test: Selección de nivel en Fase 1 ──────────────────────────
-  test('La pantalla de selección de nivel carga correctamente', async ({ page }) => {
+  test('La pantalla de selección de nivel carga correctamente', async ({ page, consoleLogger }) => {
     await page.goto(ROUTES.LEVEL_SELECTION);
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
@@ -166,7 +162,7 @@ test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
   });
 
   // ─── Test: Pantalla de juego Fase 1 (/play) carga ────────────────
-  test('La pantalla de juego /play renderiza elementos interactivos', async ({ page }) => {
+  test('La pantalla de juego /play renderiza elementos interactivos', async ({ page, consoleLogger }) => {
     consoleLogger.clear();
 
     await page.goto(ROUTES.PLAY_FASE1);
@@ -197,7 +193,7 @@ test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
   });
 
   // ─── Test: Pantalla de resultados carga ──────────────────────────
-  test('La pantalla de resultados (/results) se renderiza correctamente', async ({ page }) => {
+  test('La pantalla de resultados (/results) se renderiza correctamente', async ({ page, consoleLogger }) => {
     consoleLogger.clear();
 
     await page.goto(ROUTES.RESULTS);

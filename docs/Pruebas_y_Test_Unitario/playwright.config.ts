@@ -11,6 +11,10 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
 
+  /* Generar reporte consolidado de bugs al finalizar */
+  globalTeardown: './helpers/global-teardown.ts',
+  globalSetup: './helpers/global-setup.ts',
+
   /* Ejecución secuencial - las pruebas de progresión dependen del orden */
   fullyParallel: false,
 

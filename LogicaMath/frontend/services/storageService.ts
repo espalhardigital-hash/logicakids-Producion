@@ -260,7 +260,7 @@ export const getStorageUsage = (): string => {
 
 // Fetch full user profile from backend (includes unlockedLevel, avatar, settings)
 export const getCurrentUserFull = async (): Promise<User> => {
-  return await apiRequest<User>('/users/me');
+  return await apiRequest<User>(`/users/me?_t=${Date.now()}`);
 };
 
 // Upload User Avatar

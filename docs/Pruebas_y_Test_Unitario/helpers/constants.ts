@@ -7,7 +7,7 @@
 
 // ─── Usuario de Prueba ───────────────────────────────────────────────
 export const TEST_USER = {
-  email: 'pruebas@gmail.com',
+  email: 'prueba@gmail.com',
   password: 'pruebas',
 } as const;
 

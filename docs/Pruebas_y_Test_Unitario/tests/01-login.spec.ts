@@ -1,7 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test-fixtures';
 import { TEST_USER, SELECTORS, ROUTES } from '../helpers/constants';
 import { loginAsTestUser, logout } from '../helpers/auth';
-import { BrowserConsoleLogger } from '../helpers/console-logger';
 
 /**
  * Suite 01: Flujo de Autenticación (Login)
@@ -11,14 +10,10 @@ import { BrowserConsoleLogger } from '../helpers/console-logger';
  * manejen apropiadamente los errores de validación.
  */
 test.describe('01 - Flujo de Autenticación', () => {
-  let consoleLogger: BrowserConsoleLogger;
-
-  test.beforeEach(async ({ page }) => {
-    consoleLogger = new BrowserConsoleLogger(page);
-  });
+  // No need to instantiate consoleLogger manually, it's a fixture
 
   // ─── Test: Interfaz de Login carga correctamente ─────────────────
-  test('La interfaz de login se renderiza completamente', async ({ page }) => {
+  test('La interfaz de login se renderiza completamente', async ({ page, consoleLogger }) => {
     await page.goto(ROUTES.LOGIN);
     await page.waitForLoadState('domcontentloaded');
 
@@ -53,7 +48,7 @@ test.describe('01 - Flujo de Autenticación', () => {
   });
 
   // ─── Test: Login exitoso con usuario de prueba ───────────────────
-  test('Login exitoso con usuario de prueba redirige a /map', async ({ page }) => {
+  test('Login exitoso con usuario de prueba redirige a /map', async ({ page, consoleLogger }) => {
     await loginAsTestUser(page);
 
     // Verificar que estamos en el mapa de fases

@@ -1,7 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test-fixtures';
 import { PHASES, SELECTORS } from '../helpers/constants';
 import { ensureAuthenticated, loginAsTestUser } from '../helpers/auth';
-import { BrowserConsoleLogger } from '../helpers/console-logger';
 
 /**
  * Suite 04: Gameplay Fases Genéricas (2-6)
@@ -11,10 +10,7 @@ import { BrowserConsoleLogger } from '../helpers/console-logger';
  * ni errores en la consola del navegador.
  */
 test.describe('04 - Gameplay Fases Genéricas (2-6)', () => {
-  let consoleLogger: BrowserConsoleLogger;
-
   test.beforeEach(async ({ page }) => {
-    consoleLogger = new BrowserConsoleLogger(page);
     await ensureAuthenticated(page);
   });
 
@@ -22,7 +18,7 @@ test.describe('04 - Gameplay Fases Genéricas (2-6)', () => {
   const phasesToTest = PHASES.filter((p) => p.id >= 2 && p.id <= 6);
 
   for (const phase of phasesToTest) {
-    test(`Fase ${phase.id} (${phase.name}): Welcome carga sin errores`, async ({ page }) => {
+    test(`Fase ${phase.id} (${phase.name}): Welcome carga sin errores`, async ({ page, consoleLogger }) => {
       consoleLogger.clear();
 
       // 1. Navegar al Welcome Screen
@@ -57,7 +53,7 @@ test.describe('04 - Gameplay Fases Genéricas (2-6)', () => {
       ).toBe(false);
     });
 
-    test(`Fase ${phase.id} (${phase.name}): GameScreen carga sin errores`, async ({ page }) => {
+    test(`Fase ${phase.id} (${phase.name}): GameScreen carga sin errores`, async ({ page, consoleLogger }) => {
       consoleLogger.clear();
 
       // 2. Navegar directamente al GameScreen
@@ -95,7 +91,7 @@ test.describe('04 - Gameplay Fases Genéricas (2-6)', () => {
   }
 
   // ─── Test: Resumen de carga de todas las fases ───────────────────
-  test('Resumen: Todas las fases (2-6) cargan sin pantalla en blanco', async ({ page }) => {
+  test('Resumen: Todas las fases (2-6) cargan sin pantalla en blanco', async ({ page, consoleLogger }) => {
     const failedPhases: string[] = [];
 
     for (const phase of phasesToTest) {

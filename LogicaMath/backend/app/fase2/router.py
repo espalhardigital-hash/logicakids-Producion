@@ -316,19 +316,14 @@ async def get_fase2_dashboard(
         for niv_id in range(1, num_niveles + 1):
             seccion, operacion = _seccion_operacion(mod_id, niv_id)
             niv_meta = NIVELES_META.get((mod_id, niv_id), {"nombre": f"Nivel {niv_id}", "descripcion": ""})
-            config = configs.get(seccion)
+            config = configs.get(seccion) or configs.get(0)
             progreso = progresos.get(seccion)
 
-            if config is None:
-                estado = "bloqueado"
-                porcentaje = 0
-                aciertos = 0
-                requeridos = pl_cfg.get("cantidad_requerida", 15)
-            elif progreso is None:
+            if progreso is None:
                 estado = "en_progreso" if _is_nivel_unlocked(progresos, mod_id, niv_id) else "bloqueado"
                 porcentaje = 0
                 aciertos = 0
-                requeridos = config.cantidad_requerida
+                requeridos = config.cantidad_requerida if config else pl_cfg.get("cantidad_requerida", 15)
             else:
                 requeridos = config.cantidad_requerida
                 aciertos = progreso.aciertos_acumulados
@@ -364,19 +359,14 @@ async def get_fase2_dashboard(
         for des_id in [11, 12, 13]:
             seccion, operacion = _seccion_operacion(mod_id, des_id)
             d_conf = desafio_configs[des_id]
-            config = configs.get(seccion)
+            config = configs.get(seccion) or configs.get(0)
             progreso = progresos.get(seccion)
 
-            if config is None:
-                estado = "bloqueado"
-                porcentaje = 0
-                aciertos = 0
-                requeridos = des_cfg.get("cantidad_requerida", 25 if des_id != 13 else 10)
-            elif progreso is None:
+            if progreso is None:
                 estado = "en_progreso" if _is_desafio_unlocked(progresos, mod_id, des_id, all_practice_approved) else "bloqueado"
                 porcentaje = 0
                 aciertos = 0
-                requeridos = config.cantidad_requerida
+                requeridos = config.cantidad_requerida if config else des_cfg.get("cantidad_requerida", 25 if des_id != 13 else 10)
             else:
                 requeridos = config.cantidad_requerida
                 aciertos = progreso.aciertos_acumulados

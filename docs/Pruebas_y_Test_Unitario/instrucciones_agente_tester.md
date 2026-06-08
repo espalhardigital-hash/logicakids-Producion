@@ -9,7 +9,7 @@ Este documento es el **manual rector** que define cómo un agente autónomo (o t
 ### Usuario de Prueba
 - **Restricción de Usuario:** Todas las pruebas deben ejecutarse utilizando exclusivamente un **usuario de prueba dedicado**. Bajo ninguna circunstancia se debe utilizar un usuario real o de producción para evitar alteraciones en los datos y métricas.
 - **Credenciales del Usuario:** El usuario de prueba ya se encuentra creado en el sistema. Las credenciales a utilizar son:
-  - **Usuario/Correo:** pruebas@gmail.com
+  - **Usuario/Correo:** prueba@gmail.com
   - **Contraseña:** pruebas
 
 ### Selección de Herramientas
@@ -74,4 +74,24 @@ El flujo de navegación entre niveles y módulos es crítico. El agente debe pro
 
 ---
 
-*Nota para el Agente: Al ejecutar un ciclo de pruebas basándote en este documento, debes reportar detalladamente cualquier anomalía, error de carga, fallo en la lógica de respuestas o inconsistencias en los bloqueos/desbloqueos de los módulos.*
+## 5. Sistema de Reportes de Bugs e Historial de Soluciones
+
+Durante la ejecución de las pruebas, el sistema genera automáticamente reportes y mantiene un historial acumulativo.
+
+### Flujo de Trabajo
+1. **Ejecutar pruebas:** Al finalizar la ejecución completa, se genera un reporte consolidado en `reportes_bugs/reporte_ultima_ejecucion.md` con TODOS los bugs encontrados.
+2. **Corregir bugs:** El agente debe leer el reporte, corregir cada bug listado en orden de severidad (críticos primero), y aplicar las correcciones al código fuente.
+3. **Actualizar historial:** Después de corregir cada bug, el agente debe documentar la solución en el historial acumulativo `reportes_bugs/historial_bugs.md`, indicando qué se hizo y qué archivos se modificaron.
+4. **Re-ejecutar:** Se vuelven a correr las pruebas para verificar que los bugs fueron resueltos. El ciclo se repite hasta que el reporte salga limpio (sin bugs).
+
+### Archivos del Sistema de Reportes
+- `reportes_bugs/reporte_ultima_ejecucion.md` — Contiene todos los bugs de la última ejecución. Se sobreescribe en cada nueva ejecución.
+- `reportes_bugs/historial_bugs.md` — Base de conocimiento acumulativa. Cada entrada documenta un bug resuelto y su solución. Cuando un problema similar reaparece, el agente consulta este historial para saber cómo solucionarlo.
+- `reportes_bugs/screenshots/` — Capturas de pantalla automáticas al momento de cada fallo.
+
+### Consulta del Historial
+Antes de investigar un bug desde cero, el agente debe buscar en el historial si existe una solución previa para un problema similar. El sistema lo hace automáticamente durante la ejecución y muestra coincidencias en la consola.
+
+---
+
+*Nota para el Agente: Al ejecutar un ciclo de pruebas basándote en este documento, debes reportar detalladamente cualquier anomalía en el reporte consolidado de bugs, corregir los errores encontrados, y actualizar el historial de soluciones para futura referencia.*

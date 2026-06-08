@@ -57,3 +57,9 @@ La suite de pruebas permite validar la conexión con la base de datos y flujos d
 ```bash
 docker compose exec backend python tests/test_db_connection.py
 ```
+
+## 📌 Control de Versiones y Origen de Datos
+
+Para obtener una descripción detallada de las variables de nombre de la aplicación, control de versiones (Backend `3.0.0` y Frontend `0.0.0`) y de dónde se leen los datos, archivos e imágenes para mostrar en las diferentes interfaces (PostgreSQL, MinIO/S3 y metadatos estáticos locales), consulta la guía:
+👉 **[Guía de Versión y Fuentes de Datos (APP_VERSION.md)](file:///d:/Antigravity/APP_Logica_Matematicas_kids/APP_VERSION.md)**
+

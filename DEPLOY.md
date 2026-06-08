@@ -110,3 +110,11 @@ SEED_VERSIONS = {
 - **Problemas de CORS / Fallo en inicio de sesión**: Confirma que el dominio configurado en `VITE_API_URL` durante la fase de build es exacto. Si lo cambiaste en el `.env`, es **obligatorio** reconstruir la imagen del frontend: `docker compose up -d --build frontend`.
 - **Errores de SSL / Certificado Inseguro**: Revisa los logs de Traefik (`docker logs traefik`) para validar que tiene permisos de resolver certificados Let's Encrypt y que los puertos 80 y 443 estén expuestos y públicos.
 - **Sembrado omitido pero preguntas incorrectas**: Si las preguntas de una fase necesitan actualizarse, incrementa su versión en `SEED_VERSIONS` (`app/seed.py`) y haz deploy. El sistema detectará la nueva versión y regenerará sólo esa fase.
+
+---
+
+## 📌 Configuración de Nombres, Versiones y Fuentes de Interfaces
+
+Para comprender cómo se mapean las variables de entorno (`NOMBRE_APP`, `DOMINIO`, `VITE_API_URL`) para el despliegue del frontend, la versión actual de la suite, y el comportamiento de lectura de archivos e interfaces (como los avatares en S3/MinIO y metadatos de las fases), consulta el archivo de especificaciones:
+👉 **[Guía de Versión y Fuentes de Datos (APP_VERSION.md)](file:///d:/Antigravity/APP_Logica_Matematicas_kids/APP_VERSION.md)**
+

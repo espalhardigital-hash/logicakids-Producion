@@ -1,7 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test-fixtures';
 import { ROUTES, PHASES, SELECTORS } from '../helpers/constants';
 import { loginAsTestUser, ensureAuthenticated } from '../helpers/auth';
-import { BrowserConsoleLogger } from '../helpers/console-logger';
 
 /**
  * Suite 02: Navegación por Fases
@@ -11,16 +10,13 @@ import { BrowserConsoleLogger } from '../helpers/console-logger';
  * Comprueba que la navegación entre pantallas funcione adecuadamente.
  */
 test.describe('02 - Navegación por Fases', () => {
-  let consoleLogger: BrowserConsoleLogger;
-
   test.beforeEach(async ({ page }) => {
-    consoleLogger = new BrowserConsoleLogger(page);
     // Asegurar que el usuario está autenticado antes de cada test
     await ensureAuthenticated(page);
   });
 
   // ─── Test: Mapa de fases carga correctamente ─────────────────────
-  test('El mapa de fases (/map) se renderiza completamente', async ({ page }) => {
+  test('El mapa de fases (/map) se renderiza completamente', async ({ page, consoleLogger }) => {
     await page.goto(ROUTES.MAP);
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000); // Esperar animaciones y Suspense
@@ -43,7 +39,7 @@ test.describe('02 - Navegación por Fases', () => {
 
   // ─── Tests dinámicos: Welcome de cada Fase (1-6) ─────────────────
   for (const phase of PHASES) {
-    test(`Fase ${phase.id} (${phase.name}): Welcome se carga correctamente`, async ({ page }) => {
+    test(`Fase ${phase.id} (${phase.name}): Welcome se carga correctamente`, async ({ page, consoleLogger }) => {
       consoleLogger.clear();
 
       // Navegar a la pantalla Welcome de la fase
@@ -80,7 +76,7 @@ test.describe('02 - Navegación por Fases', () => {
   }
 
   // ─── Test: Pantalla Welcome genérica (Fases 7-8) ─────────────────
-  test('Fases genéricas (7-8): Welcome genérico se carga correctamente', async ({ page }) => {
+  test('Fases genéricas (7-8): Welcome genérico se carga correctamente', async ({ page, consoleLogger }) => {
     consoleLogger.clear();
 
     await page.goto(ROUTES.WELCOME_FASE_GENERIC);
