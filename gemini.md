@@ -74,14 +74,18 @@ Cualquier otro comando propuesto en PowerShell (ej: `git`, `docker`, `docker com
 
 ### Restricción de Operaciones Git
 * El agente **NUNCA** ejecutará de forma automática comandos que alteren el historial remoto o local como `git commit` o `git push`, a menos que el usuario lo autorice o solicite de forma expresa y explícita en su prompt.
-* **Actualización del Repositorio**: Siempre que el usuario solicite actualizar el repositorio de GitHub (ej. `git push`, `git commit`), el agente operará **exclusivamente sobre la rama de desarrollo** (`desarrollo`). Bajo ninguna circunstancia se actualizará la rama o repositorio de producción a menos que el prompt lo solicite de manera expresa y explícita.
+* **Principio 1**: El agente **NUNCA** realizará operaciones que actualicen el repositorio de GitHub (como `git commit` o `git push`) sin que el usuario lo haya solicitado de manera expresa y explícita en el prompt de la conversación actual.
+* **Principio 2**: Cuando el usuario solicite de manera expresa actualizar el repositorio de GitHub, el agente operará **exclusivamente sobre la rama de desarrollo** (`desarrollo`). Bajo ninguna circunstancia se actualizará la rama o el repositorio de producción a menos que el prompt de la conversación lo requiera de forma explícita y expresa.
+
 
 
 ### Acceso y Control de VPS / Docker
 * **Conexión a VPS**: El agente tiene permiso para conectarse a la VPS utilizando los datos y credenciales definidos en los archivos `.env` (ej: `rominejo@34.9.51.225`).
-* **Gestión de Contenedores y Stacks**: El agente está autorizado a alterar, modificar, reiniciar y redesplegar (redeploy/rebuild) los contenedores y stacks de Docker existentes con el fin de resolver fallos y mantener la funcionalidad.
-* **Restricción de Creación de Contenedores**: El agente **NUNCA** creará nuevos contenedores o stacks de forma independiente, a menos que el usuario lo autorice o solicite de forma explícita en su prompt.
-* **Actualización de Repositorios (Desarrollo y Producción)**: El agente puede actualizar los repositorios (tanto locales como en la VPS) correspondientes a los entornos de desarrollo y producción cuando el usuario lo autorice explícitamente en el prompt, utilizando las credenciales provistas en los archivos `.env`.
+* **Gestión de Contenedores y Stacks**: El agente está autorizado a reiniciar, detener o redesplegar contenedores **únicamente de los stacks oficiales existentes** con el fin de resolver fallos y mantener la funcionalidad.
+* **Restricción de Creación de Contenedores**: El agente **NUNCA** creará nuevos contenedores, redes o stacks de forma independiente, a menos que el usuario lo autorice o solicite de forma explícita en su prompt.
+* **Garantía de No Duplicidad (Uso Obligatorio de -p)**: Para evitar que Docker Compose genere proyectos duplicados basados en el nombre de la carpeta (como `datos_desarrollo`), el agente **siempre** deberá especificar explícitamente el nombre del proyecto mediante `-p` en cualquier comando `docker compose` en la VPS (ej: `sudo docker compose -p logicakids_desarrollo ...` o `sudo docker compose -p matematicas-producion ...`).
+* **Flujo de Despliegue (Git-First)**: El despliegue de cambios en la VPS debe realizarse preferentemente actualizando el repositorio de GitHub (previa autorización del usuario) y redesplegando el stack desde la interfaz web de Portainer. El agente **evitará** ejecutar `docker compose up` directamente desde la consola del VPS a menos que sea la única alternativa y cuente con aprobación explícita.
+
 
 ---
 
