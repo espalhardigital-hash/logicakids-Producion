@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 /* Habilitar selector basado en la clase .dark del nodo raíz en Tailwind v4 */
-@custom-variant dark (&:is(.dark *));
+@variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
