@@ -10,7 +10,8 @@ Entorno de pruebas End-to-End autocontenido para la aplicación LogicaKids, basa
 
 - **Node.js** 18 o superior
 - **Google Chrome** instalado en el sistema
-- Acceso de red a `https://logica.espalhar.shop` (entorno de desarrollo)
+- **Docker y Docker Compose** (para ejecutar las pruebas en tu máquina local `localhost`)
+- Acceso de red a `https://logica.espalhar.shop` (para ejecutar las pruebas directamente contra el VPS de desarrollo)
 
 ---
 
@@ -31,33 +32,52 @@ npx playwright install chromium
 
 ## ▶️ Ejecución de Pruebas
 
-### Ejecutar todas las suites
+### Opción A: Pruebas Locales (Recomendado antes de subir cambios)
+Para levantar la base de datos, el backend y el frontend en tu propia computadora:
+
+1. **Levantar los contenedores locales:**
+   ```bash
+   # Desde esta carpeta (docs/Pruebas_y_Test_Unitario)
+   docker compose -f docker-compose.local.yml up -d --build
+   ```
+   *Nota: La primera compilación tomará unos minutos mientras descarga las imágenes e instala dependencias.*
+
+2. **Ejecutar las pruebas:**
+   ```bash
+   TEST_URL=http://localhost:3000 npx playwright test
+   ```
+
+3. **Detener los contenedores locales al finalizar:**
+   ```bash
+   docker compose -f docker-compose.local.yml down
+   ```
+
+### Opción B: Pruebas Remotas (Contra VPS de Desarrollo)
+Si deseas ejecutar la suite contra el VPS de desarrollo actual:
 ```bash
 npx playwright test
 ```
 
 ### Ejecutar suites individuales
+Puedes ejecutar partes específicas de la suite de pruebas locales:
 ```bash
 # 01 - Login y autenticación
-npm run test:login
+TEST_URL=http://localhost:3000 npm run test:login
 
 # 02 - Navegación por fases
-npm run test:nav
+TEST_URL=http://localhost:3000 npm run test:nav
 
 # 03 - Gameplay Fase 1 (acierto, fallo, espejo)
-npm run test:gameplay
+TEST_URL=http://localhost:3000 npm run test:gameplay
 
 # 04 - Carga de GameScreens Fases 2-6
-npm run test:fases
+TEST_URL=http://localhost:3000 npm run test:fases
 
 # 05 - Progresión y desbloqueo
-npm run test:progress
+TEST_URL=http://localhost:3000 npm run test:progress
 ```
 
-### Ejecutar contra otra URL
-```bash
-TEST_URL=http://localhost:3000 npx playwright test
-```
+*Nota: Omitir `TEST_URL=http://localhost:3000` ejecutará los tests individuales contra el VPS remoto.*
 
 ---
 

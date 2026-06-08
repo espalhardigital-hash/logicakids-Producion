@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # ===== BASE DE DATOS (PostgreSQL) =====
+  base_postgres_general:
+    image: postgres:15-alpine
+    container_name: base_postgres_general_local
+    environment:
+      POSTGRES_USER: logicakids_admin_desarrollo
+      POSTGRES_PASSWORD: logicakids_admin_desarrollo20258187
+      POSTGRES_DB: bd_logicakids_desarrollo
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_local:/var/lib/postgresql/data
+    restart: always
+
+  # ===== BACKEND API (FastAPI) =====
+  backend:
+    build:
+      context: ../../LogicaMath/backend
+      dockerfile: Dockerfile
+    container_name: logicakids_local_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://logicakids_admin_desarrollo:logicakids_admin_desarrollo20258187@base_postgres_general:5432/bd_logicakids_desarrollo
+    depends_on:
+      - base_postgres_general
+    restart: always
+
+  # ===== FRONTEND (React + Nginx) =====
+  frontend:
+    build:
+      context: ../../LogicaMath/frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:8000/api
+    container_name: logicakids_local_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  pgdata_local:

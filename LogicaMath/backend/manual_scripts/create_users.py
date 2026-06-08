@@ -65,7 +65,7 @@ async def create_users():
 
         # 2. Crear usuario de Prueba
         test_email = "prueba@gmail.com"
-        test_pass = "Prueba123"
+        test_pass = "pruebas"
 
         result = await session.execute(
             select(User).where(User.email == test_email)
