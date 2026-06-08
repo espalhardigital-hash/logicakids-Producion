@@ -72,6 +72,9 @@ El agente puede realizar consultas HTTP de manera directa (Lectura de contenido)
 ### Comandos de Ejecución General (Requieren Confirmación del Usuario)
 Cualquier otro comando propuesto en PowerShell (ej: `git`, `docker`, `docker compose`, `ssh`, `scp`, `npm`, `python3`) es enviado a una cola de aprobación. El usuario debe aceptarlo o rechazarlo manualmente a través de la interfaz antes de que se ejecute en el sistema local.
 
+### Restricción de Operaciones Git
+* El agente **NUNCA** ejecutará de forma automática comandos que alteren el historial remoto o local como `git commit` o `git push`, a menos que el usuario lo autorice o solicite de forma expresa y explícita en su prompt.
+
 ### Acceso y Control de VPS / Docker
 * **Conexión a VPS**: El agente tiene permiso para conectarse a la VPS utilizando los datos y credenciales definidos en los archivos `.env` (ej: `rominejo@34.9.51.225`).
 * **Gestión de Contenedores y Stacks**: El agente está autorizado a alterar, modificar, reiniciar y redesplegar (redeploy/rebuild) los contenedores y stacks de Docker existentes con el fin de resolver fallos y mantener la funcionalidad.
