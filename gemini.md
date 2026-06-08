@@ -21,12 +21,10 @@ Este documento detalla las capacidades, herramientas, permisos y restricciones a
   * `D:\Antigravity\Apps_LogicaKids - Desarrollo\.env`
   * `d:\Antigravity\logica kig clone dase 2 producion\.env`
   * `D:\Antigravity\APP_Logica_Matematicas_kids\.env`
-* **Escritura**:
-  * `D:\Antigravity\APP_Logica_Matematicas_kids\.env`
 
 ### Permisos que Requieren Confirmación Explícita ("Ask")
-Para leer o escribir cualquiera de los siguientes archivos de configuración o credenciales sensibles, el agente solicitará permiso explícito al usuario en tiempo de ejecución:
-* Archivos `.env` generales del sistema (ej: `.env.local`, `.env.production`, `.env.development`, `.env.staging`).
+Para interactuar con cualquiera de los siguientes archivos de configuración o credenciales sensibles, el agente solicitará permiso explícito al usuario en tiempo de ejecución:
+* Lectura de archivos `.env` generales del sistema (ej: `.env.local`, `.env.production`, `.env.development`, `.env.staging`).
 * Archivos de credenciales de paquetes/sistemas: `.npmrc`, `.pypirc`, `.netrc`, `.git-credentials`.
 * Archivo de configuración global de MCP: `mcp_config.json`.
 * Modificación de archivos de habilidades en: `C:\Users\Rominejo\.gemini\skills`.
@@ -34,6 +32,7 @@ Para leer o escribir cualquiera de los siguientes archivos de configuración o c
 * Peticiones web a dominios no listados explícitamente (`read_url(*)`).
 
 ### Denegados de Forma Estricta ("Denied")
+* **Escritura en cualquier archivo `.env`** (todos los archivos `.env` son estrictamente de solo lectura para el agente).
 * Acceso a directorios del sistema de configuración de Gemini y la IDE:
   * `C:\Users\Rominejo\.gemini\antigravity-ide` (A nivel raíz).
   * `C:\Users\Rominejo\.gemini\config`
