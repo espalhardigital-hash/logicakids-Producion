@@ -95,36 +95,50 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
 
   return (
     <div 
-      className="apple-admin fixed inset-0 bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-[#f3f4f6] overflow-hidden w-full h-full flex custom-scrollbar transition-colors duration-300"
+      className="apple-admin fixed inset-0 bg-[var(--apple-bg)] text-[var(--apple-text)] overflow-hidden w-full h-full flex custom-scrollbar transition-colors duration-300"
       style={{ fontFamily: adminFontFamily || undefined }}
     >
       {/* Dynamic CSS Scope Injection */}
       <style dangerouslySetInnerHTML={{ __html: `
         .apple-admin {
-          --apple-blue: #007AFF;
-          --apple-green: #34C759;
-          --apple-gray: #8E8E93;
-          --apple-bg: #0d0e12;
-          --apple-card: rgba(22, 24, 30, 0.7);
-          --apple-border: rgba(255, 255, 255, 0.08);
+          /* Light mode defaults - Clean iOS aesthetics */
+          --apple-bg: #f2f2f7;
+          --apple-card: rgba(255, 255, 255, 0.85);
+          --apple-border: rgba(0, 0, 0, 0.08);
+          --apple-text: #1c1c1e;
+          --apple-text-muted: #8e8e93;
+          --apple-input-bg: rgba(0, 0, 0, 0.05);
+          --apple-input-text: #1c1c1e;
+          --apple-hover-bg: rgba(0, 0, 0, 0.03);
+          --apple-table-header: rgba(0, 0, 0, 0.04);
+          --apple-table-border: rgba(0, 0, 0, 0.06);
+          --apple-switch-bg: #e5e5ea;
+          
+          --apple-blue: #007aff;
+          --apple-green: #34c759;
           font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
         }
 
+        .dark .apple-admin {
+          /* Dark mode overrides */
+          --apple-bg: #000000;
+          --apple-card: rgba(28, 28, 30, 0.75);
+          --apple-border: rgba(255, 255, 255, 0.1);
+          --apple-text: #ffffff;
+          --apple-text-muted: #98989d;
+          --apple-input-bg: rgba(255, 255, 255, 0.08);
+          --apple-input-text: #ffffff;
+          --apple-hover-bg: rgba(255, 255, 255, 0.05);
+          --apple-table-header: rgba(255, 255, 255, 0.05);
+          --apple-table-border: rgba(255, 255, 255, 0.08);
+          --apple-switch-bg: #39393d;
+        }
+
         /* custom modern scrollbar */
-        .apple-admin ::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
-        .apple-admin ::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .apple-admin ::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.12);
-          border-radius: 99px;
-        }
-        .apple-admin ::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.25);
-        }
+        .apple-admin ::-webkit-scrollbar { width: 6px; height: 6px; }
+        .apple-admin ::-webkit-scrollbar-track { background: transparent; }
+        .apple-admin ::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.4); border-radius: 99px; }
+        .apple-admin ::-webkit-scrollbar-thumb:hover { background: rgba(128, 128, 128, 0.6); }
 
         /* Beautiful iOS inputs, selects and textareas override */
         .apple-admin input[type="text"],
@@ -133,10 +147,10 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
         .apple-admin input[type="number"],
         .apple-admin select,
         .apple-admin textarea {
-          background: rgba(0, 0, 0, 0.2) !important;
-          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          background: var(--apple-input-bg) !important;
+          border: 1px solid var(--apple-border) !important;
           border-radius: 10px !important;
-          color: #f3f4f6 !important;
+          color: var(--apple-input-text) !important;
           padding: 8px 12px !important;
           font-size: 14px !important;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -150,76 +164,66 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
         .apple-admin textarea:focus {
           border-color: var(--apple-blue) !important;
           box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2) !important;
-          background: rgba(0, 0, 0, 0.3) !important;
+          background: transparent !important;
         }
 
         /* Sleek Apple-style Table headers and rows */
-        .apple-admin table {
-          border-collapse: separate !important;
-          border-spacing: 0 !important;
-          width: 100% !important;
-        }
+        .apple-admin table { border-collapse: separate !important; border-spacing: 0 !important; width: 100% !important; }
         .apple-admin th {
-          background: rgba(255, 255, 255, 0.02) !important;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-          color: #9ca3af !important;
-          font-weight: 500 !important;
+          background: var(--apple-table-header) !important;
+          border-bottom: 1px solid var(--apple-table-border) !important;
+          color: var(--apple-text-muted) !important;
+          font-weight: 600 !important;
           text-transform: none !important;
           font-size: 13px !important;
           padding: 10px 14px !important;
           text-align: left !important;
         }
         .apple-admin td {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+          border-bottom: 1px solid var(--apple-table-border) !important;
           padding: 12px 14px !important;
           font-size: 14px !important;
-          color: #d1d5db !important;
+          color: var(--apple-text) !important;
         }
-        .apple-admin tr:hover td {
-          background: rgba(255, 255, 255, 0.02) !important;
-        }
+        .apple-admin tr:hover td { background: var(--apple-hover-bg) !important; }
 
         /* Apple cards overrides */
-        .apple-admin .glass-card {
+        .apple-admin .glass-card,
+        .apple-admin .bg-slate-900,
+        .apple-admin .bg-\\[\\#162033\\],
+        .apple-admin .dark\\:bg-\\[\\#162033\\] {
           background: var(--apple-card) !important;
-          backdrop-filter: blur(20px) !important;
+          backdrop-filter: blur(20px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
           border: 1px solid var(--apple-border) !important;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04) !important;
           border-radius: 16px !important;
+          color: var(--apple-text) !important;
+        }
+        
+        .apple-admin .glass-card h1,
+        .apple-admin .glass-card h2,
+        .apple-admin .glass-card h3,
+        .apple-admin .glass-card h4,
+        .apple-admin .glass-card p,
+        .apple-admin .glass-card span {
+            color: inherit;
         }
 
         /* iOS Toggle Switch Styles */
-        .apple-admin .ios-switch-container {
-          display: inline-flex;
-          align-items: center;
-          cursor: pointer;
-        }
+        .apple-admin .ios-switch-container { display: inline-flex; align-items: center; cursor: pointer; }
         .apple-admin .ios-switch {
-          position: relative;
-          display: inline-block;
-          width: 44px;
-          height: 24px;
-          background-color: rgba(255, 255, 255, 0.12);
-          border-radius: 99px;
-          transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative; display: inline-block; width: 44px; height: 24px;
+          background-color: var(--apple-switch-bg);
+          border-radius: 99px; transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .apple-admin .ios-switch-active {
-          background-color: var(--apple-green) !important;
-        }
+        .apple-admin .ios-switch-active { background-color: var(--apple-green) !important; }
         .apple-admin .ios-switch-knob {
-          position: absolute;
-          top: 2px;
-          left: 2px;
-          width: 20px;
-          height: 20px;
-          background-color: #ffffff;
-          border-radius: 99px;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-          transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+          background-color: #ffffff; border-radius: 99px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .apple-admin .ios-switch-active .ios-switch-knob {
-          transform: translateX(20px);
-        }
+        .apple-admin .ios-switch-active .ios-switch-knob { transform: translateX(20px); }
       ` }} />
 
       {/* Subtle Ambient Vignette */}
@@ -326,7 +330,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
             onClick={onBack}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-white/15 text-slate-900 dark:text-white text-[13.5px] font-medium transition-colors"
           >
-            Volver a Fase 4
+            Volver al Viaje
           </button>
           <button
             onClick={onLogout}

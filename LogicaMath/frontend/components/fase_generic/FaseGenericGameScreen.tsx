@@ -138,7 +138,7 @@ export default function FaseGenericGameScreen() {
           <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '16px', color: '#f8fafc' }}>
             {!metadata ? 'Fase no encontrada' : 'Cargando Desafío...'}
           </h2>
-          <button onClick={() => navigate(`/welcome-fase/${faseId}`)} className="fg-submit-btn" style={{ maxWidth: '200px', margin: '20px auto' }}>
+          <button onClick={() => navigate('/welcome-fase', { state: { faseId } })} className="fg-submit-btn" style={{ maxWidth: '200px', margin: '20px auto' }}>
             Volver
           </button>
         </div>
@@ -413,7 +413,7 @@ export default function FaseGenericGameScreen() {
 
       {/* ── Header Unificado ── */}
       <header className="fg-game-header-modern">
-        <button className="fg-header-abort-btn" onClick={() => navigate(`/welcome-fase/${faseId}`)} title="Salir del nivel">
+        <button className="fg-header-abort-btn" onClick={() => navigate('/welcome-fase', { state: { faseId } })} title="Salir del nivel">
           <Lucide.LogOut size={18} />
           <span>SALIR DEL NIVEL</span>
         </button>
@@ -496,7 +496,7 @@ export default function FaseGenericGameScreen() {
 
             <button 
               className="fg-submit-btn"
-              onClick={() => navigate(`/welcome-fase/${faseId}`)}
+              onClick={() => navigate('/welcome-fase', { state: { faseId } })}
               style={{ background: modulo.color }}
             >
               Volver al Menú
@@ -521,9 +521,10 @@ export default function FaseGenericGameScreen() {
                 /* Multiple Choice Layout */
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
                   <div className="fg-question-text-box">
-                    <div className={currentQuestion.enunciado.length < 25 ? "fg-question-text short" : "fg-question-text"}>
-                      {currentQuestion.enunciado}
-                    </div>
+                    <div 
+                      className={currentQuestion.enunciado.length < 25 ? "fg-question-text short" : "fg-question-text"}
+                      dangerouslySetInnerHTML={{ __html: currentQuestion.enunciado }}
+                    />
                   </div>
 
                   <div className="fg-options-grid">
@@ -574,9 +575,10 @@ export default function FaseGenericGameScreen() {
                 /* Numeric Layout */
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
                   <div className="fg-question-text-box">
-                    <div className={currentQuestion.enunciado.length < 25 ? "fg-question-text short" : "fg-question-text"}>
-                      {currentQuestion.enunciado}
-                    </div>
+                    <div 
+                      className={currentQuestion.enunciado.length < 25 ? "fg-question-text short" : "fg-question-text"}
+                      dangerouslySetInnerHTML={{ __html: currentQuestion.enunciado }}
+                    />
                   </div>
 
                   <div className="fg-numeric-input-wrap">

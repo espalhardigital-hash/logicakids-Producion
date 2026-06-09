@@ -1006,19 +1006,64 @@ def _plural(palabra):
         "canasta": "canastas",
         "cajón": "cajones",
         "paquete": "paquetes",
-        "sobre": "sobres",
+        "sobre": "sobres"
     }
-    return mapping.get(palabra, palabra + "s")
+    return mapping.get(palabra, palabra + "s") # Helper generators
+def _get_random_context(rng):
+    nombre = rng.choice(NOMBRES_POOL)
+    
+    # Pool of all items
+    item_pool = ARTICULOS_TIENDA + UTILES_ESCOLARES + OBJETOS_RECREO + INGREDIENTES_COMIDA
+    objeto = rng.choice(item_pool)
+    plural = _plural(objeto)
+    
+    recipiente = rng.choice(RECIPIENTES)
+    recipiente_pl = _plural(recipiente)
+    
+    v_compra = rng.choice(VERBOS_COMPRA)
+    v_perdida = rng.choice(VERBOS_PERDIDA)
+    v_obtencion = rng.choice(VERBOS_OBTENCION)
+    
+    art_obj = "una" if _genero_fem(objeto) else "un"
+    art_rec = "una" if _genero_fem(recipiente) else "un"
+    cuantos_obj = "cuántas" if _genero_fem(objeto) else "cuántos"
+    rojo_color = "rojas" if _genero_fem(objeto) else "rojos"
+    verde_color = "verdes"
+    
+    return {
+        "nombre": nombre,
+        "objeto": objeto,
+        "plural": plural,
+        "recipiente": recipiente,
+        "recipiente_plural": recipiente_pl,
+        "verbo_compra": v_compra,
+        "verbo_perdida": v_perdida,
+        "verbo_obtencion": v_obtencion,
+        "art_obj": art_obj,
+        "art_rec": art_rec,
+        "cuantos_obj": cuantos_obj,
+        "rojo_color": rojo_color,
+        "verde_color": verde_color,
+    }
 
-# Helper generators
 def _gen_m1l1(rng, fam, es_espejo, var):
     op = rng.choice(["doble", "triple", "mitad", "cuádruple"])
     respuestas_erroneas = []
+    ctx = _get_random_context(rng)
+    use_story = rng.random() < 0.75
     
     if op == "mitad":
         base = rng.randint(4, 50) * 2
         ans = base // 2
-        enunciado = f"Halla la mitad de {base}."
+        if use_story:
+            templates = [
+                f"{ctx['nombre']} tiene {base} {ctx['plural']}. Si {ctx['verbo_perdida']} la mitad a su hermano, ¿con {ctx['cuantos_obj']} {ctx['plural']} se queda?",
+                f"En {ctx['art_rec']} {ctx['recipiente']} hay {base} {ctx['plural']}. Si usamos la mitad para una actividad, ¿{ctx['cuantos_obj']} {ctx['plural']} nos quedan?",
+                f"{ctx['nombre']} {ctx['verbo_obtencion']} {base} {ctx['plural']} y su hermano tiene la mitad de esa cantidad. ¿{ctx['cuantos_obj']} {ctx['plural']} tiene su hermano?"
+            ]
+            enunciado = rng.choice(templates)
+        else:
+            enunciado = f"Halla la mitad de {base}."
         expl = f"Para hallar la mitad, dividimos entre 2: {base} ÷ 2 = {ans}."
         
         err_val = base - 2
@@ -1027,7 +1072,15 @@ def _gen_m1l1(rng, fam, es_espejo, var):
     elif op == "doble":
         base = rng.randint(3, 50)
         ans = base * 2
-        enunciado = f"Halla el doble de {base}."
+        if use_story:
+            templates = [
+                f"Si {ctx['art_rec']} {ctx['recipiente']} tiene {base} {ctx['plural']} y compramos otra idéntica para tener el doble, ¿{ctx['cuantos_obj']} {ctx['plural']} tendremos en total?",
+                f"{ctx['nombre']} {ctx['verbo_obtencion']} {base} {ctx['plural']} y su prima tiene el doble. ¿{ctx['cuantos_obj']} {ctx['plural']} tiene su prima?",
+                f"Ayer {ctx['nombre']} tenía {base} {ctx['plural']}, y hoy tiene el doble. ¿{ctx['cuantos_obj']} {ctx['plural']} tiene hoy?"
+            ]
+            enunciado = rng.choice(templates)
+        else:
+            enunciado = f"Halla el doble de {base}."
         expl = f"Para hallar el doble, multiplicamos por 2: {base} × 2 = {ans}."
         
         err_val = base + 2
@@ -1036,7 +1089,15 @@ def _gen_m1l1(rng, fam, es_espejo, var):
     elif op == "triple":
         base = rng.randint(3, 33)
         ans = base * 3
-        enunciado = f"Halla el triple de {base}."
+        if use_story:
+            templates = [
+                f"Si en un estante hay {base} {ctx['plural']} y en el de arriba hay el triple, ¿{ctx['cuantos_obj']} {ctx['plural']} hay arriba?",
+                f"{ctx['nombre']} tiene {base} {ctx['plural']} y su profesor tiene el triple. ¿{ctx['cuantos_obj']} {ctx['plural']} tiene su profesor?",
+                f"El triple de {base} {ctx['plural']} equivale a..."
+            ]
+            enunciado = rng.choice(templates)
+        else:
+            enunciado = f"Halla el triple de {base}."
         expl = f"Para hallar el triple, multiplicamos por 3: {base} × 3 = {ans}."
         
         err_val = base + 3
@@ -1045,7 +1106,15 @@ def _gen_m1l1(rng, fam, es_espejo, var):
     else:
         base = rng.randint(3, 25)
         ans = base * 4
-        enunciado = f"Halla el cuádruple de {base}."
+        if use_story:
+            templates = [
+                f"En {ctx['art_rec']} {ctx['recipiente']} vienen {base} {ctx['plural']}. Si compramos 4 {ctx['recipiente_plural']} para tener el cuádruple, ¿{ctx['cuantos_obj']} {ctx['plural']} tendremos en total?",
+                f"{ctx['nombre']} ahorró {base} {ctx['plural']} y Elena tiene el cuádruple. ¿{ctx['cuantos_obj']} {ctx['plural']} tiene Elena?",
+                f"El cuádruple de {base} {ctx['plural']} es igual a..."
+            ]
+            enunciado = rng.choice(templates)
+        else:
+            enunciado = f"Halla el cuádruple de {base}."
         expl = f"Para hallar el cuádruple, multiplicamos por 4: {base} × 4 = {ans}."
         
         err_val = base + 4
@@ -1055,7 +1124,7 @@ def _gen_m1l1(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
-        "datos_numericos": {"base": base, "operacion": op, "es_espejo": es_espejo, "variante": var},
+        "datos_numericos": {"base": base, "operacion": op, "es_espejo": es_espejo, "variante": var, "nombre": ctx["nombre"], "objeto": ctx["objeto"]},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "impulso": "¡Cuidado! Recuerda que no debes sumar el multiplicador, sino multiplicar el número base.",
@@ -1073,13 +1142,18 @@ def _gen_m1l1(rng, fam, es_espejo, var):
 def _gen_m1l2(rng, fam, es_espejo, var):
     patron = rng.choice(["a + b * c", "a * b + c", "a - b / c", "(a + b) * c"])
     respuestas_erroneas = []
+    ctx = _get_random_context(rng)
+    use_story = rng.random() < 0.75
     
     if patron == "a + b * c":
         a = rng.randint(2, 20)
         b = rng.randint(2, 9)
         c = rng.randint(2, 9)
         ans = a + b * c
-        enunciado = f"Resuelve respetando la jerarquía: {a} + {b} × {c}"
+        if use_story:
+            enunciado = f"{ctx['nombre']} tiene {a} {ctx['plural']} sueltas. Si compra {b} {ctx['recipiente_plural']} que contienen {c} {ctx['plural']} cada uno, ¿{ctx['cuantos_obj']} {ctx['plural']} tiene en total?"
+        else:
+            enunciado = f"Resuelve respetando la jerarquía: {a} + {b} × {c}"
         expl = f"Primero resolvemos la multiplicación por jerarquía: {b} × {c} = {b*c}. Luego sumamos: {a} + {b*c} = {ans}."
         
         linear_val = (a + b) * c
@@ -1094,7 +1168,10 @@ def _gen_m1l2(rng, fam, es_espejo, var):
         b = rng.randint(2, 9)
         c = rng.randint(2, 20)
         ans = a * b + c
-        enunciado = f"Resuelve respetando la jerarquía: {a} × {b} + {c}"
+        if use_story:
+            enunciado = f"En {ctx['art_rec']} estante hay {a} {ctx['recipiente_plural']} con {b} {ctx['plural']} cada uno. Si también hay {c} {ctx['plural']} sueltas en la mesa, ¿{ctx['cuantos_obj']} {ctx['plural']} hay en total?"
+        else:
+            enunciado = f"Resuelve respetando la jerarquía: {a} × {b} + {c}"
         expl = f"Primero resolvemos la multiplicación: {a} × {b} = {a*b}. Luego sumamos: {a*b} + {c} = {ans}."
         
         parenthesis_val = a * (b + c)
@@ -1110,7 +1187,10 @@ def _gen_m1l2(rng, fam, es_espejo, var):
         b = ans * c
         a = rng.randint(b + 2, b + 30)
         final_ans = a - ans
-        enunciado = f"Resuelve respetando la jerarquía: {a} - {b} ÷ {c}"
+        if use_story:
+            enunciado = f"{ctx['nombre']} tiene {a} pesos. Si compra un juguete que cuesta la división de {b} pesos entre {c} amigos (donde cada uno paga su parte justa), ¿con cuántos pesos se queda?"
+        else:
+            enunciado = f"Resuelve respetando la jerarquía: {a} - {b} ÷ {c}"
         expl = f"Primero resolvemos la división: {b} ÷ {c} = {ans}. Luego restamos: {a} - {ans} = {final_ans}."
         ans = final_ans
         
@@ -1126,7 +1206,10 @@ def _gen_m1l2(rng, fam, es_espejo, var):
         b = rng.randint(2, 10)
         c = rng.randint(2, 5)
         ans = (a + b) * c
-        enunciado = f"Resuelve: ({a} + {b}) × {c}"
+        if use_story:
+            enunciado = f"Si colocamos {a} {ctx['plural']} {ctx['rojo_color']} y {b} {ctx['verde_color']} en {ctx['art_rec']} {ctx['recipiente']}, y luego compramos {c} {ctx['recipiente_plural']} idénticos, ¿{ctx['cuantos_obj']} {ctx['plural']} tendremos en total?"
+        else:
+            enunciado = f"Resuelve: ({a} + {b}) × {c}"
         expl = f"Primero resolvemos el paréntesis protector: {a} + {b} = {a+b}. Luego multiplicamos: {a+b} × {c} = {ans}."
         
         ignore_val = a + b * c
@@ -1140,7 +1223,7 @@ def _gen_m1l2(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
-        "datos_numericos": {"patron": patron, "es_espejo": es_espejo, "variante": var},
+        "datos_numericos": {"patron": patron, "es_espejo": es_espejo, "variante": var, "nombre": ctx["nombre"], "objeto": ctx["objeto"]},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "impulso": "¡Jerarquía de operaciones! Primero se resuelven los paréntesis, luego multiplicaciones/divisiones, y al final sumas/restas."
@@ -1162,7 +1245,12 @@ def _gen_m1l3(rng, fam, es_espejo, var):
         a = rng.randint(2, 15)
         b = rng.randint(2, 15)
         ans = 2 * (a + b)
-        enunciado = f"¿Cuál es el doble de la suma de {a} y {b}?"
+        templates = [
+            f"¿Cuál es el doble de la suma de {a} y {b}?",
+            f"Si sumamos {a} y {b}, y luego duplicamos el resultado, ¿cuánto obtenemos?",
+            f"Multiplica por 2 la suma de {a} y {b}."
+        ]
+        enunciado = rng.choice(templates)
         expl = f"Primero sumamos {a} y {b}: {a} + {b} = {a+b}. Luego multiplicamos por 2 para el doble: 2 × {a+b} = {ans}."
         
         ignore_val = 2 * a + b
@@ -1176,7 +1264,12 @@ def _gen_m1l3(rng, fam, es_espejo, var):
         b = rng.randint(2, 15)
         a = rng.randint(b + 2, b + 20)
         ans = 3 * (a - b)
-        enunciado = f"¿Cuál es el triple de la diferencia entre {a} y {b}?"
+        templates = [
+            f"¿Cuál es el triple de la diferencia entre {a} y {b}?",
+            f"Halla la diferencia entre {a} y {b}, y luego calcula su triple.",
+            f"Multiplica por 3 la diferencia de restarle {b} a {a}."
+        ]
+        enunciado = rng.choice(templates)
         expl = f"La diferencia es la resta: {a} - {b} = {a-b}. El triple significa multiplicar por 3: 3 × {a-b} = {ans}."
         
         ignore_val = 3 * a - b
@@ -1190,7 +1283,12 @@ def _gen_m1l3(rng, fam, es_espejo, var):
         a = rng.randint(2, 20) * 2
         b = rng.randint(2, 20)
         ans = (a // 2) + b
-        enunciado = f"A la mitad de {a} sumarle {b}."
+        templates = [
+            f"A la mitad de {a} sumarle {b}.",
+            f"Divide {a} a la mitad y al resultado agrégale {b}.",
+            f"Suma {b} a la mitad de {a}."
+        ]
+        enunciado = rng.choice(templates)
         expl = f"Primero hallamos la mitad de {a}: {a} ÷ 2 = {a//2}. Luego le sumamos {b}: {a//2} + {b} = {ans}."
         
         ignore_val = a // (2 + b)
@@ -1223,11 +1321,16 @@ def _gen_m2l1(rng, fam, es_espejo, var):
     a = rng.randint(2, 40)
     respuestas_erroneas = []
     letra = rng.choice(['A', 'B', 'C', 'D', 'M', 'N', 'P', 'R', 'Y'])
+    ctx = _get_random_context(rng)
+    use_story = rng.random() < 0.75
     
     if op == "suma":
         ans = rng.randint(2, 40)
         b = ans + a
-        enunciado = f"Encontrar el valor de {letra} dado que {letra} + {a} = {b}"
+        if use_story:
+            enunciado = f"{ctx['nombre']} tenía cierta cantidad de {ctx['plural']} ({letra}). Si su tío le regaló {a} más y ahora tiene {b}, ¿{ctx['cuantos_obj']} {ctx['plural']} {letra} tenía al inicio?"
+        else:
+            enunciado = f"Encontrar el valor de {letra} dado que {letra} + {a} = {b}"
         expl = f"El {a} está sumando. La inversa es restar: {letra} = {b} - {a} = {ans}."
         
         err_val = b + a
@@ -1242,7 +1345,10 @@ def _gen_m2l1(rng, fam, es_espejo, var):
         if b <= 0:
             b = rng.randint(2, 40)
             ans = b + a
-        enunciado = f"Encontrar el valor de {letra} dado que {letra} - {a} = {b}"
+        if use_story:
+            enunciado = f"Un cofre tenía {letra} monedas de oro. Si un pirata retiró {a} monedas y quedaron {b}, ¿cuántas monedas {letra} había al principio?"
+        else:
+            enunciado = f"Encontrar el valor de {letra} dado que {letra} - {a} = {b}"
         expl = f"El {a} está restando. La inversa es sumar: {letra} = {b} + {a} = {ans}."
         
         err_val = b - a
@@ -1256,7 +1362,7 @@ def _gen_m2l1(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
-        "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var, "letra": letra},
+        "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var, "letra": letra, "nombre": ctx["nombre"], "objeto": ctx["objeto"]},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "inversa": f"Para despejar {letra}, pasa el número al otro lado usando su operación contraria (resta si suma, suma si resta)."
@@ -1276,10 +1382,15 @@ def _gen_m2l2(rng, fam, es_espejo, var):
     ans = rng.randint(2, 12)
     respuestas_erroneas = []
     letra = rng.choice(['A', 'B', 'C', 'D', 'M', 'N', 'P', 'R', 'X'])
+    ctx = _get_random_context(rng)
+    use_story = rng.random() < 0.75
     
     if op == "mult":
         b = a * ans
-        enunciado = f"Encontrar el valor de {letra} dado que {a} × {letra} = {b}"
+        if use_story:
+            enunciado = f"{ctx['nombre']} compró {a} {ctx['recipiente_plural']} de {ctx['plural']} ({letra}) idénticos. Si en total tiene {b} {ctx['plural']}, ¿{ctx['cuantos_obj']} {ctx['plural']} {letra} hay en cada {ctx['recipiente']}?"
+        else:
+            enunciado = f"Encontrar el valor de {letra} dado que {a} × {letra} = {b}"
         expl = f"El {a} está multiplicando. Pasamos dividiendo al otro lado del igual: {letra} = {b} ÷ {a} = {ans}."
         
         err_val = b * a
@@ -1291,7 +1402,10 @@ def _gen_m2l2(rng, fam, es_espejo, var):
     else:
         b = ans
         total = a * b
-        enunciado = f"Encontrar el valor de {letra} dado que {letra} ÷ {a} = {b}"
+        if use_story:
+            enunciado = f"Si repartimos un paquete de {ctx['plural']} ({letra}) entre {a} amigos en partes iguales y a cada uno le tocan {b}, ¿{ctx['cuantos_obj']} {ctx['plural']} {letra} había al inicio?"
+        else:
+            enunciado = f"Encontrar el valor de {letra} dado que {letra} ÷ {a} = {b}"
         expl = f"El {a} está dividiendo. Pasamos multiplicando al otro lado del igual: {letra} = {b} × {a} = {total}."
         ans = total
         
@@ -1306,7 +1420,7 @@ def _gen_m2l2(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
-        "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var, "letra": letra},
+        "datos_numericos": {"a": a, "b": b, "operacion": op, "es_espejo": es_espejo, "variante": var, "letra": letra, "nombre": ctx["nombre"], "objeto": ctx["objeto"]},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "inversa": "La multiplicación se deshace con división. La división se deshace con multiplicación."
@@ -1323,12 +1437,17 @@ def _gen_m2l2(rng, fam, es_espejo, var):
 def _gen_m2l3(rng, fam, es_espejo, var):
     tipo = rng.choice(["a + [] = b", "[] * a = b", "a - [] = b", "[] / a = b"])
     respuestas_erroneas = []
+    ctx = _get_random_context(rng)
+    use_story = rng.random() < 0.75
     
     if tipo == "a + [] = b":
         a = rng.randint(3, 50)
         ans = rng.randint(3, 50)
         b = a + ans
-        enunciado = f"Completa el espacio faltante: {a} + [ ] = {b}"
+        if use_story:
+            enunciado = f"{ctx['nombre']} tiene {a} {ctx['plural']} y quiere juntar un total de {b}. ¿{ctx['cuantos_obj']} {ctx['plural']} [ ] le hace falta conseguir?"
+        else:
+            enunciado = f"Completa el espacio faltante: {a} + [ ] = {b}"
         expl = f"Buscamos qué sumar a {a} para obtener {b}. Restamos: {b} - {a} = {ans}."
         
         err_val = b + a
@@ -1341,7 +1460,10 @@ def _gen_m2l3(rng, fam, es_espejo, var):
         a = rng.randint(2, 10)
         ans = rng.randint(2, 12)
         b = a * ans
-        enunciado = f"Completa el espacio faltante: [ ] × {a} = {b}"
+        if use_story:
+            enunciado = f"Queremos organizar {b} {ctx['plural']} colocando {a} unidades por {ctx['recipiente']}. ¿{ctx['cuantos_obj']} {ctx['recipiente_plural']} [ ] completas utilizaremos?"
+        else:
+            enunciado = f"Completa el espacio faltante: [ ] × {a} = {b}"
         expl = f"Buscamos qué número multiplicado por {a} da {b}. Dividimos: {b} ÷ {a} = {ans}."
         
         err_val = b * a
@@ -1354,7 +1476,10 @@ def _gen_m2l3(rng, fam, es_espejo, var):
         a = rng.randint(15, 60)
         ans = rng.randint(2, a - 2)
         b = a - ans
-        enunciado = f"Completa el espacio faltante: {a} - [ ] = {b}"
+        if use_story:
+            enunciado = f"De un total de {a} {ctx['plural']} coleccionadas, {ctx['nombre']} regala algunas [ ] a sus amigos y le quedan {b}. ¿{ctx['cuantos_obj']} {ctx['plural']} [ ] regaló?"
+        else:
+            enunciado = f"Completa el espacio faltante: {a} - [ ] = {b}"
         expl = f"A {a} le quitamos cierta cantidad para llegar a {b}. Calculamos la diferencia: {a} - {b} = {ans}."
         
         err_val = a + b
@@ -1367,7 +1492,10 @@ def _gen_m2l3(rng, fam, es_espejo, var):
         a = rng.randint(2, 9)
         b = rng.randint(2, 10)
         ans = a * b
-        enunciado = f"Completa el espacio faltante: [ ] ÷ {a} = {b}"
+        if use_story:
+            enunciado = f"Se repartió una cantidad misteriosa de {ctx['plural']} [ ] entre {a} personas y cada una recibió {b}. ¿{ctx['cuantos_obj']} {ctx['plural']} [ ] se repartieron en total?"
+        else:
+            enunciado = f"Completa el espacio faltante: [ ] ÷ {a} = {b}"
         expl = f"Un número dividido entre {a} da {b}. Multiplicamos para hallarlo: {b} × {a} = {ans}."
         
         err_val = b // a
@@ -1381,7 +1509,7 @@ def _gen_m2l3(rng, fam, es_espejo, var):
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
-        "datos_numericos": {"tipo": tipo, "es_espejo": es_espejo, "variante": var},
+        "datos_numericos": {"tipo": tipo, "es_espejo": es_espejo, "variante": var, "nombre": ctx["nombre"], "objeto": ctx["objeto"]},
         "errores_previstos": {
             "respuestas_erroneas": respuestas_erroneas,
             "balanza": "¡Piensa de forma intuitiva! El valor en la casilla vacía debe equilibrar la balanza en ambos lados."

@@ -4,16 +4,19 @@ interface Props {
   inputValue: string; // Valor ingresado actualmente por el alumno
   total: number; // El total de la pregunta para calcular el porcentaje
   color?: string; // Color de acento del líquido
+  type?: 'beaker' | 'thermometer';
 }
 
 export const PercentageBeaker: React.FC<Props> = ({
   inputValue = '',
   total = 100,
   color = '#10b981', // Verde esmeralda vivo por defecto para porcentaje
+  type = 'beaker',
 }) => {
   const numericVal = parseFloat(inputValue) || 0;
   const percentage = total > 0 ? Math.round((numericVal / total) * 100) : 0;
   const fillHeight = Math.min(100, Math.max(0, percentage));
+  const liquidColor = type === 'thermometer' ? '#ef4444' : color;
 
   const scalePoints = [100, 75, 50, 25, 0];
 
@@ -21,53 +24,97 @@ export const PercentageBeaker: React.FC<Props> = ({
     <div className="flex flex-col items-center justify-center w-full p-6 bg-slate-950/20 border border-white/5 rounded-[2.5rem] shadow-2xl">
       <div className="grid grid-cols-2 gap-8 items-center w-full max-w-md">
         
-        {/* PANEL IZQUIERDO: Beaker de Porcentaje */}
+        {/* PANEL IZQUIERDO: Beaker/Thermometer de Porcentaje */}
         <div className="flex flex-col items-center justify-center">
           
           <div className="flex items-end gap-3 h-64 relative pt-4">
             
-            {/* Vaso (Beaker) */}
-            <div className="relative flex flex-col items-center">
-               <div className="w-24 h-3 border-2 border-b-0 border-white/30 rounded-[50%] -mb-1.5 z-20 relative bg-slate-900/80" />
-               <div className="relative w-20 h-56 bg-slate-900/40 border-x-4 border-b-4 border-white/10 rounded-b-xl flex flex-col justify-end overflow-hidden shadow-inner backdrop-blur-md">
-                 
-                 {/* Líquido */}
-                 <div
-                   style={{
-                     height: `${fillHeight}%`,
-                     background: `linear-gradient(180deg, ${color}dd 0%, ${color} 100%)`,
-                     boxShadow: `inset 0 10px 20px rgba(255,255,255,0.3), 0 0 30px ${color}50`,
-                     transition: 'height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                   }}
-                   className="w-full relative"
-                 >
-                    {percentage > 0 && (
-                      <div className="absolute top-0 left-0 w-full h-2 -mt-1 rounded-[50%] bg-white/40" />
-                    )}
-                 </div>
+            {type === 'thermometer' ? (
+              /* Termómetro de Porcentaje */
+              <div className="relative flex flex-col items-center">
+                {/* Tubo de vidrio */}
+                <div className="relative w-10 h-44 bg-slate-900/40 border-x-4 border-t-4 border-white/10 rounded-t-full flex flex-col justify-end overflow-hidden shadow-inner backdrop-blur-md">
+                  {/* Líquido */}
+                  <div
+                    style={{
+                      height: `${fillHeight}%`,
+                      background: `linear-gradient(180deg, #f87171 0%, ${liquidColor} 100%)`,
+                      boxShadow: `0 0 20px rgba(239,68,68,0.5)`,
+                      transition: 'height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    }}
+                    className="w-full relative"
+                  />
 
-                 {/* Ticks dentro del tubo */}
-                 <div className="absolute inset-0 flex flex-col justify-between py-0 pointer-events-none z-10">
-                   {scalePoints.map((pt) => (
-                     <div 
-                       key={pt} 
-                       className="w-full flex items-center justify-between" 
-                       style={{ height: pt === 100 || pt === 0 ? '0px' : '1px' }}
-                     >
-                       <div className="w-3 h-[1px] bg-white/20" />
-                       <div className="w-3 h-[1px] bg-white/20" />
-                     </div>
-                   ))}
+                  {/* Ticks dentro del tubo */}
+                  <div className="absolute inset-0 flex flex-col justify-between py-2 pointer-events-none z-10">
+                    {scalePoints.map((pt) => (
+                      <div 
+                        key={pt} 
+                        className="w-full flex items-center justify-between" 
+                        style={{ height: pt === 100 || pt === 0 ? '0px' : '1px' }}
+                      >
+                        <div className="w-2.5 h-[1px] bg-white/20" />
+                        <div className="w-2.5 h-[1px] bg-white/20" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Bulbo de líquido */}
+                <div 
+                  className="w-14 h-14 rounded-full border-4 border-white/10 -mt-2 z-20 flex items-center justify-center shadow-lg relative overflow-hidden"
+                  style={{
+                    background: `radial-gradient(circle at 35% 35%, #f87171 0%, ${liquidColor} 70%, #991b1b 100%)`,
+                    boxShadow: `0 0 20px rgba(239,68,68,0.6), inset 0 3px 6px rgba(255,255,255,0.4)`
+                  }}
+                >
+                  <div className="absolute top-1.5 left-1.5 w-3.5 h-3.5 rounded-full bg-white/45 filter blur-[0.5px]" />
+                </div>
+              </div>
+            ) : (
+              /* Vaso de Porcentaje (Beaker) */
+              <div className="relative flex flex-col items-center">
+                 <div className="w-24 h-3 border-2 border-b-0 border-white/30 rounded-[50%] -mb-1.5 z-20 relative bg-slate-900/80" />
+                 <div className="relative w-20 h-56 bg-slate-900/40 border-x-4 border-b-4 border-white/10 rounded-b-xl flex flex-col justify-end overflow-hidden shadow-inner backdrop-blur-md">
+                   
+                   {/* Líquido */}
+                   <div
+                     style={{
+                       height: `${fillHeight}%`,
+                       background: `linear-gradient(180deg, ${color}dd 0%, ${color} 100%)`,
+                       boxShadow: `inset 0 10px 20px rgba(255,255,255,0.3), 0 0 30px ${color}50`,
+                       transition: 'height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                     }}
+                     className="w-full relative"
+                   >
+                      {percentage > 0 && (
+                        <div className="absolute top-0 left-0 w-full h-2 -mt-1 rounded-[50%] bg-white/40" />
+                      )}
+                   </div>
+
+                   {/* Ticks dentro del vaso */}
+                   <div className="absolute inset-0 flex flex-col justify-between py-0 pointer-events-none z-10">
+                     {scalePoints.map((pt) => (
+                       <div 
+                         key={pt} 
+                         className="w-full flex items-center justify-between" 
+                         style={{ height: pt === 100 || pt === 0 ? '0px' : '1px' }}
+                       >
+                         <div className="w-3 h-[1px] bg-white/20" />
+                         <div className="w-3 h-[1px] bg-white/20" />
+                       </div>
+                     ))}
+                   </div>
                  </div>
-               </div>
-            </div>
+              </div>
+            )}
 
             {/* Escala */}
-            <div className="flex flex-col justify-between h-56 text-[10px] font-black text-slate-500 tracking-wider">
+            <div className={`flex flex-col justify-between text-[10px] font-black text-slate-500 tracking-wider ${type === 'thermometer' ? 'h-44 pb-2' : 'h-56'}`}>
               {scalePoints.map((pt) => (
                 <div key={pt} className="flex items-center gap-1.5" style={{ height: pt === 100 || pt === 0 ? '0px' : '1px' }}>
                   <div className="w-2 h-[2px] bg-slate-700 rounded" />
-                  <span className={fillHeight >= pt ? 'text-emerald-400 transition-colors duration-500 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'text-slate-600'}>
+                  <span className={fillHeight >= pt ? 'text-red-400 transition-colors duration-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 'text-slate-600'}>
                     {pt}%
                   </span>
                 </div>
@@ -76,8 +123,8 @@ export const PercentageBeaker: React.FC<Props> = ({
           </div>
 
           <div className="mt-6 px-6 py-2 bg-slate-900 border border-white/10 rounded-2xl flex items-center justify-center min-w-[90px] shadow-lg relative overflow-hidden">
-             <div className="absolute inset-0 opacity-20" style={{ background: `radial-gradient(circle at center, ${color}, transparent)` }} />
-            <span className="text-xl font-black tracking-tight select-none relative z-10" style={{ color: fillHeight > 0 ? color : '#64748b' }}>
+             <div className="absolute inset-0 opacity-20" style={{ background: `radial-gradient(circle at center, ${liquidColor}, transparent)` }} />
+            <span className="text-xl font-black tracking-tight select-none relative z-10" style={{ color: fillHeight > 0 ? liquidColor : '#64748b' }}>
               {percentage}%
             </span>
           </div>

@@ -67,6 +67,7 @@ export const CustomKeyboard: React.FC<CustomKeyboardProps> = ({
         {/* Bottom Row - Left: Backspace/Delete */}
         <motion.button
           type="button"
+          data-testid="delete-numpad"
           variants={keyVariants}
           whileHover={!disabled ? { scale: 1.05, backgroundColor: 'rgba(239, 68, 68, 0.15)' } : {}}
           whileTap={!disabled ? { scale: 0.95 } : {}}
@@ -93,6 +94,7 @@ export const CustomKeyboard: React.FC<CustomKeyboardProps> = ({
         {/* Bottom Row - Right: Confirm/Submit (Bright Blue Solid) */}
         <motion.button
           type="button"
+          data-testid="submit-numpad"
           variants={keyVariants}
           whileHover={!disabled && !submitDisabled ? { scale: 1.05, boxShadow: '0 0 20px rgba(37, 99, 235, 0.5)' } : {}}
           whileTap={!disabled && !submitDisabled ? { scale: 0.95 } : {}}

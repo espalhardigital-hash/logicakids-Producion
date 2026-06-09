@@ -4,14 +4,15 @@ Entorno de pruebas End-to-End autocontenido para la aplicación LogicaKids, basa
 
 > **Documento rector:** Consulta [`instrucciones_agente_tester.md`](./instrucciones_agente_tester.md) para las reglas completas de validación.
 
+> **⚠️ Estado actual:** Entorno **100% local** (sin conexión VPS). Cuando se restaure la conexión SSH, consultar [`cambio_para_vps.md`](../cambio_para_vps.md).
+
 ---
 
 ## 📋 Requisitos Previos
 
 - **Node.js** 18 o superior
 - **Google Chrome** instalado en el sistema
-- **Docker y Docker Compose** (para ejecutar las pruebas en tu máquina local `localhost`)
-- Acceso de red a `https://logica.espalhar.shop` (para ejecutar las pruebas directamente contra el VPS de desarrollo)
+- **Docker y Docker Compose** (para levantar el stack local completo)
 
 ---
 
@@ -30,54 +31,97 @@ npx playwright install chromium
 
 ---
 
+## 🐳 Levantar el Stack Local (PostgreSQL + Redis + MinIO + Backend + Frontend)
+
+El entorno local es completamente autocontenido. No requiere conexión a internet ni a la VPS.
+
+### 1. Levantar todos los servicios
+
+```bash
+# Desde esta carpeta (docs/Pruebas_y_Test_Unitario)
+docker compose -f docker-compose.local.yml up -d --build
+```
+
+> *Nota: La primera compilación tomará varios minutos mientras descarga imágenes e instala dependencias.*
+
+### 2. Verificar que todo esté corriendo
+
+```bash
+docker compose -f docker-compose.local.yml ps
+```
+
+Todos los servicios deben estar en estado `running` o `healthy`:
+
+| Servicio | Puerto Local | Descripción |
+|----------|-------------|-------------|
+| `logicakids_local_db` | `5433` | PostgreSQL 15 |
+| `logicakids_local_redis` | `6380` | Redis 7 |
+| `logicakids_local_minio` | `9100` (API) / `9101` (Console) | MinIO Storage |
+| `logicakids_local_backend` | `8000` | FastAPI Backend |
+| `logicakids_local_frontend` | `3000` | React Frontend |
+
+### 3. Verificar que la API esté funcionando
+
+```bash
+curl http://localhost:8000/
+# Debe retornar: {"message": "LogicaKids Pro - Backend API"}
+```
+
+### 4. Verificar la base de datos
+
+```bash
+# Listar tablas creadas
+docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "\dt"
+
+# Verificar usuarios
+docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "SELECT email, role FROM users;"
+
+# Verificar preguntas por fase
+docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "SELECT fase_id, COUNT(*) FROM preguntas GROUP BY fase_id ORDER BY fase_id;"
+```
+
+### 5. Acceder al MinIO Console (para avatares)
+
+Abrir `http://localhost:9101` en el navegador:
+- **Usuario**: `logicakids_minio_admin`
+- **Contraseña**: `LogicaKids2026#MinIO`
+
+---
+
 ## ▶️ Ejecución de Pruebas
 
-### Opción A: Pruebas Locales (Recomendado antes de subir cambios)
-Para levantar la base de datos, el backend y el frontend en tu propia computadora:
+### Pruebas Locales (Recomendado)
 
-1. **Levantar los contenedores locales:**
-   ```bash
-   # Desde esta carpeta (docs/Pruebas_y_Test_Unitario)
-   docker compose -f docker-compose.local.yml up -d --build
-   ```
-   *Nota: La primera compilación tomará unos minutos mientras descarga las imágenes e instala dependencias.*
+Con el stack local levantado:
 
-2. **Ejecutar las pruebas:**
-   ```bash
-   TEST_URL=http://localhost:3000 npx playwright test
-   ```
-
-3. **Detener los contenedores locales al finalizar:**
-   ```bash
-   docker compose -f docker-compose.local.yml down
-   ```
-
-### Opción B: Pruebas Remotas (Contra VPS de Desarrollo)
-Si deseas ejecutar la suite contra el VPS de desarrollo actual:
 ```bash
 npx playwright test
 ```
 
-### Ejecutar suites individuales
-Puedes ejecutar partes específicas de la suite de pruebas locales:
+La URL base por defecto es `http://localhost:3000`. Para usar otra URL:
+
 ```bash
-# 01 - Login y autenticación
-TEST_URL=http://localhost:3000 npm run test:login
-
-# 02 - Navegación por fases
-TEST_URL=http://localhost:3000 npm run test:nav
-
-# 03 - Gameplay Fase 1 (acierto, fallo, espejo)
-TEST_URL=http://localhost:3000 npm run test:gameplay
-
-# 04 - Carga de GameScreens Fases 2-6
-TEST_URL=http://localhost:3000 npm run test:fases
-
-# 05 - Progresión y desbloqueo
-TEST_URL=http://localhost:3000 npm run test:progress
+TEST_URL=http://otro-host:3000 npx playwright test
 ```
 
-*Nota: Omitir `TEST_URL=http://localhost:3000` ejecutará los tests individuales contra el VPS remoto.*
+### Ejecutar suites individuales
+
+```bash
+# 01 - Login y autenticación
+npm run test:login
+
+# 02 - Navegación por fases
+npm run test:nav
+
+# 03 - Gameplay Fase 1 (acierto, fallo, espejo)
+npm run test:gameplay
+
+# 04 - Carga de GameScreens Fases 2-6
+npm run test:fases
+
+# 05 - Progresión y desbloqueo
+npm run test:progress
+```
 
 ---
 
@@ -97,31 +141,40 @@ Esto abrirá el reporte en tu navegador. Los reportes se almacenan en la carpeta
 
 ```
 Pruebas_y_Test_Unitario/
-├── instrucciones_agente_tester.md   # Documento rector (reglas de prueba)
-├── package.json                      # Dependencias
-├── playwright.config.ts              # Configuración de Playwright
-├── README.md                         # Este archivo
+├── .env                          # Config para VPS (preservado, NO usar en modo local)
+├── .env.local                    # Config 100% local (PostgreSQL + Redis + MinIO locales)
+├── docker-compose.local.yml      # Stack Docker completo (5 servicios)
+├── instrucciones_agente_tester.md # Documento rector (reglas de prueba)
+├── package.json                  # Dependencias
+├── playwright.config.ts          # Configuración de Playwright
+├── README.md                     # Este archivo
 ├── helpers/
-│   ├── auth.ts                       # Login/logout del usuario de prueba
-│   ├── console-logger.ts             # Captura errores de consola del browser
-│   └── constants.ts                  # Credenciales, rutas, selectores
+│   ├── auth.ts                   # Login/logout del usuario de prueba
+│   ├── bug-reporter.ts           # Sistema de reportes de bugs
+│   ├── console-logger.ts         # Captura errores de consola del browser
+│   ├── constants.ts              # Credenciales, rutas, selectores
+│   ├── global-setup.ts           # Inicialización del sistema de bugs
+│   ├── global-teardown.ts        # Finalización del sistema de bugs
+│   └── test-fixtures.ts          # Fixtures personalizados con bug reporting
 ├── tests/
-│   ├── 01-login.spec.ts              # Flujo de autenticación
+│   ├── 01-login.spec.ts          # Flujo de autenticación
 │   ├── 02-navegacion-fases.spec.ts   # Navegación por mapa de fases
 │   ├── 03-gameplay-fase1.spec.ts     # Gameplay Fase 1
 │   ├── 04-gameplay-fases-genericas.spec.ts  # GameScreens Fases 2-6
 │   └── 05-progresion-desbloqueo.spec.ts     # Bloqueo/desbloqueo
-└── resultados/                       # (Generada) Reportes HTML
+├── reportes_bugs/                # (Generada) Reportes de bugs
+└── resultados/                   # (Generada) Reportes HTML
 ```
 
 ---
 
-## 🔐 Usuario de Prueba
+## 🔐 Usuarios del Sistema
 
-| Campo       | Valor              |
-|-------------|---------------------|
-| **Email**   | `prueba@gmail.com` |
-| **Clave**   | `pruebas`           |
+| Campo       | Administrador | Prueba |
+|-------------|---------------|--------|
+| **Email**   | `amilcar@gmail.com` | `prueba@gmail.com` |
+| **Clave**   | `Colombia1#_` | `pruebas` |
+| **Rol**     | ADMIN | USER |
 
 > ⚠️ **Nunca** usar cuentas de usuarios reales o de producción para ejecutar estas pruebas.
 
@@ -161,6 +214,44 @@ Cuando un test falla, el sistema registra automáticamente el bug. Al finalizar 
 
 ---
 
+## 🔧 Gestión del Stack Local
+
+### Reiniciar un servicio específico
+```bash
+docker compose -f docker-compose.local.yml restart backend
+```
+
+### Ver logs del backend
+```bash
+docker compose -f docker-compose.local.yml logs -f backend
+```
+
+### Reconstruir solo el backend (después de cambios de código)
+```bash
+docker compose -f docker-compose.local.yml up -d --build backend
+```
+
+### Re-ejecutar seed (inyectar preguntas de nuevo)
+```bash
+# Detener el backend, forzar re-siembra, y reiniciar
+docker compose -f docker-compose.local.yml stop backend
+docker compose -f docker-compose.local.yml run --rm -e FORCE_SEED=true backend python run_migrations.py
+docker compose -f docker-compose.local.yml up -d backend
+```
+
+### Resetear la base de datos completamente
+```bash
+docker compose -f docker-compose.local.yml down -v
+docker compose -f docker-compose.local.yml up -d --build
+```
+
+### Conectarse a la BD local con psql
+```bash
+docker exec -it logicakids_local_db psql -U logicakids_local_user -d logicakids_local
+```
+
+---
+
 ## 🛠️ Solución de Problemas
 
 ### Las pruebas fallan por timeout
@@ -177,7 +268,17 @@ Asegúrate de tener Google Chrome instalado, o usa Chromium de Playwright:
 ```
 
 ### Error de conexión a la API
-Verifica que `https://logica.espalhar.shop` esté accesible, o cambia la URL:
+Verificar que los contenedores estén corriendo:
 ```bash
-TEST_URL=http://localhost:3000 npx playwright test
+docker compose -f docker-compose.local.yml ps
+docker compose -f docker-compose.local.yml logs backend
 ```
+
+### El backend no inicia (error de BD)
+Verificar que PostgreSQL esté healthy:
+```bash
+docker compose -f docker-compose.local.yml logs postgres
+```
+
+### Restaurar conexión VPS
+Consultar [`cambio_para_vps.md`](../cambio_para_vps.md) para los pasos detallados.

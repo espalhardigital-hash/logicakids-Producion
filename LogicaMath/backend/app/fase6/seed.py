@@ -20,7 +20,13 @@ from app.models.sql_models import (
 from app.fase2.models import NivelTeoria, IntentoPregunta, IntentoPaso
 from app.fase6.theory_examples import obtener_ejemplos_expandidos_fase6
 
+from app.utils.graphics_generator import generate_isometric_cubes_image, generate_thermometer_image
+from app.core.storage import storage_service
+
 FASE6_ID = 6
+
+# Cache en memoria para reutilizar URLs de gráficos generados
+_graphic_url_cache: Dict[str, str] = {}
 
 async def clear_fase6_data(session: AsyncSession):
     print("Purging existing Fase 6 data for a clean overwrite...")
@@ -216,120 +222,341 @@ async def seed_teoria_niveles(session: AsyncSession):
         nt = NivelTeoria(fase_id=FASE6_ID, **data)
         session.add(nt)
 
-def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
+async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
     if mod_id == 1:
-        # Reconocimiento 3D
         if lvl_id == 1:
-            e = rng.choice(["cubo", "prisma rectangular"])
-            faces = 6
-            vertices = 8
-            edges = 12
-            ans = edges if rng.randint(0, 1) == 0 else vertices
-            term = "aristas" if ans == edges else "vértices"
+            # Poliedros: caras, vértices, aristas
+            solid_type = rng.choice(["cubo", "prisma rectangular", "pirámide cuadrangular", "prisma triangular"])
+            if solid_type == "cubo":
+                param = rng.choice(["caras", "vértices", "aristas"])
+                if param == "caras":
+                    ans, expl = 6, "Un cubo tiene 6 caras cuadradas idénticas (tapa, base y 4 caras laterales)."
+                elif param == "vértices":
+                    ans, expl = 8, "Un cubo tiene 8 vértices (4 esquinas arriba y 4 abajo)."
+                else:
+                    ans, expl = 12, "Un cubo tiene 12 aristas (4 bordes arriba, 4 abajo y 4 bordes verticales)."
+                enunciado = f"¿Cuántas {param} tiene un cubo regular?"
+            elif solid_type == "prisma rectangular":
+                param = rng.choice(["caras", "vértices", "aristas"])
+                if param == "caras":
+                    ans, expl = 6, "Un prisma rectangular (como una caja de zapatos) tiene 6 caras rectangulares en total."
+                elif param == "vértices":
+                    ans, expl = 8, "Un prisma rectangular tiene 8 vértices (4 arriba y 4 abajo)."
+                else:
+                    ans, expl = 12, "Un prisma rectangular tiene 12 aristas en total."
+                enunciado = f"¿Cuántas {param} tiene un prisma rectangular?"
+            elif solid_type == "pirámide cuadrangular":
+                param = rng.choice(["caras", "vértices", "aristas"])
+                if param == "caras":
+                    ans, expl = 5, "Una pirámide cuadrangular tiene 5 caras (1 base cuadrada y 4 caras triangulares)."
+                elif param == "vértices":
+                    ans, expl = 5, "Una pirámide cuadrangular tiene 5 vértices (4 esquinas en la base y la cúspide)."
+                else:
+                    ans, expl = 8, "Una pirámide cuadrangular tiene 8 aristas (4 en la base cuadrada y 4 que suben a la punta)."
+                enunciado = f"¿Cuántas {param} tiene una pirámide con base cuadrada (pirámide cuadrangular)?"
+            else: # prisma triangular
+                param = rng.choice(["caras", "vértices", "aristas"])
+                if param == "caras":
+                    ans, expl = 5, "Un prisma triangular tiene 5 caras en total (2 bases triangulares y 3 caras laterales rectangulares)."
+                elif param == "vértices":
+                    ans, expl = 6, "Un prisma triangular tiene 6 vértices (3 esquinas en la base inferior y 3 en la superior)."
+                else:
+                    ans, expl = 9, "Un prisma triangular tiene 9 aristas (3 en la base de arriba, 3 abajo y 3 uniendo ambas bases)."
+                enunciado = f"¿Cuántas {param} tiene un prisma triangular?"
+            
             ans_str = str(ans)
             return {
-                "enunciado": f"¿Cuántos/as {term} tiene un {e} tridimensional?",
+                "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
-                "expl": f"Un {e} regular posee exactamente 6 caras, 8 vértices y 12 aristas.",
-                "alts": [ans_str, "6", "10", "4"]
+                "expl": expl,
+                "alts": [ans_str, str(ans+2), str(max(1, ans-3)), str(ans+4)]
             }
         elif lvl_id == 2:
-            alt = rng.randint(2, 5)
-            ans = alt - 1
-            ans_str = str(ans)
+            # Bloques ocultos (cubos isométricos)
+            shape_idx = rng.randint(0, 3)
+            if shape_idx == 0:
+                cubes = [(0,0,0), (1,0,0), (0,1,0), (0,0,1)]
+                total_cubes = 4
+                ocultos = 0
+            elif shape_idx == 1:
+                cubes = [(0,0,0), (1,0,0), (0,1,0), (1,1,0), (0,0,1), (1,0,1), (0,1,1)]
+                total_cubes = 7
+                ocultos = 1
+            elif shape_idx == 2:
+                cubes = [(0,0,0), (1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1)]
+                total_cubes = 6
+                ocultos = 1
+            else:
+                cubes = [
+                    (0,0,0), (1,0,0), (2,0,0),
+                    (0,1,0), (1,1,0),
+                    (0,2,0),
+                    (0,0,1), (1,0,1),
+                    (0,1,1),
+                    (0,0,2)
+                ]
+                total_cubes = 10
+                ocultos = 3
+
+            cache_key = f"iso_cubes_{shape_idx}"
+            if cache_key in _graphic_url_cache:
+                url = _graphic_url_cache[cache_key]
+            else:
+                img_bytes = generate_isometric_cubes_image(cubes)
+                url = await storage_service.upload_question_graphic(img_bytes, f"iso_cubes_{shape_idx}.png")
+                _graphic_url_cache[cache_key] = url
+                
+            q_type = rng.choice(["total", "ocultos"])
+            if q_type == "total":
+                ans = total_cubes
+                ans_str = str(ans)
+                enunciado = f"Observa la estructura tridimensional de bloques en la imagen. Sabiendo que todos los bloques son cubos iguales de 1 cm³, ¿cuál es el volumen total (cantidad de cubos) de la figura?<br/><img src='{url}' class='lk-question-graphic' />"
+                expl = f"Contamos los cubos piso por piso. Hay {total_cubes} cubos en total constituyendo el volumen de {total_cubes} cm³."
+            else:
+                ans = ocultos
+                ans_str = str(ans)
+                enunciado = f"Observa la estructura de bloques. Algunos cubos están ocultos sirviendo de base para sostener los bloques que se ven arriba. ¿Cuántos cubos están completamente ocultos a la vista?<br/><img src='{url}' class='lk-question-graphic' />"
+                expl = f"Los cubos en pisos superiores deben sostenerse sobre cubos de abajo. Hay exactamente {ocultos} cubo(s) oculto(s) en la base."
+
             return {
-                "enunciado": f"Si ves un bloque ubicado en el nivel {alt} de una torre de bloques, ¿cuántos bloques ocultos deben existir debajo en esa columna para sostenerlo?",
+                "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
-                "expl": f"Para estar en el nivel {alt}, necesita tener {alt-1} bloques de base debajo.",
-                "alts": [ans_str, str(alt), str(alt+1), "0"]
+                "expl": expl,
+                "alts": [ans_str, str(ans+1), str(max(0, ans-1)), str(ans+2)]
             }
         else:
-            ans_str = "6"
+            # Moldes desplegados
+            faces = rng.choice([6, 5, 4])
+            if faces == 6:
+                ans_str = "cubo"
+                enunciado = "Si tienes un molde desplegado que consiste en 6 cuadrados iguales conectados en forma de cruz, ¿qué cuerpo tridimensional se forma al doblarlo?"
+                expl = "Un cubo regular tiene exactamente 6 caras cuadradas idénticas."
+                alts = ["cubo", "pirámide", "cilindro", "prisma triangular"]
+            elif faces == 5:
+                ans_str = "pirámide cuadrangular"
+                enunciado = "Un molde desplegado tiene 1 cuadrado en el centro y 4 triángulos iguales pegados a sus lados. ¿Qué cuerpo 3D se forma al plegarlo?"
+                expl = "El cuadrado forma la base y los 4 triángulos se unen en la punta, formando una pirámide cuadrangular."
+                alts = ["pirámide cuadrangular", "cubo", "prisma rectangular", "cono"]
+            else:
+                ans_str = "tetraedro"
+                enunciado = "Un molde desplegado está formado por 4 triángulos equiláteros iguales. ¿Qué poliedro regular de 4 caras se forma al armarlo?"
+                expl = "Un tetraedro regular (pirámide triangular) tiene 4 caras que son triángulos equiláteros."
+                alts = ["tetraedro", "cubo", "prisma triangular", "octaedro"]
             return {
-                "enunciado": "¿Cuántas caras cuadradas debe tener el molde desplegado de un cubo para poder armarlo cerrado?",
+                "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
-                "expl": "El cubo posee 6 caras en total, por ende su red o molde requiere 6 cuadrados.",
-                "alts": [ans_str, "5", "8", "4"]
+                "expl": expl,
+                "alts": alts
             }
     elif mod_id == 2:
-        # Patrones
-        if lvl_id == 3:
-            add = rng.randint(2, 5)
-            n = rng.randint(2, 6)
-            ans = n * add
-            ans_str = str(ans)
-            return {
-                "enunciado": f"Dada la regla de crecimiento algebraico N × {add}, ¿cuántos bloques habrá en la etapa N = {n}?",
-                "respuesta_correcta": ans_str,
-                "expl": f"Reemplazamos N por {n}: {n} × {add} = {ans} bloques.",
-                "alts": [ans_str, str(ans+add), str(ans-add), str(n+add)]
-            }
-        else:
-            base = rng.randint(2, 6)
-            add = rng.choice([2, 3])
-            ans = base + add * 3
-            ans_str = str(ans)
-            return {
-                "enunciado": f"Sigue el patrón de crecimiento espacial de bloques: {base}, {base+add}, {base+add*2}. ¿Cuál es el siguiente número?",
-                "respuesta_correcta": ans_str,
-                "expl": f"La regla es sumar {add} en cada paso: {base+add*2} + {add} = {ans}.",
-                "alts": [ans_str, str(ans+1), str(ans-add), str(ans+5)]
-            }
-    elif mod_id == 3:
-        # Cubos unitarios
-        if lvl_id == 2:
-            l = rng.randint(2, 5)
-            w = rng.randint(2, 4)
-            h = rng.randint(2, 5)
-            ans = l * w * h
-            ans_str = str(ans)
-            return {
-                "enunciado": f"Calcula el volumen de un prisma rectangular con largo={l}, ancho={w} y alto={h} unidades.",
-                "respuesta_correcta": ans_str,
-                "expl": f"Multiplicamos Largo × Ancho × Alto: {l} × {w} × {h} = {ans} u³.",
-                "alts": [ans_str, str(l+w+h), str(ans+4), str(ans-2)]
-            }
-        else:
-            dm3 = rng.randint(2, 15)
-            ans_str = str(dm3)
-            return {
-                "enunciado": f"Un recipiente tiene un volumen interno de {dm3} dm³. ¿Cuántos Litros de jugo caben?",
-                "respuesta_correcta": ans_str,
-                "expl": "La equivalencia entre decímetros cúbicos y Litros es directa (1 dm³ = 1 Litro).",
-                "alts": [ans_str, str(dm3*10), str(dm3*1000), "1"]
-            }
-    else:
-        # Medidas físicas
         if lvl_id == 1:
-            kg = rng.randint(2, 9)
-            ans = kg * 1000
+            base = rng.choice([1, 2, 3])
+            growth = rng.choice([2, 3, 4])
+            etapa_target = rng.choice([4, 5])
+            ans = base + (etapa_target - 1) * growth
             ans_str = str(ans)
+            
+            s1 = base
+            s2 = base + growth
+            s3 = base + 2*growth
+            
+            enunciado = f"Una sucesión de figuras con bloques crece etapa por etapa de forma constante. La Etapa 1 tiene {s1} bloque(s), la Etapa 2 tiene {s2} bloques, y la Etapa 3 tiene {s3} bloques. Si el patrón continúa igual, ¿cuántos bloques tendrá la Etapa {etapa_target}?"
+            expl = f"El crecimiento es de +{growth} bloques por etapa ({s2} - {s1} = {growth}). Sumamos sucesivamente para llegar a la Etapa {etapa_target}: {ans} bloques."
+            
             return {
-                "enunciado": f"¿Cuántos gramos hay en un paquete que pesa {kg} kg?",
+                "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
-                "expl": f"Como 1 kg tiene 1000 gramos, multiplicamos: {kg} × 1000 = {ans} g.",
-                "alts": [ans_str, str(kg*100), str(kg*10), str(kg*10000)]
+                "expl": expl,
+                "alts": [ans_str, str(ans + growth), str(ans - growth), str(ans + 1)]
             }
         elif lvl_id == 2:
-            init = rng.randint(1, 5)
-            drop = rng.randint(3, 8)
-            ans = init - drop
+            p3 = rng.choice([1, 2])
+            p2 = rng.choice([4, 3])
+            p1 = rng.choice([9, 8, 6])
+            ans = p1 + p2 + p3
             ans_str = str(ans)
+            
+            cubes = []
+            count1 = 0
+            for x in range(3):
+                for y in range(3):
+                    if count1 < p1:
+                        cubes.append((x, y, 0))
+                        count1 += 1
+            count2 = 0
+            for x in range(2):
+                for y in range(2):
+                    if count2 < p2:
+                        cubes.append((x, y, 1))
+                        count2 += 1
+            count3 = 0
+            for x in range(1):
+                for y in range(1):
+                    if count3 < p3:
+                        cubes.append((x, y, 2))
+                        count3 += 1
+
+            cache_key = f"iso_strat_{p1}_{p2}_{p3}"
+            if cache_key in _graphic_url_cache:
+                url = _graphic_url_cache[cache_key]
+            else:
+                img_bytes = generate_isometric_cubes_image(cubes)
+                url = await storage_service.upload_question_graphic(img_bytes, f"iso_strat_{p1}_{p2}_{p3}.png")
+                _graphic_url_cache[cache_key] = url
+
+            enunciado = f"Para calcular el volumen de esta estructura de cubos, contamos capa por capa (estratos). El piso inferior tiene {p1} bloques, el piso medio tiene {p2} bloques, y el superior {p3} bloque(s). ¿Cuál es el volumen total de la estructura en u³?<br/><img src='{url}' class='lk-question-graphic' />"
+            expl = f"Sumamos las capas ordenadamente de abajo hacia arriba: {p1} (base) + {p2} (medio) + {p3} (superior) = {ans} unidades cúbicas (u³)."
             return {
-                "enunciado": f"La temperatura inicial en la nevera es de {init}°C y baja {drop}°C. ¿Cuál es la temperatura final?",
+                "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
-                "expl": f"Restamos la variación de temperatura: {init} - {drop} = {ans}°C.",
-                "alts": [ans_str, str(ans-1), str(init+drop), "0"]
+                "expl": expl,
+                "alts": [ans_str, str(ans+2), str(ans-2), str(p1*p2)]
             }
         else:
-            celsius = rng.randint(0, 50)
+            mult = rng.choice([2, 3, 5])
+            add = rng.choice([1, 2, 4])
+            n_val = rng.choice([10, 20])
+            ans = n_val * mult + add
+            ans_str = str(ans)
+            
+            enunciado = f"La regla general para calcular el número de bloques de una estructura en la etapa N es: <b>{mult}N + {add}</b>. ¿Cuántos bloques se necesitarán para construir la etapa N = {n_val}?"
+            expl = f"Reemplazamos N por {n_val} en la fórmula: {mult} × ({n_val}) + {add} = {mult * n_val} + {add} = {ans} bloques."
+            return {
+                "enunciado": enunciado,
+                "respuesta_correcta": ans_str,
+                "expl": expl,
+                "alts": [ans_str, str(ans + mult), str(ans - add), str(n_val * mult)]
+            }
+    elif mod_id == 3:
+        if lvl_id == 1:
+            largo = rng.randint(2, 4)
+            ancho = rng.randint(2, 3)
+            alto = rng.randint(2, 3)
+            ans = largo * ancho * alto
+            ans_str = str(ans)
+            
+            cubes = [(x, y, z) for x in range(largo) for y in range(ancho) for z in range(alto)]
+            
+            cache_key = f"iso_vol_{largo}_{ancho}_{alto}"
+            if cache_key in _graphic_url_cache:
+                url = _graphic_url_cache[cache_key]
+            else:
+                img_bytes = generate_isometric_cubes_image(cubes)
+                url = await storage_service.upload_question_graphic(img_bytes, f"iso_vol_{largo}_{ancho}_{alto}.png")
+                _graphic_url_cache[cache_key] = url
+                
+            enunciado = f"¿Cuántos cubitos de 1 u³ componen el prisma rectangular que se muestra en la imagen? (Volumen en u³)<br/><img src='{url}' class='lk-question-graphic' />"
+            expl = f"Multiplicamos las dimensiones: {largo} de largo × {ancho} de ancho × {alto} de alto = {ans} cubos en total."
+            return {
+                "enunciado": enunciado,
+                "respuesta_correcta": ans_str,
+                "expl": expl,
+                "alts": [ans_str, str(ans+2), str(ans-2), str(largo+ancho+alto)]
+            }
+        elif lvl_id == 2:
+            largo = rng.randint(3, 8)
+            ancho = rng.randint(2, 5)
+            alto = rng.randint(2, 6)
+            ans = largo * ancho * alto
+            ans_str = str(ans)
+            
+            enunciado = f"Calcula el volumen de una caja de cartón en forma de prisma rectangular que mide {largo} cm de largo, {ancho} cm de ancho y {alto} cm de alto."
+            expl = f"Aplicamos la fórmula del volumen de un prisma: Largo × Ancho × Alto. Multiplicamos {largo} × {ancho} × {alto} = {ans} cm³."
+            return {
+                "enunciado": enunciado,
+                "respuesta_correcta": ans_str,
+                "expl": expl,
+                "alts": [ans_str, str(ans + 10), str(ans - 10), str(largo + ancho + alto)]
+            }
+        else:
+            unit = rng.choice(["dm3_to_l", "cm3_to_ml", "m3_to_l"])
+            if unit == "dm3_to_l":
+                val = rng.randint(2, 20)
+                ans = val
+                ans_str = str(ans)
+                enunciado = f"Un recipiente tiene una capacidad interior de {val} dm³. ¿Cuántos litros (L) de agua caben en él?"
+                expl = "Como 1 decímetro cúbico (dm³) equivale exactamente a 1 litro (L), la cantidad es la misma."
+            elif unit == "cm3_to_ml":
+                val = rng.choice([250, 500, 750, 1000])
+                ans = val
+                ans_str = str(ans)
+                enunciado = f"Un frasco contiene {val} cm³ de jarabe. ¿A cuántos mililitros (mL) equivale esta cantidad?"
+                expl = "Como 1 centímetro cúbico (cm³) equivale exactamente a 1 mililitro (mL), la cantidad es la misma."
+            else:
+                val = rng.randint(1, 5)
+                ans = val * 1000
+                ans_str = str(ans)
+                enunciado = f"Una piscina pequeña de agua inflable tiene un volumen de {val} m³. ¿Cuántos litros (L) de agua se necesitan para llenarla?"
+                expl = "Como 1 metro cúbico (m³) equivale exactamente a 1000 litros (L), multiplicamos por 1000."
+            return {
+                "enunciado": enunciado,
+                "respuesta_correcta": ans_str,
+                "expl": expl,
+                "alts": [ans_str, str(ans//10 if ans > 10 else ans+1), str(ans*10 if ans < 1000 else ans-100), str(ans+10)]
+            }
+    else: # mod_id == 4
+        if lvl_id == 1:
+            q_type = rng.choice(["weight", "temp_read"])
+            if q_type == "weight":
+                kg = rng.choice([1.5, 2.0, 3.5, 5.0])
+                ans = int(kg * 1000)
+                ans_str = str(ans)
+                enunciado = f"En una balanza electrónica, una bolsa de manzanas pesa {kg} kg. ¿Cuál es su masa equivalente en gramos (g)?"
+                expl = f"Como 1 kilogramo (kg) equivale a 1000 gramos (g), multiplicamos {kg} × 1000 = {ans} g."
+                alts = [ans_str, str(ans+500), str(int(kg*100)), str(int(kg*10))]
+            else:
+                temp = rng.randint(15, 38)
+                ans_str = f"{temp}"
+                cache_key = f"therm_{temp}"
+                if cache_key in _graphic_url_cache:
+                    url = _graphic_url_cache[cache_key]
+                else:
+                    img_bytes = generate_thermometer_image(float(temp))
+                    url = await storage_service.upload_question_graphic(img_bytes, f"therm_{temp}.png")
+                    _graphic_url_cache[cache_key] = url
+                enunciado = f"Observa la escala del termómetro médico en la imagen. ¿Qué temperatura marca en grados Celsius (°C)?<br/><img src='{url}' class='lk-question-graphic' />"
+                expl = f"El nivel del líquido rojo en la escala del termómetro coincide exactamente con la marca de {temp}°C."
+                alts = [ans_str, str(temp + 5), str(temp - 5), str(temp + 10)]
+            return {
+                "enunciado": enunciado,
+                "respuesta_correcta": ans_str,
+                "expl": expl,
+                "alts": alts
+            }
+        elif lvl_id == 2:
+            init_temp = rng.randint(1, 15)
+            drop = rng.randint(init_temp + 2, init_temp + 10)
+            ans = init_temp - drop
+            ans_str = str(ans)
+            
+            cache_key = f"therm_neg_{ans}"
+            if cache_key in _graphic_url_cache:
+                url = _graphic_url_cache[cache_key]
+            else:
+                img_bytes = generate_thermometer_image(float(ans))
+                url = await storage_service.upload_question_graphic(img_bytes, f"therm_{ans}.png")
+                _graphic_url_cache[cache_key] = url
+
+            enunciado = f"En la mañana la temperatura era de {init_temp}°C. Por la tarde, la temperatura bajó {drop}°C, llegando al nivel bajo cero mostrado en la imagen. ¿Cuál es la nueva temperatura en grados Celsius (°C)?<br/><img src='{url}' class='lk-question-graphic' />"
+            expl = f"Restamos la variación a la temperatura inicial: {init_temp} - {drop} = {ans}°C. Al bajar del cero, el resultado es negativo."
+            return {
+                "enunciado": enunciado,
+                "respuesta_correcta": ans_str,
+                "expl": expl,
+                "alts": [ans_str, str(ans - 2), str(-ans), str(init_temp + drop)]
+            }
+        else:
+            celsius = rng.randint(-15, 45)
             ans = celsius + 273
             ans_str = str(ans)
+            
+            enunciado = f"En el laboratorio de física espacial, un sensor de gas registra una temperatura de {celsius}°C. ¿Cuál es esta temperatura expresada en la escala absoluta de Kelvin (K)?"
+            expl = f"Para convertir grados Celsius a Kelvin, sumamos 273 a la temperatura en Celsius: {celsius} + 273 = {ans} K."
             return {
-                "enunciado": f"¿Cuál es el valor en Kelvin de una temperatura de {celsius}°C?",
+                "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
-                "expl": f"Sumamos 273 a los grados Celsius: {celsius} + 273 = {ans} K.",
-                "alts": [ans_str, str(celsius), str(celsius-273), "273"]
+                "expl": expl,
+                "alts": [ans_str, str(ans + 100), str(celsius - 273), str(celsius)]
             }
 
 async def seed_practica_pool(session: AsyncSession):
@@ -345,7 +572,7 @@ async def seed_practica_pool(session: AsyncSession):
         seccion_id = mod_id * 100 + lvl_id
         for i in range(120):
             rng = random.Random(FASE6_ID * 100000 + seccion_id * 1000 + i)
-            q_data = _gen_fase6_pool(rng, mod_id, lvl_id)
+            q_data = await _gen_fase6_pool(rng, mod_id, lvl_id)
             
             p = Pregunta(
                 fase_id=FASE6_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
@@ -368,9 +595,12 @@ async def seed_preguntas_desafios(session: AsyncSession):
             
             for idx in range(1, 31):
                 rng = random.Random(FASE6_ID * 1000000 + seccion_id * 1000 + idx)
-                q_data = _gen_fase6_pool(rng, modulo_id, 2)
+                lvl_id = rng.choice([1, 2, 3])
+                q_data = await _gen_fase6_pool(rng, modulo_id, lvl_id)
                 
                 tipo_pregunta = TipoPreguntaEnum.MULTIPLE_OPCION if desafio_id in (11, 12) else TipoPreguntaEnum.RESPUESTA_NUMERICA
+                if not q_data["respuesta_correcta"].lstrip('-').isdigit():
+                    tipo_pregunta = TipoPreguntaEnum.MULTIPLE_OPCION
                 
                 p = Pregunta(
                     fase_id=FASE6_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,

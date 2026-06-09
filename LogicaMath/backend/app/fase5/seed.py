@@ -20,7 +20,13 @@ from app.models.sql_models import (
 from app.fase2.models import NivelTeoria, IntentoPregunta, IntentoPaso
 from app.fase5.theory_examples import obtener_ejemplos_expandidos_fase5
 
+from app.utils.graphics_generator import generate_grid_shape_image
+from app.core.storage import storage_service
+
 FASE5_ID = 5
+
+# Cache en memoria para reutilizar URLs de gráficos generados
+_graphic_url_cache: Dict[str, str] = {}
 
 async def clear_fase5_data(session: AsyncSession):
     print("Purging existing Fase 5 data for a clean overwrite...")
@@ -224,32 +230,53 @@ async def seed_teoria_niveles(session: AsyncSession):
             ]
         }
     ]
-
     for data in niveles_teoria:
         nt = NivelTeoria(fase_id=FASE5_ID, **data)
         session.add(nt)
 
-def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
+async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
     if mod_id == 1:
         # Perímetro
-        a = rng.randint(3, 12)
-        b = rng.randint(3, 12)
+        a = rng.randint(3, 8)
+        b = rng.randint(3, 8)
         ans = 2 * (a + b)
         ans_str = str(ans)
+        
+        # Generar gráfico para cuadrícula de perímetro
+        cache_key = f"grid_p_{a}_{b}"
+        if cache_key in _graphic_url_cache:
+            url = _graphic_url_cache[cache_key]
+        else:
+            vertices = [(1, 1), (1 + a, 1), (1 + a, 1 + b), (1, 1 + b)]
+            img_bytes = generate_grid_shape_image(vertices, grid_size=(max(10, a + 3), max(10, b + 3)), fill_color=(56, 189, 248, 40), outline_color=(56, 189, 248, 255))
+            url = await storage_service.upload_question_graphic(img_bytes, f"grid_p_{a}_{b}.png")
+            _graphic_url_cache[cache_key] = url
+            
         return {
-            "enunciado": f"Calcula el perímetro de un rectángulo cuyos lados miden {a} cm y {b} cm.",
+            "enunciado": f"Calcula el perímetro del rectángulo sombreado en la cuadrícula, cuyos lados miden {a} cm y {b} cm.<br/><img src='{url}' class='lk-question-graphic' />",
             "respuesta_correcta": ans_str,
             "expl": f"Sumamos los 4 lados del rectángulo: {a} + {b} + {a} + {b} = {ans} cm.",
             "alts": [ans_str, str(ans+2), str(ans-2), str(ans+4)]
         }
     elif mod_id == 2:
         # Área
-        a = rng.randint(3, 9)
-        b = rng.randint(3, 9)
+        a = rng.randint(3, 7)
+        b = rng.randint(3, 7)
         ans = a * b
         ans_str = str(ans)
+        
+        # Generar gráfico para cuadrícula de área
+        cache_key = f"grid_a_{a}_{b}"
+        if cache_key in _graphic_url_cache:
+            url = _graphic_url_cache[cache_key]
+        else:
+            vertices = [(1, 1), (1 + a, 1), (1 + a, 1 + b), (1, 1 + b)]
+            img_bytes = generate_grid_shape_image(vertices, grid_size=(max(10, a + 3), max(10, b + 3)), fill_color=(168, 85, 247, 60), outline_color=(168, 85, 247, 255))
+            url = await storage_service.upload_question_graphic(img_bytes, f"grid_a_{a}_{b}.png")
+            _graphic_url_cache[cache_key] = url
+            
         return {
-            "enunciado": f"Calcula el área de una cuadrícula de {a} cuadraditos de base por {b} cuadraditos de altura.",
+            "enunciado": f"Calcula el área del rectángulo sombreado en la cuadrícula, que tiene {a} cuadraditos de base por {b} cuadraditos de altura.<br/><img src='{url}' class='lk-question-graphic' />",
             "respuesta_correcta": ans_str,
             "expl": f"Multiplicamos base por altura: {a} × {b} = {ans} unidades cuadradas.",
             "alts": [ans_str, str(ans+3), str(ans-3), str(a+b)]
@@ -322,7 +349,7 @@ async def seed_practica_pool(session: AsyncSession):
         seccion_id = mod_id * 100 + lvl_id
         for i in range(120):
             rng = random.Random(FASE5_ID * 100000 + seccion_id * 1000 + i)
-            q_data = _gen_fase5_pool(rng, mod_id, lvl_id)
+            q_data = await _gen_fase5_pool(rng, mod_id, lvl_id)
             
             p = Pregunta(
                 fase_id=FASE5_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
@@ -332,7 +359,6 @@ async def seed_practica_pool(session: AsyncSession):
                 estado=StatusEnum.ACTIVO
             )
             for idx, alt in enumerate(q_data["alts"]):
-                # Ensure unique items in choices
                 is_correct = (alt == q_data["respuesta_correcta"])
                 p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx+1))
             session.add(p)
@@ -346,12 +372,9 @@ async def seed_preguntas_desafios(session: AsyncSession):
             
             for idx in range(1, 31):
                 rng = random.Random(FASE5_ID * 1000000 + seccion_id * 1000 + idx)
-                q_data = _gen_fase5_pool(rng, modulo_id, 2) # Generate matching module questions
+                q_data = await _gen_fase5_pool(rng, modulo_id, 2)
                 
-                # Desafío 11 y 12: Múltiple opción. Desafío 13: Evocación pura (Respuesta numérica)
                 tipo_pregunta = TipoPreguntaEnum.MULTIPLE_OPCION if desafio_id in (11, 12) else TipoPreguntaEnum.RESPUESTA_NUMERICA
-                
-                # Check for alphanumeric responses in Mod 4 Level 2 ("la diagonal")
                 if q_data["respuesta_correcta"] == "la diagonal":
                     tipo_pregunta = TipoPreguntaEnum.RESPUESTA_NUMERICA
                 
@@ -369,7 +392,6 @@ async def seed_preguntas_desafios(session: AsyncSession):
                         p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx_alt+1))
                 session.add(p)
     await session.commit()
-
 async def seed_configuracion_progreso(session: AsyncSession):
     print("Sembrando configuraciones de progreso Fase 5...")
     

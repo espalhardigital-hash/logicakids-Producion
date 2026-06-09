@@ -1344,6 +1344,7 @@ export const Fase4GameScreen: React.FC = () => {
                     setInteractiveSelectedCount(selectedLevel);
                   }}
                   color={moduleColor}
+                  type={pregunta.datos_numericos?.tipo_visual === 'thermometer' ? 'thermometer' : 'beaker'}
                 />
               ) : pregunta.datos_numericos?.tipo_visual === 'pie' ? (
                 <PieChartVisualizer
@@ -1362,6 +1363,7 @@ export const Fase4GameScreen: React.FC = () => {
                   inputValue={respuestaNum}
                   total={pregunta.datos_numericos?.total || 100}
                   color={moduleColor}
+                  type={pregunta.datos_numericos?.tipo_visual === 'percentage_thermometer' ? 'thermometer' : 'beaker'}
                 />
               ) : (
                 <div className="text-center font-display text-4xl font-black text-white p-4">
@@ -1369,9 +1371,7 @@ export const Fase4GameScreen: React.FC = () => {
                 </div>
               )}
               
-              <p className="text-lg font-bold text-center mt-6 text-slate-200">
-                {pregunta.enunciado}
-              </p>
+              <p className="text-lg font-bold text-center mt-6 text-slate-200" dangerouslySetInnerHTML={{ __html: pregunta.enunciado }} />
             </motion.div>
 
             {/* Interactive input area */}

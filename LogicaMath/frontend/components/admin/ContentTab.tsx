@@ -335,7 +335,7 @@ const ContentTab: React.FC = () => {
     <div className="w-full flex flex-col gap-6 text-slate-900 dark:text-white select-none">
       
       {/* Top Header Panel */}
-      <div className="flex items-center justify-between glass-card p-6">
+      <div className="flex items-center justify-between bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] shadow-2xl p-6">
         <div>
           <h2 className="text-3xl font-bold text-slate-900 dark:text-[#f3f4f6] flex items-center gap-3">
             <div className="p-2.5 bg-[#007AFF]/20 rounded-2xl border border-[#007AFF]/30">
@@ -407,7 +407,7 @@ const ContentTab: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         
         {/* Left Column: Selectors */}
-        <div className="lg:col-span-1 glass-card p-5 flex flex-col gap-5">
+        <div className="lg:col-span-1 bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] shadow-2xl p-5 flex flex-col gap-5">
           <h3 className="text-xs font-bold text-slate-500 dark:text-[#8E8E93] uppercase tracking-wider px-2">Selector de Nivel</h3>
           
           {/* Phase selector */}
@@ -502,7 +502,7 @@ const ContentTab: React.FC = () => {
 
                 {loadingTheory ? (
                   <div className="flex flex-col gap-6 animate-pulse">
-                    <div className="glass-card p-6 flex flex-col gap-4">
+                    <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] shadow-2xl p-6 flex flex-col gap-4">
                       <div className="h-6 w-1/3 bg-slate-200 dark:bg-white/10 rounded-full"></div>
                       <div className="pt-4 border-t border-slate-200 dark:border-white/5 flex flex-col gap-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -516,7 +516,7 @@ const ContentTab: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="glass-card p-6 flex flex-col gap-4">
+                    <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] shadow-2xl p-6 flex flex-col gap-4">
                       <div className="h-6 w-1/4 bg-slate-200 dark:bg-white/10 rounded-full"></div>
                       <div className="pt-4 border-t border-slate-200 dark:border-white/5 flex flex-col gap-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -530,7 +530,7 @@ const ContentTab: React.FC = () => {
                   <div className="flex flex-col gap-6">
                     
                     {/* SECTION 1: CORE THEORY FIELDS (Collapsible) */}
-                    <div className="glass-card p-6 flex flex-col gap-4">
+                    <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] shadow-2xl p-6 flex flex-col gap-4">
                       <div 
                         onClick={() => setExpandTheoryCore(!expandTheoryCore)}
                         className="flex justify-between items-center cursor-pointer select-none group"
@@ -597,7 +597,7 @@ const ContentTab: React.FC = () => {
                     </div>
 
                     {/* SECTION 2: GLOSSARY / DICTIONARY (Collapsible) */}
-                    <div className="glass-card p-6 flex flex-col gap-4">
+                    <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] shadow-2xl p-6 flex flex-col gap-4">
                       <div 
                         onClick={() => setExpandGlosario(!expandGlosario)}
                         className="flex justify-between items-center cursor-pointer select-none group"
@@ -687,7 +687,13 @@ const ContentTab: React.FC = () => {
                                   </div>
                                 ))}
                                 {Object.keys(theory?.diccionario || {}).length === 0 && (
-                                  <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay términos definidos en el glosario de este nivel.</p>
+                                  <div className="flex flex-col items-center justify-center py-8 text-center md:col-span-2 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl bg-slate-50/50 dark:bg-white/5">
+                                    <div className="p-3 bg-slate-100 dark:bg-white/5 rounded-full mb-3">
+                                      <FileText size={24} className="text-slate-400" />
+                                    </div>
+                                    <p className="text-sm font-black text-slate-500 dark:text-slate-400">Glosario Vacío</p>
+                                    <p className="text-xs text-slate-400 font-medium mt-1">No hay términos definidos. Haz clic en "Agregar Término" para empezar.</p>
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -697,7 +703,7 @@ const ContentTab: React.FC = () => {
                     </div>
 
                     {/* SECTION 3: EXAMPLES & INTERACTIVE EXERCISES (Collapsible) */}
-                    <div className="glass-card p-6 flex flex-col gap-4">
+                    <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] shadow-2xl p-6 flex flex-col gap-4">
                       <div 
                         onClick={() => setExpandEjemplos(!expandEjemplos)}
                         className="flex justify-between items-center cursor-pointer select-none group"
@@ -846,7 +852,13 @@ const ContentTab: React.FC = () => {
                                     </div>
                                   ))}
                                   {(theory?.ejemplos || []).length === 0 && (
-                                    <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay ejemplos resueltos en este nivel.</p>
+                                    <div className="flex flex-col items-center justify-center py-8 text-center md:col-span-2 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl bg-slate-50/50 dark:bg-white/5">
+                                      <div className="p-3 bg-purple-500/10 rounded-full mb-3">
+                                        <Award size={24} className="text-purple-400" />
+                                      </div>
+                                      <p className="text-sm font-black text-slate-500 dark:text-slate-400">Sin Ejemplos Guiados</p>
+                                      <p className="text-xs text-slate-400 font-medium mt-1">Aún no has agregado ejemplos explicativos para este nivel.</p>
+                                    </div>
                                   )}
                                 </div>
                               </div>
@@ -963,7 +975,13 @@ const ContentTab: React.FC = () => {
                                     </div>
                                   ))}
                                   {(theory?.interactivos || []).length === 0 && (
-                                    <p className="text-xs text-slate-500 italic py-2 md:col-span-2">No hay ejercicios interactivos definidos en la teoría de este nivel.</p>
+                                    <div className="flex flex-col items-center justify-center py-8 text-center md:col-span-2 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl bg-slate-50/50 dark:bg-white/5">
+                                      <div className="p-3 bg-blue-500/10 rounded-full mb-3">
+                                        <Settings size={24} className="text-blue-400" />
+                                      </div>
+                                      <p className="text-sm font-black text-slate-500 dark:text-slate-400">Sin Ejercicios Interactivos</p>
+                                      <p className="text-xs text-slate-400 font-medium mt-1">Añade ejercicios para que el estudiante practique lo aprendido.</p>
+                                    </div>
                                   )}
                                 </div>
                               </div>
@@ -989,7 +1007,7 @@ const ContentTab: React.FC = () => {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col gap-6"
               >
-                <div className="glass-card p-6 flex flex-col gap-5">
+                <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.2rem] shadow-2xl p-6 flex flex-col gap-5">
                   <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-slate-200 dark:border-white/5 pb-4">
                     <h4 className="text-base font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                       <Settings size={16} className="text-blue-400" /> Banco de Preguntas del Nivel
@@ -1049,9 +1067,19 @@ const ContentTab: React.FC = () => {
                   ) : (
                     <div className="overflow-x-auto w-full flex flex-col gap-4">
                       {filteredQuestions.length === 0 ? (
-                        <p className="text-sm text-slate-500 text-center py-10">
-                          {questionSearchQuery.trim() !== "" ? "No se encontraron preguntas que coincidan con la búsqueda." : "No hay preguntas registradas en este nivel."}
-                        </p>
+                        <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[2.2rem] bg-slate-50/50 dark:bg-white/5 mx-4">
+                          <div className="p-4 bg-blue-500/10 rounded-[1.5rem] mb-4">
+                            <BookOpen size={32} className="text-blue-400" />
+                          </div>
+                          <p className="text-base font-black text-slate-600 dark:text-slate-300">
+                            {questionSearchQuery.trim() !== "" ? "No se encontraron preguntas" : "Banco de Preguntas Vacío"}
+                          </p>
+                          <p className="text-sm text-slate-500 font-medium mt-2 max-w-sm">
+                            {questionSearchQuery.trim() !== "" 
+                              ? "Intenta con otra palabra clave en el buscador." 
+                              : "No hay preguntas registradas en este nivel. Haz clic en 'Agregar Pregunta' para comenzar a llenar el banco."}
+                          </p>
+                        </div>
                       ) : (
                         <>
                           <table className="w-full text-left border-collapse">

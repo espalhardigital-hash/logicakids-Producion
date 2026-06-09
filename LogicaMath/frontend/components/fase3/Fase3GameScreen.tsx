@@ -1023,7 +1023,7 @@ export const Fase3GameScreen: React.FC = () => {
             <div className="flex flex-col items-center justify-center space-y-8 w-full max-w-2xl mx-auto">
               <motion.div animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}} className={`f3-question-card ${shaking ? 'shake-error' : ''} w-full`} style={{ borderColor: feedback.visible ? (feedback.esCorrecta ? '#10B981' : '#EF4444') : '#1e293b' }}>
                 <div className="f3-question-text-box">
-                  <div className="f3-question-text">{pregunta.enunciado}</div>
+                  <div className="f3-question-text" dangerouslySetInnerHTML={{ __html: pregunta.enunciado }} />
                 </div>
                 <div className="f3-numeric-input-wrap mt-6">
                   <div className={`f3-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`}>
@@ -1034,10 +1034,10 @@ export const Fase3GameScreen: React.FC = () => {
                 </div>
               </motion.div>
               <CustomKeyboard
-                onNumberPress={(num) => !feedback.visible && setRespuesta(p => p.length < 10 ? p + num : p)}
-                onDelete={() => !feedback.visible && setRespuesta(p => p.slice(0, -1))}
-                onSubmit={() => !feedback.visible && handleSubmit()}
-                disabled={feedback.visible}
+                onNumberPress={(num) => !(feedback.visible && feedback.esCorrecta) && setRespuesta(p => p.length < 10 ? p + num : p)}
+                onDelete={() => !(feedback.visible && feedback.esCorrecta) && setRespuesta(p => p.slice(0, -1))}
+                onSubmit={() => !(feedback.visible && feedback.esCorrecta) && handleSubmit()}
+                disabled={feedback.visible && feedback.esCorrecta}
                 submitDisabled={respuesta.length === 0}
               />
             </div>
@@ -1046,7 +1046,7 @@ export const Fase3GameScreen: React.FC = () => {
           {pregunta.tipo_pregunta === 'multiple_opcion' && pregunta.alternativas && (
             <motion.div animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}} className={`f3-question-card ${shaking ? 'shake-error' : ''} max-w-3xl mx-auto w-full`} style={{ borderColor: feedback.visible ? (feedback.esCorrecta ? '#10B981' : '#EF4444') : '#1e293b' }}>
               <div className="f3-question-text-box mb-8">
-                <div className="f3-question-text">{pregunta.enunciado}</div>
+                <div className="f3-question-text" dangerouslySetInnerHTML={{ __html: pregunta.enunciado }} />
               </div>
               <div className="grid grid-cols-1 gap-4">
                 {pregunta.alternativas.map(alt => {

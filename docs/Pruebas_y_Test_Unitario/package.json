@@ -10,6 +10,7 @@
     "test:gameplay": "npx playwright test tests/03-gameplay-fase1.spec.ts",
     "test:fases": "npx playwright test tests/04-gameplay-fases-genericas.spec.ts",
     "test:progress": "npx playwright test tests/05-progresion-desbloqueo.spec.ts",
+    "test:fase2": "npx playwright test tests/06-gameplay-fase2.spec.ts",
     "report": "npx playwright show-report resultados"
   },
   "devDependencies": {

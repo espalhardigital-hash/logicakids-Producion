@@ -33,7 +33,7 @@ export default defineConfig({
   /* Configuración global compartida */
   use: {
     /* URL base del entorno de desarrollo */
-    baseURL: process.env.TEST_URL || 'https://logica.espalhar.shop',
+    baseURL: process.env.TEST_URL || 'http://localhost:3000',
 
     /* Capturar screenshot solo al fallar */
     screenshot: 'only-on-failure',

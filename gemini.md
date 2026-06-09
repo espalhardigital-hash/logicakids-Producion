@@ -111,3 +111,56 @@ El agente tiene acceso a las siguientes API/Herramientas para interactuar con el
 | `ask_question` | Presenta preguntas de opción múltiple interactiva en la interfaz de usuario. |
 | `manage_task` | Lista, cancela o envía inputs a los comandos que corren en segundo plano. |
 | `schedule` | Programa temporizadores únicos o tareas automatizadas recurrentes (cron). |
+
+---
+
+## 5. Modo de Pruebas Locales (100% Local) — ACTIVO
+
+> **Estado**: ACTIVO (desde 2026-06-08). Se perdió temporalmente la conexión SSH con la VPS.
+> **Guía de restauración**: Consultar `docs/cambio_para_vps.md` cuando se recupere la conexión.
+
+### Contexto
+Se ha perdido temporalmente la conexión SSH con la VPS (`rominejo@34.9.51.225`). Todo el desarrollo, pruebas y validación se realizan **100% localmente** usando Docker. Los archivos de los entornos remotos (`Datos_Desarrollo/` y `Datos_Producion/`) se preservan intactos para futura reconexión.
+
+### Control Total del Entorno Local
+En modo de pruebas locales, el agente tiene **control total** sobre:
+* **Archivos del proyecto**: Crear, modificar, leer y eliminar cualquier archivo dentro del workspace activo `d:\Antigravity\APP_Logica_Matematicas_kids`, excepto `Datos_Desarrollo/` y `Datos_Producion/`.
+* **Docker local**: Crear, modificar, detener, reiniciar, eliminar contenedores, redes, volúmenes e imágenes Docker en la máquina local sin restricción.
+* **Base de datos local**: Conectarse, crear tablas, ejecutar migraciones, insertar datos, consultar y modificar la base de datos PostgreSQL local (`logicakids_local_db`).
+* **MinIO local**: Crear buckets, subir archivos, y gestionar el storage S3 local.
+
+### Restricciones Mantenidas (incluso en modo local)
+* Los directorios `Datos_Desarrollo/` y `Datos_Producion/` **siguen siendo intactos** y de solo referencia.
+* Las reglas de Git (no commit/push automático) siguen vigentes según la Sección 3.
+* Los archivos `.env` siguen siendo de solo lectura para el agente (pero puede crear archivos `.env.local`).
+
+### Infraestructura Local
+* **Docker Compose**: `docs/Pruebas_y_Test_Unitario/docker-compose.local.yml`
+* **Env local**: `docs/Pruebas_y_Test_Unitario/.env.local`
+* **PostgreSQL**: Contenedor `logicakids_local_db` — puerto `5433` (host) / `5432` (interno)
+  * DB: `logicakids_local` | User: `logicakids_local_user` | Pass: `LogicaKids2026#Local`
+* **Redis**: Contenedor `logicakids_local_redis` — puerto `6380` (host) / `6379` (interno)
+* **MinIO**: Contenedor `logicakids_local_minio` — API `9100` / Console `9101`
+  * User: `logicakids_minio_admin` | Pass: `LogicaKids2026#MinIO` | Bucket: `logicakids`
+* **Backend**: `http://localhost:8000`
+* **Frontend**: `http://localhost:3000`
+
+### Comandos Frecuentes
+```bash
+# Levantar todo
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml up -d --build
+
+# Ver estado
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml ps
+
+# Ver logs del backend
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml logs -f backend
+
+# Resetear BD completa
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml down -v
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml up -d --build
+
+# Conectarse a psql
+docker exec -it logicakids_local_db psql -U logicakids_local_user -d logicakids_local
+```
+

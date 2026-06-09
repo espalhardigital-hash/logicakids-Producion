@@ -244,7 +244,21 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
         variants={containerVariants}
         className="w-full flex flex-col"
       >
-        {/* Header removed from GeneralTab */}
+        {/* Apple Style Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Vista General de Administrador</h2>
+          <div className="flex gap-3">
+            <button className="w-12 h-12 rounded-full bg-slate-200/50 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 flex items-center justify-center text-slate-500 dark:text-slate-300 transition-colors shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </button>
+            <button className="w-12 h-12 rounded-full bg-slate-200/50 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 flex items-center justify-center text-slate-500 dark:text-slate-300 transition-colors shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <button className="w-12 h-12 rounded-full bg-slate-200/50 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 flex items-center justify-center text-slate-500 dark:text-slate-300 transition-colors shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+          </div>
+        </div>
 
         {/* KPI Cards */}
         <motion.div variants={containerVariants} className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
@@ -281,23 +295,26 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
         <motion.div variants={itemVariants} className="w-full bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col flex-1 mb-10">
           
           {/* Toolbar */}
-          <div className="p-8 border-b border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-50 dark:bg-white/[0.02]">
-            <div className="relative flex-1 w-full max-w-md">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+          <div className="p-8 border-b border-slate-200 dark:border-white/5 flex flex-col bg-white dark:bg-white/[0.02]">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Gestión de Usuarios</h3>
+              <button
+                onClick={handleCreate}
+                className="px-6 py-3 bg-[#007AFF] hover:bg-blue-500 rounded-2xl flex items-center justify-center gap-2 text-white font-bold shadow-[0_5px_15px_rgba(0,122,255,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Plus size={20} /> Nuevo Usuario
+              </button>
+            </div>
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
                 placeholder="Buscar usuario o email..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-14 pr-6 text-slate-900 dark:text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all placeholder:text-slate-500"
+                className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-3 pl-12 pr-6 text-slate-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all placeholder:text-slate-400"
               />
             </div>
-            <button
-              onClick={handleCreate}
-              className="w-full md:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl flex items-center justify-center gap-3 text-slate-900 dark:text-white font-black shadow-[0_10px_30px_rgba(37,99,235,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Plus size={22} /> Nuevo Usuario
-            </button>
           </div>
 
           {/* User Table */}

@@ -199,7 +199,7 @@ const FASE_3: FaseMetadata = {
           nivelId: 2, nombre: 'Consolidación', descripcion: 'Tiempo y distancias.',
           teoria: { titulo: 'Tiempo y Recorridos', parrafos: ['Los problemas de tiempo usan horas y minutos.', 'Los de distancia pueden usar metros o kilómetros.'], tip_pedagogico: 'Dibuja una línea de tiempo para organizar los eventos.' },
           preguntas: [
-            { id: qid(), enunciado: 'La clase empieza a las 8:15 y dura 45 minutos. ¿A qué hora termina?', tipo: 'opcion_multiple', opciones: ['8:50', '9:00', '9:15'], respuesta_correcta: '9:00' },
+            { id: qid(), enunciado: 'La clase empieza a la hora marcada en el reloj y dura exactamente 45 minutos. ¿A qué hora termina?<br/><img src=\'http://localhost:9100/logicakids/graphics/07c3a604db6c425fbb645eb12d1bd503.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['8:50', '9:00', '9:15'], respuesta_correcta: '9:00' },
             { id: qid(), enunciado: 'Caminé 800 metros de ida y 800 de vuelta. ¿Cuántos metros recorrí en total?', tipo: 'numerico', respuesta_correcta: '1600' },
           ]
         },
@@ -620,15 +620,15 @@ const FASE_7: FaseMetadata = {
           nivelId: 1, nombre: 'Descubrimiento', descripcion: 'Localizar pares ordenados (X, Y).',
           teoria: { titulo: 'Par Ordenado (X, Y)', parrafos: ['X es la posición horizontal (derecha). Y es la vertical (arriba).', 'El punto (3, 2) está 3 a la derecha y 2 arriba.'], tip_pedagogico: 'Primero camina horizontal (X), luego sube (Y).' },
           preguntas: [
-            { id: qid(), enunciado: '¿Cuál es la posición del punto que está 4 a la derecha y 5 arriba del origen?', tipo: 'opcion_multiple', opciones: ['(5,4)', '(4,5)', '(4,4)'], respuesta_correcta: '(4,5)' },
-            { id: qid(), enunciado: 'El punto (0, 3) está sobre cuál eje?', tipo: 'opcion_multiple', opciones: ['Eje X', 'Eje Y', 'Ninguno'], respuesta_correcta: 'Eje Y' },
+            { id: qid(), enunciado: '¿Cuál es la posición del punto P que está 4 a la derecha y 5 arriba del origen?<br/><img src=\'http://localhost:9100/logicakids/graphics/65b4a26824f84f6e85a05bf60580548c.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['(5,4)', '(4,5)', '(4,4)'], respuesta_correcta: '(4,5)' },
+            { id: qid(), enunciado: 'El punto A(0, 3) está sobre cuál eje?<br/><img src=\'http://localhost:9100/logicakids/graphics/75ec0bfd5cf943d5ba256b906d53b6b4.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['Eje X', 'Eje Y', 'Ninguno'], respuesta_correcta: 'Eje Y' },
           ]
         },
         {
           nivelId: 2, nombre: 'Consolidación', descripcion: 'Par ordenado como vector de desplazamiento.',
           teoria: { titulo: 'Vectores de Movimiento', parrafos: ['Un vector (+2, +3) significa "muévete 2 a la derecha y 3 arriba".', 'Desde (1,1) con vector (+2,+3) llegas a (3,4).'], tip_pedagogico: 'Suma las coordenadas del punto + el vector.' },
           preguntas: [
-            { id: qid(), enunciado: 'Desde (2,3), aplica el vector (+4, +1). ¿A qué punto llegas?', tipo: 'opcion_multiple', opciones: ['(6,4)', '(4,6)', '(3,7)'], respuesta_correcta: '(6,4)' },
+            { id: qid(), enunciado: 'Desde el punto A(2,3), aplica el vector de movimiento (+4, +1). ¿A qué punto de destino llegas?<br/><img src=\'http://localhost:9100/logicakids/graphics/65cc36c451fe40699098be0d79b9a383.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['(6,4)', '(4,6)', '(3,7)'], respuesta_correcta: '(6,4)' },
             { id: qid(), enunciado: 'Para ir de (1,2) a (5,6), ¿cuál es el vector?', tipo: 'opcion_multiple', opciones: ['(+4,+4)', '(+3,+4)', '(+4,+3)'], respuesta_correcta: '(+4,+4)' },
           ]
         },
@@ -636,7 +636,7 @@ const FASE_7: FaseMetadata = {
           nivelId: 3, nombre: 'Fluidez', descripcion: 'Movimiento relativo entre puntos.',
           teoria: { titulo: 'Movimiento Relativo', parrafos: ['Para ir de A(2,1) a B(5,4): vector = (5−2, 4−1) = (+3, +3).'], tip_pedagogico: 'Resta las coordenadas: destino − origen.' },
           preguntas: [
-            { id: qid(), enunciado: 'El punto A está en (3,2) y B en (7,5). ¿Cuánto debes moverte en X?', tipo: 'numerico', respuesta_correcta: '4' },
+            { id: qid(), enunciado: 'El punto A está en (3,2) y B en (7,5). ¿Cuánto debes moverte en la dirección horizontal X para ir de A a B?<br/><img src=\'http://localhost:9100/logicakids/graphics/ca5216e9e0ed4d30b05ef2ce15793dfa.png\' class=\'lk-question-graphic\' />', tipo: 'numerico', respuesta_correcta: '4' },
             { id: qid(), enunciado: 'Desde (1,1), me moví (+3,+2) y luego (+1,+4). ¿Dónde estoy?', tipo: 'opcion_multiple', opciones: ['(5,7)', '(4,6)', '(5,6)'], respuesta_correcta: '(5,7)' },
           ]
         }
@@ -649,7 +649,7 @@ const FASE_7: FaseMetadata = {
           nivelId: 1, nombre: 'Descubrimiento', descripcion: 'Conversiones: minutos a horas, días a semanas.',
           teoria: { titulo: 'Unidades de Tiempo', parrafos: ['1 hora = 60 minutos. 1 día = 24 horas. 1 semana = 7 días.'], tip_pedagogico: 'Para minutos → horas: divide por 60.' },
           preguntas: [
-            { id: qid(), enunciado: '¿Cuántos minutos tiene 2 horas y media?', tipo: 'numerico', respuesta_correcta: '150' },
+            { id: qid(), enunciado: '¿Cuántos minutos tiene 2 horas y media de duración?<br/><img src=\'http://localhost:9100/logicakids/graphics/65f566a6ef6747d3966f3cea8e89b87f.png\' class=\'lk-question-graphic\' />', tipo: 'numerico', respuesta_correcta: '150' },
             { id: qid(), enunciado: '¿Cuántas horas hay en 3 días?', tipo: 'numerico', respuesta_correcta: '72' },
           ]
         },
@@ -666,7 +666,7 @@ const FASE_7: FaseMetadata = {
           teoria: { titulo: 'Horarios Complejos', parrafos: ['Una escuela tiene 7 clases de 50 min + recreo de 20 min.', 'Tiempo total = 7 × 50 + 20 = 370 min = 6h10min.'], tip_pedagogico: 'Calcula cada bloque y suma al final.' },
           preguntas: [
             { id: qid(), enunciado: 'Un colegio tiene 5 clases de 45 minutos y 2 recreos de 15 minutos. ¿Cuánto dura el día escolar en minutos?', tipo: 'numerico', respuesta_correcta: '255' },
-            { id: qid(), enunciado: 'Si las clases empiezan a las 7:30 y duran 255 minutos, ¿a qué hora terminan?', tipo: 'opcion_multiple', opciones: ['11:45', '11:30', '12:00'], respuesta_correcta: '11:45' },
+            { id: qid(), enunciado: 'Si las clases de la escuela empiezan a las 7:30 (como se ilustra) y duran 255 minutos, ¿a qué hora terminan?<br/><img src=\'http://localhost:9100/logicakids/graphics/3db00a1f872343a082a55f73b5c0532d.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['11:45', '11:30', '12:00'], respuesta_correcta: '11:45' },
           ]
         }
       ]
@@ -678,16 +678,16 @@ const FASE_7: FaseMetadata = {
           nivelId: 1, nombre: 'Descubrimiento', descripcion: 'Leer tablas de horarios de transporte.',
           teoria: { titulo: 'Tablas de Horario', parrafos: ['Las tablas de autobús muestran la hora de salida y llegada.', 'Busca la fila de tu parada y la columna de la hora.'], tip_pedagogico: 'Usa la línea de tu dedo para no perder la fila.' },
           preguntas: [
-            { id: qid(), enunciado: 'El bus sale a las 8:00 y llega a las 8:45. ¿Cuánto dura el viaje?', tipo: 'numerico', respuesta_correcta: '45' },
-            { id: qid(), enunciado: 'El bus sale cada 20 minutos desde las 7:00. ¿A qué hora sale el tercer bus?', tipo: 'opcion_multiple', opciones: ['7:40', '7:30', '8:00'], respuesta_correcta: '7:40' },
+            { id: qid(), enunciado: 'El bus escolar sale a la hora indicada en el reloj y llega a su destino a las 8:45. ¿Cuánto dura el viaje en minutos?<br/><img src=\'http://localhost:9100/logicakids/graphics/8ee260240b674e9a93085327ec38fabb.png\' class=\'lk-question-graphic\' />', tipo: 'numerico', respuesta_correcta: '45' },
+            { id: qid(), enunciado: 'El bus sale cada 20 minutos desde la hora inicial marcada en el reloj (7:00). ¿A qué hora sale el tercer bus?<br/><img src=\'http://localhost:9100/logicakids/graphics/3db00a1f872343a082a55f73b5c0532d.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['7:40', '7:30', '8:00'], respuesta_correcta: '7:40' },
           ]
         },
         {
           nivelId: 2, nombre: 'Consolidación', descripcion: 'Sumar duración de viaje para hallar hora de llegada.',
           teoria: { titulo: 'Hora de Llegada', parrafos: ['Hora de llegada = Hora de salida + Duración del viaje.', 'Si sales a las 14:20 y el viaje dura 1h35min, llegas a las 15:55.'], tip_pedagogico: 'Suma las horas y los minutos por separado.' },
           preguntas: [
-            { id: qid(), enunciado: 'Salgo a las 10:15 y el viaje dura 1 hora 30 minutos. ¿A qué hora llego?', tipo: 'opcion_multiple', opciones: ['11:45', '11:30', '12:15'], respuesta_correcta: '11:45' },
-            { id: qid(), enunciado: 'Necesito llegar a las 9:00. El viaje dura 50 minutos. ¿A qué hora debo salir?', tipo: 'opcion_multiple', opciones: ['8:00', '8:10', '8:50'], respuesta_correcta: '8:10' },
+            { id: qid(), enunciado: 'Salgo a la hora indicada en el reloj y el viaje dura 1 hora 30 minutos. ¿A qué hora llego?<br/><img src=\'http://localhost:9100/logicakids/graphics/5e4db50d56884ed5870ec7365e608c29.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['11:45', '11:30', '12:15'], respuesta_correcta: '11:45' },
+            { id: qid(), enunciado: 'Necesito llegar a la escuela a la hora exacta marcada en el reloj (9:00). Si el viaje dura 50 minutos, ¿a qué hora debo salir?<br/><img src=\'http://localhost:9100/logicakids/graphics/97e1054d4dc8466ea3c905e6a777dc92.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['8:00', '8:10', '8:50'], respuesta_correcta: '8:10' },
           ]
         },
         {
@@ -816,7 +816,7 @@ const FASE_8: FaseMetadata = {
           teoria: { titulo: 'Simulador Pedro II — Nivel 2', parrafos: ['Ahora las preguntas incluyen geometría, mapas y tiempo.', 'Dibuja cuando sea necesario.'], tip_pedagogico: 'Un dibujo rápido ahorra errores.' },
           preguntas: [
             { id: qid(), enunciado: 'Un rectángulo de 7 cm × 4 cm. ¿Cuál es su área?', tipo: 'numerico', respuesta_correcta: '28' },
-            { id: qid(), enunciado: 'Salgo a las 8:25 y el viaje dura 1h40min. ¿A qué hora llego?', tipo: 'opcion_multiple', opciones: ['10:05', '9:55', '10:15'], respuesta_correcta: '10:05' },
+            { id: qid(), enunciado: 'Salgo a la hora indicada en el reloj (8:25) y el viaje dura 1h40min. ¿A qué hora llego?<br/><img src=\'http://localhost:9100/logicakids/graphics/65f566a6ef6747d3966f3cea8e89b87f.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['10:05', '9:55', '10:15'], respuesta_correcta: '10:05' },
           ]
         },
         {

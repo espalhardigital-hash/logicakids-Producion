@@ -44,7 +44,8 @@ class StorageService:
                     Body=file_contents,
                     ContentType=f"image/{ext}"
                 )
-                avatar_url = f"{settings.S3_ENDPOINT_URL}/{self.bucket_name}/{unique_filename}"
+                base_url = getattr(settings, 'S3_PUBLIC_URL', settings.S3_ENDPOINT_URL) or settings.S3_ENDPOINT_URL
+                avatar_url = f"{base_url}/{self.bucket_name}/{unique_filename}"
                 return avatar_url
             except (ClientError, EndpointConnectionError) as e:
                 logger.warning(f"S3 Upload failed, falling back to local storage. Error: {e}")
@@ -61,5 +62,41 @@ class StorageService:
             
         avatar_url = f"/static/avatars/{unique_filename}"
         return avatar_url
+
+    async def upload_question_graphic(self, file_contents: bytes, filename: str) -> str:
+        """
+        Sube una imagen de enunciado a S3 (MinIO) o localmente en el filesystem como fallback.
+        """
+        ext = filename.split(".")[-1] if "." in filename else "png"
+        unique_name = f"{uuid.uuid4().hex}.{ext}"
+        unique_filename = f"graphics/{unique_name}"
+        
+        # Intentar S3
+        if self.s3_client:
+            try:
+                self.s3_client.put_object(
+                    Bucket=self.bucket_name,
+                    Key=unique_filename,
+                    Body=file_contents,
+                    ContentType=f"image/{ext}"
+                )
+                base_url = getattr(settings, 'S3_PUBLIC_URL', settings.S3_ENDPOINT_URL) or settings.S3_ENDPOINT_URL
+                url = f"{base_url}/{self.bucket_name}/{unique_filename}"
+                return url
+            except (ClientError, EndpointConnectionError) as e:
+                logger.warning(f"S3 Upload failed for graphic, falling back to local storage. Error: {e}")
+            except Exception as e:
+                logger.error(f"Unexpected S3 Upload error for graphic: {e}")
+                
+        # Fallback Local
+        local_dir = "app/static/graphics"
+        os.makedirs(local_dir, exist_ok=True)
+        local_path = os.path.join(local_dir, unique_name)
+        
+        async with aiofiles.open(local_path, "wb") as f:
+            await f.write(file_contents)
+            
+        url = f"/static/graphics/{unique_name}"
+        return url
 
 storage_service = StorageService()

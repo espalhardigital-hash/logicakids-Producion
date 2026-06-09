@@ -6,6 +6,7 @@ interface Props {
   interactive?: boolean; // Permite cambiar el nivel
   onChange?: (selectedLevel: number) => void;
   color?: string; // Color del líquido
+  type?: 'beaker' | 'thermometer';
 }
 
 export const BeakerVisualizer: React.FC<Props> = ({
@@ -14,6 +15,7 @@ export const BeakerVisualizer: React.FC<Props> = ({
   interactive = false,
   onChange,
   color = '#38bdf8', // Liquid blue by default
+  type = 'beaker',
 }) => {
   const [level, setLevel] = useState<number>(initialLevel);
 
@@ -32,7 +34,91 @@ export const BeakerVisualizer: React.FC<Props> = ({
 
   const height = 200;
   const segmentHeight = height / divisions;
+  const liquidColor = type === 'thermometer' ? '#ef4444' : color;
 
+  if (type === 'thermometer') {
+    return (
+      <div className="flex flex-col items-center justify-center p-4">
+        <div className="flex items-center gap-6">
+          {/* Thermometer container */}
+          <div className="flex flex-col items-center">
+            {/* The glass tube */}
+            <div 
+              style={{ height: `${height}px` }} 
+              className="w-10 bg-slate-900/40 border-x-4 border-t-4 border-white/20 rounded-t-full relative flex flex-col justify-end overflow-hidden shadow-inner backdrop-blur-sm"
+            >
+              {/* Liquid level */}
+              <div
+                style={{
+                  height: `${(level / divisions) * 100}%`,
+                  background: `linear-gradient(180deg, #f87171 0%, ${liquidColor} 100%)`,
+                  boxShadow: `0 0 15px rgba(239,68,68,0.5)`,
+                  transition: 'height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }}
+                className="w-full absolute bottom-0 left-0"
+              />
+
+              {/* Grid segment dividers (interactive/clickable zones) */}
+              <div className="absolute inset-0 flex flex-col-reverse">
+                {Array.from({ length: divisions }).map((_, idx) => {
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => handleSegmentClick(idx)}
+                      style={{
+                        height: `${segmentHeight}px`,
+                        cursor: interactive ? 'pointer' : 'default',
+                      }}
+                      className="w-full relative z-10 hover:bg-white/10 active:bg-white/20 transition-colors group"
+                    >
+                      {/* Hover indicator for interactive */}
+                      {interactive && (
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 border border-white/30 transition-opacity pointer-events-none" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Red bulb at the base */}
+            <div 
+              className="w-16 h-16 rounded-full border-4 border-white/20 -mt-2 z-20 flex items-center justify-center shadow-lg relative overflow-hidden"
+              style={{
+                background: `radial-gradient(circle at 35% 35%, #f87171 0%, ${liquidColor} 70%, #991b1b 100%)`,
+                boxShadow: `0 0 25px rgba(239,68,68,0.7), inset 0 4px 8px rgba(255,255,255,0.4)`
+              }}
+            >
+              {/* Shine reflection */}
+              <div className="absolute top-2 left-2 w-4 h-4 rounded-full bg-white/45 filter blur-[1px]" />
+            </div>
+          </div>
+
+          {/* Labels/Ticks (Graduation marks) */}
+          <div className="flex flex-col-reverse justify-between pb-8 text-xs font-black text-slate-400" style={{ height: `${height + 30}px` }}>
+            {Array.from({ length: divisions + 1 }).map((_, idx) => (
+              <div key={idx} className="flex items-center gap-1.5" style={{ height: idx === 0 || idx === divisions ? '0px' : `${segmentHeight}px` }}>
+                <div className="w-3.5 h-0.5 bg-slate-500" />
+                <div className="min-w-[45px] font-sans">
+                  {idx === 0 && "0°C"}
+                  {idx > 0 && idx < divisions && `${Math.round((idx / divisions) * 50)}°C`}
+                  {idx === divisions && "50°C Max"}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {interactive && (
+          <div className="mt-6 text-sm font-black text-slate-400 uppercase tracking-widest bg-slate-900/50 px-6 py-2 rounded-full border border-white/5">
+            Temperatura: <span style={{ color: liquidColor }} className="text-2xl drop-shadow-md">{Math.round((level / divisions) * 50)}°C</span> <span className="text-slate-500 text-lg">({level}/{divisions})</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Beaker Visualizer (Default)
   return (
     <div className="flex flex-col items-center justify-center p-4">
       <div className="flex items-end gap-3">

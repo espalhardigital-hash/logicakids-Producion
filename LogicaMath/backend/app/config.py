@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     S3_ACCESS_KEY: Optional[str] = Field(None, description="S3 Access Key")
     S3_SECRET_KEY: Optional[str] = Field(None, description="S3 Secret Key")
     S3_ENDPOINT_URL: Optional[str] = Field(None, description="S3 Endpoint URL")
+    S3_PUBLIC_URL: Optional[str] = Field(None, description="S3 Public URL for Frontend")
     S3_BUCKET_NAME: Optional[str] = Field(None, description="S3 Bucket Name")
     S3_REGION: str = Field("us-east-1", description="S3 Region")
     

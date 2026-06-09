@@ -215,6 +215,113 @@ const STATIC_PHASES: StaticPhase[] = [
         ]
       }
     ]
+  },
+  {
+    id: 4,
+    name: "Fase 4: Fracciones y Proporciones",
+    description: "Comprensión visual y numérica de fracciones, áreas y asimetrías.",
+    modules: [
+      {
+        seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: La Fracción Visual",
+        levels: [{ id: 1, name: "Lectura de Fracciones" }, { id: 2, name: "Fracciones Equivalentes" }, { id: 3, name: "Áreas y Asimetrías" }],
+        challenges: [{ id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 }, { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 }, { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }]
+      },
+      {
+        seccion: 2, modulo_id: 2, operacion: "mixta", name: "Módulo 2: Fracción de Cantidad",
+        levels: [{ id: 1, name: "Porciones de un Grupo" }, { id: 2, name: "El Motor de Dos Pasos" }, { id: 3, name: "Lógica del Complemento" }],
+        challenges: [{ id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 }, { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 }, { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }]
+      },
+      {
+        seccion: 3, modulo_id: 3, operacion: "mixta", name: "Módulo 3: Porcentajes Rápidos",
+        levels: [{ id: 1, name: "Porcentajes Intuitivos" }, { id: 2, name: "Gráficos Circulares" }, { id: 3, name: "Gráficos de Barras" }],
+        challenges: [{ id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 }, { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 }, { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }]
+      },
+      {
+        seccion: 4, modulo_id: 4, operacion: "mixta", name: "Módulo 4: Razón y Mezclas",
+        levels: [{ id: 1, name: "Razones y Proporciones" }, { id: 2, name: "Reparto de Volúmenes" }, { id: 3, name: "Mezclas Complejas" }],
+        challenges: [{ id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 }, { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 }, { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }]
+      }
+    ]
+  },
+  {
+    id: 5,
+    name: "Fase 5: Geometría y Espacio",
+    description: "Perímetro, área, volumen y razonamiento espacial lógico.",
+    modules: [
+      {
+        seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: Perímetros y Áreas",
+        levels: [{ id: 1, name: "Figuras Planas" }, { id: 2, name: "Áreas Compuestas" }],
+        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+      },
+      {
+        seccion: 2, modulo_id: 2, operacion: "mixta", name: "Módulo 2: Volúmenes y 3D",
+        levels: [{ id: 1, name: "Identificación de Cuerpos" }, { id: 2, name: "Cálculo de Volumen" }],
+        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+      }
+    ]
+  },
+  {
+    id: 6,
+    name: "Fase 6: Álgebra Básica",
+    description: "Introducción a variables, patrones y ecuaciones simples.",
+    modules: [
+      {
+        seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: Patrones y Secuencias",
+        levels: [{ id: 1, name: "Secuencias Numéricas" }, { id: 2, name: "Patrones Geométricos" }],
+        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+      },
+      {
+        seccion: 2, modulo_id: 2, operacion: "mixta", name: "Módulo 2: Ecuaciones de 1er Grado",
+        levels: [{ id: 1, name: "Concepto de Variable" }, { id: 2, name: "Despeje Simple" }],
+        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+      }
+    ]
+  },
+  {
+    id: 7,
+    name: "Fase 7: Coordenadas y Tiempo",
+    description: "Lectura de mapas, coordenadas cartesianas y husos horarios.",
+    modules: [
+      {
+        seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: Plano Cartesiano",
+        levels: [{ id: 1, name: "Lectura de Coordenadas" }, { id: 2, name: "Desplazamientos" }],
+        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+      },
+      {
+        seccion: 2, modulo_id: 2, operacion: "mixta", name: "Módulo 2: Medición del Tiempo",
+        levels: [{ id: 1, name: "Conversiones de Tiempo" }, { id: 2, name: "Husos Horarios" }],
+        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+      }
+    ]
+  },
+  {
+    id: 8,
+    name: "Fase 8: Probabilidad y Lógica",
+    description: "Análisis combinatorio, probabilidad y problemas de lógica pura.",
+    modules: [
+      {
+        seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: Combinatoria",
+        levels: [{ id: 1, name: "Arreglos Simples" }, { id: 2, name: "Permutaciones" }],
+        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+      },
+      {
+        seccion: 2, modulo_id: 2, operacion: "mixta", name: "Módulo 2: Probabilidad Básica",
+        levels: [{ id: 1, name: "Sucesos Posibles" }, { id: 2, name: "Eventos Compuestos" }],
+        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+      }
+    ]
+  },
+  {
+    id: 9,
+    name: "Fase 9: Simulador Pedro II",
+    description: "Banco de preguntas y simulacros estilo Colegio Pedro II.",
+    modules: [
+      {
+        seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: Simulacros Oficiales",
+        levels: [{ id: 1, name: "Exámenes Anteriores" }, { id: 2, name: "Prueba de Velocidad" }],
+        challenges: [{ id: 11, name: "Simulacro Completo", defaultTime: 3600, defaultQty: 50 }, { id: 13, name: "Simulacro Maestro", defaultTime: 2400, defaultQty: 50 }]
+      }
+    ]
   }
 ];
 

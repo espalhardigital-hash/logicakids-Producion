@@ -129,7 +129,11 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
   // Progress states
   const [alumnoProgress, setAlumnoProgress] = useState<any[]>([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
-  const [expandedFases, setExpandedFases] = useState<Record<number, boolean>>({ 1: true, 2: true, 3: true });
+  const [expandedFases, setExpandedFases] = useState<Record<number, boolean>>(() => {
+    const defaults: Record<number, boolean> = {};
+    PHASE_MAPS.forEach(p => defaults[p.id] = true);
+    return defaults;
+  });
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
 
   // Action tracking: "level-{faseId}-{seccion}-{op}" | "module-{faseId}-{modId}" | "fase-{faseId}"

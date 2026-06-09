@@ -605,8 +605,8 @@ async def override_alumno_progress_bulk(
             items_by_fase[item.fase_id] = items_by_fase.get(item.fase_id, 0) + 1
             
         for fase_id, count in items_by_fase.items():
-            # If count of levels is >= 15, the admin approved the entire phase
-            if count >= 15:
+            # If count of levels is >= 4, the admin approved the entire phase (since individual modules have max 3 levels)
+            if count >= 4:
                 result_all_configs = await db.execute(
                     select(ConfiguracionProgreso).where(and_(
                         ConfiguracionProgreso.fase_id == fase_id,

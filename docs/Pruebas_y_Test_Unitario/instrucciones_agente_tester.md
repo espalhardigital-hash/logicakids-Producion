@@ -2,15 +2,55 @@
 
 Este documento es el **manual rector** que define cómo un agente autónomo (o tester) debe realizar las pruebas End-to-End (E2E) y de validación lógica sobre la aplicación LogicaKids. Estas instrucciones servirán de base para la posterior creación de scripts o entornos de prueba automatizados.
 
+> **⚠️ Estado actual:** Entorno **100% local** (sin conexión VPS). Cuando se restaure la conexión SSH, consultar [`cambio_para_vps.md`](../cambio_para_vps.md).
+
 ---
 
 ## 1. Preparación, Contexto y Herramientas
+
+### Entorno de Ejecución (100% Local)
+
+Antes de ejecutar cualquier prueba, el agente debe asegurar que el stack Docker local esté levantado y funcional:
+
+1. **Verificar estado del stack:**
+   ```bash
+   docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml ps
+   ```
+   Todos los servicios deben estar en estado `running` o `healthy`.
+
+2. **Si el stack no está levantado, iniciarlo:**
+   ```bash
+   docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml up -d --build
+   ```
+
+3. **Verificar que la API responde:**
+   ```bash
+   curl http://localhost:8000/
+   ```
+   Debe retornar: `{"message": "LogicaKids Pro - Backend API"}`
+
+4. **Verificar que el frontend carga:**
+   Abrir `http://localhost:3000` — debe mostrar la pantalla de login de LogicaKids.
+
+### Servicios Locales Disponibles
+
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| Frontend | `http://localhost:3000` | Aplicación React |
+| Backend API | `http://localhost:8000` | FastAPI + Uvicorn |
+| PostgreSQL | `localhost:5433` | Base de datos (user: `logicakids_local_user`) |
+| Redis | `localhost:6380` | Cache |
+| MinIO Console | `http://localhost:9101` | Storage S3 (avatares) |
 
 ### Usuario de Prueba
 - **Restricción de Usuario:** Todas las pruebas deben ejecutarse utilizando exclusivamente un **usuario de prueba dedicado**. Bajo ninguna circunstancia se debe utilizar un usuario real o de producción para evitar alteraciones en los datos y métricas.
 - **Credenciales del Usuario:** El usuario de prueba ya se encuentra creado en el sistema. Las credenciales a utilizar son:
   - **Usuario/Correo:** prueba@gmail.com
   - **Contraseña:** pruebas
+
+### Usuario Administrador (para validaciones de panel admin)
+  - **Usuario/Correo:** amilcar@gmail.com
+  - **Contraseña:** Colombia1#_
 
 ### Selección de Herramientas
 - El agente evaluador tiene la **flexibilidad de elegir la herramienta más adecuada** para ejecutar estas tareas (por ejemplo, utilizando el `browser_subagent` interno para interacción en vivo, o estructurando scripts externos como Cypress, Playwright, etc., según la necesidad y eficiencia).
@@ -22,7 +62,7 @@ Este documento es el **manual rector** que define cómo un agente autónomo (o t
 
 El agente deberá simular el comportamiento de un usuario real, siguiendo estos pasos iniciales:
 
-1. **Apertura y Navegación:** Abrir el navegador **Google Chrome** (establecido por defecto) e ingresar a la URL del entorno correspondiente (Desarrollo o Producción, según se haya indicado).
+1. **Apertura y Navegación:** Abrir el navegador **Google Chrome** (establecido por defecto) e ingresar a `http://localhost:3000`.
 2. **Autenticación (Login):** Ingresar las credenciales del usuario de prueba y validar que el acceso sea exitoso (verificando la redirección al dashboard o pantalla principal).
 3. **Inicio del Recorrido:** 
    - Navegar hacia la **Fase** indicada.
@@ -91,6 +131,28 @@ Durante la ejecución de las pruebas, el sistema genera automáticamente reporte
 
 ### Consulta del Historial
 Antes de investigar un bug desde cero, el agente debe buscar en el historial si existe una solución previa para un problema similar. El sistema lo hace automáticamente durante la ejecución y muestra coincidencias en la consola.
+
+---
+
+## 6. Gestión del Entorno Local
+
+### Resetear la base de datos (empezar de cero)
+```bash
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml down -v
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml up -d --build
+```
+
+### Ver logs del backend para depuración
+```bash
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml logs -f backend
+```
+
+### Forzar re-siembra de preguntas
+```bash
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml stop backend
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml run --rm -e FORCE_SEED=true backend python run_migrations.py
+docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml up -d backend
+```
 
 ---
 

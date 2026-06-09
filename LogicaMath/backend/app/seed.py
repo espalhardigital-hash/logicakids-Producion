@@ -27,11 +27,11 @@ from app.auth import get_password_hash
 SEED_VERSIONS_KEY = "database_seed_versions"
 SEED_VERSIONS = {
     "fase_1": "20260601_v1",
-    "fase_2": "20260527_v1",
-    "fase_3": "20260527_v2",
-    "fase_4": "20260604_v4",
-    "fase_5": "20260602_v1",
-    "fase_6": "20260602_v1"
+    "fase_2": "20260609_v2",
+    "fase_3": "20260609_v1",
+    "fase_4": "20260609_v1",
+    "fase_5": "20260609_v1",
+    "fase_6": "20260609_v1"
 }
 
 PEDAGOGY_CONFIG_KEY = "pedagogy_config"
@@ -919,6 +919,36 @@ async def run_seed():
     except Exception as e:
         import traceback
         print("❌ Error al inyectar datos de Fase 6:")
+        traceback.print_exc()
+        raise e
+
+    # Inyectar datos semilla de la Fase 7
+    try:
+        from app.fase7.seed_fase7 import run_fase7_seed
+        await run_fase7_seed()
+    except Exception as e:
+        import traceback
+        print("❌ Error al inyectar datos de Fase 7:")
+        traceback.print_exc()
+        raise e
+
+    # Inyectar datos semilla de la Fase 8
+    try:
+        from app.fase8.seed_fase8 import run_fase8_seed
+        await run_fase8_seed()
+    except Exception as e:
+        import traceback
+        print("❌ Error al inyectar datos de Fase 8:")
+        traceback.print_exc()
+        raise e
+
+    # Inyectar datos semilla de la Fase 9
+    try:
+        from app.fase9.seed_fase9 import run_fase9_seed
+        await run_fase9_seed()
+    except Exception as e:
+        import traceback
+        print("❌ Error al inyectar datos de Fase 9:")
         traceback.print_exc()
         raise e
 
