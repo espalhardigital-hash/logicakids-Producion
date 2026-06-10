@@ -310,18 +310,21 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             if q_type == "total":
                 ans = total_cubes
                 ans_str = str(ans)
-                enunciado = f"Observa la estructura tridimensional de bloques en la imagen. Sabiendo que todos los bloques son cubos iguales de 1 cm³, ¿cuál es el volumen total (cantidad de cubos) de la figura?<br/><img src='{url}' class='lk-question-graphic' />"
+                enunciado = "Observa la estructura tridimensional de bloques. Sabiendo que todos los bloques son cubos iguales de 1 cm³, ¿cuál es el volumen total (cantidad de cubos) de la figura?"
+                datos_numericos = {"cubes": cubes, "tipo_visual": "imagen", "url": url}
                 expl = f"Contamos los cubos piso por piso. Hay {total_cubes} cubos en total constituyendo el volumen de {total_cubes} cm³."
             else:
                 ans = ocultos
                 ans_str = str(ans)
-                enunciado = f"Observa la estructura de bloques. Algunos cubos están ocultos sirviendo de base para sostener los bloques que se ven arriba. ¿Cuántos cubos están completamente ocultos a la vista?<br/><img src='{url}' class='lk-question-graphic' />"
+                enunciado = "Observa la estructura de bloques. Algunos cubos están ocultos sirviendo de base para sostener los bloques que se ven arriba. ¿Cuántos cubos están completamente ocultos a la vista?"
+                datos_numericos = {"cubes": cubes, "tipo_visual": "imagen", "url": url}
                 expl = f"Los cubos en pisos superiores deben sostenerse sobre cubos de abajo. Hay exactamente {ocultos} cubo(s) oculto(s) en la base."
 
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
                 "expl": expl,
+                "datos_numericos": datos_numericos,
                 "alts": [ans_str, str(ans+1), str(max(0, ans-1)), str(ans+2)]
             }
         else:
@@ -404,12 +407,14 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 url = await storage_service.upload_question_graphic(img_bytes, f"iso_strat_{p1}_{p2}_{p3}.png")
                 _graphic_url_cache[cache_key] = url
 
-            enunciado = f"Para calcular el volumen de esta estructura de cubos, contamos capa por capa (estratos). El piso inferior tiene {p1} bloques, el piso medio tiene {p2} bloques, y el superior {p3} bloque(s). ¿Cuál es el volumen total de la estructura en u³?<br/><img src='{url}' class='lk-question-graphic' />"
+            enunciado = "Para calcular el volumen de esta estructura de cubos, contamos capa por capa (estratos). El piso inferior tiene {p1} bloques, el piso medio tiene {p2} bloques, y el superior {p3} bloque(s). ¿Cuál es el volumen total de la estructura en u³?"
+            datos_numericos = {"cubes": cubes, "tipo_visual": "imagen", "url": url}
             expl = f"Sumamos las capas ordenadamente de abajo hacia arriba: {p1} (base) + {p2} (medio) + {p3} (superior) = {ans} unidades cúbicas (u³)."
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
                 "expl": expl,
+                "datos_numericos": datos_numericos,
                 "alts": [ans_str, str(ans+2), str(ans-2), str(p1*p2)]
             }
         else:
@@ -445,12 +450,14 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 url = await storage_service.upload_question_graphic(img_bytes, f"iso_vol_{largo}_{ancho}_{alto}.png")
                 _graphic_url_cache[cache_key] = url
                 
-            enunciado = f"¿Cuántos cubitos de 1 u³ componen el prisma rectangular que se muestra en la imagen? (Volumen en u³)<br/><img src='{url}' class='lk-question-graphic' />"
+            enunciado = "¿Cuántos cubitos de 1 u³ componen el prisma rectangular que se muestra en la imagen? (Volumen en u³)"
+            datos_numericos = {"cubes": cubes, "tipo_visual": "imagen", "url": url}
             expl = f"Multiplicamos las dimensiones: {largo} de largo × {ancho} de ancho × {alto} de alto = {ans} cubos en total."
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
                 "expl": expl,
+                "datos_numericos": datos_numericos,
                 "alts": [ans_str, str(ans+2), str(ans-2), str(largo+ancho+alto)]
             }
         elif lvl_id == 2:
@@ -514,13 +521,22 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                     img_bytes = generate_thermometer_image(float(temp))
                     url = await storage_service.upload_question_graphic(img_bytes, f"therm_{temp}.png")
                     _graphic_url_cache[cache_key] = url
-                enunciado = f"Observa la escala del termómetro médico en la imagen. ¿Qué temperatura marca en grados Celsius (°C)?<br/><img src='{url}' class='lk-question-graphic' />"
+                enunciado = f"Observa la escala del termómetro médico en la imagen. ¿Qué temperatura marca en grados Celsius (°C)?"
+                datos_numericos = {
+                    "url": url,
+                    "tipo_visual": "termometro",
+                    "valor": temp,
+                    "min": 10,
+                    "max": 45,
+                    "unidad": "°C"
+                }
                 expl = f"El nivel del líquido rojo en la escala del termómetro coincide exactamente con la marca de {temp}°C."
                 alts = [ans_str, str(temp + 5), str(temp - 5), str(temp + 10)]
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
                 "expl": expl,
+                "datos_numericos": datos_numericos if q_type == "temp_read" else {},
                 "alts": alts
             }
         elif lvl_id == 2:
@@ -537,12 +553,22 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 url = await storage_service.upload_question_graphic(img_bytes, f"therm_{ans}.png")
                 _graphic_url_cache[cache_key] = url
 
-            enunciado = f"En la mañana la temperatura era de {init_temp}°C. Por la tarde, la temperatura bajó {drop}°C, llegando al nivel bajo cero mostrado en la imagen. ¿Cuál es la nueva temperatura en grados Celsius (°C)?<br/><img src='{url}' class='lk-question-graphic' />"
+            enunciado = f"En la mañana la temperatura era de {init_temp}°C. Por la tarde, la temperatura bajó {drop}°C, llegando al nivel bajo cero mostrado en la imagen. ¿Cuál es la nueva temperatura en grados Celsius (°C)?"
+            datos_numericos = {
+                "url": url,
+                "init": init_temp, "drop": drop, "final": ans,
+                "tipo_visual": "termometro",
+                "valor": ans,
+                "min": -20,
+                "max": 20,
+                "unidad": "°C"
+            }
             expl = f"Restamos la variación a la temperatura inicial: {init_temp} - {drop} = {ans}°C. Al bajar del cero, el resultado es negativo."
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
                 "expl": expl,
+                "datos_numericos": datos_numericos,
                 "alts": [ans_str, str(ans - 2), str(-ans), str(init_temp + drop)]
             }
         else:

@@ -79,6 +79,13 @@ const GameScreen: React.FC<Props> = ({
   category, difficulty, userSettings, adminConfig, 
   modularConfigs, faseId, seccion, onEndGame, onExit 
 }) => {
+    const fId = faseId || 1;
+    const sec = seccion || 1;
+    const oper = category === 'addition' ? 'suma' : 
+                 category === 'subtraction' ? 'resta' : 
+                 category === 'multiplication' ? 'multiplicacion' : 
+                 category === 'division' ? 'division' : 'mixta';
+
   // Resolve active parameters applying inheritance:
   // Module specific -> Phase default -> Platform Global
   const resolveActiveParams = () => {
@@ -91,13 +98,6 @@ const GameScreen: React.FC<Props> = ({
     let resolvedTimer = adminConfig?.timers?.[activeLevelKey as keyof typeof adminConfig.timers] || 12;
     let resolvedPassing = adminConfig?.passingScore || 90;
     let resolvedFeedback = 'simple';
-
-    const fId = faseId || 1;
-    const sec = seccion || 1;
-    const oper = category === 'addition' ? 'suma' : 
-                 category === 'subtraction' ? 'resta' : 
-                 category === 'multiplication' ? 'multiplicacion' : 
-                 category === 'division' ? 'division' : 'mixta';
 
     if (modularConfigs) {
       // 1. Look for Phase Default (seccion = 0)

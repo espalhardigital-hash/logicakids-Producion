@@ -1488,7 +1488,7 @@ export const Fase4GameScreen: React.FC = () => {
                 feedback.esCorrecta ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'
               }`}
             >
-              {feedback.resultado?.early_exit ? 'Volver al Menú' : 'Continuar'}
+              {feedback.resultado?.early_exit ? 'Volver al Menú' : 'Continuar →'}
             </button>
           </motion.div>
         )}

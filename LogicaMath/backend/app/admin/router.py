@@ -498,6 +498,7 @@ async def override_alumno_progress(alumno_id: int, payload: ProgressOverridePayl
                 flag_modified(user, "settings")
                 await db.commit()
             
+            from ..services.pedagogia_service import recalcular_y_sincronizar_fase_actual
             await recalcular_y_sincronizar_fase_actual(alumno_id, db)
 
     return {"status": "ok", "message": "Progreso actualizado exitosamente"}

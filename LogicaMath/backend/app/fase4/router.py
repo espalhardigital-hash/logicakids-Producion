@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_, func, delete
+from sqlalchemy import select, and_, or_, func, delete, cast, Integer
 from sqlalchemy.orm import selectinload
 
 from ..db.session import get_db
@@ -680,7 +680,7 @@ async def responder_pregunta(
                         Pregunta.fase_id == FASE4_ID,
                         Pregunta.seccion == seccion,
                         Pregunta.estructura_padre_id == pregunta.estructura_padre_id,
-                        Pregunta.datos_numericos["variante"].as_integer() == siguiente_variante,
+                        cast(Pregunta.datos_numericos["variante"].astext, Integer) == siguiente_variante,
                         Pregunta.estado == StatusEnum.ACTIVO
                     ))
                 )
@@ -885,7 +885,7 @@ async def cerrar_rescate(
                         Pregunta.fase_id == FASE4_ID,
                         Pregunta.seccion == seccion,
                         Pregunta.estructura_padre_id == curr_q.estructura_padre_id,
-                        Pregunta.datos_numericos["variante"].as_integer() == 0,
+                        cast(Pregunta.datos_numericos["variante"].astext, Integer) == 0,
                         Pregunta.estado == StatusEnum.ACTIVO
                     ))
                 )

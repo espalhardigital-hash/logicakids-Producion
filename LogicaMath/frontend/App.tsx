@@ -393,7 +393,7 @@ const AppContent: React.FC = () => {
                     navigate('/welcome-fase5');
                   } else if (phaseIndex === 6) {
                     navigate('/welcome-fase6');
-                  } else if (phaseIndex >= 7 && phaseIndex <= 8) {
+                  } else if (phaseIndex >= 7 && phaseIndex <= 9) {
                     navigate(`/welcome-fase`, { state: { faseId: phaseIndex } });
                   } else {
                     alert(`¡La Fase ${phaseIndex} está desbloqueada! Muy pronto implementaremos sus dinámicas de juego.`);

@@ -18,6 +18,9 @@ from .fase3.router import router as fase3_router
 from .fase4.router import router as fase4_router
 from .fase5.router import router as fase5_router
 from .fase6.router import router as fase6_router
+from .fase7.router import router as fase7_router
+from .fase8.router import router as fase8_router
+from .fase9.router import router as fase9_router
 from .config import settings
 from .db.session import engine
 from .db.base import Base
@@ -125,4 +128,7 @@ app.include_router(fase3_router)
 app.include_router(fase4_router)
 app.include_router(fase5_router)
 app.include_router(fase6_router)
+app.include_router(fase7_router)
+app.include_router(fase8_router)
+app.include_router(fase9_router)
 

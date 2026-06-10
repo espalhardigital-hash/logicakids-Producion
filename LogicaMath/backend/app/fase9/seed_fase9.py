@@ -58,10 +58,9 @@ async def inject_pedro_ii_history(session: AsyncSession):
             "tipo_pregunta": TipoPreguntaEnum.RESPUESTA_NUMERICA,
             "respuesta_correcta": "64",
             "alts": ["64", "27", "16", "128"],
-            "metadata_visual": {
-                "requiere_imagen": True,
-                "imagen_url": "/assets/pedro2/2023_q14_sarcofago.jpg",
-                "tipo_ilustracion": "malla_cuadriculada"
+            "datos_numericos": {
+                "tipo_visual": "imagen",
+                "url": "/assets/pedro2/2023_q14_sarcofago.jpg"
             },
             "errores_previstos": {
                 "27": {"tutor_msg": "Ese es el volumen de un cubo de 3x3x3. Revisa el tamaño de la cuadrícula en la imagen."},
@@ -76,10 +75,9 @@ async def inject_pedro_ii_history(session: AsyncSession):
             "tipo_pregunta": TipoPreguntaEnum.MULTIPLE_OPCION,
             "respuesta_correcta": "R$ 30",
             "alts": ["R$ 30", "R$ 25", "R$ 40", "R$ 15"],
-            "metadata_visual": {
-                "requiere_imagen": True,
-                "imagen_url": "/assets/pedro2/2022_q08_torta.png",
-                "tipo_ilustracion": "diagrama_circular"
+            "datos_numericos": {
+                "tipo_visual": "imagen",
+                "url": "/assets/pedro2/2022_q08_torta.png"
             },
             "errores_previstos": {
                 "R$ 25": {"tutor_msg": "Confundiste el porcentaje (25%) con el valor en reales."}
@@ -92,8 +90,9 @@ async def inject_pedro_ii_history(session: AsyncSession):
         payload = {
             "fase9": True,
             "origen_examen": q_data["origen_examen"],
-            "metadata_visual": q_data.get("metadata_visual", {})
         }
+        if "datos_numericos" in q_data:
+            payload.update(q_data["datos_numericos"])
         
         p = Pregunta(
             fase_id=FASE9_ID, seccion=q_data["seccion"], operacion=OperacionEnum.MIXTA,

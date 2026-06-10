@@ -7,9 +7,9 @@
 
 // ─── Usuario de Prueba ───────────────────────────────────────────────
 export const TEST_USER = {
-  email: 'prueba@gmail.com',
-  password: 'pruebas',
-} as const;
+  email: process.env.TEST_EMAIL || 'prueba@gmail.com',
+  password: process.env.TEST_PASSWORD || 'pruebas',
+};
 
 // ─── Rutas del Frontend ──────────────────────────────────────────────
 export const ROUTES = {

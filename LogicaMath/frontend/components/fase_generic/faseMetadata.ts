@@ -15,6 +15,7 @@ export interface FasePregunta {
   tipo: 'numerico' | 'opcion_multiple';
   opciones?: string[];
   respuesta_correcta: string;
+  datos_numericos?: any; // To hold visual metadata
 }
 
 export interface FaseTeoria {
@@ -199,7 +200,7 @@ const FASE_3: FaseMetadata = {
           nivelId: 2, nombre: 'Consolidación', descripcion: 'Tiempo y distancias.',
           teoria: { titulo: 'Tiempo y Recorridos', parrafos: ['Los problemas de tiempo usan horas y minutos.', 'Los de distancia pueden usar metros o kilómetros.'], tip_pedagogico: 'Dibuja una línea de tiempo para organizar los eventos.' },
           preguntas: [
-            { id: qid(), enunciado: 'La clase empieza a la hora marcada en el reloj y dura exactamente 45 minutos. ¿A qué hora termina?<br/><img src=\'http://localhost:9100/logicakids/graphics/07c3a604db6c425fbb645eb12d1bd503.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['8:50', '9:00', '9:15'], respuesta_correcta: '9:00' },
+            { id: qid(), enunciado: 'La clase empieza a la hora marcada en el reloj y dura exactamente 45 minutos. ¿A qué hora termina?', tipo: 'opcion_multiple', opciones: ['8:50', '9:00', '9:15'], respuesta_correcta: '9:00', datos_numericos: { tipo_visual: 'reloj', hora: '08:15' } },
             { id: qid(), enunciado: 'Caminé 800 metros de ida y 800 de vuelta. ¿Cuántos metros recorrí en total?', tipo: 'numerico', respuesta_correcta: '1600' },
           ]
         },
@@ -832,9 +833,44 @@ const FASE_8: FaseMetadata = {
   ]
 };
 
+// ── FASE 9: Simulados Colegio Pedro II ───────────────────────────────
+
+const FASE_9: FaseMetadata = {
+  faseId: 9,
+  nombre: 'Simulados Colegio Pedro II',
+  emoji: '🎓',
+  descripcion: 'Exámenes de ingreso pasados para practicar el pensamiento analítico integral.',
+  colorPrimario: '#3B82F6',
+  colorSecundario: '#1D4ED8',
+  modulos: [
+    {
+      moduloId: 1,
+      nombre: 'Simulados Históricos',
+      descripcion: 'Preguntas reales aplicadas en concursos anteriores.',
+      icono: 'graduation',
+      color: '#3B82F6',
+      niveles: [
+        {
+          nivelId: 1, nombre: 'Simulado Medio', descripcion: 'Desafíos mixtos.',
+          teoria: {
+            titulo: 'Simulados',
+            parrafos: ['Lee cuidadosamente. Cada pregunta puede requerir distintos conocimientos.'],
+            ejemplos: [],
+            tip_pedagogico: 'Tómate tu tiempo para interpretar antes de calcular.'
+          },
+          preguntas: [
+            { id: qid(), enunciado: 'Após uma aula passeio ao Museu Nacional, um estudante decidiu calcular o volume do sarcófago que viu, imaginando-o formado por peças de encastre. Se a imagem muestra 64 piezas visibles pero sabemos que es un cubo perfecto, ¿cuál es el volumen en cm³?', tipo: 'numerico', respuesta_correcta: '64' },
+            { id: qid(), enunciado: 'Joana gasta el 25% de su mesada en pasajes. Si recibe R$ 120 al mes, ¿cuánto gasta en pasajes?', tipo: 'opcion_multiple', opciones: ['R$ 30', 'R$ 25', 'R$ 40', 'R$ 15'], respuesta_correcta: 'R$ 30' },
+          ]
+        }
+      ]
+    }
+  ]
+};
+
 // ── Export: Todas las fases ─────────────────────────────────────
 
-export const ALL_FASES: FaseMetadata[] = [FASE_3, FASE_4, FASE_5, FASE_6, FASE_7, FASE_8];
+export const ALL_FASES: FaseMetadata[] = [FASE_3, FASE_4, FASE_5, FASE_6, FASE_7, FASE_8, FASE_9];
 
 export function getFaseMetadata(faseId: number): FaseMetadata | undefined {
   return ALL_FASES.find(f => f.faseId === faseId);

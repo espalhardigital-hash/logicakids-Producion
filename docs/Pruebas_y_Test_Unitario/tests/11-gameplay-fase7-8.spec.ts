@@ -50,9 +50,9 @@ function findCorrectAnswer(faseId: number, moduloId: number, nivelId: number, cu
 test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Combinatoria y Probabilidad)', () => {
   test.beforeAll(() => {
     try {
-      // Set user role to ADMIN in the DB to bypass locks
+      // Set user role to ADMIN and fase_actual_id to 8 in the DB to bypass locks
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = 'prueba@gmail.com';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}'; UPDATE alumnos SET fase_actual_id = 8 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}');"`
       );
       console.log('✅ Test user successfully set to role ADMIN in the database.');
     } catch (e) {
@@ -64,7 +64,7 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
     try {
       // Restore user role to USER
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = 'prueba@gmail.com';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
       );
       console.log('✅ Test user role restored to USER in the database.');
     } catch (e) {
@@ -87,7 +87,7 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
-    const card = page.locator('div', { has: page.locator('span', { hasText: 'Fase 7' }) }).first();
+    const card = page.locator('div.group', { hasText: 'Fase 7' }).first();
     await card.locator('button').first().click();
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
@@ -147,9 +147,15 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
     await menuBtn.click();
 
     // Verify localStorage progress has been saved
-    const progress = await page.evaluate(() => {
-      return localStorage.getItem('lk_fase_progress_7');
+    const { progress, allKeys } = await page.evaluate(() => {
+      let dump = 'ALL LOCAL STORAGE:\\n';
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        dump += key + ' = ' + localStorage.getItem(key!) + '\\n';
+      }
+      return { progress: localStorage.getItem('lk_fase_progress_7'), allKeys: dump };
     });
+    console.log(allKeys);
     expect(progress).toContain('"1_1":true');
   });
 
@@ -159,7 +165,7 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
-    const card = page.locator('div', { has: page.locator('span', { hasText: 'Fase 8' }) }).first();
+    const card = page.locator('div.group', { hasText: 'Fase 8' }).first();
     await card.locator('button').first().click();
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);

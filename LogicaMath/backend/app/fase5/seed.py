@@ -253,7 +253,8 @@ async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             _graphic_url_cache[cache_key] = url
             
         return {
-            "enunciado": f"Calcula el perímetro del rectángulo sombreado en la cuadrícula, cuyos lados miden {a} cm y {b} cm.<br/><img src='{url}' class='lk-question-graphic' />",
+            "enunciado": f"Calcula el perímetro del rectángulo sombreado en la cuadrícula, cuyos lados miden {a} cm y {b} cm.",
+            "datos_numericos": {"tipo_visual": "imagen", "url": url},
             "respuesta_correcta": ans_str,
             "expl": f"Sumamos los 4 lados del rectángulo: {a} + {b} + {a} + {b} = {ans} cm.",
             "alts": [ans_str, str(ans+2), str(ans-2), str(ans+4)]
@@ -276,7 +277,8 @@ async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             _graphic_url_cache[cache_key] = url
             
         return {
-            "enunciado": f"Calcula el área del rectángulo sombreado en la cuadrícula, que tiene {a} cuadraditos de base por {b} cuadraditos de altura.<br/><img src='{url}' class='lk-question-graphic' />",
+            "enunciado": f"Calcula el área del rectángulo sombreado en la cuadrícula, que tiene {a} cuadraditos de base por {b} cuadraditos de altura.",
+            "datos_numericos": {"tipo_visual": "imagen", "url": url},
             "respuesta_correcta": ans_str,
             "expl": f"Multiplicamos base por altura: {a} × {b} = {ans} unidades cuadradas.",
             "alts": [ans_str, str(ans+3), str(ans-3), str(a+b)]
@@ -351,10 +353,15 @@ async def seed_practica_pool(session: AsyncSession):
             rng = random.Random(FASE5_ID * 100000 + seccion_id * 1000 + i)
             q_data = await _gen_fase5_pool(rng, mod_id, lvl_id)
             
+            
+            datos_finales = {"fase5": True}
+            if "datos_numericos" in q_data:
+                datos_finales.update(q_data["datos_numericos"])
+            
             p = Pregunta(
                 fase_id=FASE5_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
                 tipo_pregunta=TipoPreguntaEnum.MULTIPLE_OPCION, enunciado=q_data["enunciado"],
-                respuesta_correcta=q_data["respuesta_correcta"], datos_numericos={"fase5": True},
+                respuesta_correcta=q_data["respuesta_correcta"], datos_numericos=datos_finales,
                 explicacion_paso_a_paso={"titulo": "Resolución", "pasos": [{"orden": 1, "texto": q_data["expl"]}]},
                 estado=StatusEnum.ACTIVO
             )
@@ -378,10 +385,14 @@ async def seed_preguntas_desafios(session: AsyncSession):
                 if q_data["respuesta_correcta"] == "la diagonal":
                     tipo_pregunta = TipoPreguntaEnum.RESPUESTA_NUMERICA
                 
+                datos_finales = {"es_desafio": True}
+                if "datos_numericos" in q_data:
+                    datos_finales.update(q_data["datos_numericos"])
+                
                 p = Pregunta(
                     fase_id=FASE5_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
                     tipo_pregunta=tipo_pregunta, enunciado=q_data["enunciado"],
-                    respuesta_correcta=q_data["respuesta_correcta"], datos_numericos={"es_desafio": True},
+                    respuesta_correcta=q_data["respuesta_correcta"], datos_numericos=datos_finales,
                     explicacion_paso_a_paso={"titulo": "Desafío", "pasos": [{"orden": 1, "texto": q_data["expl"]}]},
                     estado=StatusEnum.ACTIVO
                 )

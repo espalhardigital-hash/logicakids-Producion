@@ -4,6 +4,9 @@ import * as Lucide from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getFaseMetadata, FasePregunta } from './faseMetadata';
 import { getAvatarUrl } from '../../services/storageService';
+import { ClockVisualizer } from '../shared/ClockVisualizer';
+import { ThermometerVisualizer } from '../shared/ThermometerVisualizer';
+import { ImageVisualizer } from '../shared/ImageVisualizer';
 import './FaseGenericStyles.css';
 
 // Framer motion variants
@@ -242,7 +245,7 @@ export default function FaseGenericGameScreen() {
 
   const userRoleIsAdmin = () => {
     try {
-      const userStr = sessionStorage.getItem('lk_user') || localStorage.getItem('lk_user');
+      const userStr = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
       if (userStr) {
         const u = JSON.parse(userStr);
         return u.role === 'ADMIN';
@@ -527,6 +530,27 @@ export default function FaseGenericGameScreen() {
                     />
                   </div>
 
+                  {currentQuestion.datos_numericos?.tipo_visual === 'reloj' && (
+                    <ClockVisualizer 
+                      timeStr={currentQuestion.datos_numericos?.hora || "12:00"} 
+                      size={160} 
+                    />
+                  )}
+                  {currentQuestion.datos_numericos?.tipo_visual === 'termometro' && (
+                    <ThermometerVisualizer 
+                      value={currentQuestion.datos_numericos?.valor || 0}
+                      min={currentQuestion.datos_numericos?.min || 0}
+                      max={currentQuestion.datos_numericos?.max || 100}
+                      unit={currentQuestion.datos_numericos?.unidad || "°C"}
+                      height={180}
+                    />
+                  )}
+                  {currentQuestion.datos_numericos?.tipo_visual === 'imagen' && (
+                    <ImageVisualizer 
+                      url={currentQuestion.datos_numericos?.url} 
+                    />
+                  )}
+
                   <div className="fg-options-grid">
                     {currentQuestion.opciones?.map((option, idx) => {
                       const isSelected = selectedOption === option;
@@ -580,6 +604,27 @@ export default function FaseGenericGameScreen() {
                       dangerouslySetInnerHTML={{ __html: currentQuestion.enunciado }}
                     />
                   </div>
+
+                  {currentQuestion.datos_numericos?.tipo_visual === 'reloj' && (
+                    <ClockVisualizer 
+                      timeStr={currentQuestion.datos_numericos?.hora || "12:00"} 
+                      size={160} 
+                    />
+                  )}
+                  {currentQuestion.datos_numericos?.tipo_visual === 'termometro' && (
+                    <ThermometerVisualizer 
+                      value={currentQuestion.datos_numericos?.valor || 0}
+                      min={currentQuestion.datos_numericos?.min || 0}
+                      max={currentQuestion.datos_numericos?.max || 100}
+                      unit={currentQuestion.datos_numericos?.unidad || "°C"}
+                      height={180}
+                    />
+                  )}
+                  {currentQuestion.datos_numericos?.tipo_visual === 'imagen' && (
+                    <ImageVisualizer 
+                      url={currentQuestion.datos_numericos?.url} 
+                    />
+                  )}
 
                   <div className="fg-numeric-input-wrap">
                     <div 

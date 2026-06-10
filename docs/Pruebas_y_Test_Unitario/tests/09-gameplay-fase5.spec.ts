@@ -39,14 +39,27 @@ async function submitCorrectAnswer(page: any, questionId: number) {
     const correctText = execSync(cmd).toString().trim();
     console.log(`Submitting correct alternative: "${correctText}" for question ID: ${questionId}`);
     await page.locator(`button:has-text("${correctText}")`).first().click();
+    await page.waitForTimeout(100);
+    const confirmBtn = page.locator('button:has-text("Confirmar")').first();
+    if (await confirmBtn.isVisible()) {
+      await confirmBtn.click();
+    }
   } else {
     const answer = getCorrectAnswer(questionId);
     console.log(`Submitting correct answer: "${answer}" for question ID: ${questionId}`);
-    for (const char of answer) {
-      await page.locator(`button:has-text("${char}")`).last().click();
-      await page.waitForTimeout(50);
+    
+    // Check if there is a hidden input
+    const hiddenInput = page.locator('.f5-hidden-input');
+    if (await hiddenInput.count() > 0) {
+      await hiddenInput.fill(answer);
+      await hiddenInput.press('Enter');
+    } else {
+      for (const char of answer) {
+        await page.locator(`button:has-text("${char}")`).last().click();
+        await page.waitForTimeout(50);
+      }
+      await page.locator('button.bg-\\[\\#2563eb\\], button:has(svg)').last().click();
     }
-    await page.locator('button.bg-\\[\\#2563eb\\], button:has(svg)').last().click();
   }
 }
 
@@ -59,6 +72,11 @@ async function failCurrentQuestion(page: any, questionId: number) {
     const wrongText = execSync(cmd).toString().trim();
     console.log(`Submitting incorrect alternative: "${wrongText}" for question ID: ${questionId}`);
     await page.locator(`button:has-text("${wrongText}")`).first().click();
+    await page.waitForTimeout(100);
+    const confirmBtn = page.locator('button:has-text("Confirmar")').first();
+    if (await confirmBtn.isVisible()) {
+      await confirmBtn.click();
+    }
   } else {
     console.log(`Submitting incorrect answer: "9999" for question ID: ${questionId}`);
     for (let i = 0; i < 4; i++) {
@@ -75,10 +93,10 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas)', () => {
   test.beforeAll(() => {
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE alumnos SET fase_actual_id = 5 WHERE user_id = (SELECT id FROM users WHERE email = 'prueba@gmail.com');"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE alumnos SET fase_actual_id = 5 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}');"`
       );
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = 'prueba@gmail.com';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
       );
       console.log('✅ Test user successfully set to Phase 5 and role ADMIN in the database.');
     } catch (e) {
@@ -89,7 +107,7 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas)', () => {
   test.afterAll(() => {
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = 'prueba@gmail.com';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
       );
       console.log('✅ Test user role restored to USER in the database.');
     } catch (e) {
@@ -196,7 +214,7 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas)', () => {
     await page.waitForTimeout(1000);
 
     // Click continue on incorrect feedback
-    const continueBtnWrong = page.locator('button:has-text("Intentar de nuevo ↺")').first();
+    const continueBtnWrong = page.locator('button:has-text("Continuar →")').first();
     await expect(continueBtnWrong).toBeVisible({ timeout: 5000 });
     await continueBtnWrong.click();
 

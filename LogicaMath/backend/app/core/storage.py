@@ -15,12 +15,14 @@ class StorageService:
         
         if settings.S3_ACCESS_KEY and settings.S3_SECRET_KEY and settings.S3_ENDPOINT_URL and settings.S3_BUCKET_NAME:
             try:
+                from botocore.config import Config
                 self.s3_client = boto3.client(
                     's3',
                     endpoint_url=settings.S3_ENDPOINT_URL,
                     aws_access_key_id=settings.S3_ACCESS_KEY,
                     aws_secret_access_key=settings.S3_SECRET_KEY,
-                    region_name=settings.S3_REGION or 'us-east-1'
+                    region_name=settings.S3_REGION or 'us-east-1',
+                    config=Config(s3={'addressing_style': 'path'}, signature_version='s3v4')
                 )
             except Exception as e:
                 logger.error(f"Failed to initialize S3 client: {e}")

@@ -1,8 +1,8 @@
-import React, { useState, Component } from 'react';
+import React, { useState, Component, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Zap, Brain, BookOpen, PieChart, Square, Box, Map, Lightbulb, GraduationCap, User as UserIcon, X, HelpCircle } from 'lucide-react';
 import { User } from '../../types';
-import { getAvatarUrl } from '../../services/storageService';
+import { getAvatarUrl, getCurrentUserFull } from '../../services/storageService';
 
 // React Error Boundary specifically designed to catch icon rendering failures
 class SafeIconErrorBoundary extends Component<{ children: React.ReactNode; fallback: React.ReactNode }, { hasError: boolean }> {
@@ -75,8 +75,23 @@ export default function PhaseMapScreen({
   onGoStats,
   onGoAdmin
 }: PhaseMapScreenProps) {
-  const currentPhase = user.fase_actual_id || 1; // Sync with database field, fallback to Phase 1
+  const [currentPhase, setCurrentPhase] = useState(user.fase_actual_id || 1);
   const [lockedModalPhase, setLockedModalPhase] = useState<{ index: number; title: string } | null>(null);
+
+  useEffect(() => {
+    // Always refresh the current phase from backend when map loads
+    const fetchLatestPhase = async () => {
+      try {
+        const dbUser = await getCurrentUserFull();
+        if (dbUser && dbUser.fase_actual_id) {
+          setCurrentPhase(dbUser.fase_actual_id);
+        }
+      } catch (err) {
+        console.error("Error refreshing user phase on map:", err);
+      }
+    };
+    fetchLatestPhase();
+  }, []);
 
   const phases = [
     {

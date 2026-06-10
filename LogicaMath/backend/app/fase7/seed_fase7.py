@@ -73,10 +73,9 @@ async def _gen_fase7_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 "respuesta_correcta": ans,
                 "expl": expl,
                 "alts": [ans, f"{hora_fin+1:02d}:{min_fin:02d}", f"{hora_inicio:02d}:{min_fin:02d}", f"{hora_inicio+1:02d}:{(min_fin+10)%60:02d}"],
-                "metadata_visual": {
-                    "requiere_imagen": True,
-                    "tipo_ilustracion": "reloj_analogico",
-                    "hora_mostrar": f"{hora_inicio:02d}:{min_inicio:02d}"
+                "datos_numericos": {
+                    "tipo_visual": "reloj",
+                    "hora": f"{hora_inicio:02d}:{min_inicio:02d}"
                 },
                 "errores_previstos": {
                     f"{hora_inicio+1:02d}:{(total_min):02d}": {"tutor_msg": "Recuerda que una hora tiene 60 minutos, no 100."}
@@ -104,11 +103,7 @@ async def seed_practica_pool_fase7(session: AsyncSession):
             rng = random.Random(FASE7_ID * 100000 + seccion_id * 1000 + i)
             q_data = await _gen_fase7_pool(rng, mod_id, lvl_id)
             
-            # Usamos datos_numericos para almacenar metadata_visual como se indicó en el plan
-            payload = {
-                "fase7": True,
-                "metadata_visual": q_data.get("metadata_visual", {})
-            }
+            payload = q_data.get("datos_numericos", {"fase7": True})
             
             p = Pregunta(
                 fase_id=FASE7_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
