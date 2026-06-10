@@ -760,7 +760,8 @@ async def get_progress_blocks(
         ultimo_intento_at = None
 
         if p:
-            estado = p.estado.value if hasattr(p.estado, "value") else p.estado
+            raw_est = p.estado.value if hasattr(p.estado, "value") else p.estado
+            estado = raw_est.upper() if raw_est else "BLOQUEADO"
             porcentaje_actual = p.porcentaje_actual
             aciertos_acumulados = p.aciertos_acumulados
             intentos_totales = p.intentos_totales

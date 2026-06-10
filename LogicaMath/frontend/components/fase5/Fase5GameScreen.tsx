@@ -47,6 +47,7 @@ const MODULE_COLORS: Record<number, string> = {
 interface Props {
   moduloId: number;
   nivelId: number;
+  isEvaluatorMode?: boolean;
   onComplete: () => void;
   onBack: () => void;
 }
@@ -655,7 +656,7 @@ const Fase5PhaseGraduationModal: React.FC<{
 
 // ─── Componente Principal ─────────────────────────────────────────────────
 
-const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBack }) => {
+const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, onComplete, onBack }) => {
   // 1-22: State Hooks
   const [showSplash, setShowSplash] = useState(true);
   const [pregunta, setPregunta]   = useState<Fase5Pregunta | null>(null);
@@ -811,6 +812,9 @@ const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     setPaso1Valor(null);
     
     try {
+      if (isEvaluatorMode) {
+        throw new Error('Evaluator bypass');
+      }
       const data = await getFase5Question(moduloId, nivelId, resetProgress);
       
       setProgreso({
@@ -1031,14 +1035,45 @@ const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
 
   // 36: Timer Effect
   useEffect(() => {
-    if (timer === null) return;
+    if (timer === null || isEvaluatorMode) return;
     if (timer <= 0) { 
       handleSubmit(); 
       return; 
     }
     timerRef.current = setInterval(() => setTimer(t => (t !== null ? t - 1 : null)), 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [timer, handleSubmit]);
+  }, [timer, handleSubmit, isEvaluatorMode]);
+
+  const handleEvaluatorSkip = useCallback(() => {
+    if (feedback.visible) return;
+    setProgreso(prev => {
+      const newAciertos = prev.aciertos + 1;
+      const newIntentos = prev.intentos + 1;
+      if (newAciertos >= maxAciertos) {
+        setShowCompletion(true);
+      }
+      return {
+        aciertos: newAciertos,
+        intentos: newIntentos,
+        porcentaje: (newAciertos / maxAciertos) * 100
+      };
+    });
+    setFeedback({
+      visible: true,
+      esCorrecta: true,
+      resultado: {
+        es_correcta: true,
+        respuesta_correcta: 'Skipped',
+        aciertos_acumulados: progreso.aciertos + 1,
+        intentos_totales: progreso.intentos + 1,
+        porcentaje_actual: ((progreso.aciertos + 1) / maxAciertos) * 100
+      }
+    });
+    setTimeout(() => {
+      setFeedback({ visible: false, esCorrecta: false });
+      loadPregunta(false, false);
+    }, 500);
+  }, [feedback.visible, maxAciertos, loadPregunta, progreso]);
 
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -1197,6 +1232,16 @@ const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
           <header className="f5-game-header-modern">
             <button className="f5-header-abort-btn" onClick={onBack} title="Salir del nivel"><IconArrowLeft /></button>
             <div className="f5-header-right-group">
+              {isEvaluatorMode && (
+                <button 
+                  className="f5-view-theory-btn-modern" 
+                  onClick={handleEvaluatorSkip}
+                  title="Saltar pregunta (Modo Evaluador)"
+                  style={{ backgroundColor: '#F59E0B', color: 'white', borderColor: '#F59E0B', marginRight: '8px' }}
+                >
+                  <span>⏭️ Saltar</span>
+                </button>
+              )}
               {!isChallenge && (
                 <button className="f5-view-theory-btn-modern" onClick={handleOpenReading} title="Ver teoría">
                   <BookOpen size={14} style={{ marginRight: '4px' }} /><span>Teoría</span>

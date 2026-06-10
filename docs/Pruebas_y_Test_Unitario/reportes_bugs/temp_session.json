@@ -1,0 +1,125 @@
+{
+  "fechaInicio": "2026-06-10T16:56:35.114Z",
+  "bugs": [
+    {
+      "suite": "08-gameplay-fase4.spec.ts",
+      "test": "Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo",
+      "severidad": "alto",
+      "categoria": "consola",
+      "descripcion": "El test \"Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo\" falló con el Administrative / Code error:\n\nTimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "pasos_reproduccion": [
+        "Ejecutar la suite: 08-gameplay-fase4.spec.ts",
+        "Ejecutar el test: Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo",
+        "URL actual: http://localhost:3000/login"
+      ],
+      "resultado_esperado": "El test debería pasar sin errores",
+      "resultado_obtenido": "TimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "errores_consola": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "url": "http://localhost:3000/login",
+      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\M_dulo_1_Pr_ctica___Flujo_Completo__Teor_a__Acierto_y_Bucle_Espejo_1781110595112.png",
+      "id": "BUG-08gameplay-20260610165635-6J77"
+    },
+    {
+      "suite": "09-gameplay-fase5.spec.ts",
+      "test": "Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo",
+      "severidad": "alto",
+      "categoria": "consola",
+      "descripcion": "El test \"Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo\" falló con el Administrative / Code error:\n\nTimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "pasos_reproduccion": [
+        "Ejecutar la suite: 09-gameplay-fase5.spec.ts",
+        "Ejecutar el test: Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo",
+        "URL actual: http://localhost:3000/login"
+      ],
+      "resultado_esperado": "El test debería pasar sin errores",
+      "resultado_obtenido": "TimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "errores_consola": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "url": "http://localhost:3000/login",
+      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\M_dulo_1_Pr_ctica___Flujo_Completo__Teor_a__Acierto_y_Bucle_Espejo_1781110619988.png",
+      "id": "BUG-09gameplay-20260610165659-C3J9"
+    },
+    {
+      "suite": "10-gameplay-fase6.spec.ts",
+      "test": "Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo",
+      "severidad": "alto",
+      "categoria": "consola",
+      "descripcion": "El test \"Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo\" falló con el Administrative / Code error:\n\nTimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "pasos_reproduccion": [
+        "Ejecutar la suite: 10-gameplay-fase6.spec.ts",
+        "Ejecutar el test: Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo",
+        "URL actual: http://localhost:3000/login"
+      ],
+      "resultado_esperado": "El test debería pasar sin errores",
+      "resultado_obtenido": "TimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "errores_consola": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "url": "http://localhost:3000/login",
+      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\M_dulo_1_Pr_ctica___Flujo_Completo__Teor_a__Acierto_y_Bucle_Espejo_1781110644873.png",
+      "id": "BUG-10gameplay-20260610165724-0CBR"
+    },
+    {
+      "suite": "11-gameplay-fase7-8.spec.ts",
+      "test": "Fase 7 - Módulo 1 Nivel 1: Flujo Completo y Respuestas",
+      "severidad": "alto",
+      "categoria": "consola",
+      "descripcion": "El test \"Fase 7 - Módulo 1 Nivel 1: Flujo Completo y Respuestas\" falló con el Administrative / Code error:\n\nTimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "pasos_reproduccion": [
+        "Ejecutar la suite: 11-gameplay-fase7-8.spec.ts",
+        "Ejecutar el test: Fase 7 - Módulo 1 Nivel 1: Flujo Completo y Respuestas",
+        "URL actual: http://localhost:3000/login"
+      ],
+      "resultado_esperado": "El test debería pasar sin errores",
+      "resultado_obtenido": "TimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "errores_consola": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "url": "http://localhost:3000/login",
+      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\Fase_7___M_dulo_1_Nivel_1__Flujo_Completo_y_Respuestas_1781110668841.png",
+      "id": "BUG-11gameplay-20260610165748-8SUQ"
+    },
+    {
+      "suite": "11-gameplay-fase7-8.spec.ts",
+      "test": "Fase 8 - Módulo 1 Nivel 1: Flujo Completo y Respuestas",
+      "severidad": "alto",
+      "categoria": "consola",
+      "descripcion": "El test \"Fase 8 - Módulo 1 Nivel 1: Flujo Completo y Respuestas\" falló con el Administrative / Code error:\n\nTimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "pasos_reproduccion": [
+        "Ejecutar la suite: 11-gameplay-fase7-8.spec.ts",
+        "Ejecutar el test: Fase 8 - Módulo 1 Nivel 1: Flujo Completo y Respuestas",
+        "URL actual: http://localhost:3000/login"
+      ],
+      "resultado_esperado": "El test debería pasar sin errores",
+      "resultado_obtenido": "TimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "errores_consola": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "url": "http://localhost:3000/login",
+      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\Fase_8___M_dulo_1_Nivel_1__Flujo_Completo_y_Respuestas_1781110692914.png",
+      "id": "BUG-11gameplay-20260610165812-1Q23"
+    },
+    {
+      "suite": "12-gameplay-fase9.spec.ts",
+      "test": "Fase 9 - Simulados Pedro II: Flujo Completo",
+      "severidad": "alto",
+      "categoria": "consola",
+      "descripcion": "El test \"Fase 9 - Simulados Pedro II: Flujo Completo\" falló con el Administrative / Code error:\n\nTimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "pasos_reproduccion": [
+        "Ejecutar la suite: 12-gameplay-fase9.spec.ts",
+        "Ejecutar el test: Fase 9 - Simulados Pedro II: Flujo Completo",
+        "URL actual: http://localhost:3000/login"
+      ],
+      "resultado_esperado": "El test debería pasar sin errores",
+      "resultado_obtenido": "TimeoutError: page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/map\" until \"load\"\n============================================================",
+      "errores_consola": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "url": "http://localhost:3000/login",
+      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\Fase_9___Simulados_Pedro_II__Flujo_Completo_1781110718164.png",
+      "id": "BUG-12gameplay-20260610165838-RKSE"
+    }
+  ]
+}

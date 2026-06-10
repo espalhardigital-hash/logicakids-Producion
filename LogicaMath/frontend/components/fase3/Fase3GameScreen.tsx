@@ -494,7 +494,7 @@ const Fase3PhaseGraduationModal: React.FC<{
 };
 
 
-export const Fase3GameScreen: React.FC = () => {
+export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEvaluatorMode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const moduloId = Number(location.state?.moduloId || '1');
@@ -717,6 +717,41 @@ export const Fase3GameScreen: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = null;
   };
+
+  const handleEvaluatorSkip = useCallback(() => {
+    if (feedback.visible) return;
+    setProgreso(prev => {
+      const newAciertos = prev.aciertos + 1;
+      const newIntentos = prev.intentos + 1;
+      if (newAciertos >= maxAciertos) {
+        setShowCompletion(true);
+      }
+      return {
+        aciertos: newAciertos,
+        intentos: newIntentos,
+        porcentaje: (newAciertos / maxAciertos) * 100
+      };
+    });
+    setFeedback({
+      visible: true,
+      esCorrecta: true,
+      resultado: {
+        es_correcta: true,
+        respuesta_correcta: 'Skipped',
+        aciertos_acumulados: progreso.aciertos + 1,
+        intentos_totales: progreso.intentos + 1,
+        porcentaje_actual: ((progreso.aciertos + 1) / maxAciertos) * 100
+      }
+    });
+    setTimeout(() => {
+      setFeedback({ visible: false, esCorrecta: false });
+      setRespuesta('');
+      setSelectedAltId(null);
+      if (pregunta?.tiene_cronometro && pregunta?.tiempo_limite_segundos) {
+        setTimer(pregunta.tiempo_limite_segundos);
+      }
+    }, 500);
+  }, [feedback.visible, maxAciertos, progreso, pregunta]);
 
   const handleFeedbackClose = useCallback(() => {
     if (feedback.resultado?.early_exit) {
@@ -952,6 +987,15 @@ export const Fase3GameScreen: React.FC = () => {
         </button>
 
         <div className="f3-header-right-group">
+          {isEvaluatorMode && (
+            <button 
+              className="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm text-white font-sans text-xs font-black mr-2 uppercase" 
+              onClick={handleEvaluatorSkip} 
+              title="Saltar pregunta (Modo Evaluador)"
+            >
+              <span>⏭️ Saltar</span>
+            </button>
+          )}
           {!isChallenge && (
             <button 
               className="flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 border border-blue-500/20 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm text-blue-400 font-sans text-xs font-black mr-2 animate-pulse" 

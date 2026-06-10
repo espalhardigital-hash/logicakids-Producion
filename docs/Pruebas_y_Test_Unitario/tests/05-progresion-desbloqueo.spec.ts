@@ -1,6 +1,24 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { API, GAME_CONFIG } from '../helpers/constants';
 import { ensureAuthenticated } from '../helpers/auth';
+import { execSync } from 'child_process';
+
+function clearTestUserProgress() {
+  try {
+    const queries = [
+      `DELETE FROM intento_pasos WHERE intento_pregunta_id IN (SELECT id FROM intento_preguntas WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba'));`,
+      `DELETE FROM intento_preguntas WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba');`,
+      `DELETE FROM intentos WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba');`,
+      `DELETE FROM progreso_maestria WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba');`
+    ];
+    for (const q of queries) {
+      execSync(`docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "${q}"`);
+    }
+    console.log('🧹 Test user database progress successfully cleared.');
+  } catch (e) {
+    console.error('❌ Failed to clear test user database progress:', e);
+  }
+}
 
 /**
  * Suite 05: Validación de Progresión y Desbloqueo
@@ -15,6 +33,7 @@ import { ensureAuthenticated } from '../helpers/auth';
  */
 test.describe('05 - Progresión y Desbloqueo', () => {
   test.beforeEach(async ({ page }) => {
+    clearTestUserProgress();
     await ensureAuthenticated(page);
   });
 

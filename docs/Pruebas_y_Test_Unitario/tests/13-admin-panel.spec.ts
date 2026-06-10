@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test-fixtures';
 import { execSync } from 'child_process';
 import { ensureAuthenticated } from '../helpers/auth';
 import { ROUTES } from '../helpers/constants';
@@ -24,13 +24,17 @@ test.describe('13 - Panel de Administración y Sincronización de Contenido', ()
       execSync(
         `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
       );
+      // Restore other questions first
+      execSync(
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE preguntas SET seccion = 101 WHERE fase_id = 4 AND seccion = 999;"`
+      );
       if (createdQuestionId) {
         execSync(
-          `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "DELETE FROM preguntas WHERE id = ${createdQuestionId};"`
+          `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "DELETE FROM pool_asignado_alumno WHERE pregunta_id = ${createdQuestionId}; DELETE FROM intentos WHERE pregunta_id = ${createdQuestionId}; DELETE FROM intento_preguntas WHERE pregunta_id = ${createdQuestionId}; DELETE FROM preguntas WHERE id = ${createdQuestionId};"`
         );
-        console.log(`🧹 Deleted test question ID: ${createdQuestionId}`);
+        console.log(`🧹 Deleted test question ID: ${createdQuestionId} and all references.`);
       }
-      console.log('✅ Test user role restored to USER in the database.');
+      console.log('✅ Test user role restored to USER in the database and questions restored.');
     } catch (e) {
       console.error('Failed to cleanup admin test', e);
     }
@@ -73,14 +77,14 @@ test.describe('13 - Panel de Administración y Sincronización de Contenido', ()
     const newQuestionBtn = page.locator('button', { hasText: 'Agregar Pregunta' }).first();
     await newQuestionBtn.click();
 
-    const enunciadoInput = page.locator('textarea[placeholder*="Enunciado"]');
+    const enunciadoInput = page.locator('label:has-text("Enunciado / Pregunta")').locator('..').locator('input');
     await enunciadoInput.fill('PREGUNTA DE PRUEBA CREADA POR ADMIN EN FASE 4');
 
-    const respuestaCorrectaInput = page.locator('input[placeholder*="Ej. 4, Gato, Sur"]');
+    const respuestaCorrectaInput = page.locator('label:has-text("Respuesta Correcta")').locator('..').locator('input');
     await respuestaCorrectaInput.fill('OPCION ADMIN CORRECTA');
 
     // Llenar alternativas
-    const alternativasInputs = page.locator('input[placeholder*="Texto de la alternativa"]');
+    const alternativasInputs = page.locator('input[placeholder*="Texto de la opción"]');
     await alternativasInputs.nth(0).fill('OPCION ADMIN CORRECTA');
     await alternativasInputs.nth(1).fill('INCORRECTA 1');
     await alternativasInputs.nth(2).fill('INCORRECTA 2');
@@ -99,6 +103,36 @@ test.describe('13 - Panel de Administración y Sincronización de Contenido', ()
     createdQuestionId = parseInt(qIdStr);
     expect(createdQuestionId).not.toBeNaN();
 
+    // Ensure the admin created question has the structure_padre_id and variante = 0 to be served by the backend
+    try {
+      execSync(
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE preguntas SET estructura_padre_id = 'admin_family_test', datos_numericos = '{\\"variante\\": 0}' WHERE id = ${createdQuestionId};"`
+      );
+      console.log('✅ Set structure_padre_id and variante = 0 for the created question.');
+    } catch (e) {
+      console.error('Failed to set structure_padre_id:', e);
+    }
+
+    // Move all OTHER questions in Fase 4, Modulo 1, Nivel 1 to a dummy seccion = 999 to isolate the admin question
+    try {
+      execSync(
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE preguntas SET seccion = 999 WHERE fase_id = 4 AND seccion = 101 AND id != ${createdQuestionId};"`
+      );
+      console.log('✅ Isolated the admin question by moving other level questions to seccion = 999.');
+    } catch (e) {
+      console.error('Failed to isolate admin question:', e);
+    }
+
+    // Delete any cached question pool for the student for this level so the backend generates a new one
+    try {
+      execSync(
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "DELETE FROM pool_asignado_alumno WHERE alumno_id = (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}')) AND fase_id = 4 AND seccion = 101;"`
+      );
+      console.log('✅ Deleted cached question pool for the student.');
+    } catch (e) {
+      console.error('Failed to delete cached question pool:', e);
+    }
+
     // 7. Simular Alumno: Cambiar rol a USER
     execSync(
       `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
@@ -111,22 +145,123 @@ test.describe('13 - Panel de Administración y Sincronización de Contenido', ()
     const cardFase4 = page.locator('div.group', { hasText: 'Fase 4' }).first();
     await cardFase4.locator('button').first().click();
 
-    await page.waitForURL(/\/fase4/);
-    await page.locator('button:has-text("INICIAR DESAFÍO")').first().click();
+    await page.waitForURL(/fase4/);
+    // Click on Module 1 to expand levels
+    await page.locator('.f4-module-card-item').first().click();
+    await page.waitForTimeout(500);
+    // Click on Nivel 1 to start playing
+    await page.locator('.f4-level-card-item').first().click();
 
     // 9. Jugar hasta encontrar la pregunta
     let foundNewQuestion = false;
-    // La fase 4 genérica puede tener pantallas de bienvenida teórica
-    const modalTheory = page.locator('text=Concepto Nuevo');
-    if (await modalTheory.isVisible({ timeout: 2000 })) {
-      await page.locator('button:has-text("Siguiente")').last().click();
-      await page.waitForTimeout(500);
+
+    // Handle Theory Modal
+    const theoryModal = page.locator('.f4-reading-overlay');
+    try {
+      await theoryModal.waitFor({ state: 'visible', timeout: 5000 });
+      console.log('Theory Modal detected. Navigating steps...');
+
+      // Load interactive answers from database
+      const dbQuery = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT interactivos FROM niveles_teoria_pool WHERE fase_id = 4 AND modulo_id = 1 AND nivel_id = 1"`;
+      const interactivesMap: Record<string, string> = {};
+      try {
+        const rawJson = execSync(dbQuery).toString().trim();
+        if (rawJson) {
+          const parsed = JSON.parse(rawJson);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((item: any) => {
+              const q = (item.enunciado || item.pregunta || '').trim();
+              const a = (item.respuesta || '').trim();
+              if (q && a) {
+                interactivesMap[q] = a;
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error loading interactives from DB:', err);
+      }
+      console.log('Loaded interactives map:', interactivesMap);
+
+      // Loop through slides
+      while (true) {
+        // Check if there are active interactives on the current step
+        const activeInteractiveBoxes = page.locator('.f4-interactive-box:not(.correct)');
+        const count = await activeInteractiveBoxes.count();
+        if (count > 0) {
+          console.log(`Found ${count} unanswered interactive exercises.`);
+          for (let idx = 0; idx < count; idx++) {
+            const box = activeInteractiveBoxes.nth(idx);
+            // Verify if it is locked
+            const isLocked = await box.locator('.f4-interactive-locked-overlay').isVisible();
+            if (isLocked) {
+              console.log('Exercise is locked. Need to solve previous ones first.');
+              break; // break and solve the first one
+            }
+
+            const qEl = box.locator('.f4-int-q');
+            if (await qEl.isVisible()) {
+              const qText = (await qEl.innerText()).trim();
+              const ans = interactivesMap[qText];
+              if (ans) {
+                console.log(`Answering interactive: "${qText}" with "${ans}"`);
+                const inputEl = box.locator('input.f4-int-input');
+                await inputEl.fill(ans);
+                await page.waitForTimeout(200);
+                const verifyBtn = box.locator('button.f4-int-verify');
+                await verifyBtn.click();
+                await page.waitForTimeout(600); // Wait for feedback animation
+              } else {
+                console.log(`Could not find answer for interactive: "${qText}" in map. Trying first alternative...`);
+              }
+            }
+          }
+          continue; // Re-evaluate interactives on this step
+        }
+
+        // If no unanswered interactives are active, check if "Siguiente" is visible
+        const siguienteBtn = page.locator('.f4-reading-overlay button:has-text("Siguiente")').first();
+        if (await siguienteBtn.isVisible()) {
+          console.log('Clicking Siguiente...');
+          await siguienteBtn.click();
+          await page.waitForTimeout(600);
+          continue;
+        }
+
+        // If "¡Entendido, empezar!" is visible, click it
+        const startBtn = page.locator('.f4-reading-overlay button:has-text("¡Entendido, empezar!")').first();
+        if (await startBtn.isVisible()) {
+          console.log('Clicking ¡Entendido, empezar!...');
+          await startBtn.click();
+          break;
+        }
+
+        // Fallback safety exit if we are stuck
+        break;
+      }
+
+      // Wait for theory modal to hide
+      await expect(theoryModal).toBeHidden({ timeout: 5000 });
+      console.log('Theory Modal dismissed.');
+    } catch (e) {
+      console.log('Theory Modal not detected or already dismissed.');
+    }
+
+    // Dismiss Splash Screen
+    const splash = page.locator('.f4-start-splash-overlay').first();
+    try {
+      await splash.waitFor({ state: 'visible', timeout: 3000 });
+      console.log('Splash Screen detected. Clicking to skip...');
+      await splash.click();
+      await expect(splash).toBeHidden({ timeout: 5000 });
+    } catch (e) {
+      console.log('Splash Screen not detected or already dismissed.');
     }
 
     for (let i = 0; i < 15; i++) {
       await page.waitForTimeout(1000);
 
-      const questionTextEl = page.locator('.fg-question-text, .text-xl, h3').first();
+      const questionTextEl = page.locator('.fg-question-text, p.text-slate-200, .text-xl, h3').first();
       if (!(await questionTextEl.isVisible())) {
          continue; // Wait for UI
       }

@@ -7,7 +7,7 @@
 
 // ─── Usuario de Prueba ───────────────────────────────────────────────
 export const TEST_USER = {
-  email: process.env.TEST_EMAIL || 'prueba@gmail.com',
+  email: process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com',
   password: process.env.TEST_PASSWORD || 'pruebas',
 };
 

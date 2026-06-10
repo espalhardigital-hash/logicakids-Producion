@@ -98,14 +98,35 @@ test.describe('12 - Gameplay Fase 9 (Simulados Colegio Pedro II)', () => {
     await lvlCard.click();
 
     // Modal de Teoría
-    const theoryBtn = page.locator('button:has-text("¡Entendido, a Jugar!")');
-    await expect(theoryBtn).toBeVisible();
-    await theoryBtn.click();
+    const theoryOverlay = page.locator('.fg-reading-overlay');
+    await expect(theoryOverlay).toBeVisible();
+    
+    while (true) {
+      const nextBtn = page.locator('button.fg-nav-btn.primary');
+      const startBtn = page.locator('button.fg-reading-close-btn');
+      if (await startBtn.isVisible()) {
+        await startBtn.click();
+        break;
+      } else if (await nextBtn.isVisible() && await nextBtn.isEnabled()) {
+        await nextBtn.click();
+        await page.waitForTimeout(500);
+      } else {
+        break;
+      }
+    }
 
     // Preguntas (2 preguntas en el seed)
-    for (let qIdx = 0; qIdx < 2; qIdx++) {
+    for (let qIdx = 0; qIdx < 5; qIdx++) {
       await page.waitForTimeout(500);
+      if (await page.locator('text=¡Desafío Terminado!').isVisible()) {
+        break;
+      }
       const questionTextEl = page.locator('.fg-question-text').first();
+      if (!await questionTextEl.isVisible()) {
+        if (await page.locator('text=¡Desafío Terminado!').isVisible()) {
+          break;
+        }
+      }
       await expect(questionTextEl).toBeVisible();
       const questionText = await questionTextEl.innerHTML();
 

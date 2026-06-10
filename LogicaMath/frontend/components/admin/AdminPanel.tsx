@@ -314,6 +314,37 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                 <option value="Arial, Helvetica, sans-serif">Arial</option>
               </select>
             </div>
+            
+            <div className="pt-2 border-t border-slate-200 dark:border-white/5">
+              <div className="flex justify-between items-center">
+                <div>
+                  <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">Modo Evaluador</label>
+                  <p className="text-[9px] text-slate-500 dark:text-slate-500 mt-0.5">Permite saltar preguntas sin evaluar para probar el flujo.</p>
+                </div>
+                <label className="ios-switch-container">
+                  <input 
+                    type="checkbox" 
+                    className="hidden" 
+                    checked={localStorage.getItem('evaluatorMode') === 'true'}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        localStorage.setItem('evaluatorMode', 'true');
+                        showAlert('Modo Evaluador Activado', 'Ahora podrás usar el botón "Saltar" en los juegos para probar el flujo.', 'success');
+                      } else {
+                        localStorage.removeItem('evaluatorMode');
+                        showAlert('Modo Evaluador Desactivado', 'El flujo de juego ha vuelto a la normalidad.', 'info');
+                      }
+                      // Force re-render to update the switch UI locally
+                      setAdminScale(adminScale + 0.001); 
+                      setTimeout(() => setAdminScale(Math.floor(adminScale)), 10);
+                    }}
+                  />
+                  <div className={`ios-switch ${localStorage.getItem('evaluatorMode') === 'true' ? 'ios-switch-active' : ''}`}>
+                    <div className="ios-switch-knob"></div>
+                  </div>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 

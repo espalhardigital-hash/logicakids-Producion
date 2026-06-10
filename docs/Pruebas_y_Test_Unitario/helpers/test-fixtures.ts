@@ -31,7 +31,7 @@ type TestFixtures = {
 };
 
 export const test = base.extend<TestFixtures>({
-  consoleLogger: async ({ page }, use, testInfo) => {
+  consoleLogger: [async ({ page }, use, testInfo) => {
     // Crear el logger y adjuntarlo a la página
     const logger = new BrowserConsoleLogger(page);
 
@@ -98,7 +98,7 @@ export const test = base.extend<TestFixtures>({
         test: testInfo.title,
         severidad,
         categoria,
-        descripcion: `El test "${testInfo.title}" falló con el siguiente error:\n\n${errorMessage}`,
+        descripcion: `El test "${testInfo.title}" falló con el Administrative / Code error:\n\n${errorMessage}`,
         pasos_reproduccion: [
           `Ejecutar la suite: ${suiteName}`,
           `Ejecutar el test: ${testInfo.title}`,
@@ -111,7 +111,7 @@ export const test = base.extend<TestFixtures>({
         screenshot: screenshotPath,
       });
     }
-  },
+  }, { auto: true }],
 });
 
 export { expect };

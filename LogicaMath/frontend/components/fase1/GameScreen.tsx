@@ -12,6 +12,7 @@ interface Props {
   modularConfigs?: import('../../types').ConfiguracionProgreso[];
   faseId?: number;
   seccion?: number;
+  isEvaluatorMode?: boolean;
   onEndGame: (stats: GameStats) => void;
   onExit: () => void;
 }
@@ -77,7 +78,7 @@ const mapDifficultyToLevel = (diff: Difficulty): number => {
 
 const GameScreen: React.FC<Props> = ({ 
   category, difficulty, userSettings, adminConfig, 
-  modularConfigs, faseId, seccion, onEndGame, onExit 
+  modularConfigs, faseId, seccion, isEvaluatorMode, onEndGame, onExit 
 }) => {
     const fId = faseId || 1;
     const sec = seccion || 1;
@@ -215,7 +216,7 @@ const GameScreen: React.FC<Props> = ({
       return;
     }
 
-    const isOnline = !!localStorage.getItem('auth_token');
+    const isOnline = !!localStorage.getItem('auth_token') && !isEvaluatorMode;
 
     if (isOnline) {
       try {
@@ -272,7 +273,7 @@ const GameScreen: React.FC<Props> = ({
     setFeedback('incorrect');
     updateStats(false, maxTimeForQuestion);
 
-    const isOnline = !!localStorage.getItem('auth_token') && question?.id !== undefined;
+    const isOnline = !!localStorage.getItem('auth_token') && question?.id !== undefined && !isEvaluatorMode;
 
     if (isOnline) {
       try {
@@ -308,7 +309,7 @@ const GameScreen: React.FC<Props> = ({
 
     clearTimer();
 
-    const isOnline = !!localStorage.getItem('auth_token') && question.id !== undefined;
+    const isOnline = !!localStorage.getItem('auth_token') && question.id !== undefined && !isEvaluatorMode;
     const timeSpent = maxTimeForQuestion - timeLeft;
 
     if (isOnline) {
@@ -393,6 +394,16 @@ const GameScreen: React.FC<Props> = ({
     inputRef.current?.focus();
   };
 
+  const handleEvaluatorSkip = () => {
+    if (feedback !== 'none') return;
+    clearTimer();
+    setFeedback('correct');
+    updateStats(true, 1);
+    transitionTimeoutRef.current = setTimeout(() => {
+      loadNextQuestion(attempt + 1);
+    }, 300);
+  };
+
   if (!question) return <div className="text-slate-900 dark:text-white flex items-center justify-center h-full font-black font-display text-xl">Cargando desafío...</div>;
 
   const progressPercentage = (attempt / totalQuestions) * 100;
@@ -450,6 +461,16 @@ const GameScreen: React.FC<Props> = ({
                 <span className="text-slate-200 dark:text-slate-700">|</span>
                 <span className={`font-black ml-1 text-base font-display ${timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-slate-900 dark:text-white'}`}>{timeLeft}S</span>
               </>
+            )}
+            {isEvaluatorMode && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleEvaluatorSkip}
+                className="ml-4 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-black shadow-lg uppercase tracking-wider flex items-center gap-1"
+              >
+                <span>⏭️</span> Saltar
+              </motion.button>
             )}
           </div>
         </div>

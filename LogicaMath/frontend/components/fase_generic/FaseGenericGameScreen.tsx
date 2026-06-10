@@ -7,6 +7,7 @@ import { getAvatarUrl } from '../../services/storageService';
 import { ClockVisualizer } from '../shared/ClockVisualizer';
 import { ThermometerVisualizer } from '../shared/ThermometerVisualizer';
 import { ImageVisualizer } from '../shared/ImageVisualizer';
+import { FaseGenericTheoryModal } from './FaseGenericTheoryModal';
 import './FaseGenericStyles.css';
 
 // Framer motion variants
@@ -31,7 +32,7 @@ const IconArrowLeft: React.FC = () => (
   </svg>
 );
 
-export default function FaseGenericGameScreen() {
+export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluatorMode?: boolean }) {
   const location = useLocation();
   const paramFaseId = location.state?.faseId;
   const paramModuloId = location.state?.moduloId;
@@ -254,6 +255,15 @@ export default function FaseGenericGameScreen() {
     return false;
   };
 
+  const handleEvaluatorSkip = () => {
+    if (feedback) return;
+    setAnswersLog(prev => [...prev, { questionId: currentQuestion.id, isCorrect: true }]);
+    setFeedback({ isCorrect: true, message: 'Saltado (Modo Evaluador)' });
+    setTimeout(() => {
+      handleNext();
+    }, 300);
+  };
+
   const saveProgress = (mId: number, nId: number) => {
     try {
       const key = `lk_fase_progress_${faseId}`;
@@ -296,131 +306,36 @@ export default function FaseGenericGameScreen() {
       </AnimatePresence>
 
       {/* ── Theory Modal ── */}
-      {showReading && (
-        <div 
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(5, 8, 16, 0.85)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            padding: '24px'
-          }}
-        >
-          <div 
-            style={{
-              background: '#0c1322',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '32px',
-              maxWidth: '650px',
-              width: '100%',
-              padding: '36px',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
-              maxHeight: '95vh',
-              overflowY: 'auto'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-              <div className="fg-theory-avatar-container">
-                <div className="fg-theory-avatar-placeholder" style={{ background: `${modulo.color}15`, borderRadius: '14px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Lucide.BookOpen size={24} color={modulo.color} />
-                </div>
-              </div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 900, margin: 0, color: '#f8fafc' }}>
-                {nivel.teoria.titulo}
-              </h3>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '28px' }}>
-              {nivel.teoria.parrafos.map((p, index) => (
-                <p 
-                  key={index}
-                  style={{
-                    fontSize: '1.05rem',
-                    lineHeight: '1.6',
-                    color: '#94a3b8',
-                    margin: 0
-                  }}
-                >
-                  {p}
-                </p>
-              ))}
-
-              {nivel.teoria.ejemplos && nivel.teoria.ejemplos.length > 0 && (
-                <div 
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid rgba(255, 255, 255, 0.04)',
-                    borderRadius: '16px',
-                    padding: '20px',
-                    marginTop: '8px'
-                  }}
-                >
-                  <h4 style={{ fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', marginTop: 0, marginBottom: '12px', letterSpacing: '0.5px' }}>
-                    Ejemplo Resuelto
-                  </h4>
-                  {nivel.teoria.ejemplos.map((ex, index) => (
-                    <div 
-                      key={index}
-                      style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f8fafc', lineHeight: 1.5 }}
-                    >
-                      <span style={{ color: '#94a3b8' }}>Problema: </span><span dangerouslySetInnerHTML={{ __html: ex.enunciado }} />
-                      <br />
-                      <span style={{ color: modulo.color }}>Respuesta: </span><span dangerouslySetInnerHTML={{ __html: ex.respuesta }} />
-                    </div>
-                  ))}
-
-                </div>
-              )}
-
-              {nivel.teoria.tip_pedagogico && (
-                <div 
-                  className="fg-theory-tip-box"
-                  style={{
-                    borderLeft: `4px solid ${modulo.color}`,
-                    background: `${modulo.color}10`,
-                    padding: '16px',
-                    borderRadius: '0 16px 16px 0',
-                    fontSize: '0.95rem',
-                    color: '#f8fafc',
-                    fontWeight: 650,
-                    lineHeight: 1.5,
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    marginTop: '12px'
-                  }}
-                >
-                  <Lucide.Sparkles size={20} color={modulo.color} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
-                    <span style={{ color: modulo.color, fontWeight: 900, textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>TIP DE APRENDIZAJE</span>
-                    {nivel.teoria.tip_pedagogico}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button 
-              className="fg-submit-btn"
-              onClick={() => setShowReading(false)}
-              style={{ background: modulo.color }}
-            >
-              ¡Entendido, a Jugar!
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showReading && (
+          <FaseGenericTheoryModal
+            teoria={nivel.teoria}
+            moduloId={moduloId}
+            moduloNombre={modulo.nombre}
+            nivelId={nivelId}
+            moduleColor={modulo.color}
+            onClose={() => setShowReading(false)}
+            onAbort={() => navigate('/welcome-fase', { state: { faseId } })}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Header Unificado ── */}
       <header className="fg-game-header-modern">
         <button className="fg-header-abort-btn" onClick={() => navigate('/welcome-fase', { state: { faseId } })} title="Salir del nivel">
-          <Lucide.LogOut size={18} />
-          <span>SALIR DEL NIVEL</span>
+          <IconArrowLeft />
         </button>
         <div className="fg-header-right-group">
+          {isEvaluatorMode && (
+            <button 
+              className="fg-view-theory-btn-modern" 
+              onClick={handleEvaluatorSkip}
+              title="Saltar pregunta (Modo Evaluador)"
+              style={{ backgroundColor: '#F59E0B', color: 'white', borderColor: '#F59E0B', marginRight: '8px' }}
+            >
+              <span>⏭️ Saltar</span>
+            </button>
+          )}
           {moduloId !== 0 && (
             <button 
               className="fg-view-theory-btn-modern" 

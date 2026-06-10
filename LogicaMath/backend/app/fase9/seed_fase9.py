@@ -1,4 +1,5 @@
 import asyncio
+import random
 from sqlalchemy import select, and_, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import AsyncSessionLocal
@@ -39,7 +40,29 @@ async def clear_fase9_data(session: AsyncSession):
 async def seed_teoria_niveles_fase9(session: AsyncSession):
     print("Sembrando guión de textos para Fase 9...")
     niveles_teoria = [
-        {"modulo_id": 1, "nivel_id": 1, "titulo": "Simulados Pedro II", "texto_descubrimiento": "Simulados...", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        # Módulo 1: Simulados Cortos
+        {"modulo_id": 1, "nivel_id": 1, "titulo": "Simulacro Temático", "texto_descubrimiento": "Bloques de 10 preguntas", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 1, "nivel_id": 2, "titulo": "Simulacro Focalizado", "texto_descubrimiento": "Distractores y mezcla", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 1, "nivel_id": 3, "titulo": "Maratón de Velocidad", "texto_descubrimiento": "Reducción de tiempo", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 1, "nivel_id": 4, "titulo": "Desafío 1: Filtro de Tiempo", "texto_descubrimiento": "El Filtro", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 1, "nivel_id": 5, "titulo": "Desafío 2: Enunciados Largos", "texto_descubrimiento": "La Trampa", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 1, "nivel_id": 6, "titulo": "Desafío Final: Sin alternativas", "texto_descubrimiento": "El Candado", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        
+        # Módulo 2: Simulados Completos
+        {"modulo_id": 2, "nivel_id": 1, "titulo": "Examen Tipo Estándar", "texto_descubrimiento": "Reproducción idéntica", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 2, "nivel_id": 2, "titulo": "Simulacro Histórico", "texto_descubrimiento": "Examen de un año específico", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 2, "nivel_id": 3, "titulo": "Máxima Resistencia", "texto_descubrimiento": "100% temas", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 2, "nivel_id": 4, "titulo": "Desafío 1: Corte de Resistencia", "texto_descubrimiento": "El Filtro", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 2, "nivel_id": 5, "titulo": "Desafío 2: Banco del Error Histórico", "texto_descubrimiento": "La Trampa", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 2, "nivel_id": 6, "titulo": "Desafío Final: Examen Maestro", "texto_descubrimiento": "El Candado", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        
+        # Módulo 3: Revisión Dirigida y Tutoría IA
+        {"modulo_id": 3, "nivel_id": 1, "titulo": "Exploración de Resultados", "texto_descubrimiento": "Filtros selectivos", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 3, "nivel_id": 2, "titulo": "Análisis de Respuestas", "texto_descubrimiento": "Contraste visual", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 3, "nivel_id": 3, "titulo": "Tutoría Pedro II", "texto_descubrimiento": "Inteligencia Artificial", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 3, "nivel_id": 4, "titulo": "Desafío 1: Filtro de Corrección", "texto_descubrimiento": "El Filtro", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 3, "nivel_id": 5, "titulo": "Desafío 2: La Trampa Recurrente", "texto_descubrimiento": "La Trampa", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+        {"modulo_id": 3, "nivel_id": 6, "titulo": "Desafío Final: Candado de Graduación", "texto_descubrimiento": "El Candado", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
     ]
     for data in niveles_teoria:
         nt = NivelTeoria(fase_id=FASE9_ID, **data)
@@ -47,69 +70,50 @@ async def seed_teoria_niveles_fase9(session: AsyncSession):
     await session.commit()
 
 async def inject_pedro_ii_history(session: AsyncSession):
-    print("Inyectando Banco Histórico Pedro II...")
+    print("Inyectando Banco Histórico Pedro II y preguntas de simulación...")
     
-    # JSON estático simulado de preguntas reales de Pedro II
-    preguntas_historicas = [
-        {
-            "seccion": 201, # Módulo 2 (Simulado Medio), Nivel 1
-            "origen_examen": "Pedro II 2023",
-            "enunciado": "Após uma aula passeio ao Museu Nacional, um estudante decidiu calcular o volume do sarcófago que viu, imaginando-o formado por peças de encastre. Se a imagem muestra 64 piezas visibles pero sabemos que es un cubo perfecto, ¿cuál es el volumen en cm³?",
-            "tipo_pregunta": TipoPreguntaEnum.RESPUESTA_NUMERICA,
-            "respuesta_correcta": "64",
-            "alts": ["64", "27", "16", "128"],
-            "datos_numericos": {
-                "tipo_visual": "imagen",
-                "url": "/assets/pedro2/2023_q14_sarcofago.jpg"
-            },
-            "errores_previstos": {
-                "27": {"tutor_msg": "Ese es el volumen de un cubo de 3x3x3. Revisa el tamaño de la cuadrícula en la imagen."},
-                "16": {"tutor_msg": "Esa es el área de una sola cara (4x4). El volumen es Largo × Ancho × Alto."}
-            },
-            "expl": "El bloque en la imagen forma un cubo de 4 unidades de largo, 4 de ancho y 4 de alto. El volumen es 4 × 4 × 4 = 64 cm³."
-        },
-        {
-            "seccion": 201,
-            "origen_examen": "Pedro II 2022",
-            "enunciado": "Joana gasta el 25% de su mesada en pasajes. Si recibe R$ 120 al mes, ¿cuánto gasta en pasajes?",
-            "tipo_pregunta": TipoPreguntaEnum.MULTIPLE_OPCION,
-            "respuesta_correcta": "R$ 30",
-            "alts": ["R$ 30", "R$ 25", "R$ 40", "R$ 15"],
-            "datos_numericos": {
-                "tipo_visual": "imagen",
-                "url": "/assets/pedro2/2022_q08_torta.png"
-            },
-            "errores_previstos": {
-                "R$ 25": {"tutor_msg": "Confundiste el porcentaje (25%) con el valor en reales."}
-            },
-            "expl": "El 25% es equivalente a 1/4. Dividimos 120 entre 4, lo que da R$ 30."
-        }
-    ]
+    # We inject sample questions directly across modules and levels.
+    sections = [(m, l) for m in range(1, 4) for l in range(1, 7)]
     
-    for idx, q_data in enumerate(preguntas_historicas):
-        payload = {
-            "fase9": True,
-            "origen_examen": q_data["origen_examen"],
-        }
-        if "datos_numericos" in q_data:
-            payload.update(q_data["datos_numericos"])
-        
-        p = Pregunta(
-            fase_id=FASE9_ID, seccion=q_data["seccion"], operacion=OperacionEnum.MIXTA,
-            tipo_pregunta=q_data["tipo_pregunta"], enunciado=q_data["enunciado"],
-            respuesta_correcta=q_data["respuesta_correcta"], 
-            datos_numericos=payload,
-            errores_previstos=q_data.get("errores_previstos", {}),
-            explicacion_paso_a_paso={"titulo": "Resolución", "pasos": [{"orden": 1, "texto": q_data["expl"]}]},
-            estado=StatusEnum.ACTIVO
-        )
-        
-        if q_data["tipo_pregunta"] == TipoPreguntaEnum.MULTIPLE_OPCION:
-            for idx_alt, alt in enumerate(q_data["alts"]):
-                is_correct = (alt == q_data["respuesta_correcta"])
+    for mod_id, lvl_id in sections:
+        seccion_id = mod_id * 100 + lvl_id
+        for i in range(5):
+            rng = random.Random(FASE9_ID * 100000 + seccion_id * 1000 + i)
+            tipo_q = rng.choice(["hist", "calc", "log"])
+            
+            if tipo_q == "hist":
+                enunciado = "Após uma aula passeio ao Museu Nacional, um estudante decidiu calcular o volume do sarcófago que viu..."
+                ans = "64"
+                alts = ["64", "27", "16", "128"]
+            elif tipo_q == "calc":
+                enunciado = "Joana gasta el 25% de su mesada en pasajes. Si recibe R$ 120 al mes, ¿cuánto gasta en pasajes?"
+                ans = "R$ 30"
+                alts = ["R$ 30", "R$ 25", "R$ 40", "R$ 15"]
+            else:
+                enunciado = "Si hoy es martes, ¿qué día será en 100 días?"
+                ans = "Jueves"
+                alts = ["Jueves", "Viernes", "Lunes", "Miércoles"]
+                
+            payload = {
+                "fase9": True,
+                "origen_examen": "Pedro II 2023" if rng.random() > 0.5 else "Simulacro Interno",
+            }
+            
+            p = Pregunta(
+                fase_id=FASE9_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
+                tipo_pregunta=TipoPreguntaEnum.MULTIPLE_OPCION, enunciado=f"[Q{i}] {enunciado}",
+                respuesta_correcta=ans, 
+                datos_numericos=payload,
+                errores_previstos={},
+                explicacion_paso_a_paso={"titulo": "Resolución", "pasos": [{"orden": 1, "texto": "Explicación automática."}]},
+                estado=StatusEnum.ACTIVO
+            )
+            
+            for idx_alt, alt in enumerate(alts):
+                is_correct = (alt == ans)
                 p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx_alt+1))
-        
-        session.add(p)
+            
+            session.add(p)
     await session.commit()
 
 async def run_fase9_seed():

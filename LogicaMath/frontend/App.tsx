@@ -29,7 +29,7 @@ import { saveScore, saveUser, getCurrentUserFull, getAdminSettings, getModularCo
 import * as authService from './services/authService';
 import { useWebSocket } from './components/useWebSocket';
 
-const Fase2GameScreenWrapper: React.FC = () => {
+const Fase2GameScreenWrapper: React.FC<{ isEvaluatorMode: boolean }> = ({ isEvaluatorMode }) => {
   const location = useLocation();
   const moduloId = location.state?.moduloId || 1;
   const nivelId = location.state?.nivelId || 1;
@@ -42,24 +42,25 @@ const Fase2GameScreenWrapper: React.FC = () => {
   }, [location.state, navigate]);
 
   return (
-    <Fase2GameScreen
+      <Fase2GameScreen
       moduloId={parseInt(moduloId as string, 10)}
       nivelId={parseInt(nivelId as string, 10)}
+      isEvaluatorMode={isEvaluatorMode}
       onComplete={() => navigate('/welcome-fase2')}
       onBack={() => navigate('/welcome-fase2')}
     />
   );
 };
 
-const Fase3GameScreenWrapper: React.FC = () => {
-  return <Fase3GameScreen />;
+const Fase3GameScreenWrapper: React.FC<{ isEvaluatorMode: boolean }> = ({ isEvaluatorMode }) => {
+  return <Fase3GameScreen isEvaluatorMode={isEvaluatorMode} />;
 };
 
-const Fase4GameScreenWrapper: React.FC = () => {
-  return <Fase4GameScreen />;
+const Fase4GameScreenWrapper: React.FC<{ isEvaluatorMode: boolean }> = ({ isEvaluatorMode }) => {
+  return <Fase4GameScreen isEvaluatorMode={isEvaluatorMode} />;
 };
 
-const Fase5GameScreenWrapper: React.FC = () => {
+const Fase5GameScreenWrapper: React.FC<{ isEvaluatorMode: boolean }> = ({ isEvaluatorMode }) => {
   const location = useLocation();
   const moduloId = location.state?.moduloId || 1;
   const nivelId = location.state?.nivelId || 1;
@@ -75,13 +76,14 @@ const Fase5GameScreenWrapper: React.FC = () => {
     <Fase5GameScreen
       moduloId={parseInt(moduloId as string, 10)}
       nivelId={parseInt(nivelId as string, 10)}
+      isEvaluatorMode={isEvaluatorMode}
       onComplete={() => navigate('/welcome-fase5')}
       onBack={() => navigate('/welcome-fase5')}
     />
   );
 };
 
-const Fase6GameScreenWrapper: React.FC = () => {
+const Fase6GameScreenWrapper: React.FC<{ isEvaluatorMode: boolean }> = ({ isEvaluatorMode }) => {
   const location = useLocation();
   const moduloId = location.state?.moduloId || 1;
   const nivelId = location.state?.nivelId || 1;
@@ -97,6 +99,7 @@ const Fase6GameScreenWrapper: React.FC = () => {
     <Fase6GameScreen
       moduloId={parseInt(moduloId as string, 10)}
       nivelId={parseInt(nivelId as string, 10)}
+      isEvaluatorMode={isEvaluatorMode}
       onComplete={() => navigate('/welcome-fase6')}
       onBack={() => navigate('/welcome-fase6')}
     />
@@ -106,6 +109,9 @@ const Fase6GameScreenWrapper: React.FC = () => {
 const AppContent: React.FC = () => {
   // Current User Session (null if guest)
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
+  // Evaluator Mode logic
+  const isEvaluatorMode = currentUser?.role === 'ADMIN' && localStorage.getItem('evaluatorMode') === 'true';
 
   // Global WebSocket listener
   useWebSocket((source) => {
@@ -531,7 +537,7 @@ const AppContent: React.FC = () => {
 
           <Route path="/fase2/play" element={
             currentUser ? (
-              <Fase2GameScreenWrapper />
+              <Fase2GameScreenWrapper isEvaluatorMode={isEvaluatorMode} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -539,7 +545,7 @@ const AppContent: React.FC = () => {
 
           <Route path="/fase3/play" element={
             currentUser ? (
-              <Fase3GameScreenWrapper />
+              <Fase3GameScreenWrapper isEvaluatorMode={isEvaluatorMode} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -547,7 +553,7 @@ const AppContent: React.FC = () => {
 
           <Route path="/fase4/play" element={
             currentUser ? (
-              <Fase4GameScreenWrapper />
+              <Fase4GameScreenWrapper isEvaluatorMode={isEvaluatorMode} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -555,7 +561,7 @@ const AppContent: React.FC = () => {
 
           <Route path="/fase5/play" element={
             currentUser ? (
-              <Fase5GameScreenWrapper />
+              <Fase5GameScreenWrapper isEvaluatorMode={isEvaluatorMode} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -563,7 +569,7 @@ const AppContent: React.FC = () => {
 
           <Route path="/fase6/play" element={
             currentUser ? (
-              <Fase6GameScreenWrapper />
+              <Fase6GameScreenWrapper isEvaluatorMode={isEvaluatorMode} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -571,7 +577,7 @@ const AppContent: React.FC = () => {
 
           <Route path="/fase/play" element={
             currentUser ? (
-              <FaseGenericGameScreen />
+              <FaseGenericGameScreen isEvaluatorMode={isEvaluatorMode} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -617,6 +623,7 @@ const AppContent: React.FC = () => {
                   modularConfigs={modularConfigs}
                   faseId={currentUser?.fase_actual_id || 1}
                   seccion={computedSeccion}
+                  isEvaluatorMode={isEvaluatorMode}
                   onEndGame={handleEndGame}
                   onExit={() => navigate(currentUser ? '/map' : '/welcome')}
                 />

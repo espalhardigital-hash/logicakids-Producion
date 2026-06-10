@@ -253,7 +253,7 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
     // The mirror question is pre-loaded, so currentQuestionId might not have updated via network.
     // We can query the DB for the mirror_id of the current question, OR just query the DB using the question text.
     expect(currentQuestionId).not.toBeNull();
-    const mirrorIdCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT espejo_id FROM preguntas WHERE id = ${currentQuestionId}"`;
+    const mirrorIdCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT id FROM preguntas WHERE estructura_padre_id = (SELECT estructura_padre_id FROM preguntas WHERE id = ${currentQuestionId}) AND (datos_numericos->>'es_espejo')::boolean = true LIMIT 1"`;
     const mirrorId = execSync(mirrorIdCmd).toString().trim();
     
     let mirrorAnswer = "1"; // fallback
