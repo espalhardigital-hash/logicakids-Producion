@@ -27,6 +27,7 @@ import AdminPanel from './components/admin/AdminPanel';
 const LevelSelectionScreen = React.lazy(() => import('./components/fase1/LevelSelectionScreen'));
 import { saveScore, saveUser, getCurrentUserFull, getAdminSettings, getModularConfigs } from './services/storageService';
 import * as authService from './services/authService';
+import { useWebSocket } from './components/useWebSocket';
 
 const Fase2GameScreenWrapper: React.FC = () => {
   const location = useLocation();
@@ -105,6 +106,17 @@ const Fase6GameScreenWrapper: React.FC = () => {
 const AppContent: React.FC = () => {
   // Current User Session (null if guest)
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Global WebSocket listener
+  useWebSocket((source) => {
+    console.log('[App] Broadcasting sync_required event globally...', source);
+    window.dispatchEvent(new CustomEvent('sync_required', { detail: { source } }));
+    
+    // Reload global configs seamlessly
+    if (currentUser) {
+      loadPedagogyAndAdminConfigs(currentUser);
+    }
+  });
 
   const [username, setUsername] = useState('');
   const [category, setCategory] = useState<GameCategory>('challenge');

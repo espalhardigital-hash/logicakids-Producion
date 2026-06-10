@@ -132,3 +132,23 @@ app.include_router(fase7_router)
 app.include_router(fase8_router)
 app.include_router(fase9_router)
 
+# ============================================================
+# WEBSOCKETS (Sincronización en Tiempo Real)
+# ============================================================
+
+from fastapi import WebSocket, WebSocketDisconnect
+from .utils.websocket_manager import manager
+
+@app.websocket("/ws/admin-sync")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    Endpoint para que los estudiantes escuchen actualizaciones en tiempo real
+    del administrador (ej: nueva pregunta agregada, flujo modificado).
+    """
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Mantener la conexión viva y escuchar si envían algún mensaje (no se espera ninguno por ahora)
+            data = await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)

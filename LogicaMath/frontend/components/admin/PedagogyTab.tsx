@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Save, Settings, Clock, Layers, ToggleLeft, ToggleRight, 
   CheckCircle, AlertCircle, Loader2, Target, HelpCircle, 
-  ChevronRight, ChevronDown, ShieldAlert, Cpu
+  ChevronRight, ChevronDown, ChevronUp, ShieldAlert, Cpu
 } from 'lucide-react';
 import { 
   getAdminSettings, saveAdminSettings, 
@@ -378,7 +378,7 @@ const SliderWithTooltip: React.FC<{
     <div className="relative w-full group pt-2 select-none">
       {/* Floating tooltip */}
       <div
-        className="absolute -top-3 transform -translate-x-1/2 pointer-events-none transition-all duration-100 z-30"
+        className="absolute -top-3 transform -translate-x-1/2 pointer-events-none transition-all duration-100 z-10"
         style={{ left: `${percentage}%` }}
       >
         <div className={`glass-panel border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white font-black text-sm px-2 py-0.5 rounded shadow-xl whitespace-nowrap ${isThermal ? 'transition-colors duration-300' : ''}`}>
@@ -857,216 +857,203 @@ const PedagogyTab: React.FC = () => {
         </motion.div>
       )}
 
-      {/* MAIN SPLIT GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10 items-start">
+      {/* ========================================================= */}
+      {/* NEW TABS LAYOUT: Level 1 (Global vs Fases) */}
+      {/* ========================================================= */}
+      <div className="flex bg-white/50 dark:bg-slate-900/40 p-2 rounded-3xl mb-8 shadow-sm border border-slate-200 dark:border-white/10">
+        <button 
+          onClick={() => { setSelectedPhaseId(0); setSelectedModule(null); }}
+          className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl font-black text-sm lg:text-base transition-all ${
+            selectedPhaseId === 0 
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/5'
+          }`}
+        >
+          <Settings size={20} className={selectedPhaseId === 0 ? "animate-[spin_3s_linear_infinite]" : ""} /> 
+          Plataforma Global
+        </button>
+        <button 
+          onClick={() => { setSelectedPhaseId(1); setSelectedModule(null); }}
+          className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl font-black text-sm lg:text-base transition-all ${
+            selectedPhaseId > 0 
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/5'
+          }`}
+        >
+          <Layers size={20} /> 
+          Configuración por Fases
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-6">
         
-        {/* LEFT COLUMN: Hierarchical Accordion Tree */}
-        <div className="lg:col-span-1 bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-5 lg:p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-4 lg:gap-6">
-          <div className="flex justify-between items-center px-2">
-            <h3 className="text-sm lg:text-base font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Viaje del Alumno</h3>
-            <span className="text-[10px] lg:text-xs bg-white/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/5 px-2 py-0.5 lg:px-3 lg:py-1 rounded-full font-bold">{STATIC_PHASES.length} Fases</span>
-          </div>
-
-          <div className="flex flex-col gap-2.5 lg:gap-4 max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
+        {/* ========================================================= */}
+        {/* LEVEL 2 & 3: TABS FOR PHASES AND MODULES */}
+        {/* ========================================================= */}
+        {selectedPhaseId > 0 && (
+          <div className="flex flex-col gap-5 bg-white/50 dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-5 rounded-[2.5rem] shadow-xl">
             
-            {/* PLATFORM GLOBAL CONFIG NODE */}
-            <button
-              onClick={() => { setSelectedPhaseId(0); setSelectedModule(null); }}
-              className={`w-full flex items-center gap-3 lg:gap-4 px-4 py-3 lg:px-6 lg:py-4 rounded-2xl border transition-all text-left ${
-                selectedPhaseId === 0 
-                  ? 'bg-blue-600/20 text-slate-900 dark:text-white border-blue-500/40 shadow-inner' 
-                  : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-white/10'
-              }`}
-            >
-              <Settings size={18} className={selectedPhaseId === 0 ? "text-blue-400 animate-spin" : "text-slate-500 dark:text-slate-400"} />
-              <div className="flex-1">
-                <span className="text-sm lg:text-base font-black leading-tight">Límites Globales (Plataforma)</span>
-                <p className="text-[9px] lg:text-[11px] text-slate-500 mt-1 lg:mt-1.5 font-bold leading-snug">Valores por defecto ante fallbacks</p>
-              </div>
-            </button>
-
-            <div className="w-full h-px bg-slate-100 dark:bg-white/10 my-1" />
-
-            {/* FASES TREE NODES */}
-            {STATIC_PHASES.map((phase) => {
-              const isExpanded = expandedPhases[phase.id];
-              const isSelected = selectedPhaseId === phase.id && selectedModule === null;
-              const hasDraftChanges = isPhaseModified(phase.id);
-
-              return (
-                <div key={phase.id} className="rounded-2xl border border-slate-200 dark:border-white/5 bg-white/80 dark:bg-slate-950/20 overflow-hidden">
-                  
-                  {/* Phase Row */}
-                  <div 
-                    className={`flex items-center justify-between p-3 lg:p-4 cursor-pointer transition-all hover:bg-white dark:bg-white/5 ${
-                      isSelected ? 'bg-blue-500/10 border-b border-slate-200 dark:border-white/5' : ''
+            {/* Level 2: Phases (Horizontal Scroll) */}
+            <div className="flex items-center gap-3 overflow-x-auto custom-scrollbar pb-2 px-1">
+              {STATIC_PHASES.map(phase => {
+                const hasDraftChanges = isPhaseModified(phase.id);
+                return (
+                  <button 
+                    key={phase.id}
+                    onClick={() => { setSelectedPhaseId(phase.id); setSelectedModule(null); }}
+                    className={`shrink-0 px-6 py-3 rounded-full font-black text-sm border transition-all flex items-center gap-2 ${
+                      selectedPhaseId === phase.id 
+                        ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20' 
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 lg:gap-4 flex-1" onClick={() => selectPhase(phase.id)}>
-                      <Layers size={18} className={isSelected ? "text-blue-400" : "text-slate-500 dark:text-slate-400"} />
-                      <span className={`text-sm lg:text-base font-black transition-colors ${
-                        isSelected ? 'text-blue-400' : 'text-slate-900 dark:text-white'
-                      }`}>
-                        {phase.name.split(':')[0]}
-                      </span>
-                      {hasDraftChanges && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                      )}
-                    </div>
-                    <button 
-                      onClick={() => togglePhaseExpand(phase.id)}
-                      className="p-1 hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-white/10 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all"
-                    >
-                      {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                    </button>
-                  </div>
-
-                  {/* Modules in Phase */}
-                  <AnimatePresence initial={false}>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="bg-black/20 border-t border-slate-200 dark:border-white/5 pl-5 py-2 pr-2 flex flex-col gap-1.5"
-                      >
-                        {phase.modules.map((mod, mIdx) => {
-                          const isModSelected = selectedPhaseId === phase.id && 
-                                                selectedModule?.name === mod.name;
-                          
-                          const checkModuleHasActiveOverride = () => {
-                            const modId = mod.modulo_id || 1;
-                            return draftModularConfigs.some(
-                              c => c.fase_id === phase.id && 
-                                   (Math.floor(c.seccion / 100) === modId || Math.floor(c.seccion / 1000) === modId) &&
-                                   c.activo !== false
-                            );
-                          };
-                          const hasOverride = checkModuleHasActiveOverride();
-
-                          const checkModuleIsModified = () => {
-                            const modId = mod.modulo_id || 1;
-                            const levelIds = mod.levels?.map(l => l.id) || [];
-                            const challengeIds = mod.challenges?.map(c => c.id) || [];
-                            for (const lid of levelIds) {
-                              if (isModuleModified(phase.id, modId * 100 + lid, mod.operacion)) return true;
-                            }
-                            for (const cid of challengeIds) {
-                              if (isModuleModified(phase.id, modId * 1000 + cid, 'mixta')) return true;
-                            }
-                            return false;
-                          };
-                          const isModModified = checkModuleIsModified();
-
-                          return (
-                            <button
-                              key={mIdx}
-                              onClick={() => selectModule(phase.id, mod)}
-                              className={`w-full text-left px-3.5 py-2.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-between ${
-                                isModSelected 
-                                  ? 'bg-blue-500/20 text-slate-900 dark:text-white border border-blue-500/30 font-black' 
-                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-200 hover:bg-white dark:bg-white/5'
-                              }`}
-                            >
-                              <span className="truncate pr-2">{mod.name}</span>
-                              <div className="flex items-center gap-1.5">
-                                {isModModified && (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                                )}
-                                {hasOverride && (
-                                  <span className="text-[8px] bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full font-black">
-                                    Override
-                                  </span>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </motion.div>
+                    {phase.name.split(':')[0]}
+                    {hasDraftChanges && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
                     )}
-                  </AnimatePresence>
+                  </button>
+                );
+              })}
+            </div>
 
-                </div>
-              );
-            })}
-          </div>
-        </div>
+            <div className="w-full h-px bg-slate-200 dark:bg-white/10" />
 
-        {/* RIGHT COLUMN: Contextual Panel (Drilldown Detail) */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <AnimatePresence mode="wait">
-
-            {/* VIEW A: PLATFORM GLOBALS */}
-            {selectedPhaseId === 0 && (
-              <motion.div
-                key="globals"
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-7"
+            {/* Level 3: Modules */}
+            <div className="flex gap-3 flex-wrap px-1">
+              <button 
+                onClick={() => setSelectedModule(null)}
+                className={`px-5 py-2.5 rounded-xl font-black text-xs border transition-all flex items-center gap-2 ${
+                  !selectedModule
+                    ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20' 
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80'
+                }`}
               >
-                <div>
-                  <div className="inline-flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-                    Límites Globales (Fases estructuradas 2 a 8)
-                  </div>
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-3">Configuración de Fallbacks Generales</h3>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Estos valores actúan como fallback para las Fases 2 a 8 si no existe un override específico en la fase, módulo o nivel.</p>
+                <Settings size={14} /> General (Fase {selectedPhaseId})
+              </button>
+
+              {activePhase?.modules.map(mod => {
+                const checkModuleIsModified = () => {
+                  const modId = mod.modulo_id || 1;
+                  const levelIds = mod.levels?.map(l => l.id) || [];
+                  const challengeIds = mod.challenges?.map(c => c.id) || [];
+                  for (const lid of levelIds) {
+                    if (isModuleModified(selectedPhaseId, modId * 100 + lid, mod.operacion)) return true;
+                  }
+                  for (const cid of challengeIds) {
+                    if (isModuleModified(selectedPhaseId, modId * 1000 + cid, 'mixta')) return true;
+                  }
+                  return false;
+                };
+                const isModModified = checkModuleIsModified();
+
+                const checkModuleHasActiveOverride = () => {
+                  const modId = mod.modulo_id || 1;
+                  return draftModularConfigs.some(
+                    c => c.fase_id === selectedPhaseId && 
+                         (Math.floor(c.seccion / 100) === modId || Math.floor(c.seccion / 1000) === modId) &&
+                         c.activo !== false
+                  );
+                };
+                const hasOverride = checkModuleHasActiveOverride();
+
+                return (
+                  <button 
+                    key={mod.name}
+                    onClick={() => setSelectedModule(mod)}
+                    className={`px-5 py-2.5 rounded-xl font-black text-xs border transition-all flex items-center gap-2 ${
+                      selectedModule?.name === mod.name
+                        ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20' 
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80'
+                    }`}
+                  >
+                    <Layers size={14} /> {mod.name.split(':')[0]}
+                    {isModModified && <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse ml-1" />}
+                    {hasOverride && (
+                      <span className={`text-[8px] px-1.5 py-0.5 rounded-full ml-1 ${
+                        selectedModule?.name === mod.name ? 'bg-white/20' : 'bg-amber-500/20 text-amber-500 dark:text-amber-400'
+                      }`}>
+                        Override
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* CONTENT PANELS */}
+        {/* ========================================================= */}
+        <AnimatePresence mode="wait">
+
+          {/* VIEW A: PLATFORM GLOBALS */}
+          {selectedPhaseId === 0 && (
+            <motion.div
+              key="globals"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.5rem] shadow-2xl flex flex-col gap-7 w-full"
+            >
+              <div>
+                <div className="inline-flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                  Límites Globales (Plataforma)
                 </div>
+                <h3 className="text-3xl font-black text-slate-900 dark:text-white mt-3">Configuración de Fallbacks Generales</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 max-w-2xl">Estos valores actúan como fallback unificado para todo el sistema educativo. Si una Fase o Módulo no tiene sobrescritura (override), heredarán estas reglas de operación por defecto.</p>
+              </div>
 
-                <div className="flex flex-col gap-8">
-                  {/* SECCIÓN 1: PRÁCTICA LIBRE (Niveles 1-10) */}
-                  <div className="bg-white/80 dark:bg-slate-950/20 border border-slate-200 dark:border-white/5 p-6 rounded-3xl flex flex-col gap-5">
-                    <h4 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-white/5 pb-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500" />
-                      Práctica Libre (Niveles 1 a 10)
-                    </h4>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                {/* SECCIÓN 1: PRÁCTICA LIBRE (Niveles 1-10) */}
+                <div className="bg-white/80 dark:bg-slate-950/40 border border-slate-200 dark:border-white/5 p-8 rounded-3xl flex flex-col gap-6 shadow-inner">
+                  <h4 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3 border-b border-slate-200 dark:border-white/5 pb-3">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                    Práctica Libre (Niveles 1 a 10)
+                  </h4>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Left: Vol & Pct */}
-                      <div className="flex flex-col gap-5">
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios</label>
-                            <span className="text-base font-black text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-lg border border-blue-500/20 text-center">
-                              {draftGlobalConfig.practica_libre.cantidad_requerida}
-                            </span>
-                          </div>
-                          <SliderWithTooltip
-                            value={draftGlobalConfig.practica_libre.cantidad_requerida}
-                            min={5}
-                            max={60}
-                            step={1}
-                            onChange={(val) => updateGlobalField('practica_libre', 'cantidad_requerida', val)}
-                            accentColor="bg-blue-500"
-                          />
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
-                            <span className="text-base font-black text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-lg border border-green-500/20 text-center">
-                              {draftGlobalConfig.practica_libre.porcentaje_aprobacion}%
-                            </span>
-                          </div>
-                          <SliderWithTooltip
-                            value={draftGlobalConfig.practica_libre.porcentaje_aprobacion}
-                            min={50}
-                            max={100}
-                            step={5}
-                            onChange={(val) => updateGlobalField('practica_libre', 'porcentaje_aprobacion', val)}
-                            accentColor="bg-green-500"
-                            unit="%"
-                          />
-                        </div>
+                  <div className="flex flex-col gap-6">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios</label>
+                        <span className="text-base font-black text-blue-500 bg-blue-500/10 px-3 py-1 rounded-xl border border-blue-500/20 text-center shadow-sm">
+                          {draftGlobalConfig.practica_libre.cantidad_requerida} Ejercicios
+                        </span>
                       </div>
+                      <SliderWithTooltip
+                        value={draftGlobalConfig.practica_libre.cantidad_requerida}
+                        min={5}
+                        max={60}
+                        step={1}
+                        onChange={(val) => updateGlobalField('practica_libre', 'cantidad_requerida', val)}
+                        accentColor="bg-blue-500"
+                      />
+                    </div>
 
-                      {/* Right: Cronometro, Timer, Feedback */}
+                    <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-white/5">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
+                        <span className="text-base font-black text-green-500 bg-green-500/10 px-3 py-1 rounded-xl border border-green-500/20 text-center shadow-sm">
+                          {draftGlobalConfig.practica_libre.porcentaje_aprobacion}%
+                        </span>
+                      </div>
+                      <SliderWithTooltip
+                        value={draftGlobalConfig.practica_libre.porcentaje_aprobacion}
+                        min={50}
+                        max={100}
+                        step={5}
+                        onChange={(val) => updateGlobalField('practica_libre', 'porcentaje_aprobacion', val)}
+                        accentColor="bg-green-500"
+                        unit="%"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-3 border-t border-slate-200 dark:border-white/5">
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between">
                           <div>
                             <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Uso de Cronómetro</label>
-                            <p className="text-[10px] text-slate-500">¿Tiene límite de tiempo por pregunta?</p>
+                            <p className="text-[10px] text-slate-500">Tiempo por pregunta.</p>
                           </div>
                           <button 
                             type="button"
@@ -1078,12 +1065,11 @@ const PedagogyTab: React.FC = () => {
                             </div>
                           </button>
                         </div>
-
                         {draftGlobalConfig.practica_libre.usa_cronometro && (
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Tiempo Límite por Pregunta</label>
-                              <span className="text-sm font-black text-blue-400">{draftGlobalConfig.practica_libre.tiempo_default_segundos}s</span>
+                          <div className="space-y-2 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200 dark:border-white/10">
+                            <div className="flex justify-between items-center mb-2">
+                              <label className="text-[11px] text-slate-600 dark:text-slate-300 font-bold">Límite</label>
+                              <span className="text-sm font-black text-blue-500">{draftGlobalConfig.practica_libre.tiempo_default_segundos}s</span>
                             </div>
                             <SliderWithTooltip
                               value={draftGlobalConfig.practica_libre.tiempo_default_segundos}
@@ -1096,79 +1082,80 @@ const PedagogyTab: React.FC = () => {
                             />
                           </div>
                         )}
+                      </div>
 
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold block">Feedback Pedagógico</label>
-                          <div className="flex gap-2">
-                            {['simple', 'detallado'].map((ft) => (
-                              <button
-                                type="button"
-                                key={ft}
-                                onClick={() => updateGlobalField('practica_libre', 'tipo_feedback', ft)}
-                                className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${
-                                  draftGlobalConfig.practica_libre.tipo_feedback === ft
-                                    ? 'bg-blue-600 border-blue-500 text-slate-900 dark:text-white shadow-md'
-                                    : 'glass-panel border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:text-slate-300'
-                                }`}
-                              >
-                                {ft === 'simple' ? 'Simple' : 'Detallado'}
-                              </button>
-                            ))}
-                          </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Feedback Pedagógico</label>
+                        <div className="flex flex-col gap-2 mt-1">
+                          {['simple', 'detallado'].map((ft) => (
+                            <button
+                              type="button"
+                              key={ft}
+                              onClick={() => updateGlobalField('practica_libre', 'tipo_feedback', ft)}
+                              className={`py-2.5 rounded-xl text-[11px] uppercase tracking-wider font-black border transition-all ${
+                                draftGlobalConfig.practica_libre.tipo_feedback === ft
+                                  ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-500/20'
+                                  : 'glass-panel border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:text-slate-300'
+                              }`}
+                            >
+                              {ft === 'simple' ? 'Simple (✔/✘)' : 'Detallado (Tutoría IA)'}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* SECCIÓN 2: ZONA DE DESAFÍOS (Niveles 11-13) */}
-                  <div className="bg-white/80 dark:bg-slate-950/20 border border-slate-200 dark:border-white/5 p-6 rounded-3xl flex flex-col gap-5">
-                    <h4 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-white/5 pb-2">
-                      <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
-                      Zona de Desafíos (Niveles 11 a 13)
-                    </h4>
+                {/* SECCIÓN 2: ZONA DE DESAFÍOS (Niveles 11-13) */}
+                <div className="bg-white/80 dark:bg-slate-950/40 border border-slate-200 dark:border-white/5 p-8 rounded-3xl flex flex-col gap-6 shadow-inner">
+                  <h4 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3 border-b border-slate-200 dark:border-white/5 pb-3">
+                    <div className="w-3 h-3 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)] animate-pulse" />
+                    Zona de Desafíos (Niveles 11 a 13)
+                  </h4>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Left: Vol, Pct, Feedback, Cronometro toggle */}
-                      <div className="flex flex-col gap-5">
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios</label>
-                            <span className="text-base font-black text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-lg border border-purple-500/20 text-center">
-                              {draftGlobalConfig.desafios.cantidad_requerida}
-                            </span>
-                          </div>
-                          <SliderWithTooltip
-                            value={draftGlobalConfig.desafios.cantidad_requerida}
-                            min={5}
-                            max={60}
-                            step={1}
-                            onChange={(val) => updateGlobalField('desafios', 'cantidad_requerida', val)}
-                            accentColor="bg-purple-500"
-                          />
-                        </div>
+                  <div className="flex flex-col gap-6">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios</label>
+                        <span className="text-base font-black text-purple-500 bg-purple-500/10 px-3 py-1 rounded-xl border border-purple-500/20 text-center shadow-sm">
+                          {draftGlobalConfig.desafios.cantidad_requerida} Ejercicios
+                        </span>
+                      </div>
+                      <SliderWithTooltip
+                        value={draftGlobalConfig.desafios.cantidad_requerida}
+                        min={5}
+                        max={60}
+                        step={1}
+                        onChange={(val) => updateGlobalField('desafios', 'cantidad_requerida', val)}
+                        accentColor="bg-purple-500"
+                      />
+                    </div>
 
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
-                            <span className="text-base font-black text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-lg border border-green-500/20 text-center">
-                              {draftGlobalConfig.desafios.porcentaje_aprobacion}%
-                            </span>
-                          </div>
-                          <SliderWithTooltip
-                            value={draftGlobalConfig.desafios.porcentaje_aprobacion}
-                            min={50}
-                            max={100}
-                            step={5}
-                            onChange={(val) => updateGlobalField('desafios', 'porcentaje_aprobacion', val)}
-                            accentColor="bg-green-500"
-                            unit="%"
-                          />
-                        </div>
+                    <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-white/5">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje Mínimo Aprobación</label>
+                        <span className="text-base font-black text-green-500 bg-green-500/10 px-3 py-1 rounded-xl border border-green-500/20 text-center shadow-sm">
+                          {draftGlobalConfig.desafios.porcentaje_aprobacion}%
+                        </span>
+                      </div>
+                      <SliderWithTooltip
+                        value={draftGlobalConfig.desafios.porcentaje_aprobacion}
+                        min={50}
+                        max={100}
+                        step={5}
+                        onChange={(val) => updateGlobalField('desafios', 'porcentaje_aprobacion', val)}
+                        accentColor="bg-green-500"
+                        unit="%"
+                      />
+                    </div>
 
-                        <div className="flex items-center justify-between pt-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-3 border-t border-slate-200 dark:border-white/5">
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
                           <div>
                             <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Uso de Cronómetro</label>
-                            <p className="text-[10px] text-slate-500">¿Tienen límite de tiempo los desafíos?</p>
+                            <p className="text-[10px] text-slate-500">Para toda la evaluación.</p>
                           </div>
                           <button 
                             type="button"
@@ -1180,471 +1167,429 @@ const PedagogyTab: React.FC = () => {
                             </div>
                           </button>
                         </div>
-                      </div>
 
-                      {/* Right: Individual Timers for Desafíos */}
-                      <div className="flex flex-col gap-4">
-                        <div className="space-y-3" style={{ opacity: draftGlobalConfig.desafios.usa_cronometro ? 1 : 0.3, transition: 'opacity 0.2s' }}>
-                          <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Tiempos Límite por Desafío</span>
-                          
+                        <div className="space-y-4" style={{ opacity: draftGlobalConfig.desafios.usa_cronometro ? 1 : 0.3, transition: 'opacity 0.2s' }}>
                           {/* Desafío 1 */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
+                          <div className="space-y-1 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200 dark:border-white/10">
+                            <div className="flex justify-between items-center mb-1">
                               <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Desafío 1 (Estándar)</span>
-                              <span className="text-sm font-black text-purple-400">{draftGlobalConfig.desafios.tiempo_default_segundos_11}s</span>
+                              <span className="text-xs font-black text-purple-500">{draftGlobalConfig.desafios.tiempo_default_segundos_11}s</span>
                             </div>
                             <SliderWithTooltip
                               value={draftGlobalConfig.desafios.tiempo_default_segundos_11}
-                              min={10}
-                              max={200}
+                              min={10} max={200}
                               disabled={!draftGlobalConfig.desafios.usa_cronometro}
                               onChange={(val) => updateGlobalField('desafios', 'tiempo_default_segundos_11', val)}
-                              accentColor="bg-purple-500"
-                              unit="s"
-                              isThermal
+                              accentColor="bg-purple-500" unit="s" isThermal
                             />
                           </div>
 
                           {/* Desafío 2 */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
+                          <div className="space-y-1 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200 dark:border-white/10">
+                            <div className="flex justify-between items-center mb-1">
                               <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Desafío 2 (Avanzado)</span>
-                              <span className="text-sm font-black text-purple-400">{draftGlobalConfig.desafios.tiempo_default_segundos_12}s</span>
+                              <span className="text-xs font-black text-purple-500">{draftGlobalConfig.desafios.tiempo_default_segundos_12}s</span>
                             </div>
                             <SliderWithTooltip
                               value={draftGlobalConfig.desafios.tiempo_default_segundos_12}
-                              min={10}
-                              max={200}
+                              min={10} max={200}
                               disabled={!draftGlobalConfig.desafios.usa_cronometro}
                               onChange={(val) => updateGlobalField('desafios', 'tiempo_default_segundos_12', val)}
-                              accentColor="bg-purple-500"
-                              unit="s"
-                              isThermal
+                              accentColor="bg-purple-500" unit="s" isThermal
                             />
                           </div>
 
                           {/* Desafío Final */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
+                          <div className="space-y-1 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200 dark:border-white/10">
+                            <div className="flex justify-between items-center mb-1">
                               <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Desafío Final (Maestría)</span>
-                              <span className="text-sm font-black text-purple-400">{draftGlobalConfig.desafios.tiempo_default_segundos_13}s</span>
+                              <span className="text-xs font-black text-purple-500">{draftGlobalConfig.desafios.tiempo_default_segundos_13}s</span>
                             </div>
                             <SliderWithTooltip
                               value={draftGlobalConfig.desafios.tiempo_default_segundos_13}
-                              min={10}
-                              max={200}
+                              min={10} max={200}
                               disabled={!draftGlobalConfig.desafios.usa_cronometro}
                               onChange={(val) => updateGlobalField('desafios', 'tiempo_default_segundos_13', val)}
-                              accentColor="bg-purple-500"
-                              unit="s"
-                              isThermal
+                              accentColor="bg-purple-500" unit="s" isThermal
                             />
                           </div>
                         </div>
+                      </div>
 
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold block">Feedback Pedagógico</label>
-                          <div className="flex gap-2">
-                            {['simple', 'detallado'].map((ft) => (
-                              <button
-                                type="button"
-                                key={ft}
-                                onClick={() => updateGlobalField('desafios', 'tipo_feedback', ft)}
-                                className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${
-                                  draftGlobalConfig.desafios.tipo_feedback === ft
-                                    ? 'bg-purple-600 border-purple-500 text-slate-900 dark:text-white shadow-md'
-                                    : 'glass-panel border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:text-slate-300'
-                                }`}
-                              >
-                                {ft === 'simple' ? 'Simple' : 'Detallado'}
-                              </button>
-                            ))}
-                          </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Feedback Pedagógico</label>
+                        <div className="flex flex-col gap-2 mt-1">
+                          {['simple', 'detallado'].map((ft) => (
+                            <button
+                              type="button"
+                              key={ft}
+                              onClick={() => updateGlobalField('desafios', 'tipo_feedback', ft)}
+                              className={`py-2.5 rounded-xl text-[11px] uppercase tracking-wider font-black border transition-all ${
+                                draftGlobalConfig.desafios.tipo_feedback === ft
+                                  ? 'bg-purple-600 border-purple-500 text-white shadow-md shadow-purple-500/20'
+                                  : 'glass-panel border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:text-slate-300'
+                              }`}
+                            >
+                              {ft === 'simple' ? 'Simple (✔/✘)' : 'Detallado (Tutoría IA)'}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            )}
+              </div>
+            </motion.div>
+          )}
 
-            {/* VIEW B: PHASE DEFAULT SETTINGS */}
-            {selectedPhaseId > 0 && !selectedModule && (
-              <motion.div
-                key={`phase-${selectedPhaseId}`}
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-6"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="inline-flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-                      Parámetros por Defecto de Fase
-                    </div>
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-3">{activePhase.name}</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{activePhase.description}</p>
+          {/* VIEW B: PHASE DEFAULT SETTINGS */}
+          {selectedPhaseId > 0 && !selectedModule && (
+            <motion.div
+              key={`phase-${selectedPhaseId}`}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.5rem] shadow-2xl flex flex-col gap-8 w-full relative"
+            >
+              <div className="flex justify-between items-start z-30">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                    Parámetros por Defecto de Fase
                   </div>
-
-                  {/* Override platform defaults toggle */}
-                  <div className="flex flex-col items-end gap-1.5 glass-panel p-2.5 rounded-xl border border-slate-200 dark:border-white/5">
-                    <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sobrescribir Global</label>
-                    <button 
-                      onClick={() => togglePhaseOverride(!activePhaseDefaultRecord)}
-                      className="transition-all hover:scale-105"
-                    >
-                      {activePhaseDefaultRecord ? (
-                        <ToggleRight size={34} className="text-blue-400" />
-                      ) : (
-                        <ToggleLeft size={34} className="text-slate-500" />
-                      )}
-                    </button>
-                  </div>
+                  <h3 className="text-3xl font-black text-slate-900 dark:text-white mt-3">{activePhase.name}</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 max-w-2xl">{activePhase.description}</p>
                 </div>
 
-                <div className="relative pt-4 border-t border-slate-200 dark:border-white/5 min-h-[300px]">
-                  
-                  {/* Glass Esmerilado blur overlay if phase does NOT override global */}
-                  <AnimatePresence>
-                    {!activePhaseDefaultRecord && (
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-white/80 dark:bg-slate-950/60 backdrop-blur-md z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-slate-200 dark:border-white/5 shadow-inner"
-                      >
-                        <ShieldAlert className="text-blue-400 mb-2" size={28} />
-                        <h4 className="text-sm font-black text-slate-900 dark:text-white">Heredando de Límites Globales</h4>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mt-1">
-                          Esta Fase está utilizando las reglas por defecto del sistema. Activa el toggle <strong>"Sobrescribir Global"</strong> para definir límites de volumen o tiempo propios para esta fase.
-                        </p>
-                      </motion.div>
+                <div className="flex flex-col items-end gap-2 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+                  <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sobrescribir Global</label>
+                  <button 
+                    onClick={() => togglePhaseOverride(!activePhaseDefaultRecord)}
+                    className="transition-all hover:scale-105"
+                  >
+                    {activePhaseDefaultRecord ? (
+                      <ToggleRight size={38} className="text-blue-500" />
+                    ) : (
+                      <ToggleLeft size={38} className="text-slate-400" />
                     )}
-                  </AnimatePresence>
+                  </button>
+                </div>
+              </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Parameters sliders */}
-                    <div className="flex flex-col gap-6">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios de Fase</label>
-                          <span className="text-base font-black text-blue-400 bg-blue-500/10 px-3 py-1 rounded-xl border border-blue-500/20">
-                            {activePhaseDefaultRecord?.cantidad_requerida ?? draftGlobalConfig.questionsPerPhase}
-                          </span>
-                        </div>
-                        <SliderWithTooltip
-                          value={activePhaseDefaultRecord?.cantidad_requerida ?? draftGlobalConfig.questionsPerPhase}
-                          min={10}
-                          max={120}
-                          step={5}
-                          disabled={!activePhaseDefaultRecord}
-                          onChange={(val) => handleUpdatePhaseDefault('cantidad_requerida', val)}
-                          accentColor="bg-blue-500"
-                        />
-                      </div>
-
-                      <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-white/5">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje de Aprobación</label>
-                          <span className="text-base font-black text-green-400 bg-green-500/10 px-3 py-1 rounded-xl border border-green-500/20">
-                            {activePhaseDefaultRecord?.porcentaje_aprobacion ?? draftGlobalConfig.passingScore}%
-                          </span>
-                        </div>
-                        <SliderWithTooltip
-                          value={activePhaseDefaultRecord?.porcentaje_aprobacion ?? draftGlobalConfig.passingScore}
-                          min={50}
-                          max={100}
-                          step={5}
-                          disabled={!activePhaseDefaultRecord}
-                          onChange={(val) => handleUpdatePhaseDefault('porcentaje_aprobacion', val)}
-                          accentColor="bg-green-500"
-                          unit="%"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Single default timer override input */}
-                    <div className="bg-white/80 dark:bg-slate-950/20 border border-slate-200 dark:border-white/5 p-5 rounded-3xl flex flex-col gap-4">
-                      <h4 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                        <Clock size={14} className="text-amber-400" /> Temporizador de Fase Único
-                      </h4>
-                      <p className="text-[10px] text-slate-500">
-                        Puedes definir un temporizador único en segundos para todos los niveles de esta fase. Deja en 0 o desactiva para heredar los niveles individuales de dificultad globales.
+              <div className="relative overflow-hidden rounded-3xl min-h-[350px]">
+                {/* Glass Esmerilado blur overlay if phase does NOT override global */}
+                <AnimatePresence>
+                  {!activePhaseDefaultRecord && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 bg-white/60 dark:bg-slate-950/70 backdrop-blur-md z-[60] flex flex-col items-center justify-center p-8 text-center"
+                    >
+                      <ShieldAlert className="text-blue-500 mb-4" size={48} strokeWidth={1.5} />
+                      <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Heredando de Límites Globales</h4>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 max-w-md font-medium leading-relaxed">
+                        Esta Fase está utilizando las reglas por defecto de la plataforma. Activa el botón <strong>"Sobrescribir Global"</strong> superior si deseas aislar y definir límites exclusivos para esta fase.
                       </p>
-
-                      <div className="space-y-3 pt-2">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Habilitar Cronómetro de Fase</label>
-                            <p className="text-[9px] text-slate-500">Uso local para esta fase.</p>
-                          </div>
-                          <button 
-                            onClick={() => handleUpdatePhaseDefault('usa_cronometro', !(activePhaseDefaultRecord?.usa_cronometro ?? draftGlobalConfig.useTimer))}
-                            disabled={!activePhaseDefaultRecord}
-                            className="transition-all hover:scale-105 disabled:opacity-30"
-                          >
-                            <div className={`ios-switch ${activePhaseDefaultRecord?.usa_cronometro ? 'ios-switch-active' : ''}`}>
-                              <div className="ios-switch-knob" />
-                            </div>
-                          </button>
-                        </div>
-
-                        {activePhaseDefaultRecord?.usa_cronometro && (
-                          <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/5">
-                            <div className="flex justify-between items-center">
-                              <label className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Segundos Límite del Juego</label>
-                              <span className="text-base font-black text-amber-400">
-                                {activePhaseDefaultRecord.tiempo_default_segundos || 12}s
-                              </span>
-                            </div>
-                            <SliderWithTooltip
-                              value={activePhaseDefaultRecord.tiempo_default_segundos || 12}
-                              min={3}
-                              max={3600}
-                              step={5}
-                              disabled={!activePhaseDefaultRecord}
-                              onChange={(val) => handleUpdatePhaseDefault('tiempo_default_segundos', val)}
-                              accentColor="bg-amber-500"
-                              unit="s"
-                              isThermal
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </motion.div>
-            )}
-
-            {/* VIEW C: MODULE SPECIFIC SETTINGS */}
-            {selectedPhaseId > 0 && selectedModule && (
-              <motion.div
-                key={`module-${selectedPhaseId}-${selectedModule.name}`}
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.2rem] shadow-2xl flex flex-col gap-6"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="inline-flex items-center gap-2 text-[10px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                      Configuración de Módulo
-                    </div>
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-3">
-                      {selectedModule.name}
-                      {selectedPhaseId > 1 && selectedSubLevelId && (
-                        <span className="text-blue-400 ml-2 text-base font-black">
-                          ({isSelectedChallenge ? 'Desafío' : 'Nivel'} {selectedSubLevelId})
-                        </span>
-                      )}
-                    </h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Configuración personalizada aplicable a esta disciplina en la Fase {selectedPhaseId}.</p>
-                  </div>
-
-                  {/* Override parent default toggle */}
-                  <div className="flex flex-col items-end gap-1.5 glass-panel p-2.5 rounded-xl border border-slate-200 dark:border-white/5">
-                    <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sobrescribir Padre</label>
-                    <button 
-                      onClick={() => toggleModuleOverride(!activeModuleRecord)}
-                      className="transition-all hover:scale-105"
-                    >
-                      {activeModuleRecord ? (
-                        <ToggleRight size={34} className="text-amber-400" />
-                      ) : (
-                        <ToggleLeft size={34} className="text-slate-500" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="relative pt-4 border-t border-slate-200 dark:border-white/5 min-h-[300px]">
-                  
-                  {/* Glass Esmerilado blur overlay if module does NOT override phase */}
-                  <AnimatePresence>
-                    {!activeModuleRecord && (
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-white/80 dark:bg-slate-950/60 backdrop-blur-md z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-slate-200 dark:border-white/5 shadow-inner"
-                      >
-                        <ShieldAlert className="text-amber-400 mb-2" size={28} />
-                        <h4 className="text-sm font-black text-slate-900 dark:text-white">Heredando de la Fase {selectedPhaseId}</h4>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mt-1">
-                          Este nivel/desafío está usando los valores por defecto de la Fase superior. Activa el toggle <strong>"Sobrescribir Padre"</strong> superior para definir límites exclusivos.
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Sub-item Selector for Fase 2 & 3 */}
-                  {selectedPhaseId > 1 && (
-                    <div className="flex flex-col gap-2 glass-panel p-4 rounded-2xl border border-slate-200 dark:border-white/5 mb-6">
-                      <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Selecciona Nivel o Desafío a Configurar</label>
-                      <div className="flex flex-wrap gap-2">
-                        {/* Levels */}
-                        {selectedModule.levels?.map((lvl) => (
-                          <button
-                            key={`lvl-${lvl.id}`}
-                            onClick={() => { setSelectedSubLevelId(lvl.id); setIsSelectedChallenge(false); }}
-                            className={`px-3 py-1.5 rounded-xl text-sm font-bold border transition-all ${
-                              !isSelectedChallenge && selectedSubLevelId === lvl.id
-                                ? 'bg-blue-600 border-blue-500 text-slate-900 dark:text-white font-black'
-                                : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white'
-                            }`}
-                          >
-                            Nivel {lvl.id}: {lvl.name}
-                          </button>
-                        ))}
-                        {/* Challenges */}
-                        {selectedModule.challenges?.map((ch) => (
-                          <button
-                            key={`ch-${ch.id}`}
-                            onClick={() => { setSelectedSubLevelId(ch.id); setIsSelectedChallenge(true); }}
-                            className={`px-3 py-1.5 rounded-xl text-sm font-bold border transition-all ${
-                              isSelectedChallenge && selectedSubLevelId === ch.id
-                                ? 'bg-amber-600 border-amber-500 text-slate-900 dark:text-white font-black'
-                                : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white'
-                            }`}
-                          >
-                            {ch.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    </motion.div>
                   )}
+                </AnimatePresence>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Controls */}
-                    <div className="flex flex-col gap-6">
-                      {/* Questions Count */}
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Cantidad de Preguntas</label>
-                          <span className="text-base font-black text-blue-400 bg-blue-500/10 px-3 py-1 rounded-xl border border-blue-500/20">
-                            {activeModuleRecord?.cantidad_requerida ?? getInheritedQuestionsCount()}
-                          </span>
-                        </div>
-                        <SliderWithTooltip
-                          value={activeModuleRecord?.cantidad_requerida ?? getInheritedQuestionsCount()}
-                          min={5}
-                          max={100}
-                          step={5}
-                          disabled={!activeModuleRecord}
-                          onChange={(val) => handleUpdateModuleField('cantidad_requerida', val)}
-                          accentColor="bg-blue-500"
-                        />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 bg-white/80 dark:bg-slate-950/40 border border-slate-200 dark:border-white/5 rounded-3xl h-full shadow-inner">
+                  <div className="flex flex-col gap-8">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm lg:text-base text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios</label>
+                        <span className="text-lg font-black text-blue-500 bg-blue-500/10 px-4 py-1 rounded-xl border border-blue-500/20 shadow-sm">
+                          {activePhaseDefaultRecord?.cantidad_requerida ?? draftGlobalConfig.practica_libre.cantidad_requerida}
+                        </span>
                       </div>
-
-                      {/* Passing Score */}
-                      <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-white/5">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Porcentaje de Aprobación</label>
-                          <span className="text-base font-black text-green-400 bg-green-500/10 px-3 py-1 rounded-xl border border-green-500/20">
-                            {activeModuleRecord?.porcentaje_aprobacion ?? getInheritedPassingScore()}%
-                          </span>
-                        </div>
-                        <SliderWithTooltip
-                          value={activeModuleRecord?.porcentaje_aprobacion ?? getInheritedPassingScore()}
-                          min={50}
-                          max={100}
-                          step={5}
-                          disabled={!activeModuleRecord}
-                          onChange={(val) => handleUpdateModuleField('porcentaje_aprobacion', val)}
-                          accentColor="bg-green-500"
-                          unit="%"
-                        />
-                      </div>
+                      <SliderWithTooltip
+                        value={activePhaseDefaultRecord?.cantidad_requerida ?? draftGlobalConfig.practica_libre.cantidad_requerida}
+                        min={10} max={120} step={5}
+                        disabled={!activePhaseDefaultRecord}
+                        onChange={(val) => handleUpdatePhaseDefault('cantidad_requerida', val)}
+                        accentColor="bg-blue-500"
+                      />
                     </div>
 
-                    {/* Feedback and Timers */}
-                    <div className="flex flex-col gap-5 bg-white/80 dark:bg-slate-950/20 border border-slate-200 dark:border-white/5 p-5 rounded-3xl">
-                      {/* Feedback choice */}
-                      {!isSelectedChallenge && (
-                        <div className="space-y-3">
-                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold flex items-center gap-1.5">
-                            <HelpCircle size={14} className="text-purple-400" /> Tipo de Feedback Pedagógico
-                          </label>
-                          <div className="grid grid-cols-2 gap-3">
-                            <button
-                              onClick={() => handleUpdateModuleField('tipo_feedback', 'simple')}
-                              disabled={!activeModuleRecord}
-                              className={`px-3 py-2.5 rounded-xl border text-[10px] font-black transition-all ${
-                                (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'simple'
-                                  ? 'bg-purple-500/20 border-purple-500/40 text-slate-900 dark:text-white'
-                                  : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400'
-                              }`}
-                            >
-                              Simple (✔/✘)
-                            </button>
-                            <button
-                              onClick={() => handleUpdateModuleField('tipo_feedback', 'detallado')}
-                              disabled={!activeModuleRecord}
-                              className={`px-3 py-2.5 rounded-xl border text-[10px] font-black transition-all ${
-                                (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'detallado'
-                                  ? 'bg-purple-500/20 border-purple-500/40 text-slate-900 dark:text-white'
-                                  : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400'
-                              }`}
-                            >
-                              Tutoría IA / Espejo
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Timer settings */}
-                      <div className="pt-3 border-t border-slate-200 dark:border-white/5 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Usar Cronómetro</label>
-                            <p className="text-[9px] text-slate-500">Cronómetro específico local.</p>
-                          </div>
-                          <button 
-                            onClick={() => handleUpdateModuleField('usa_cronometro', !(activeModuleRecord?.usa_cronometro ?? getInheritedUseTimer()))}
-                            disabled={!activeModuleRecord}
-                            className="transition-all hover:scale-105 disabled:opacity-30"
-                          >
-                            <div className={`ios-switch ${(activeModuleRecord?.usa_cronometro ?? getInheritedUseTimer()) ? 'ios-switch-active' : ''}`}>
-                              <div className="ios-switch-knob" />
-                            </div>
-                          </button>
-                        </div>
-
-                        {(activeModuleRecord?.usa_cronometro ?? getInheritedUseTimer()) && (
-                          <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/5">
-                            <div className="flex justify-between items-center">
-                              <label className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Tiempo Límite en Segundos</label>
-                              <span className="text-base font-black text-amber-400">
-                                {activeModuleRecord?.tiempo_default_segundos ?? getInheritedTimerForLevel('medium')}s
-                              </span>
-                            </div>
-                            <SliderWithTooltip
-                              value={activeModuleRecord?.tiempo_default_segundos ?? getInheritedTimerForLevel('medium')}
-                              min={3}
-                              max={600}
-                              step={5}
-                              disabled={!activeModuleRecord}
-                              onChange={(val) => handleUpdateModuleField('tiempo_default_segundos', val)}
-                              accentColor="bg-amber-500"
-                              unit="s"
-                              isThermal
-                            />
-                          </div>
-                        )}
+                    <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-white/5">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm lg:text-base text-slate-600 dark:text-slate-300 font-bold">Porcentaje de Aprobación</label>
+                        <span className="text-lg font-black text-green-500 bg-green-500/10 px-4 py-1 rounded-xl border border-green-500/20 shadow-sm">
+                          {activePhaseDefaultRecord?.porcentaje_aprobacion ?? draftGlobalConfig.practica_libre.porcentaje_aprobacion}%
+                        </span>
                       </div>
+                      <SliderWithTooltip
+                        value={activePhaseDefaultRecord?.porcentaje_aprobacion ?? draftGlobalConfig.practica_libre.porcentaje_aprobacion}
+                        min={50} max={100} step={5}
+                        disabled={!activePhaseDefaultRecord}
+                        onChange={(val) => handleUpdatePhaseDefault('porcentaje_aprobacion', val)}
+                        accentColor="bg-green-500" unit="%"
+                      />
                     </div>
                   </div>
 
+                  <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 p-6 rounded-3xl flex flex-col gap-6 shadow-sm">
+                    <h4 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <Clock size={18} className="text-amber-500" /> Temporizador de Fase Único
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Define un temporizador único para todos los niveles de esta fase si deseas evitar configurarlos uno a uno.
+                    </p>
+
+                    <div className="space-y-4 mt-auto">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Habilitar Cronómetro de Fase</label>
+                        <button 
+                          onClick={() => handleUpdatePhaseDefault('usa_cronometro', !(activePhaseDefaultRecord?.usa_cronometro ?? draftGlobalConfig.practica_libre.usa_cronometro))}
+                          disabled={!activePhaseDefaultRecord}
+                          className="transition-all hover:scale-105 disabled:opacity-30"
+                        >
+                          <div className={`ios-switch ${activePhaseDefaultRecord?.usa_cronometro ? 'ios-switch-active' : ''}`}>
+                            <div className="ios-switch-knob" />
+                          </div>
+                        </button>
+                      </div>
+
+                      {activePhaseDefaultRecord?.usa_cronometro && (
+                        <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-white/10">
+                          <div className="flex justify-between items-center">
+                            <label className="text-xs text-slate-500 dark:text-slate-400 font-bold">Límite por Pregunta</label>
+                            <span className="text-lg font-black text-amber-500">
+                              {activePhaseDefaultRecord.tiempo_default_segundos || 12}s
+                            </span>
+                          </div>
+                          <SliderWithTooltip
+                            value={activePhaseDefaultRecord.tiempo_default_segundos || 12}
+                            min={3} max={3600} step={5}
+                            disabled={!activePhaseDefaultRecord}
+                            onChange={(val) => handleUpdatePhaseDefault('tiempo_default_segundos', val)}
+                            accentColor="bg-amber-500" unit="s" isThermal
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </motion.div>
-            )}
 
-          </AnimatePresence>
-        </div>
+              </div>
+            </motion.div>
+          )}
 
+          {/* VIEW C: MODULE SPECIFIC SETTINGS */}
+          {selectedPhaseId > 0 && selectedModule && (
+            <motion.div
+              key={`module-${selectedPhaseId}-${selectedModule.name}`}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2.5rem] shadow-2xl flex flex-col gap-8 w-full relative"
+            >
+              <div className="flex justify-between items-start z-30">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-[10px] font-black text-amber-500 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+                    Configuración de Módulo
+                  </div>
+                  <h3 className="text-3xl font-black text-slate-900 dark:text-white mt-3 flex items-center flex-wrap gap-2">
+                    {selectedModule.name.split(':')[0]}
+                    {selectedPhaseId > 1 && selectedSubLevelId && (
+                      <span className="text-blue-500 font-black text-2xl">
+                        ({isSelectedChallenge ? 'Desafío' : 'Nivel'} {selectedSubLevelId})
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Reglas de evaluación y parámetros exclusivos para este contenido.</p>
+                </div>
+
+                <div className="flex flex-col items-end gap-2 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+                  <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sobrescribir Padre</label>
+                  <button 
+                    onClick={() => toggleModuleOverride(!activeModuleRecord)}
+                    className="transition-all hover:scale-105"
+                  >
+                    {activeModuleRecord ? (
+                      <ToggleRight size={38} className="text-amber-500" />
+                    ) : (
+                      <ToggleLeft size={38} className="text-slate-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative min-h-[400px]">
+                
+                {/* Glass Esmerilado blur overlay if module does NOT override phase */}
+                <AnimatePresence>
+                  {!activeModuleRecord && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 bg-white/60 dark:bg-slate-950/70 backdrop-blur-md z-[60] rounded-3xl flex flex-col items-center justify-center p-8 text-center"
+                    >
+                      <ShieldAlert className="text-amber-500 mb-4" size={48} strokeWidth={1.5} />
+                      <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Heredando de la Fase {selectedPhaseId}</h4>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 max-w-md font-medium leading-relaxed">
+                        Este módulo está utilizando las reglas de la Fase a la que pertenece. Activa <strong>"Sobrescribir Padre"</strong> para desvincularlo y crear reglas exclusivas.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Sub-item Selector for Fase 2 & 3 */}
+                {selectedPhaseId > 1 && (
+                  <div className="flex flex-col gap-3 bg-white/80 dark:bg-slate-950/40 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-8 shadow-inner">
+                    <label className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest pl-1">Explorar Niveles y Desafíos del Módulo</label>
+                    <div className="flex flex-wrap gap-2">
+                      {/* Levels */}
+                      {selectedModule.levels?.map((lvl) => (
+                        <button
+                          key={`lvl-${lvl.id}`}
+                          onClick={() => { setSelectedSubLevelId(lvl.id); setIsSelectedChallenge(false); }}
+                          className={`px-4 py-2 rounded-2xl text-sm font-bold border transition-all ${
+                            !isSelectedChallenge && selectedSubLevelId === lvl.id
+                              ? 'bg-blue-600 border-blue-500 text-white font-black shadow-md shadow-blue-500/20'
+                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50'
+                          }`}
+                        >
+                          Nivel {lvl.id}: {lvl.name}
+                        </button>
+                      ))}
+                      {/* Challenges */}
+                      {selectedModule.challenges?.map((ch) => (
+                        <button
+                          key={`ch-${ch.id}`}
+                          onClick={() => { setSelectedSubLevelId(ch.id); setIsSelectedChallenge(true); }}
+                          className={`px-4 py-2 rounded-2xl text-sm font-bold border transition-all flex items-center gap-1.5 ${
+                            isSelectedChallenge && selectedSubLevelId === ch.id
+                              ? 'bg-amber-600 border-amber-500 text-white font-black shadow-md shadow-amber-500/20'
+                              : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-100'
+                          }`}
+                        >
+                          <Target size={14} /> {ch.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Controls */}
+                  <div className="flex flex-col gap-8 bg-white/80 dark:bg-slate-950/40 border border-slate-200 dark:border-white/5 p-6 rounded-3xl shadow-inner">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm lg:text-base text-slate-600 dark:text-slate-300 font-bold">Volumen de Ejercicios</label>
+                        <span className="text-lg font-black text-blue-500 bg-blue-500/10 px-4 py-1 rounded-xl border border-blue-500/20 shadow-sm">
+                          {activeModuleRecord?.cantidad_requerida ?? getInheritedQuestionsCount()}
+                        </span>
+                      </div>
+                      <SliderWithTooltip
+                        value={activeModuleRecord?.cantidad_requerida ?? getInheritedQuestionsCount()}
+                        min={5} max={100} step={5}
+                        disabled={!activeModuleRecord}
+                        onChange={(val) => handleUpdateModuleField('cantidad_requerida', val)}
+                        accentColor="bg-blue-500"
+                      />
+                    </div>
+
+                    <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-white/5">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm lg:text-base text-slate-600 dark:text-slate-300 font-bold">Porcentaje de Aprobación</label>
+                        <span className="text-lg font-black text-green-500 bg-green-500/10 px-4 py-1 rounded-xl border border-green-500/20 shadow-sm">
+                          {activeModuleRecord?.porcentaje_aprobacion ?? getInheritedPassingScore()}%
+                        </span>
+                      </div>
+                      <SliderWithTooltip
+                        value={activeModuleRecord?.porcentaje_aprobacion ?? getInheritedPassingScore()}
+                        min={50} max={100} step={5}
+                        disabled={!activeModuleRecord}
+                        onChange={(val) => handleUpdateModuleField('porcentaje_aprobacion', val)}
+                        accentColor="bg-green-500" unit="%"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Feedback and Timers */}
+                  <div className="flex flex-col gap-6 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 p-6 rounded-3xl shadow-sm">
+                    {/* Feedback choice */}
+                    {!isSelectedChallenge && (
+                      <div className="space-y-4">
+                        <label className="text-sm text-slate-600 dark:text-slate-300 font-bold flex items-center gap-2">
+                          <HelpCircle size={18} className="text-purple-500" /> Tipo de Feedback Pedagógico
+                        </label>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => handleUpdateModuleField('tipo_feedback', 'simple')}
+                            disabled={!activeModuleRecord}
+                            className={`flex-1 py-3 rounded-2xl border text-xs uppercase tracking-wider font-black transition-all ${
+                              (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'simple'
+                                ? 'bg-purple-600 border-purple-500 text-white shadow-md shadow-purple-500/20'
+                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+                            }`}
+                          >
+                            Simple (✔/✘)
+                          </button>
+                          <button
+                            onClick={() => handleUpdateModuleField('tipo_feedback', 'detallado')}
+                            disabled={!activeModuleRecord}
+                            className={`flex-1 py-3 rounded-2xl border text-xs uppercase tracking-wider font-black transition-all ${
+                              (activeModuleRecord?.tipo_feedback ?? getInheritedFeedbackType()) === 'detallado'
+                                ? 'bg-purple-600 border-purple-500 text-white shadow-md shadow-purple-500/20'
+                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+                            }`}
+                          >
+                            Tutoría IA
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Timer settings */}
+                    <div className="pt-6 border-t border-slate-200 dark:border-white/10 space-y-5 mt-auto">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm text-slate-600 dark:text-slate-300 font-bold">Usar Cronómetro</label>
+                          <p className="text-[10px] text-slate-500">Sobrescribir tiempo global.</p>
+                        </div>
+                        <button 
+                          onClick={() => handleUpdateModuleField('usa_cronometro', !(activeModuleRecord?.usa_cronometro ?? getInheritedUseTimer()))}
+                          disabled={!activeModuleRecord}
+                          className="transition-all hover:scale-105 disabled:opacity-30"
+                        >
+                          <div className={`ios-switch ${(activeModuleRecord?.usa_cronometro ?? getInheritedUseTimer()) ? 'ios-switch-active' : ''}`}>
+                            <div className="ios-switch-knob" />
+                          </div>
+                        </button>
+                      </div>
+
+                      {(activeModuleRecord?.usa_cronometro ?? getInheritedUseTimer()) && (
+                        <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-white/10">
+                          <div className="flex justify-between items-center">
+                            <label className="text-xs text-slate-500 dark:text-slate-400 font-bold">Límite en Segundos</label>
+                            <span className="text-lg font-black text-amber-500">
+                              {activeModuleRecord?.tiempo_default_segundos ?? getInheritedTimerForLevel('medium')}s
+                            </span>
+                          </div>
+                          <SliderWithTooltip
+                            value={activeModuleRecord?.tiempo_default_segundos ?? getInheritedTimerForLevel('medium')}
+                            min={3} max={600} step={5}
+                            disabled={!activeModuleRecord}
+                            onChange={(val) => handleUpdateModuleField('tiempo_default_segundos', val)}
+                            accentColor="bg-amber-500" unit="s" isThermal
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
       </div>
+
 
     </motion.div>
   );

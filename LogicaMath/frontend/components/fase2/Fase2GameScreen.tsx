@@ -859,7 +859,17 @@ const Fase2GameScreen: React.FC<Props> = ({ moduloId, nivelId, onComplete, onBac
     }
   }, [moduloId, nivelId, isChallenge]);
 
-  // 30: handleFeedbackClose
+  // 30: sync_required Listener
+  useEffect(() => {
+    const handleSync = (e: Event) => {
+      console.log('🔄 [Fase2GameScreen] Sync request received from admin. Reloading question...');
+      loadPregunta(false, false);
+    };
+    window.addEventListener('sync_required', handleSync);
+    return () => window.removeEventListener('sync_required', handleSync);
+  }, [loadPregunta]);
+
+  // 31: handleFeedbackClose
   const handleFeedbackClose = useCallback(() => {
     if (feedback.resultado?.early_exit) {
       setFeedback({ visible: false, esCorrecta: false });

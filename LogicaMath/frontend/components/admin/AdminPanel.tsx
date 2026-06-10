@@ -7,6 +7,7 @@ import PerformanceTab from './PerformanceTab';
 import ContentTab from './ContentTab';
 import SystemTab from './SystemTab';
 import { ThemeToggle } from '../theme/ThemeToggle';
+import { PhaseMapProvider } from './PhaseMapContext';
 
 interface Props {
   onBack: () => void;
@@ -102,43 +103,43 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
       <style dangerouslySetInnerHTML={{ __html: `
         .apple-admin {
           /* Light mode defaults - Clean iOS aesthetics */
-          --apple-bg: #f2f2f7;
+          --apple-bg: #f8fafc;
           --apple-card: rgba(255, 255, 255, 0.85);
-          --apple-border: rgba(0, 0, 0, 0.08);
-          --apple-text: #1c1c1e;
-          --apple-text-muted: #8e8e93;
-          --apple-input-bg: rgba(0, 0, 0, 0.05);
-          --apple-input-text: #1c1c1e;
-          --apple-hover-bg: rgba(0, 0, 0, 0.03);
-          --apple-table-header: rgba(0, 0, 0, 0.04);
-          --apple-table-border: rgba(0, 0, 0, 0.06);
-          --apple-switch-bg: #e5e5ea;
+          --apple-border: rgba(15, 23, 42, 0.08);
+          --apple-text: #0f172a;
+          --apple-text-muted: #64748b;
+          --apple-input-bg: rgba(241, 245, 249, 0.8);
+          --apple-input-text: #0f172a;
+          --apple-hover-bg: rgba(15, 23, 42, 0.04);
+          --apple-table-header: rgba(241, 245, 249, 0.9);
+          --apple-table-border: rgba(15, 23, 42, 0.06);
+          --apple-switch-bg: #cbd5e1;
           
-          --apple-blue: #007aff;
-          --apple-green: #34c759;
+          --apple-blue: #3b82f6;
+          --apple-green: #10b981;
           font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
         }
 
         .dark .apple-admin {
-          /* Dark mode overrides */
-          --apple-bg: #000000;
-          --apple-card: rgba(28, 28, 30, 0.75);
+          /* Dark mode overrides - Premium Glassmorphism */
+          --apple-bg: #0f172a; /* Slate 900 instead of pure black */
+          --apple-card: rgba(30, 41, 59, 0.65); /* Slate 800 translúcido */
           --apple-border: rgba(255, 255, 255, 0.1);
-          --apple-text: #ffffff;
-          --apple-text-muted: #98989d;
-          --apple-input-bg: rgba(255, 255, 255, 0.08);
-          --apple-input-text: #ffffff;
+          --apple-text: #f8fafc; /* Slate 50 */
+          --apple-text-muted: #94a3b8; /* Slate 400 */
+          --apple-input-bg: rgba(15, 23, 42, 0.7); /* Slate 900 para inputs */
+          --apple-input-text: #f8fafc;
           --apple-hover-bg: rgba(255, 255, 255, 0.05);
-          --apple-table-header: rgba(255, 255, 255, 0.05);
+          --apple-table-header: rgba(15, 23, 42, 0.6);
           --apple-table-border: rgba(255, 255, 255, 0.08);
-          --apple-switch-bg: #39393d;
+          --apple-switch-bg: #334155;
         }
 
         /* custom modern scrollbar */
         .apple-admin ::-webkit-scrollbar { width: 6px; height: 6px; }
         .apple-admin ::-webkit-scrollbar-track { background: transparent; }
-        .apple-admin ::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.4); border-radius: 99px; }
-        .apple-admin ::-webkit-scrollbar-thumb:hover { background: rgba(128, 128, 128, 0.6); }
+        .apple-admin ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 99px; }
+        .apple-admin ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
 
         /* Beautiful iOS inputs, selects and textareas override */
         .apple-admin input[type="text"],
@@ -163,7 +164,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
         .apple-admin select:focus,
         .apple-admin textarea:focus {
           border-color: var(--apple-blue) !important;
-          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2) !important;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
           background: transparent !important;
         }
 
@@ -196,19 +197,11 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
           backdrop-filter: blur(20px) saturate(180%) !important;
           -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
           border: 1px solid var(--apple-border) !important;
-          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04) !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
           border-radius: 16px !important;
-          color: var(--apple-text) !important;
         }
         
-        .apple-admin .glass-card h1,
-        .apple-admin .glass-card h2,
-        .apple-admin .glass-card h3,
-        .apple-admin .glass-card h4,
-        .apple-admin .glass-card p,
-        .apple-admin .glass-card span {
-            color: inherit;
-        }
+        /* Removing the harsh inherit color so Tailwind can handle specific grays/blues */
 
         /* iOS Toggle Switch Styles */
         .apple-admin .ios-switch-container { display: inline-flex; align-items: center; cursor: pointer; }
@@ -433,4 +426,10 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
   );
 };
 
-export default AdminPanel;
+const AdminPanelWrapper: React.FC<Props> = (props) => (
+  <PhaseMapProvider>
+    <AdminPanel {...props} />
+  </PhaseMapProvider>
+);
+
+export default AdminPanelWrapper;

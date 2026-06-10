@@ -9,7 +9,8 @@ import {
   searchAlumnos, getAlumnoProgress, overrideAlumnoProgress, overrideAlumnoProgressBulk,
   AlumnoSearchInfo, getAdminAlumnoInsights
 } from '../../services/storageService';
-import { PHASE_MAPS, LevelMap } from './phaseMaps';
+import { LevelMap } from './phaseMaps';
+import { usePhaseMapContext } from './PhaseMapContext';
 
 // ─── Helper: compute aggregate status from a list of level records ─────────────
 type ProgressState = 'APROBADO' | 'EN_PROGRESO' | 'BLOQUEADO';
@@ -120,6 +121,7 @@ interface PerformanceTabProps {
 }
 
 const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert }) => {
+  const { phaseMaps: PHASE_MAPS } = usePhaseMapContext();
   // Search & Alumnos states
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingSearch, setLoadingSearch] = useState(false);
@@ -581,12 +583,12 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
 
       {/* AI Insights Modal */}
       {showAIModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col"
+            className="w-full max-w-2xl glass-panel/90 backdrop-blur-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col rounded-[2rem]"
           >
             <div className="px-6 py-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
               <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">

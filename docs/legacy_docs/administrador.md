@@ -156,23 +156,36 @@ Reglas de desafío:
 
 ## 5. Gestión Pedagógica Avanzada (`PedagogyTab.tsx`)
 
-Esta pestaña permite definir el ritmo, volumen y comportamiento didáctico del alumno de forma dinámica. Utiliza un árbol de jerarquía y un sistema de herencia de configuración.
+Esta pestaña permite definir el ritmo, volumen y comportamiento didáctico del alumno de forma dinámica. Utiliza un sistema de herencia de configuración y una **Arquitectura de Navegación por Pestañas Anidadas (Top-Down)** que garantiza legibilidad y comodidad sin importar la cantidad de módulos.
 
-### 5.1. Niveles de Configuración
+### 5.1. Arquitectura de Navegación (3 Niveles)
+
+Para maximizar el espacio en pantalla y evitar el encapsulamiento en columnas estrechas, la configuración pedagógica se despliega en 3 niveles jerárquicos horizontales que utilizan el 100% del ancho disponible:
+
+1. **Nivel 1 (Pestañas Maestras):** En la parte superior, el administrador elige entre "Configuración de Plataforma (Global)" y "Configuración por Fases".
+2. **Nivel 2 (Selector de Fases):** Si se escogen las Fases, aparece una botonera de deslizamiento horizontal con tarjetas de alto contraste para elegir la Fase específica (Ej. Fase 1 a Fase 9).
+3. **Nivel 3 (Configuración General vs. Módulos):** Debajo de la fase seleccionada, se despliegan pestañas sub-jerárquicas en formato de píldora ("General Fase X", "Módulo 1", "Módulo 2", etc.) permitiendo una transición inmediata entre el nivel contenedor y sus niveles hijos.
+
+### 5.2. Niveles de Configuración y Principio de Cascada
 
 1. **Global:** Fallback general de la plataforma.
 2. **Fase:** Parámetros por defecto de una fase.
 3. **Módulo/Nivel/Desafío:** Override específico.
 
-### 5.2. Principio de Cascada
-
 La configuración más específica prevalece sobre la general. Si un override está inactivo, se hereda el nivel superior.
 
 ```mermaid
 graph TD
-    A["Ajuste específico de Nivel/Módulo/Desafío"] -->|Si no existe o está inactivo| B["Parámetros por defecto de Fase"]
+    A["Ajuste específico de Módulo/Desafío"] -->|Si no existe o está inactivo| B["Parámetros por defecto de Fase"]
     B -->|Si no existe o está inactivo| C["Límites Globales de Plataforma"]
 ```
+
+### 5.3. Cristales de Herencia y Sobrescritura (Overrides)
+
+Para evitar modificaciones accidentales y comunicar claramente de dónde provienen los parámetros actuales, la interfaz implementa **Cristales de Bloqueo (Glassmorphism Overlays)** con un índice Z estricto (`z-50`):
+
+* **Estado de Herencia Activa:** Si una Fase o Módulo no tiene reglas exclusivas, su panel de control aparecerá bloqueado por un cristal oscuro esmerilado que avisa *"Heredando de Límites Globales"* o *"Heredando de la Fase X"*. Este cristal bloquea todos los inputs subyacentes.
+* **Romper Herencia (Sobrescribir):** En la esquina superior derecha del panel existe un interruptor (Toggle) de **Sobrescribir Global / Sobrescribir Padre**. Al activarlo, el backend inserta de forma transparente un registro de "excepción" (Override) para esa Fase o Módulo específico, el cristal se desvanece de inmediato, y los controles (sliders) se habilitan para permitir ajustes finos y exclusivos.
 
 ### 5.3. Calibración en Caliente de Tiempos y Volúmenes
 

@@ -4,6 +4,8 @@ from sqlalchemy import select, and_, or_, delete
 from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from pydantic import BaseModel
+import json
+from ..utils.websocket_manager import manager
 
 from ..schemas import (
     FaseCreate, FaseUpdate, FaseResponse,
@@ -71,7 +73,45 @@ async def update_settings(payload: dict, db: AsyncSession = Depends(get_db), adm
         db.add(settings)
     
     await db.commit()
+    await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "settings_updated"}))
     return {"status": "ok", "message": "Configuración guardada exitosamente"}
+
+# ============================================================
+# PHASE MAPS (Module Flow Configuration)
+# ============================================================
+
+PHASE_MAPS_CONFIG_KEY = "phase_maps_config"
+
+@router.get("/phase-maps")
+async def get_phase_maps(db: AsyncSession = Depends(get_db)):
+    """Get phase maps flow configuration. Public endpoint (read-only)."""
+    result = await db.execute(
+        select(PlatformSettings).where(PlatformSettings.key == PHASE_MAPS_CONFIG_KEY)
+    )
+    settings = result.scalar_one_or_none()
+    if not settings:
+        return []
+    return settings.value
+
+@router.put("/phase-maps")
+async def update_phase_maps(payload: List[dict], db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    """Update phase maps flow configuration. Admin only."""
+    result = await db.execute(
+        select(PlatformSettings).where(PlatformSettings.key == PHASE_MAPS_CONFIG_KEY)
+    )
+    settings = result.scalar_one_or_none()
+    
+    if settings:
+        settings.value = payload
+    else:
+        settings = PlatformSettings(key=PHASE_MAPS_CONFIG_KEY, value=payload)
+        db.add(settings)
+    
+    await db.commit()
+    
+    # Notificar a los alumnos por WebSockets
+    await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "phase_maps_updated"}))
+    return {"status": "ok", "message": "Flujo de módulos guardado exitosamente"}
 
 # ============================================================
 # FASES
@@ -134,6 +174,7 @@ async def create_configuracion(config_data: ConfiguracionProgresoCreate, db: Asy
     db.add(new_config)
     await db.commit()
     await db.refresh(new_config)
+    await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "config_created"}))
     return new_config
 
 @router.patch("/configuracion/{config_id}", response_model=ConfiguracionProgresoResponse)
@@ -180,6 +221,7 @@ async def update_configuracion(config_id: int, config_data: ConfiguracionProgres
             
         await db.commit()
     
+    await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "config_updated"}))
     return config
 
 # ============================================================
@@ -220,6 +262,7 @@ async def create_pregunta(pregunta_data: PreguntaCreate, db: AsyncSession = Depe
         db.add(nueva_alt)
         
     await db.commit()
+    await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "pregunta_created"}))
     
     # Reload with alternativas
     result = await db.execute(select(Pregunta).options(selectinload(Pregunta.alternativas)).where(Pregunta.id == new_pregunta.id))
@@ -253,6 +296,7 @@ async def update_pregunta(pregunta_id: int, pregunta_data: PreguntaUpdate, db: A
         
     pregunta.modificado_por = admin_user["id"]
     await db.commit()
+    await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "pregunta_updated"}))
     await db.refresh(pregunta)
     return pregunta
 
@@ -271,6 +315,7 @@ async def delete_pregunta(pregunta_id: int, db: AsyncSession = Depends(get_db), 
     
     await db.delete(pregunta)
     await db.commit()
+    await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "pregunta_deleted"}))
     return {"status": "ok", "message": "Pregunta eliminada exitosamente"}
 
 @router.get("/teoria")

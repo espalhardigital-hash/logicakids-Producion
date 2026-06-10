@@ -9,7 +9,7 @@ import {
   deletePregunta, createPregunta, updatePregunta,
   saveNivelTeoria 
 } from '../../services/storageService';
-import { PHASE_MAPS } from './phaseMaps';
+import { usePhaseMapContext } from './PhaseMapContext';
 import { useAdminContent } from './useAdminContent';
 
 const TokenHighlighter: React.FC<{
@@ -55,6 +55,7 @@ const TokenHighlighter: React.FC<{
 
 
 const ContentTab: React.FC = () => {
+  const { phaseMaps: PHASE_MAPS } = usePhaseMapContext();
   // Navigation / Tabs State
   const [activeSubTab, setActiveSubTab] = useState<'theory' | 'questions'>('theory');
 
@@ -172,6 +173,45 @@ const ContentTab: React.FC = () => {
   const handleSaveQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingQuestion) return;
+
+    // --- VALIDACIONES ROBUSTAS ---
+    if (!editingQuestion.enunciado || !editingQuestion.enunciado.trim()) {
+      showToast("El enunciado principal no puede estar vacío.", "error");
+      return;
+    }
+
+    if (editingQuestion.tipo_pregunta === "multiple_opcion" || editingQuestion.tipo_pregunta === "multiple_opcion_y_subrayado") {
+      if (!editingQuestion.alternativas || editingQuestion.alternativas.length < 2) {
+        showToast("Debes proporcionar al menos 2 alternativas.", "error");
+        return;
+      }
+      const hasEmptyAlts = editingQuestion.alternativas.some((a: any) => !a.texto || !a.texto.trim());
+      if (hasEmptyAlts) {
+        showToast("Todas las alternativas deben contener texto. No dejes campos vacíos.", "error");
+        return;
+      }
+      const correctAlts = editingQuestion.alternativas.filter((a: any) => a.es_correcta);
+      if (correctAlts.length === 0) {
+        showToast("Debe haber al menos una alternativa marcada como correcta.", "error");
+        return;
+      }
+      if (!editingQuestion.respuesta_correcta || !editingQuestion.respuesta_correcta.trim()) {
+        // Auto-assign the correct answer text to the raw field if empty
+        editingQuestion.respuesta_correcta = correctAlts[0].texto;
+      }
+    } else if (editingQuestion.tipo_pregunta === "subrayado" || editingQuestion.requiere_subrayado) {
+       if (!editingQuestion.tokens_correctos_indices || editingQuestion.tokens_correctos_indices.length === 0) {
+         showToast("En el modo de selección, debes subrayar al menos una palabra.", "error");
+         return;
+       }
+    } else {
+       if (!editingQuestion.respuesta_correcta || !editingQuestion.respuesta_correcta.trim()) {
+         showToast("El campo de respuesta correcta no puede estar vacío.", "error");
+         return;
+       }
+    }
+    // -----------------------------
+
     setSavingQuestion(true);
 
     const phase = PHASE_MAPS.find(p => p.id === mgrFaseId);

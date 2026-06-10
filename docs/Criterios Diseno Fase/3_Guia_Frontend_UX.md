@@ -384,12 +384,18 @@ La interfaz de overrides de rendimiento debe cumplir con los siguientes estánda
 
 ### 10.3. UI/UX para Calibración de Parámetros (Tiempos y Volúmenes)
 
-La pestaña de gestión pedagógica avanzada debe contar con controles intuitivos que minimicen los errores de entrada operativa:
+La pestaña de gestión pedagógica avanzada debe contar con controles intuitivos que minimicen los errores de entrada operativa, soportados por una estructura de "Pestañas de 3 Niveles" para evitar la saturación visual:
 
+* **Arquitectura Top-Down (3 Niveles):**
+  * Nivel 1: Selector principal (Plataforma Global vs Fases).
+  * Nivel 2: Deslizador horizontal de Fases de alto contraste.
+  * Nivel 3: Sub-pestañas en píldora ("General Fase X" y módulos).
+* **Cristales de Herencia (Glassmorphism Overlay):**
+  * Si un módulo hereda parámetros de la Fase (o de la Global), su panel de control se oscurece con un cristal esmerilado que bloquea la interacción, mostrando la etiqueta *"Heredando de..."* para evitar modificaciones no intencionadas.
+  * **Interruptor de Sobrescritura (Override Toggle):** Un switch en la parte superior que permite romper la herencia en tiempo real; al activarse, el cristal desaparece con una transición suave y habilita todos los controles de ajuste local.
 * **Toggles Claros de Tiempo:** Switch reactivo en Tailwind que al activarse expande un submenú deslizante con el slider de segundos.
 * **Sliders de Control Fino con Indicador Dinámico:** Deslizadores para la duración temporal con marcas de escala legibles y un indicador textual en tiempo real (ej. *"Límite por pregunta: 35 segundos"*).
 * **Campos Numéricos con Límites Lógicos (Min/Max):** Entradas para `cantidad_requerida` que bloquean o advierten mediante alertas preventivas rojas si se intentan registrar valores extremos (ej. menos de 5 preguntas o más de 50) que puedan romper el ritmo de atención infantil.
-* **Indicadores de Herencia Activa:** Etiquetas visuales que muestran explícitamente el origen del valor actual (ej. *"Heredado de: Fase 2"* o *"Override Local Activo"*).
 
 ---
 
