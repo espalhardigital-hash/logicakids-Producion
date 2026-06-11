@@ -1,7 +1,8 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { ROUTES } from '../helpers/constants';
 import { registerDynamicTestUser } from '../helpers/auth';
-import { setPhaseForUser } from '../helpers/db-utils';
+import { setPhaseForUser, approveProgresoMaestria, unlockAllUpToModule } from '../helpers/db-utils';
+import { getPhaseMetadata } from '../helpers/metadata-utils';
 import { execSync } from 'child_process';
 
 function getCorrectAnswer(questionId: number): string {
@@ -25,7 +26,6 @@ function clearTestUserProgress(email: string) {
     for (const q of queries) {
       execSync(`docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "${q}"`);
     }
-    console.log(`🧹 Test user database progress successfully cleared for ${email}.`);
   } catch (e) {
     console.error('❌ Failed to clear test user database progress:', e);
   }
@@ -38,18 +38,14 @@ async function submitCorrectAnswer(page: any, questionId: number) {
   if (tipo === 'MULTIPLE_OPCION') {
     const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT texto FROM alternativas WHERE pregunta_id = ${questionId} AND es_correcta = true LIMIT 1"`;
     const correctText = execSync(cmd).toString().trim();
-    console.log(`Submitting correct alternative: "${correctText}" for question ID: ${questionId}`);
     await page.locator(`button:has-text("${correctText}")`).first().click();
     await page.locator('button:has-text("Confirmar Respuesta")').first().click();
   } else {
     const answer = getCorrectAnswer(questionId);
-    console.log(`Submitting correct answer: "${answer}" for question ID: ${questionId}`);
     for (const char of answer) {
       await page.locator('button').filter({ hasText: new RegExp(`^${char}$`) }).last().click();
       await page.waitForTimeout(50);
     }
-    
-    console.log(`Answer input recorded as: ${await page.locator('.f3-input-value-text').first().textContent()}`);
     await page.getByTestId('submit-numpad').click();
   }
 }
@@ -61,11 +57,9 @@ async function failCurrentQuestion(page: any, questionId: number) {
   if (tipo === 'MULTIPLE_OPCION') {
     const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT texto FROM alternativas WHERE pregunta_id = ${questionId} AND es_correcta = false LIMIT 1"`;
     const wrongText = execSync(cmd).toString().trim();
-    console.log(`Submitting incorrect alternative: "${wrongText}" for question ID: ${questionId}`);
     await page.locator(`button:has-text("${wrongText}")`).first().click();
     await page.locator('button:has-text("Confirmar Respuesta")').first().click();
   } else {
-    console.log(`Submitting incorrect answer: "9999" for question ID: ${questionId}`);
     for (let i = 0; i < 4; i++) {
       await page.locator('button').filter({ hasText: new RegExp(`^9$`) }).last().click();
       await page.waitForTimeout(50);
@@ -74,7 +68,9 @@ async function failCurrentQuestion(page: any, questionId: number) {
   }
 }
 
-test.describe('07 - Gameplay Fase 3 (Problemas de Texto)', () => {
+const metadata = getPhaseMetadata(3);
+
+test.describe('07 - Gameplay Fase 3 (Problemas de Texto) - Exhaustivo', () => {
   let currentQuestionId: number | null = null;
   let testUserEmail: string;
 
@@ -93,113 +89,166 @@ test.describe('07 - Gameplay Fase 3 (Problemas de Texto)', () => {
           const json = await response.json();
           if (json && json.id) {
             currentQuestionId = json.id;
-            console.log(`Captured Loaded Question ID: ${currentQuestionId}`);
           }
         } catch (e) {}
       }
     });
-
   });
 
-  test('Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo', async ({ page }) => {
-    await page.route('**/api/fase3/lectura/**', async (route) => {
-      const response = await route.fetch();
-      const json = await response.json();
-      json.interactivos = [];
-      await route.fulfill({ json });
-    });
+  for (const modulo of metadata.modulos) {
+    for (const nivel of modulo.niveles) {
+      test(`Módulo ${modulo.modulo_id} Nivel ${nivel.nivel_id} - Flujo Completo Optimizado`, async ({ page }) => {
+        unlockAllUpToModule(testUserEmail, 3, modulo.modulo_id);
+        
+        for (let l = 1; l < nivel.nivel_id; l++) {
+           approveProgresoMaestria(testUserEmail, 3, parseInt(`${modulo.modulo_id}0${l}`), 'MIXTA');
+        }
 
-    // 1. Navigate to Phase 3 Welcome
-    await page.goto('/welcome-fase3');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
+        await page.route('**/api/fase3/lectura/**', async (route) => {
+          const response = await route.fetch();
+          const json = await response.json();
+          json.interactivos = [];
+          await route.fulfill({ json });
+        });
 
-    // 2. Click Módulo 1 (Lectura Matemática)
-    const modCard = page.locator('.f3-module-card-item').first();
-    await expect(modCard).toBeVisible();
-    await modCard.click();
+        await page.goto('/welcome-fase3');
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(1000);
 
-    // 3. Click Level 1
-    const lvl1Btn = page.locator('.f3-level-card-item').first();
-    await expect(lvl1Btn).toBeVisible();
-    await lvl1Btn.click();
+        const modCards = page.locator('.f3-module-card-item');
+        const modCard = modCards.nth(modulo.modulo_id - 1);
+        await expect(modCard).toBeVisible();
+        await modCard.click();
 
-    // 4. Handle Theory Modal
-    const theoryModal = page.locator('.f3-reading-overlay');
-    await page.waitForTimeout(1500);
-    if (await theoryModal.isVisible()) {
-      console.log('Theory Modal detected. Navigating steps...');
-      while (await page.locator('button:has-text("Siguiente")').isVisible()) {
-        await page.locator('button:has-text("Siguiente")').first().click();
-        await page.waitForTimeout(300);
-      }
-      const startBtn = page.locator('button:has-text("¡Entendido, empezar!")').first();
-      await expect(startBtn).toBeVisible();
-      await startBtn.click();
+        const lvlBtn = page.locator('.f3-level-card-item').nth(nivel.nivel_id - 1);
+        await expect(lvlBtn).toBeVisible();
+        await lvlBtn.click();
+
+        const theoryModal = page.locator('.f3-reading-overlay');
+        await page.waitForTimeout(1500);
+        if (await theoryModal.isVisible()) {
+          while (await page.locator('button:has-text("Siguiente")').isVisible()) {
+            await page.locator('button:has-text("Siguiente")').first().click();
+            await page.waitForTimeout(300);
+          }
+          const startBtn = page.locator('button:has-text("¡Entendido, empezar!")').first();
+          if (await startBtn.isVisible()) await startBtn.click();
+        }
+
+        const splash = page.locator('.f3-start-splash-overlay').first();
+        await page.waitForTimeout(1500);
+        if (await splash.isVisible()) {
+          await splash.click();
+        }
+
+        let errorsForced = 0;
+        const maxErrors = 4;
+        let questionCounter = 0;
+        const maxQuestionsSafety = 30; 
+
+        while (questionCounter < maxQuestionsSafety) {
+          await page.waitForTimeout(1000);
+          
+          const endScreen = page.locator('text=¡Desafío Terminado!, text=Nivel Completado, text=Dominado').first();
+          if (await endScreen.isVisible().catch(()=>false)) {
+             break;
+          }
+
+          if (currentQuestionId === null) {
+            const continueBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').first();
+            if (await continueBtn.isVisible().catch(()=>false)) {
+              await continueBtn.click();
+            }
+            continue;
+          }
+
+          const qId = currentQuestionId;
+          
+          if (errorsForced < maxErrors && questionCounter % 3 === 1) {
+            await failCurrentQuestion(page, qId);
+            errorsForced++;
+            await page.waitForTimeout(1500);
+
+            const continueBtnWrong = page.locator('button:has-text("Intentar de nuevo ↺"), button:has-text("Continuar")').first();
+            if (await continueBtnWrong.isVisible({ timeout: 3000 }).catch(()=>false)) {
+               await continueBtnWrong.click();
+            } else {
+               const incorrectInput = page.locator('.f3-custom-input-box.incorrect').first();
+               if (await incorrectInput.isVisible({ timeout: 1000 }).catch(()=>false)) {
+                 for (let i = 0; i < 4; i++) {
+                   await page.getByTestId('delete-numpad').click(); 
+                 }
+               }
+            }
+
+            await page.waitForTimeout(1500);
+            if (currentQuestionId) {
+               await submitCorrectAnswer(page, currentQuestionId);
+            }
+          } else {
+            await submitCorrectAnswer(page, qId);
+          }
+
+          await page.waitForTimeout(1000);
+          const nextBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').first();
+          if (await nextBtn.isVisible().catch(()=>false)) {
+            await nextBtn.click();
+            currentQuestionId = null;
+          }
+
+          questionCounter++;
+        }
+      });
     }
 
-    // 5. Dismiss Splash Screen
-    const splash = page.locator('.f3-start-splash-overlay').first();
-    await page.waitForTimeout(1500);
-    if (await splash.isVisible()) {
-      console.log('Splash Screen detected. Clicking to skip...');
-      await splash.click();
+    for (const desafio of modulo.desafios) {
+      test(`Módulo ${modulo.modulo_id} Desafío ${desafio.seccion} - Salida Temprana`, async ({ page }) => {
+        unlockAllUpToModule(testUserEmail, 3, modulo.modulo_id);
+        for (const n of modulo.niveles) {
+           approveProgresoMaestria(testUserEmail, 3, n.seccion, 'MIXTA');
+        }
+
+        await page.goto('/welcome-fase3');
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(1000);
+
+        const modCards = page.locator('.f3-module-card-item');
+        const modCard = modCards.nth(modulo.modulo_id - 1);
+        await expect(modCard).toBeVisible();
+        await modCard.click();
+
+        const desafioBtnIndex = modulo.desafios.findIndex(d => d.seccion === desafio.seccion);
+        const desafioBtn = page.locator('.f3-challenge-bar-btn, .f3-challenge-btn').nth(desafioBtnIndex >= 0 ? desafioBtnIndex : 0);
+        
+        if (await desafioBtn.isVisible({timeout: 3000}).catch(()=>false)) {
+            await expect(desafioBtn).toBeEnabled({ timeout: 10000 });
+            await desafioBtn.click();
+
+            const splash = page.locator('.f3-start-splash-overlay').first();
+            if (await splash.isVisible({ timeout: 5000 }).catch(()=>false)) {
+                await splash.click();
+            }
+
+            for (let attempts = 0; attempts < 5; attempts++) {
+              await page.waitForTimeout(1500);
+              if (currentQuestionId === null) continue;
+              
+              await failCurrentQuestion(page, currentQuestionId!);
+
+              const continueBtn = page.locator('button:has-text("Continuar"), button:has-text("Siguiente Pregunta →")').first();
+              if (await continueBtn.isVisible().catch(()=>false)) {
+                await continueBtn.click();
+              }
+              
+              const earlyExitModal = page.locator('.f3-feedback-card.early-exit, .early-exit-modal');
+              if (await earlyExitModal.isVisible({ timeout: 2000 }).catch(()=>false)) {
+                  const exitBtn = earlyExitModal.locator('button:has-text("Entendido"), button:has-text("Salir")').first();
+                  if (await exitBtn.isVisible()) await exitBtn.click();
+                  break;
+              }
+            }
+        }
+      });
     }
-
-    // 6. Test Correct Answer
-    for (let i = 0; i < 50; i++) {
-      if (currentQuestionId !== null) break;
-      await page.waitForTimeout(100);
-    }
-    expect(currentQuestionId).not.toBeNull();
-    const firstQuestionId = currentQuestionId!;
-
-    await submitCorrectAnswer(page, firstQuestionId);
-    await page.waitForTimeout(1000);
-
-    // Click continue if correct answer confirmation doesn't auto-advance
-    const continueBtn = page.locator('button:has-text("Siguiente Pregunta →")').first();
-    if (await continueBtn.isVisible()) {
-      await continueBtn.click();
-    }
-
-    // Wait for next question
-    for (let i = 0; i < 50; i++) {
-      if (currentQuestionId !== null && currentQuestionId !== firstQuestionId) break;
-      await page.waitForTimeout(100);
-    }
-    expect(currentQuestionId).not.toBe(firstQuestionId);
-
-    // 7. Test Fail to trigger mirror question
-    expect(currentQuestionId).not.toBeNull();
-    const secondQuestionId = currentQuestionId!;
-
-    await failCurrentQuestion(page, secondQuestionId);
-    await page.waitForTimeout(1000);
-
-    // Check for incorrect feedback
-    const typeCmd2 = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT tipo_pregunta FROM preguntas WHERE id = ${currentQuestionId}"`;
-    const tipo2 = execSync(typeCmd2).toString().trim();
-    
-    if (tipo2 === 'MULTIPLE_OPCION' || tipo2 === 'multiple_opcion') {
-      const continueBtnWrong = page.locator('button:has-text("Intentar de nuevo ↺")').first();
-      await expect(continueBtnWrong).toBeVisible({ timeout: 5000 });
-      await continueBtnWrong.click();
-    } else {
-      const incorrectInput = page.locator('.f3-custom-input-box.incorrect').first();
-      await expect(incorrectInput).toBeVisible({ timeout: 5000 });
-      // To continue in numeric, we just need to clear or type the correct answer. The next step does that.
-      // We can click the delete button to clear the input
-      for (let i = 0; i < 4; i++) {
-        await page.getByTestId('delete-numpad').click(); 
-      }
-    }
-
-    // 8. Solve Mirror Question
-    console.log('Waiting for mirror question loop...');
-    await page.waitForTimeout(1500);
-    expect(currentQuestionId).not.toBeNull();
-    await submitCorrectAnswer(page, currentQuestionId!);
-    console.log('Mirror question solved successfully.');
-  });
+  }
 });

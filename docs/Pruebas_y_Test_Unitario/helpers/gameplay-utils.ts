@@ -65,12 +65,15 @@ export async function navigateGenericTheoryModal(page: Page, interactivesAnswers
   try {
     await theoryOverlay.waitFor({ state: 'visible', timeout: 5000 });
   } catch (e) {
-    // Modal didn't appear in 5 seconds
+    // Modal no apareció en 5 segundos
   }
   
   if (await theoryOverlay.isVisible()) {
     console.log('Theory Modal detected. Navigating steps...');
-    while (true) {
+    let attemptsWithoutProgress = 0;
+    
+    while (attemptsWithoutProgress < 15) {
+      let progressMade = false;
       const interactiveBoxes = page.locator('.fg-interactive-box');
       const count = await interactiveBoxes.count();
       
@@ -83,44 +86,54 @@ export async function navigateGenericTheoryModal(page: Page, interactivesAnswers
         if (isCorrect) continue;
         
         const qTextEl = box.locator('.fg-int-q');
+        if (await qTextEl.count() === 0) continue;
         const qText = await qTextEl.innerText();
         
         let answer = '';
         for (const [key, val] of Object.entries(interactivesAnswers)) {
-          if (qText.includes(key)) {
+          if (qText.toLowerCase().includes(key.toLowerCase())) {
             answer = val;
             break;
           }
         }
 
         if (answer) {
+          console.log(`Answering theory question: "${qText.trim()}" with "${answer}"`);
           const input = box.locator('input.fg-int-input');
           await input.fill(answer);
           const verifyBtn = box.locator('button.fg-int-verify');
           await verifyBtn.click();
           await page.waitForTimeout(500);
+          progressMade = true;
         }
       }
 
       const nextBtn = page.locator('button.fg-nav-btn.primary');
       const startBtn = page.locator('button.fg-reading-close-btn');
 
-      try {
-        await page.locator('button.fg-reading-close-btn, button.fg-nav-btn.primary').first().waitFor({ state: 'visible', timeout: 3000 });
-      } catch (e) {
-        break;
-      }
-
       if (await startBtn.isVisible()) {
         await startBtn.click();
         await theoryOverlay.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
         await page.waitForTimeout(500); // Wait for Framer Motion exit animation
         break;
-      } else if (await nextBtn.isVisible() && await nextBtn.isEnabled()) {
-        await nextBtn.click();
-        await page.waitForTimeout(500);
+      } else if (await nextBtn.isVisible()) {
+        const isEnabled = await nextBtn.isEnabled();
+        if (isEnabled) {
+          await nextBtn.click();
+          await page.waitForTimeout(500);
+          progressMade = true;
+        } else {
+          // Si no está habilitado, esperamos a que se rendericen los interactivos
+          await page.waitForTimeout(500);
+        }
       } else {
-        break;
+        await page.waitForTimeout(500);
+      }
+
+      if (progressMade) {
+        attemptsWithoutProgress = 0;
+      } else {
+        attemptsWithoutProgress++;
       }
     }
   }

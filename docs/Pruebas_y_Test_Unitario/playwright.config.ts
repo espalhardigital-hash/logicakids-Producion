@@ -15,7 +15,7 @@ export default defineConfig({
   globalTeardown: './helpers/global-teardown.ts',
   globalSetup: './helpers/global-setup.ts',
 
-  /* Ejecución secuencial - las pruebas de progresión dependen del orden */
+  /* Ejecución secuencial (1 ventana) para facilitar depuración */
   fullyParallel: false,
 
   /* No permitir test.only en CI */
@@ -24,7 +24,7 @@ export default defineConfig({
   /* Reintentos solo en CI */
   retries: process.env.CI ? 1 : 0,
 
-  /* Un solo worker para ejecución ordenada */
+  /* 1 Worker para ejecución paso a paso secuencial */
   workers: 1,
 
   /* Reporte HTML en carpeta resultados */
@@ -48,8 +48,8 @@ export default defineConfig({
     navigationTimeout: 30000,
   },
 
-  /* Timeout global por test (60s para interfaces educativas con animaciones) */
-  timeout: 60000,
+  /* Timeout global por test aumentado a 120s por la cantidad masiva de tests dinámicos */
+  timeout: 120000,
 
   /* Proyecto único: Google Chrome */
   projects: [

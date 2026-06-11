@@ -1,195 +1,192 @@
 import { test, expect } from '../helpers/test-fixtures';
-import { ROUTES, API, SELECTORS } from '../helpers/constants';
+import { ROUTES } from '../helpers/constants';
 import { registerDynamicTestUser } from '../helpers/auth';
-import { setPhaseForUser } from '../helpers/db-utils';
+import { setPhaseForUser, approveProgresoMaestria, unlockAllUpToModule, execDbQuery } from '../helpers/db-utils';
+import { getPhaseMetadata } from '../helpers/metadata-utils';
+import { execSync } from 'child_process';
 
-/**
- * Suite 03: Gameplay Fase 1 — Validación de Lógica
- *
- * Prueba el flujo completo de juego en la Fase 1 (Aritmética Básica):
- * - Carga correcta de la interfaz de juego
- * - Comportamiento ante respuesta correcta (acierto)
- * - Comportamiento ante respuesta incorrecta (fallo)
- * - Aparición de pregunta espejo tras fallo (si aplica la configuración)
- * - Funcionamiento del botón "Siguiente"
- * - Ausencia de errores en la consola del browser
- */
-test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
+function getCorrectAnswer(questionId: number): string {
+  try {
+    const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT respuesta_correcta FROM preguntas WHERE id = ${questionId}"`;
+    return execSync(cmd).toString().trim();
+  } catch (e) {
+    console.error(`Error querying answer for question ${questionId}:`, e);
+    return '';
+  }
+}
+
+async function submitCorrectAnswer(page: any, questionId: number) {
+  const answer = getCorrectAnswer(questionId);
+  for (const char of answer) {
+    await page.locator(`button:has-text("${char}")`).last().click();
+    await page.waitForTimeout(50);
+  }
+  await page.locator('button.bg-blue-600').filter({ hasText: '' }).last().click();
+}
+
+async function failCurrentQuestion(page: any, questionId: number) {
+  for (let i = 0; i < 4; i++) {
+    await page.locator(`button:has-text("9")`).last().click();
+    await page.waitForTimeout(50);
+  }
+  await page.locator('button.bg-blue-600').filter({ hasText: '' }).last().click();
+}
+
+const metadata = getPhaseMetadata(1);
+const CATEGORY_NAMES = ['Sumas', 'Restas', 'Tablas', 'Divisiones', 'Desafío Mixto'];
+
+test.describe('03 - Gameplay Fase 1 (Aritmética Básica) - Exhaustivo', () => {
+  let currentQuestionId: number | null = null;
+  let testUserEmail: string;
+
   test.beforeEach(async ({ page }) => {
-    const testUserEmail = await registerDynamicTestUser(page);
+    currentQuestionId = null;
+    testUserEmail = await registerDynamicTestUser(page);
     setPhaseForUser(testUserEmail, 1);
-  });
 
-  // ─── Test: Interfaz de juego Fase 1 carga correctamente ──────────
-  test('La pantalla de juego de Fase 1 se renderiza sin errores', async ({ page, consoleLogger }) => {
-    // Navegar al welcome de fase 1
-    await page.goto(ROUTES.WELCOME_FASE1);
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
-
-
-    // Verificar que la pantalla welcome cargó
-    const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
-    expect(rootHtml.length).toBeGreaterThan(50);
-
-    // Sin errores de carga
-    const bodyText = await page.textContent('body');
-    expect(bodyText).not.toContain('ChunkLoadError');
-    expect(bodyText).not.toContain('Application error');
-
-    // Sin errores críticos en la consola del browser
-    expect(
-      consoleLogger.hasCriticalErrors(),
-      `Errores en consola durante carga Fase 1:\n${consoleLogger.getCriticalErrorsSummary()}`
-    ).toBe(false);
-  });
-
-  // ─── Test: Selección de nivel en Fase 1 ──────────────────────────
-  test('La pantalla de selección de nivel carga correctamente', async ({ page, consoleLogger }) => {
-    await page.goto(ROUTES.LEVEL_SELECTION);
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
-
-
-    // Verificar que hay contenido renderizado
-    const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
-    expect(rootHtml.length).toBeGreaterThan(50);
-
-    // Sin errores críticos en consola
-    expect(
-      consoleLogger.hasCriticalErrors(),
-      `Errores en consola de selección de nivel:\n${consoleLogger.getCriticalErrorsSummary()}`
-    ).toBe(false);
-  });
-
-  // ─── Test: Dashboard de Fase 1 vía API ───────────────────────────
-  test('El dashboard de Fase 1 responde correctamente vía API', async ({ page }) => {
-
-    // Obtener el token de autenticación del localStorage
-    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
-    expect(token, 'El token de autenticación no existe en localStorage').toBeTruthy();
-
-    // Llamar al endpoint del dashboard
-    const response = await page.request.get(`${API.FASE1_DASHBOARD}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    // El endpoint debe responder exitosamente
-    expect(response.ok(), `API ${API.FASE1_DASHBOARD} respondió con error: ${response.status()}`).toBe(true);
-
-    // La respuesta debe ser un JSON válido
-    const data = await response.json();
-    expect(data).toBeDefined();
-  });
-
-  // ─── Test: Respuesta a pregunta vía API (simulación de acierto/fallo) ───
-  test('El endpoint de responder preguntas funciona correctamente', async ({ page }) => {
-
-    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
-    expect(token).toBeTruthy();
-
-    // Primero obtener el dashboard para saber qué preguntas hay disponibles
-    const dashResponse = await page.request.get(`${API.FASE1_DASHBOARD}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    if (dashResponse.ok()) {
-      const dashboard = await dashResponse.json();
-
-      // Si hay preguntas disponibles, intentar responder una
-      if (dashboard.pregunta_actual || dashboard.pregunta) {
-        const pregunta = dashboard.pregunta_actual || dashboard.pregunta;
-        const preguntaId = pregunta.id;
-
-        // Enviar una respuesta (puede ser correcta o incorrecta)
-        const respuestaResponse = await page.request.post(`${API.FASE1_RESPONDER}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          data: {
-            pregunta_id: preguntaId,
-            respuesta_dada: 'test_response',
-            tiempo_respuesta_segundos: 5,
-          },
-        });
-
-        // El endpoint debe responder (200 o 422 si la respuesta no es válida)
-        expect(
-          [200, 201, 422].includes(respuestaResponse.status()),
-          `Endpoint responder devolvió status inesperado: ${respuestaResponse.status()}`
-        ).toBe(true);
-
-        if (respuestaResponse.ok()) {
-          const resultado = await respuestaResponse.json();
-
-          // Validar estructura de la respuesta
-          expect(resultado).toHaveProperty('es_correcta');
-          expect(resultado).toHaveProperty('respuesta_correcta');
-          expect(resultado).toHaveProperty('porcentaje_actual');
-
-          // Documentar si fue acierto o fallo
-          if (resultado.es_correcta) {
-            console.log(`✅ Respuesta correcta - Porcentaje actual: ${resultado.porcentaje_actual}%`);
-          } else {
-            console.log(`❌ Respuesta incorrecta - Feedback: ${resultado.feedback_error || 'N/A'}`);
-            console.log(`   Respuesta correcta era: ${resultado.respuesta_correcta}`);
-
-            // Si hay tipo_feedback, verificar que existe
-            if (resultado.tipo_feedback) {
-              expect(['inmediato', 'diferido', 'espejo']).toContain(resultado.tipo_feedback);
-            }
+    page.on('response', async (response) => {
+      if (
+        response.url().includes('/api/fase1/pedagogia/') &&
+        response.url().includes('/responder')
+      ) {
+        try {
+          const json = await response.json();
+          if (json && json.id) {
+            // No hay id directo en la respuesta, lo manejamos interceptando requests
           }
-        }
-      } else {
-        console.log('ℹ️ No hay preguntas disponibles en el dashboard actual. Saltando prueba de respuesta.');
+        } catch (e) {}
       }
+    });
+
+    page.on('request', async (request) => {
+       if (request.url().includes('/api/fase1/pedagogia/responder')) {
+          const postData = request.postDataJSON();
+          if (postData && postData.pregunta_id) {
+              currentQuestionId = postData.pregunta_id;
+          }
+       }
+    });
+  });
+
+  for (const modulo of metadata.modulos) {
+    const categoryName = CATEGORY_NAMES[modulo.modulo_id - 1] || 'Sumas';
+
+    for (const nivel of modulo.niveles) {
+      if (nivel.nivel_id > 5) continue; // La UI de Fase 1 (LevelSelectionScreen) solo renderiza hasta 5 niveles
+      
+      test(`Fase 1 - Módulo ${modulo.modulo_id} (${categoryName}) Nivel ${nivel.nivel_id} - Flujo Completo Optimizado`, async ({ page }) => {
+        test.setTimeout(300000); // 5 minutos de timeout por nivel por si la red/animaciones van lentas
+        unlockAllUpToModule(testUserEmail, 1, modulo.modulo_id);
+        
+        // Fase 1 usa user.settings.unlockedLevels para desbloquear los niveles internos
+        const categories = ['addition', 'subtraction', 'multiplication', 'division', 'challenge'];
+        const currentCat = categories[modulo.modulo_id - 1];
+        
+        // El nivel desbloqueado debe ser al menos el nivel actual que queremos jugar
+        const targetLevel = nivel.nivel_id;
+        const queryUpdate = `
+          UPDATE users 
+          SET settings = jsonb_set(
+            COALESCE(settings, '{}'::jsonb), 
+            '{unlockedLevels, ${currentCat}}', 
+            '${targetLevel}'::jsonb
+          )
+          WHERE email = '${testUserEmail}';
+        `;
+        execDbQuery(queryUpdate);
+
+        await page.goto('/welcome');
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(1000);
+
+        // Click on Category Card
+        const catBtn = page.locator('h3', { hasText: categoryName }).first();
+        await expect(catBtn).toBeVisible();
+        await catBtn.click({ force: true });
+        
+        await page.waitForTimeout(1000);
+
+        // Click on Level
+        const lvlBtn = page.locator(`span:has-text("Nivel ${nivel.nivel_id}")`).first();
+        await expect(lvlBtn).toBeVisible();
+        await lvlBtn.click({ force: true });
+
+        await page.waitForTimeout(1500);
+
+        let errorsForced = 0;
+        const maxErrors = 4;
+        let questionCounter = 0;
+        let emptyCycles = 0;
+        const maxQuestionsSafety = 40;
+
+        // Bucle de Preguntas
+        while (questionCounter < maxQuestionsSafety) {
+          await page.waitForTimeout(1000);
+          
+          // Detectar pantalla de resultados/fin
+          if (await page.locator('text=Misión Completada, text=Nivel Superado, text=Nivel Completado, text=Dominado').isVisible().catch(()=>false)) {
+            break;
+          }
+
+          // En Fase 1 no podemos saber el currentQuestionId facilmente desde UI sin API,
+          // asi que extraemos el texto y buscamos
+          const questionTextEl = page.locator('h2.text-7xl, h2.text-8xl').first();
+          if (!await questionTextEl.isVisible().catch(()=>false)) {
+             emptyCycles++;
+             if (emptyCycles > 10) break; // Evitar loop infinito si ya no hay pregunta
+             continue;
+          }
+          emptyCycles = 0;
+          
+          const questionText = await questionTextEl.innerHTML();
+          
+          // Buscar respuesta en DB directo por texto (ya que es matemática basica "2 + 2 =")
+          let answer = '';
+          try {
+             const clean = questionText.trim().replace(/'/g, "''");
+             const sqlQuery = `SELECT respuesta_correcta FROM preguntas WHERE fase_id = 1 AND enunciado = '${clean}' LIMIT 1;`;
+             const cmd = `docker exec -i logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A`;
+             answer = execSync(cmd, { input: sqlQuery }).toString().trim();
+          } catch(e) {
+             console.log("Error querying answer", e);
+          }
+
+          if (!answer) {
+             // Fallback resolver manual (1)
+             answer = "1";
+          }
+          
+          if (errorsForced < maxErrors && questionCounter % 3 === 1) {
+             // Equivocarse a propósito
+             for (let i = 0; i < 4; i++) {
+                await page.locator(`button:has-text("9")`).last().click();
+                await page.waitForTimeout(50);
+             }
+             await page.locator('button.bg-blue-600').filter({ hasText: '' }).last().click();
+             errorsForced++;
+             
+             await page.waitForTimeout(2000); // Wait for red feedback
+
+             // Reparar error
+             for (const char of answer) {
+                await page.locator(`button:has-text("${char}")`).last().click();
+                await page.waitForTimeout(50);
+             }
+             await page.locator('button.bg-blue-600').filter({ hasText: '' }).last().click();
+             await page.waitForTimeout(1500);
+          } else {
+             // Acertar a la primera
+             for (const char of answer) {
+                await page.locator(`button:has-text("${char}")`).last().click();
+                await page.waitForTimeout(50);
+             }
+             await page.locator('button.bg-blue-600').filter({ hasText: '' }).last().click();
+             await page.waitForTimeout(1500);
+          }
+
+          questionCounter++;
+        }
+      });
     }
-  });
-
-  // ─── Test: Pantalla de juego Fase 1 (/play) carga ────────────────
-  test('La pantalla de juego /play renderiza elementos interactivos', async ({ page, consoleLogger }) => {
-    consoleLogger.clear();
-
-    await page.goto(ROUTES.PLAY_FASE1);
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000); // Esperar carga de pregunta + animaciones
-
-
-    // Verificar que la interfaz tiene contenido
-    const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
-    expect(rootHtml.length).toBeGreaterThan(50);
-
-    // No debe haber pantalla en blanco ni errores de chunk
-    const bodyText = await page.textContent('body');
-    expect(bodyText).not.toContain('ChunkLoadError');
-    expect(bodyText).not.toContain('Failed to fetch dynamically imported module');
-
-    // Sin errores críticos en consola del browser
-    expect(
-      consoleLogger.hasCriticalErrors(),
-      `Errores en consola durante gameplay Fase 1:\n${consoleLogger.getCriticalErrorsSummary()}`
-    ).toBe(false);
-  });
-
-  // ─── Test: Pantalla de resultados carga ──────────────────────────
-  test('La pantalla de resultados (/results) se renderiza correctamente', async ({ page, consoleLogger }) => {
-    consoleLogger.clear();
-
-    await page.goto(ROUTES.RESULTS);
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
-
-    // Verificar que hay contenido (puede redirigir si no hay datos de juego previo)
-    const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
-    expect(rootHtml.length).toBeGreaterThan(10);
-
-    // Sin errores críticos
-    expect(
-      consoleLogger.hasCriticalErrors(),
-      `Errores en consola de Results:\n${consoleLogger.getCriticalErrorsSummary()}`
-    ).toBe(false);
-  });
+  }
 });

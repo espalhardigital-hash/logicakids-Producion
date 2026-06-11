@@ -6,11 +6,11 @@ import { TEST_USER } from './constants';
  * @param query Consulta SQL a ejecutar
  */
 export function execDbQuery(query: string) {
-  const cleanedQuery = query.replace(/\s+/g, ' ').trim();
   try {
-    execSync(`docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "${cleanedQuery}"`);
+    execSync(`docker exec -i logicakids_local_db psql -U logicakids_local_user -d logicakids_local`, { input: query });
   } catch (e) {
-    console.error(`❌ Error ejecutando query DB: ${cleanedQuery}`, e);
+    console.error(`❌ Error ejecutando query DB:\n${query}`, e);
+    throw e;
   }
 }
 
@@ -108,6 +108,26 @@ export function approveProgresoMaestria(email: string, faseId: number, seccion: 
  * Desbloquea todos los módulos anteriores al moduloId especificado aprobando sus niveles y desafíos.
  */
 export function unlockAllUpToModule(email: string, faseId: number, moduloId: number) {
+  if (faseId === 1) {
+    const categories = ['addition', 'subtraction', 'multiplication', 'division', 'challenge'];
+    let levels: Record<string, number> = { addition: 1, subtraction: 1, multiplication: 1, division: 1, challenge: 1 };
+    for (let i = 1; i < moduloId; i++) {
+        levels[categories[i-1]] = 5; 
+    }
+    const query = `
+      UPDATE users 
+      SET settings = jsonb_set(
+        COALESCE(settings, '{}'::jsonb), 
+        '{unlockedLevels}', 
+        '${JSON.stringify(levels)}'::jsonb
+      )
+      WHERE email = '${email}';
+    `;
+    execDbQuery(query);
+    console.log(`✅ Fase 1 unloked up to module ${moduloId} for ${email}`);
+    return;
+  }
+
   // Configuración de secciones y operaciones por fase y módulo
   // Modulos y secciones para Fase 2:
   // Módulo 1: 101 (SUMA), 102 (MULTIPLICACION), 103 (MIXTA), desafíos 1011, 1012, 1013 (MIXTA)

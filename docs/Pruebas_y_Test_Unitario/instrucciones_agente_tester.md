@@ -123,3 +123,20 @@ El flujo de trabajo automatizado para documentar fallos es el siguiente:
 
 
 *Nota para el Agente: Al ejecutar un ciclo de pruebas basándote en este documento, debes priorizar el aislamiento, la idempotencia y la lectura activa de interceptores de red para asegurar tests 100% fiables.*
+
+---
+
+## 7. Prompt Maestro de Ejecución por Fase
+
+Para solicitar al agente que ejecute y depure una Fase completa de manera automática, selecciona este archivo como contexto y pégale el siguiente prompt en el chat:
+
+> **Prompt de Ejecución:**
+> "Basándote en `instrucciones_agente_tester.md`, actúa como Agente Tester Automatizado y realiza una prueba exhaustiva sobre la **Fase [NÚMERO DE FASE]**. Aplica los tests automáticos como lo haría un alumno normal de principio a fin, buscando bugs de UX, lógica e infraestructura.
+> 
+> **Reglas críticas aprendidas de ejecuciones previas que debes verificar o aplicar ANTES de correr los tests:**
+> 1. **Timeouts Reales:** Asegúrate de configurar un timeout amplio en el archivo `.spec.ts` correspondiente (ej. `test.setTimeout(300000);` es decir, 5 minutos) para tolerar la latencia de red y animaciones en el entorno local Docker.
+> 2. **Consultas Seguras a DB:** Si el test usa `execSync` para sacar respuestas de PostgreSQL (`docker exec`), utiliza SIEMPRE el modo interactivo inyectando por `stdin` (`{ input: sqlQuery }`) en lugar del flag `-c`. Esto evita que la terminal de Windows corrompa las comillas simples de los enunciados.
+> 3. **Sincronización UI vs DB:** Revisa la interfaz gráfica del selector de niveles de esta fase y asegúrate de que el test no intente hacer clic en niveles que no se renderizan (ej. si la UI solo renderiza 5 niveles estáticos, limita tu bucle de test a 5 niveles, aunque la DB tenga más).
+> 4. **Locators Exactos:** Ajusta los textos del localizador final (ej. *"Misión Completada"*, *"Nivel Superado"*, *"Dominado"*) según lo que diga exactamente la pantalla de resultados de esa Fase en particular para evitar bucles infinitos por Timeouts.
+> 
+> **Instrucción final:** Retorna un **plan de implementación** explicando tu diagnóstico y enfoque por este prompt antes de ejecutar alguna acción. Una vez aprobado, corre las pruebas iterativamente corrigiendo los fallos hasta lograr el 100% de tests en verde, actualizando tu lista de tareas y entregando un `walkthrough` del reporte de bugs al terminar."

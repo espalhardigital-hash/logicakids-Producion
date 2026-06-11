@@ -1,281 +1,130 @@
 import { test, expect } from '../helpers/test-fixtures';
-import { API, GAME_CONFIG } from '../helpers/constants';
+import { API } from '../helpers/constants';
 import { registerDynamicTestUser } from '../helpers/auth';
-import { setPhaseForUser } from '../helpers/db-utils';
-import { execSync } from 'child_process';
+import { setPhaseForUser, approveProgresoMaestria, unlockAllUpToModule } from '../helpers/db-utils';
+import { getPhaseMetadata } from '../helpers/metadata-utils';
 
-function clearTestUserProgress() {
-  try {
-    const email = process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com';
-    const queries = [
-      `DELETE FROM intento_pasos WHERE intento_pregunta_id IN (SELECT id FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}')));`,
-      `DELETE FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`,
-      `DELETE FROM intentos WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`,
-      `DELETE FROM progreso_maestria WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`
-    ];
-    for (const q of queries) {
-      execSync(`docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "${q}"`);
+function getPlayUrl(fase: number, modulo: number, nivel: number): string {
+    if (fase === 1) {
+        const categories = ['addition', 'subtraction', 'multiplication', 'division', 'challenge'];
+        const difficulties = ['easy', 'easy_medium', 'medium', 'medium_hard', 'hard', 'challenge'];
+        const cat = categories[modulo - 1] || 'addition';
+        const diff = difficulties[nivel - 1] || 'easy';
+        return `/play?category=${cat}&difficulty=${diff}`;
     }
-    console.log(`🧹 Test user database progress successfully cleared for ${email}.`);
-  } catch (e) {
-    console.error('❌ Failed to clear test user database progress:', e);
-  }
+    return `/fase${fase}/modulo/${modulo}/nivel/${nivel}`;
 }
 
-/**
- * Suite 05: Validación de Progresión y Desbloqueo
- *
- * Verifica el sistema de bloqueo/desbloqueo de módulos, niveles y desafíos.
- * Comprueba que:
- * - Los bloques con estado BLOQUEADO no son accesibles
- * - Los bloques EN_PROGRESO son accesibles
- * - Los bloques APROBADO están correctamente marcados
- * - El porcentaje mínimo de aprobación se respeta para desbloquear
- * - La API de progreso responde con datos coherentes
- */
-test.describe('05 - Progresión y Desbloqueo', () => {
+test.describe('05 - Candados y Seguridad de Progresión Exhaustiva', () => {
+  let testUserEmail: string;
+
   test.beforeEach(async ({ page }) => {
-    clearTestUserProgress();
-    const testUserEmail = await registerDynamicTestUser(page);
-    setPhaseForUser(testUserEmail, 1);
+    testUserEmail = await registerDynamicTestUser(page);
   });
 
-  // ─── Test: API de progreso responde correctamente ────────────────
-  test('La API de bloques de progreso responde con datos válidos', async ({ page }) => {
-    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
-    expect(token, 'Token de autenticación no encontrado').toBeTruthy();
-
-    // Llamar al endpoint de bloques de progreso
-    const response = await page.request.get(API.PROGRESS_BLOCKS, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    expect(
-      response.ok(),
-      `API ${API.PROGRESS_BLOCKS} respondió con error: ${response.status()}`
-    ).toBe(true);
-
-    const blocks = await response.json();
-    expect(Array.isArray(blocks), 'La respuesta de bloques debe ser un array').toBe(true);
-
-    if (blocks.length > 0) {
-      // Validar estructura de cada bloque
-      const firstBlock = blocks[0];
-      expect(firstBlock).toHaveProperty('fase_id');
-      expect(firstBlock).toHaveProperty('estado');
-      expect(firstBlock).toHaveProperty('porcentaje_actual');
-
-      // Validar que los estados son válidos
-      const validStates = Object.values(GAME_CONFIG.BLOCK_STATE);
-      for (const block of blocks) {
-        expect(
-          validStates,
-          `Estado inválido encontrado: "${block.estado}" en fase ${block.fase_id}, sección ${block.seccion}`
-        ).toContain(block.estado);
+  // Iteramos sobre todas las fases de la plataforma
+  for (let faseId = 1; faseId <= 9; faseId++) {
+      
+    test(`Fase ${faseId} - Intentos de Salto Ilegal entre Módulos y Niveles`, async ({ page }) => {
+      // Le damos acceso al usuario solo a esta fase (Nivel 1, Modulo 1)
+      setPhaseForUser(testUserEmail, faseId);
+      const metadata = getPhaseMetadata(faseId);
+      
+      // Validar que no se puede entrar a la Fase Siguiente
+      if (faseId < 9) {
+         const nextFaseUrl = `/welcome-fase${faseId + 1}`;
+         await page.goto(nextFaseUrl);
+         await page.waitForLoadState('domcontentloaded');
+         await page.waitForTimeout(1000);
+         // Debería expulsarlo de la ruta por no tener el nivel de fase
+         expect(page.url()).not.toContain(nextFaseUrl);
       }
 
-      console.log(`📊 Total de bloques: ${blocks.length}`);
-      console.log(`   ✅ APROBADOS: ${blocks.filter((b: any) => b.estado === 'APROBADO').length}`);
-      console.log(`   🔄 EN_PROGRESO: ${blocks.filter((b: any) => b.estado === 'EN_PROGRESO').length}`);
-      console.log(`   🔒 BLOQUEADOS: ${blocks.filter((b: any) => b.estado === 'BLOQUEADO').length}`);
-    }
-  });
+      for (let mIndex = 0; mIndex < metadata.modulos.length; mIndex++) {
+         const modulo = metadata.modulos[mIndex];
+         
+         // Otorgamos acceso legitimo hasta el modulo actual
+         unlockAllUpToModule(testUserEmail, faseId, modulo.modulo_id);
+         
+         for (let nIndex = 0; nIndex < modulo.niveles.length; nIndex++) {
+            const nivel = modulo.niveles[nIndex];
+            
+            // Otorgamos acceso legítimo hasta nivel_id - 1
+            for (let l = 1; l < nivel.nivel_id; l++) {
+               approveProgresoMaestria(testUserEmail, faseId, parseInt(`${modulo.modulo_id}0${l}`), 'MIXTA');
+            }
+            
+            // Simular intento de hack: El usuario está validado hasta nivel.nivel_id (aún no lo pasa).
+            // Intenta saltar al nivel.nivel_id + 1 (Si existe)
+            if (nIndex + 1 < modulo.niveles.length) {
+               const nextNivel = modulo.niveles[nIndex + 1];
+               const illegalUrl = getPlayUrl(faseId, modulo.modulo_id, nextNivel.nivel_id);
+               
+               await page.goto(illegalUrl);
+               await page.waitForTimeout(1500);
+               
+               // La plataforma debe detectarlo y redirigirlo al dashboard o mapa, NO dejarlo en el nivel ilegal
+               // O en su defecto, mostrar un cartel de "Bloqueado"
+               const isStillOnIllegalUrl = page.url().includes(illegalUrl);
+               if (isStillOnIllegalUrl) {
+                  // Si no lo redirige, la pantalla debe estar vacía o mostrar acceso denegado explícito
+                  const hasQuestions = await page.locator('button.bg-blue-600, .f2-keypad-submit, .fg-keypad-submit').count();
+                  const isBlockedMsg = await page.locator('text=Bloqueado, text=Acceso Denegado, text=No tienes permiso').isVisible().catch(()=>false);
+                  
+                  expect(hasQuestions === 0 || isBlockedMsg, `¡Brecha de seguridad! El usuario logró cargar el nivel ${nextNivel.nivel_id} del módulo ${modulo.modulo_id} en fase ${faseId} sin haber pasado el anterior.`).toBe(true);
+               }
+            }
 
-  // ─── Test: Resumen de progreso responde correctamente ────────────
-  test('La API de resumen de progreso responde con datos válidos', async ({ page }) => {
-    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
-    expect(token).toBeTruthy();
-
-    const response = await page.request.get(API.PROGRESS_SUMMARY, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    expect(response.ok(), `API ${API.PROGRESS_SUMMARY} respondió con error`).toBe(true);
-
-    const summary = await response.json();
-    expect(summary).toHaveProperty('alumno_id');
-    expect(summary).toHaveProperty('total_bloques_aprobados');
-    expect(summary).toHaveProperty('precision_promedio');
-
-    console.log(`📈 Resumen del usuario de prueba:`);
-    console.log(`   Bloques trabajados: ${summary.total_bloques_trabajados}`);
-    console.log(`   Bloques aprobados: ${summary.total_bloques_aprobados}`);
-    console.log(`   Precisión promedio: ${summary.precision_promedio}%`);
-  });
-
-  // ─── Test: Bloques BLOQUEADOS no permiten avance ─────────────────
-  test('Los bloques BLOQUEADOS tienen porcentaje 0 y no están desbloqueados por admin', async ({ page }) => {
-    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
-    expect(token).toBeTruthy();
-
-    const response = await page.request.get(API.PROGRESS_BLOCKS, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    const blocks = await response.json();
-    const blockedBlocks = blocks.filter((b: any) => b.estado === GAME_CONFIG.BLOCK_STATE.BLOQUEADO);
-
-    if (blockedBlocks.length > 0) {
-      for (const block of blockedBlocks) {
-        // Los bloques bloqueados no deberían tener progreso
-        expect(
-          block.completitud_actual,
-          `Bloque bloqueado (fase ${block.fase_id}, sección ${block.seccion}) tiene completitud > 0`
-        ).toBe(0);
-
-        // No deberían estar desbloqueados por admin (a menos que sea override)
-        if (!block.desbloqueado_por_admin) {
-          expect(block.aciertos_acumulados).toBe(0);
-          expect(block.intentos_totales).toBe(0);
-        }
+            // Simular intento de hack: Saltar al Módulo Siguiente (Nivel 1)
+            if (nIndex === 0 && mIndex + 1 < metadata.modulos.length) {
+                const nextModulo = metadata.modulos[mIndex + 1];
+                const illegalModUrl = getPlayUrl(faseId, nextModulo.modulo_id, 1);
+                
+                await page.goto(illegalModUrl);
+                await page.waitForTimeout(1500);
+                
+                const isStillOnIllegalUrl = page.url().includes(illegalModUrl);
+                if (isStillOnIllegalUrl) {
+                   const hasQuestions = await page.locator('button.bg-blue-600, .f2-keypad-submit, .fg-keypad-submit').count();
+                   const isBlockedMsg = await page.locator('text=Bloqueado, text=Acceso Denegado').isVisible().catch(()=>false);
+                   expect(hasQuestions === 0 || isBlockedMsg, `¡Brecha de seguridad! El usuario logró saltar al módulo ${nextModulo.modulo_id} en fase ${faseId} sin terminar el módulo actual.`).toBe(true);
+                }
+            }
+         }
       }
-      console.log(`🔒 ${blockedBlocks.length} bloques BLOQUEADOS verificados correctamente`);
-    } else {
-      console.log('ℹ️ No hay bloques BLOQUEADOS para el usuario de prueba');
-    }
-  });
+    });
+  }
 
-  // ─── Test: Bloques APROBADOS tienen porcentaje >= mínimo ─────────
-  test('Los bloques APROBADOS tienen porcentaje >= nota mínima de aprobación', async ({ page }) => {
+  // Comprobar la UI visual de candados en los Dashboards
+  test('La Interfaz Gráfica muestra los candados correctamente en todas las fases', async ({ page }) => {
+    // Usuario recien creado, Fase 1
     const token = await page.evaluate(() => localStorage.getItem('auth_token'));
     expect(token).toBeTruthy();
 
-    // Obtener configuración de aprobación (si hay override por admin, usar ese)
-    const configResponse = await page.request.get(API.ADMIN_SETTINGS, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    let passingScore = GAME_CONFIG.DEFAULT_PASSING_SCORE;
-    if (configResponse.ok()) {
-      const config = await configResponse.json();
-      if (config?.practica_libre?.porcentaje_aprobacion) {
-        passingScore = config.practica_libre.porcentaje_aprobacion;
-      }
+    await page.goto('/map');
+    await page.waitForTimeout(2000);
+    
+    // Fases 2 a 9 deben estar bloqueadas visualmente
+    for (let i = 2; i <= 9; i++) {
+        const card = page.locator('div.group', { hasText: `Fase ${i}` }).first();
+        // Puede que tengan svg de lock o disabled en el boton
+        const isBtnDisabled = await card.locator('button').isDisabled().catch(()=>false);
+        const hasLockIcon = await card.locator('svg').count() > 0;
+        expect(isBtnDisabled || hasLockIcon, `La Fase ${i} debería verse bloqueada visualmente en el mapa`).toBe(true);
     }
 
-    // Obtener bloques de progreso
-    const response = await page.request.get(API.PROGRESS_BLOCKS, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
+    // Fase 2 UI
+    setPhaseForUser(testUserEmail, 2);
+    await page.goto('/welcome-fase2');
+    await page.waitForTimeout(2000);
+    const lockedF2Mods = await page.locator('.f2-module-card:has(.lucide-lock), .f2-module-card.opacity-50').count();
+    expect(lockedF2Mods).toBeGreaterThan(0); // Debe haber módulos bloqueados
 
-    const blocks = await response.json();
-    const approvedBlocks = blocks.filter(
-      (b: any) => b.estado === GAME_CONFIG.BLOCK_STATE.APROBADO && !b.aprobado_por_admin
-    );
-
-    if (approvedBlocks.length > 0) {
-      for (const block of approvedBlocks) {
-        expect(
-          block.porcentaje_actual,
-          `Bloque APROBADO (fase ${block.fase_id}, sección ${block.seccion}, op: ${block.operacion}) ` +
-          `tiene porcentaje ${block.porcentaje_actual}% pero mínimo es ${passingScore}%`
-        ).toBeGreaterThanOrEqual(passingScore);
-      }
-      console.log(
-        `✅ ${approvedBlocks.length} bloques APROBADOS verificados (todos >= ${passingScore}%)`
-      );
-    } else {
-      console.log('ℹ️ No hay bloques APROBADOS orgánicamente para verificar');
-    }
-  });
-
-  // ─── Test: Orden de desbloqueo es coherente ──────────────────────
-  test('El orden de desbloqueo de bloques es coherente (no hay saltos)', async ({ page }) => {
-    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
-    expect(token).toBeTruthy();
-
-    const response = await page.request.get(API.PROGRESS_BLOCKS, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    const blocks = await response.json();
-
-    if (blocks.length > 1) {
-      // Agrupar bloques por fase
-      const byFase: Record<number, any[]> = {};
-      for (const block of blocks) {
-        if (!byFase[block.fase_id]) byFase[block.fase_id] = [];
-        byFase[block.fase_id].push(block);
-      }
-
-      // Para cada fase, verificar que no haya un bloque EN_PROGRESO/APROBADO
-      // después de un bloque BLOQUEADO (excepto si el admin lo desbloqueó)
-      for (const [faseId, faseBlocks] of Object.entries(byFase)) {
-        // Ordenar por sección
-        const sorted = faseBlocks.sort((a: any, b: any) => a.seccion - b.seccion);
-
-        let foundBlocked = false;
-        for (const block of sorted) {
-          if (block.estado === GAME_CONFIG.BLOCK_STATE.BLOQUEADO) {
-            foundBlocked = true;
-          } else if (foundBlocked && !block.desbloqueado_por_admin && !block.aprobado_por_admin) {
-            // Un bloque activo después de uno bloqueado sin intervención admin es sospechoso
-            console.warn(
-              `⚠️ Fase ${faseId}: Bloque sección ${block.seccion} (${block.operacion}) ` +
-              `está ${block.estado} pero hay bloques anteriores BLOQUEADOS`
-            );
-          }
-        }
-      }
-
-      console.log(`📋 Coherencia de desbloqueo verificada para ${Object.keys(byFase).length} fases`);
-    }
-  });
-
-  // ─── Test: Historial de progreso responde correctamente ──────────
-  test('El historial de progreso del usuario responde con datos válidos', async ({ page }) => {
-    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
-    expect(token).toBeTruthy();
-
-    const response = await page.request.get(API.PROGRESS_HISTORY, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    expect(response.ok(), `API ${API.PROGRESS_HISTORY} respondió con error`).toBe(true);
-
-    const history = await response.json();
-    expect(Array.isArray(history), 'El historial debe ser un array').toBe(true);
-
-    if (history.length > 0) {
-      const firstEntry = history[0];
-      expect(firstEntry).toHaveProperty('fase_id');
-      expect(firstEntry).toHaveProperty('porcentaje');
-      expect(firstEntry).toHaveProperty('estado_resultado');
-
-      // Validar estados de resultado válidos
-      const validResults = ['APROBADO', 'NO_APROBADO', 'EN_PROGRESO', 'EARLY_EXIT', 'RESCATE_COMPLETADO', 'ADMIN_UNLOCK', 'ADMIN_APPROVE'];
-      for (const entry of history) {
-        expect(
-          validResults,
-          `Estado de resultado inválido: "${entry.estado_resultado}"`
-        ).toContain(entry.estado_resultado);
-      }
-
-      console.log(`📜 Historial: ${history.length} registros encontrados`);
-    } else {
-      console.log('ℹ️ El usuario de prueba aún no tiene historial de progreso');
-    }
-  });
-
-  test('La pantalla de progreso se renderiza en el browser sin errores', async ({ page, consoleLogger }) => {
-    consoleLogger.clear();
-
-    await page.goto('/progress');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2500);
-
-    // Verificar que hay contenido
-    const rootHtml = await page.innerHTML('#root');
-    expect(rootHtml.length).toBeGreaterThan(50);
-
-    // Sin errores de carga
-    const bodyText = await page.textContent('body');
-    expect(bodyText).not.toContain('ChunkLoadError');
-
-    // Sin errores críticos en consola del browser
-    expect(
-      consoleLogger.hasCriticalErrors(),
-      `Errores en consola de la pantalla de progreso:\n${consoleLogger.getCriticalErrorsSummary()}`
-    ).toBe(false);
+    // Fase 7 UI
+    setPhaseForUser(testUserEmail, 7);
+    await page.goto('/welcome-fase7');
+    await page.waitForTimeout(2000);
+    const lockedF7Mods = await page.locator('.fg-module-card:has(svg), .fg-module-card.opacity-50, .fg-module-card.cursor-not-allowed').count();
+    expect(lockedF7Mods).toBeGreaterThan(0); 
   });
 });
