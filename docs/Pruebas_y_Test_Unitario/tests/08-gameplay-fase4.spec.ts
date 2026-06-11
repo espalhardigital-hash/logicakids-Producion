@@ -4,6 +4,46 @@ import { registerDynamicTestUser } from '../helpers/auth';
 import { setPhaseForUser, approveProgresoMaestria, unlockAllUpToModule } from '../helpers/db-utils';
 import { getPhaseMetadata } from '../helpers/metadata-utils';
 import { execSync } from 'child_process';
+import { navigateGenericTheoryModal } from '../helpers/gameplay-utils';
+
+const FASE4_THEORY_ANSWERS: Record<string, string> = {
+  'Encuentra la fracción equivalente a 1/2': '3/6',
+  'Amplifica 2/3 por un factor de 2': '4/6',
+  '¿Qué fracción equivalente a 4/8': '1/2',
+  'Un cuadrado se divide en 2 rectángulos': '1/2',
+  'Un cuadrado de 4x4 cuadraditos tiene 8 pintados': '1/2',
+  'Si cortamos un círculo en 4 porciones, pero 2 de ellas': 'no',
+  'Calcula 1/4 de 16': '4',
+  'Si tienes 15 manzanas y regalas 1/3': '5',
+  'Calcula 1/5 de 40': '8',
+  'Calcula 3/4 de 24': '18',
+  'Un cofre tiene 30 monedas. Tomas 2/3': '20',
+  'Calcula 4/5 de 50': '40',
+  'Si gastas 3/8 de tu dinero': '5/8',
+  'Tenías 30 manzanas y regalaste 1/3. ¿Cuántas': '20',
+  'Un tanque de 50 litros vacía 2/5': '30',
+  'Calcula el 50% de 80.': '40',
+  'Calcula el 25% de 120.': '30',
+  'Calcula el 10% de 450.': '45',
+  'En una encuesta del 100%, 45% prefiere chocolate': '25',
+  'De un total de 400 personas, el 50%': '200',
+  'Si el 10% de un pastel representa 8': '80',
+  'Tres barras marcan: A=100, B=150, C=50. ¿Cuál es el total': '300',
+  'Usando las barras anteriores: ¿cuánto más grande': '100',
+  'Si sumamos las barras A (100) y C (50)': 'sí',
+  'Calcula el promedio de las puntuaciones: 4, 8 y 12.': '8',
+  'Dos amigos gastan R$ 10 y R$ 20. ¿Cuál': '15',
+  'En tres días llovió 6 mm, 6 mm y 12 mm. ¿Cuál': '8',
+  'La receta es 3 tazas de agua por 1 de limón': '9',
+  'Pintura rosa usa 1 litro de rojo por 4 de blanco': '8',
+  'Una masa requiere 1 huevo por 3 tazas de harina': '3',
+  'Mezclas 2 litros de azul y 3 de amarillo': '6',
+  'Pintura rosa usa 1 de rojo y 4 de blanco': '20',
+  'Concreto lleva 3 de arena y 7 de grava': '9',
+  'Una mezcla tiene 1 parte de concentrado y 9 de agua': '10',
+  'Un jugo de 200 ml contiene 25% de pulpa. ¿Cuántos': '50',
+  'Si en 100 gramos de chocolate hay 10%': '90'
+};
 
 function getCorrectAnswer(questionId: number): string {
   try {
@@ -148,13 +188,6 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
            approveProgresoMaestria(testUserEmail, 4, parseInt(`${modulo.modulo_id}0${l}`), 'MIXTA');
         }
 
-        await page.route('**/api/fase4/lectura/**', async (route) => {
-          const response = await route.fetch();
-          const json = await response.json();
-          json.interactivos = [];
-          await route.fulfill({ json });
-        });
-
         await page.goto('/welcome-fase4');
         await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(1000);
@@ -171,12 +204,7 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
         const theoryModal = page.locator('.f4-reading-overlay');
         await page.waitForTimeout(1500);
         if (await theoryModal.isVisible()) {
-          while (await page.locator('button:has-text("Siguiente")').isVisible()) {
-            await page.locator('button:has-text("Siguiente")').first().click();
-            await page.waitForTimeout(300);
-          }
-          const startBtn = page.locator('button:has-text("¡Entendido, empezar!")').first();
-          if (await startBtn.isVisible()) await startBtn.click();
+          await navigateGenericTheoryModal(page, FASE4_THEORY_ANSWERS, 'f4');
         }
 
         const splash = page.locator('.f4-start-splash-overlay').first();
@@ -193,7 +221,7 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
         while (questionCounter < maxQuestionsSafety) {
           await page.waitForTimeout(1000);
           
-          const endScreen = page.locator('text=¡Desafío Terminado!, text=Nivel Completado, text=Dominado').first();
+          const endScreen = page.locator('text=¡Desafío Terminado!').or(page.locator('text=Nivel Completado')).or(page.locator('text=Dominado')).or(page.locator('text=Desafío Terminado')).or(page.locator('button:has-text("Ir al Nivel")')).first();
           if (await endScreen.isVisible().catch(()=>false)) {
              break;
           }
@@ -243,6 +271,11 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
         unlockAllUpToModule(testUserEmail, 4, modulo.modulo_id);
         for (const n of modulo.niveles) {
            approveProgresoMaestria(testUserEmail, 4, n.seccion, 'MIXTA');
+        }
+        for (const d of modulo.desafios) {
+           if (d.nivel_id < desafio.nivel_id) {
+              approveProgresoMaestria(testUserEmail, 4, d.seccion, 'MIXTA');
+           }
         }
 
         await page.goto('/welcome-fase4');

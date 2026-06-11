@@ -59,8 +59,8 @@ export function escapeRegExp(str: string) {
  * Navega automáticamente la ventana de Teoría (Fases Genéricas).
  * Resuelve los interactivos si se proveen las respuestas.
  */
-export async function navigateGenericTheoryModal(page: Page, interactivesAnswers: Record<string, string> = {}) {
-  const theoryOverlay = page.locator('.fg-reading-overlay');
+export async function navigateGenericTheoryModal(page: Page, interactivesAnswers: Record<string, string> = {}, prefix: string = 'fg') {
+  const theoryOverlay = page.locator(`.${prefix}-reading-overlay`);
   
   try {
     await theoryOverlay.waitFor({ state: 'visible', timeout: 5000 });
@@ -69,12 +69,12 @@ export async function navigateGenericTheoryModal(page: Page, interactivesAnswers
   }
   
   if (await theoryOverlay.isVisible()) {
-    console.log('Theory Modal detected. Navigating steps...');
+    console.log(`[${prefix.toUpperCase()} Theory Modal] Detected. Navigating steps...`);
     let attemptsWithoutProgress = 0;
     
     while (attemptsWithoutProgress < 15) {
       let progressMade = false;
-      const interactiveBoxes = page.locator('.fg-interactive-box');
+      const interactiveBoxes = page.locator(`.${prefix}-interactive-box`);
       const count = await interactiveBoxes.count();
       
       for (let i = 0; i < count; i++) {
@@ -85,7 +85,7 @@ export async function navigateGenericTheoryModal(page: Page, interactivesAnswers
         const isCorrect = (await box.getAttribute('class'))?.includes('correct');
         if (isCorrect) continue;
         
-        const qTextEl = box.locator('.fg-int-q');
+        const qTextEl = box.locator(`.${prefix}-int-q`);
         if (await qTextEl.count() === 0) continue;
         const qText = await qTextEl.innerText();
         
@@ -99,22 +99,22 @@ export async function navigateGenericTheoryModal(page: Page, interactivesAnswers
 
         if (answer) {
           console.log(`Answering theory question: "${qText.trim()}" with "${answer}"`);
-          const input = box.locator('input.fg-int-input');
+          const input = box.locator(`input.${prefix}-int-input`);
           await input.fill(answer);
-          const verifyBtn = box.locator('button.fg-int-verify');
+          const verifyBtn = box.locator(`button.${prefix}-int-verify`);
           await verifyBtn.click();
           await page.waitForTimeout(500);
           progressMade = true;
         }
       }
 
-      const nextBtn = page.locator('button.fg-nav-btn.primary');
-      const startBtn = page.locator('button.fg-reading-close-btn');
+      const nextBtn = page.locator(`button.${prefix}-nav-btn.primary`);
+      const startBtn = page.locator(`button.${prefix}-reading-close-btn`);
 
       if (await startBtn.isVisible()) {
         await startBtn.click();
         await theoryOverlay.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
-        await page.waitForTimeout(500); // Wait for Framer Motion exit animation
+        await page.waitForTimeout(500); // Wait for exit animation
         break;
       } else if (await nextBtn.isVisible()) {
         const isEnabled = await nextBtn.isEnabled();

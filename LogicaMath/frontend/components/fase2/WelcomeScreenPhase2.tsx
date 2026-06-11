@@ -130,25 +130,8 @@ const WelcomeScreenPhase2: React.FC<Props> = ({
       
       setDashboard(data);
     } catch (e: unknown) {
-      // En desarrollo o sin backend, usar datos de muestra
-      let mockData = MOCK_DASHBOARD(studentName);
-      if (userRole === 'ADMIN') {
-        mockData = {
-          ...mockData,
-          desafio_mixto_disponible: true,
-          desafio_mixto_estado: 'completado',
-          modulos: mockData.modulos.map(m => ({
-            ...m,
-            estado: m.estado === 'bloqueado' ? 'en_progreso' : m.estado,
-            niveles: m.niveles.map(n => ({
-              ...n,
-              estado: n.estado === 'bloqueado' ? 'en_progreso' : n.estado,
-            }))
-          }))
-        };
-      }
-      setDashboard(mockData);
-      console.warn('[Fase2] Backend no disponible, usando datos de muestra.', e);
+      console.error('[Fase2] Error loading dashboard from backend.', e);
+      setError('No se pudo conectar con el servidor. Por favor, verifica tu conexión.');
     } finally {
       setLoading(false);
     }
@@ -557,57 +540,6 @@ const ModuleCard: React.FC<{ modulo: Fase2ModuloInfo; onClick: () => void; userR
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DATOS DE MUESTRA (usado cuando el backend no está disponible)
-// ─────────────────────────────────────────────────────────────────────────────
 
-function MOCK_DASHBOARD(nombre: string): Fase2Dashboard {
-  const makeNiveles = (moduloId: number, domAll = false) => {
-    const totalLevels = moduloId === 2 || moduloId === 3 ? 4 : 3;
-    return Array.from({ length: totalLevels }, (_, i) => i + 1).map(id => ({
-      nivel_id: id,
-      nombre: `Nivel ${id}`,
-      descripcion: `Descripción del nivel ${id}`,
-      estado: (domAll ? 'dominado' : id === 1 ? 'en_progreso' : 'bloqueado') as 'dominado' | 'en_progreso' | 'bloqueado',
-      porcentaje: domAll ? 100 : id === 1 ? 45 : 0,
-      aciertos: domAll ? 15 : id === 1 ? 5 : 0,
-      requeridos: 15,
-      usa_cronometro: false,
-    }));
-  };
-
-  const makeDesafios = (moduloId: number, domAll = false) => {
-    return [
-      { desafio_id: 11, nombre: 'Desafío 1: Estándar', dificultad: 'estandar' as const, estado: (domAll ? 'en_progreso' : 'bloqueado') as any, porcentaje: 0, aciertos: 0, requeridos: 25, tiempo_limite: 30, max_errores: 3 },
-      { desafio_id: 12, nombre: 'Desafío 2: Avanzado', dificultad: 'avanzada' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 25, tiempo_limite: 45, max_errores: 3 },
-      { desafio_id: 13, nombre: 'Desafío Final: Maestría', dificultad: 'maestria' as const, estado: 'bloqueado' as any, porcentaje: 0, aciertos: 0, requeridos: 10, tiempo_limite: 60, max_errores: 2 },
-    ];
-  };
-
-  const modulos = [
-    { id: 1, nombre: 'Gimnasio Mental',   desc: 'Cálculo mental ultra veloz, dobles y mitades.', icono: 'activity',    color: '#10B981', estado: 'dominado'    as const, pct: 100 },
-    { id: 2, nombre: 'Tablas en Acción',  desc: 'Tablas de multiplicar y operaciones inversas.',  icono: 'hash',        color: '#8B5CF6', estado: 'dominado'    as const, pct: 100 },
-    { id: 3, nombre: 'Tienda Matemática', desc: 'Cálculo de cambio, billetes y precios en R$.', icono: 'shopping-bag', color: '#F59E0B', estado: 'en_progreso' as const, pct: 40 },
-    { id: 4, nombre: 'Constructor de Soluciones', desc: 'Problemas de múltiples pasos conectados.', icono: 'tool',      color: '#EC4899', estado: 'bloqueado'   as const, pct: 0 },
-  ];
-
-  return {
-    alumno_nombre: nombre,
-    puntos_totales: 45,
-    modulos: modulos.map(m => ({
-      modulo_id: m.id,
-      nombre: m.nombre,
-      descripcion: m.desc,
-      icono: m.icono,
-      color: m.color,
-      estado: m.estado,
-      porcentaje_global: m.pct,
-      niveles: makeNiveles(m.id, m.estado === 'dominado'),
-      desafios: makeDesafios(m.id, m.estado === 'dominado'),
-    })),
-    desafio_mixto_disponible: false,
-    desafio_mixto_estado: 'bloqueado',
-  };
-}
 
 export default WelcomeScreenPhase2;

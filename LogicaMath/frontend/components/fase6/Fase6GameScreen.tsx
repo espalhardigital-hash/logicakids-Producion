@@ -667,7 +667,7 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
   const [paso, setPaso]           = useState<1 | 2>(1);
   const [paso1Valor, setPaso1Valor] = useState<string | null>(null);
   const [feedback, setFeedback]   = useState<FeedbackState>({ visible: false, esCorrecta: false });
-  const [isMockMode, setIsMockMode] = useState(false);
+  const [error, setError]         = useState<string | null>(null);
   const [progreso, setProgreso]   = useState({ aciertos: 0, intentos: 0, porcentaje: 0 });
   const [shaking, setShaking]     = useState(false);
   const [timer, setTimer]         = useState<number | null>(null);
@@ -834,7 +834,6 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
       setPregunta(data);
       setShowMirrorModal(false);
       setMirrorPregunta(null);
-      setIsMockMode(false);
       // Sync dynamic required count from backend config
       if (data.cantidad_requerida) setMaxAciertos(data.cantidad_requerida);
       
@@ -846,17 +845,9 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
       } else {
         setTimer(null);
       }
-    } catch {
-      setIsMockMode(true);
-      const mockQ = MOCK_PREGUNTA(moduloId, nivelId);
-      setPregunta(mockQ);
-      if (isChallenge) {
-        const limit = moduloId === 99 ? 90 : (nivelId === 11 ? 30 : nivelId === 12 ? 45 : 60);
-        setTimer(limit);
-        setMaxTimer(limit);
-      } else {
-        setTimer(null);
-      }
+    } catch (e: any) {
+      console.error('[Fase6GameScreen] Error loading question', e);
+      setError('No se pudo conectar con el servidor. Por favor, verifica tu conexión.');
     } finally {
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -1004,12 +995,13 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
     if (isChallenge) return;
     setIsInitialReading(false);
     try {
+      setError(null);
       const data = await getFase6Reading(moduloId, nivelId);
       setReadingData(data);
       setShowReading(true);
-    } catch {
-      setReadingData(MOCK_LECTURA(moduloId, nivelId));
-      setShowReading(true);
+    } catch (e: any) {
+      console.error('[Fase6GameScreen] Error loading reading data', e);
+      setError('Error al cargar la teoría. Por favor, reintenta.');
     }
   }, [moduloId, nivelId, isChallenge]);
 
@@ -1022,12 +1014,13 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
     const check = async () => {
       setIsInitialReading(true);
       try {
+        setError(null);
         const data = await getFase6Reading(moduloId, nivelId);
         setReadingData(data);
         setShowReading(true);
-      } catch {
-        setReadingData(MOCK_LECTURA(moduloId, nivelId));
-        setShowReading(true);
+      } catch (e: any) {
+        console.error('[Fase6GameScreen] Error checking/loading reading data', e);
+        setError('Error al cargar la teoría. Por favor, reintenta.');
       }
     };
     check();
@@ -1213,6 +1206,27 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
         <div className="f6-loading">
           <div className="f6-spinner" style={{ borderTopColor: moduleColor }} />
           <span>Cargando pregunta…</span>
+        </div>
+      ) : error ? (
+        <div className="f6-loading">
+          <span style={{ color: '#ef4444', fontWeight: 'bold', marginBottom: '16px' }}>{error}</span>
+          <button
+            onClick={() => {
+              setError(null);
+              loadPregunta(true, false);
+            }}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: moduleColor,
+              color: '#fff',
+              fontWeight: 'bold',
+            }}
+          >
+            Reintentar
+          </button>
         </div>
       ) : !pregunta && !showMirrorModal && !showReading ? (
         <div className="f6-loading">
@@ -1704,12 +1718,6 @@ function cleanEnunciado(enunciado: string): string {
   return enunciado;
 }
 
-function MOCK_LECTURA(moduloId: number, nivelId: number): Fase6Lectura {
-  return { modulo_id: moduloId, nivel_id: nivelId, titulo: `Nivel ${nivelId}`, parrafos: ["Cargando contenido..."], tip_pedagogico: "Atención al enunciado." };
-}
 
-function MOCK_PREGUNTA(moduloId: number, nivelId: number): Fase6Pregunta {
-  return { id: 999, modulo_id: moduloId, nivel_id: nivelId, enunciado: "¿Cuánto es 2 + 2?", respuesta_correcta: "4", tipo_pregunta: 'respuesta_numerica', tiene_cronometro: false };
-}
 
 export default Fase6GameScreen;

@@ -367,21 +367,19 @@ El banner de control inferior en los dashboards y mapas de fase (`WelcomeScreen`
 
 ---
 
-## 8. Especificaciones Técnicas y de Base de Datos (Pools Segmentados por Fase)
+## 8. Especificaciones Técnicas y de Base de Datos (Arquitectura de Tablas Consolidadas)
 
-Para garantizar aislamiento absoluto de lógicas, escalabilidad de contenidos, rendimiento óptimo en índices y ausencia de campos nulos innecesarios, el sistema descarta el uso de tablas maestras globales y monolíticas para almacenar las preguntas de la plataforma. 
+Para optimizar la mantenibilidad del esquema, la consistencia de las consultas relacionales y simplificar la capa del ORM (SQLAlchemy), **el sistema utiliza una arquitectura de tablas consolidadas y unificadas** en lugar de tablas físicas segmentadas por fase. La separación de contenidos de cada fase se gestiona a nivel lógico mediante relaciones y filtros por clave foránea.
 
-**Cada Fase `X` posee su propio conjunto físico e independiente de tablas segmentadas (Isolated Phase Pools)**, prefijadas por el identificador de la fase (ej: `fase{X}_...`). Esto permite realizar mantenimientos, migraciones, seeders y correcciones pedagógicas en una fase en específico sin afectar la disponibilidad o integridad de las demás fases activas.
+El pool precargado se almacena principalmente en un conjunto de tablas unificadas indexadas:
 
-Para cada Fase `X`, el Pool Precargado se divide físicamente en un **trinomio de tablas aisladas** correspondientes a las tres etapas del módulo:
+### 8.1. Tabla 1: Aprendizaje y Evocación (`niveles_teoria_pool`)
 
-### 8.1. Tabla 1: Aprendizaje y Evocación (`fase{X}_teoria_pool`)
-
-Esta tabla almacena el contenido estático de teoría y los mini-retos interactivos de la Etapa 1.
+Esta tabla almacena el contenido estático de teoría y los mini-retos interactivos de la Etapa 1 para todas las fases.
 
 Campos conceptuales requeridos:
 
-* `fase_id` (ID de fase, ej: `2`)
+* `fase_id` (ID de fase, ej: `2`, ForeignKey hacia `fases.id`)
 * `modulo_id`
 * `nivel_id`
 * `titulo`
@@ -392,83 +390,47 @@ Campos conceptuales requeridos:
 * `ejemplo_guiado`
 * `interactivos_desbloqueo`
 
-Volumetría: 1 registro por cada nivel de aprendizaje de la fase.
+Volumetría: 1 registro por cada nivel de aprendizaje en total.
 
-### 8.2. Tabla 2: Práctica Libre y Bucle Espejo (`fase{X}_practica_pool`)
+### 8.2. Tabla 2: Banco de Preguntas Unificado (`preguntas`)
 
-Esta tabla es exclusiva para entrenamiento y asistencia del Bucle Espejo. No maneja opciones múltiples en la práctica estándar.
+Esta tabla centraliza todos los ejercicios de Práctica Libre (Etapa 2) y Evaluación/Desafíos (Etapa 4) de todas las fases.
 
 Campos conceptuales requeridos:
 
-* `fase_id`
+* `fase_id` (ForeignKey hacia `fases.id`)
 * `modulo_id`
-* `nivel_id`
-* `seccion`
-* `estructura_padre_id`
-* `operacion`
-* `enunciado_visual`
+* `seccion` (código de nivel, ej: `101`, `201`, etc.)
+* `operacion` (Enum: `SUMA`, `MULTIPLICACION`, `MIXTA`, etc.)
+* `tipo_pregunta` (Enum: `CALCULO_DIRECTO`, `MULTIPLE_OPCION`, etc.)
+* `enunciado`
 * `respuesta_correcta`
-* `explicacion_profunda`
-* `datos_numericos`
-* `modo_interaccion`
-* `requiere_subrayado`
-* `tokens_texto`
-* `tokens_correctos`
+* `datos_numericos` (JSONB para coordenadas paramétricas, pasos encadenados, etc.)
+* `payload_tokenizado` (JSONB para textos y tokens de subrayado)
+* `explicacion_paso_a_paso` (JSONB con explicaciones detalladas para el Bloque de Rescate)
+* `requiere_subrayado` (Boolean)
+* `palabras_clave` (JSONB)
+* `errores_previstos` (JSONB que mapea respuestas incorrectas a feedback del Tutor Invisible)
+* `estado` (Enum: `ACTIVO`, `INACTIVO`)
 
-Volumetría estricta: 120 familias por nivel (equivalente a 480 preguntas individuales por nivel) dentro de la fase.
+Volumetría: Almacena el pool completo de familias para todos los niveles y desafíos de la plataforma.
 
-### 8.3. Tabla 3: Evaluación y Desafíos (`fase{X}_desafios_pool`)
+### 8.3. Tabla 3: Tabla Auxiliar de Alternativas (`alternativas`)
 
-Esta tabla se desentiende por completo de la lógica espejo y del rescate pedagógico, optimizada para exámenes cronometrados.
+Para preguntas de opción múltiple de cualquier fase o desafío, se utiliza esta tabla vinculada mediante clave foránea a la tabla principal `preguntas`.
 
 Campos conceptuales requeridos:
 
-* `fase_id`
-* `modulo_id`
-* `desafio_id`
-* `seccion`
-* `tipo_segmento`
-* `tipo_pregunta`
-* `enunciado_visual`
-* `respuesta_correcta`
-* `datos_numericos`
+* `pregunta_id` (ForeignKey hacia `preguntas.id`)
+* `texto` (Texto visible de la opción)
+* `es_correcta` (Boolean)
+* `orden` (Entero, orden de visualización)
+* `tipo_error` (Enum, diagnóstico pedagógico)
+* `feedback_error` (Texto del feedback específico)
 
-Volumetría estricta: mínimo 150 preguntas individuales independientes para cada desafío de la fase.
+### 8.4. Algoritmo de Recirculación y Reciclaje de Preguntas
 
-### 8.4. Tabla Auxiliar de Alternativas (`fase{X}_alternativas_desafios_pool`)
-
-Para preguntas de opción múltiple, se utiliza una tabla auxiliar conectada mediante clave foránea a `fase{X}_desafios_pool`.
-
-Campos conceptuales requeridos:
-
-* `desafio_id`
-* `texto`
-* `texto_opcion`
-* `es_correcta`
-* `orden`
-* `tipo_error`
-
-### 8.5. Tabla Auxiliar de Errores (`fase{X}_respuestas_erroneas`)
-
-Mapea las respuestas incorrectas previstas de `fase{X}_practica_pool` a un tipo de error y feedback específico del Tutor Invisible.
-
-Ejemplo:
-
-```json
-{
-  "respuestas_erroneas": [
-    {
-      "valor": "22",
-      "tipo_error": "problema_incompleto",
-      "feedback": "Calculaste bien los gastos, pero falta restarlos de los R$ 50,00 iniciales."
-    }
-  ]
-}
-```
-
-### 8.6. Algoritmo de Recirculación y Reciclaje de Preguntas
-
-Si el superusuario configura una `cantidad_requerida` de preguntas en un nivel que excede el pool físico de familias únicas precargadas en `fase{X}_practica_pool`, el backend activa un mecanismo automático de **recirculación**:
+Si el superusuario configura una `cantidad_requerida` de preguntas en un nivel que excede el pool físico de preguntas únicas precargadas en la tabla `preguntas` para esa combinación de `fase_id` y `seccion`, el backend activa un mecanismo automático de **recirculación**:
 * Al agotarse las preguntas inéditas, el backend no causará fallos de carga. Limpiará automáticamente la bandera `respondida_alguna_vez` del pool asignado del estudiante (`pool_asignado_alumno`) empezando por las más antiguas en fecha, permitiéndole reutilizarlas secuencialmente hasta completar la batería de práctica requerida.
 
 ---

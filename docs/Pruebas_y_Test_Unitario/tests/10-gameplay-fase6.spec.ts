@@ -4,6 +4,46 @@ import { registerDynamicTestUser } from '../helpers/auth';
 import { setPhaseForUser, approveProgresoMaestria, unlockAllUpToModule } from '../helpers/db-utils';
 import { getPhaseMetadata } from '../helpers/metadata-utils';
 import { execSync } from 'child_process';
+import { navigateGenericTheoryModal } from '../helpers/gameplay-utils';
+
+const FASE6_THEORY_ANSWERS: Record<string, string> = {
+  '¿Cuántas caras tiene un cubo regular?': '6',
+  '¿Cuántos vértices tiene un cubo?': '8',
+  '¿Cuántas aristas tiene un cubo?': '12',
+  'Si ves un bloque a una altura de 3 niveles, ¿cuántos bloques hay en su columna completa?': '3',
+  'En una estructura en forma de cruz, el bloque central': '1',
+  'Si cuento 5 bloques en total pero solo veo 4, ¿cuántos están ocultos?': '1',
+  '¿Cuántos cuadrados debe tener un molde para formar un cubo cerrado?': '6',
+  'Si un molde tiene 5 caras, ¿formará un cubo cerrado?': '2',
+  'Un molde de cilindro tiene 2 círculos y un': 'rectángulo',
+  'Si el patrón es 1, 3, 5, 7. ¿Cuántos bloques en la etapa 5?': '9',
+  'Si en etapa 1 hay 2 bloques... ¿Regla?': 'suma 2',
+  'Patrón: 2, 5, 8. Siguiente número:': '11',
+  'Piso inferior 9, piso medio 4, piso superior 1. Total:': '14',
+  'Edificio de 3 pisos, 4 bloques por piso. Total:': '12',
+  'Capa 1: 5 bloques, Capa 2: 3 bloques. Total:': '8',
+  'Regla: Nx3. ¿Etapa 4?': '12',
+  'Regla: NxN. ¿Etapa 5?': '25',
+  'Regla: N+4. ¿Etapa 10?': '14',
+  'Si apilo 4 cubos en el suelo... Volumen total:': '8',
+  'Una línea de 5 cubos, repetida 2 veces. Volumen:': '10',
+  'Tres columnas de 3 cubos. Volumen:': '9',
+  'Caja de largo 5, ancho 2, alto 2. Volumen:': '20',
+  'Cubo de lado 3. Volumen:': '27',
+  'Habitación 4x4x3. Volumen:': '48',
+  'Un recipiente tiene 10 dm³. ¿Cuántos Litros de agua contiene?': '10',
+  'Una botella tiene 500 cm³. ¿Cuántos mL tiene?': '500',
+  'Un tanque de 1 m³. ¿Cuántos Litros?': '1000',
+  '¿Cuántos gramos hay en 3 kg?': '3000',
+  'Medio kilo (0,5 kg) son cuántos gramos:': '500',
+  'Si un termómetro sube de 10° a 25°, aumentó:': '15',
+  'Temperatura inicial 2°. Baja 5°. ¿Nueva temperatura?': '-3',
+  'Temperatura inicial -4°. Sube 10°. ¿Nueva temperatura?': '6',
+  'Estaba a 10°, ahora está a -5°. ¿Cuánto bajó?': '15',
+  '0°C en Kelvin es:': '273',
+  '100°C en Kelvin es:': '373',
+  'Si tengo 300 K, ¿cuántos grados Celsius son?': '27'
+};
 
 function getCorrectAnswer(questionId: number): string {
   try {
@@ -124,13 +164,6 @@ test.describe('10 - Gameplay Fase 6 (Geometría Espacial) - Exhaustivo', () => {
            approveProgresoMaestria(testUserEmail, 6, parseInt(`${modulo.modulo_id}0${l}`), 'MIXTA');
         }
 
-        await page.route('**/api/fase6/lectura/**', async (route) => {
-          const response = await route.fetch();
-          const json = await response.json();
-          json.interactivos = [];
-          await route.fulfill({ json });
-        });
-
         await page.goto('/welcome-fase6');
         await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(1000);
@@ -147,12 +180,7 @@ test.describe('10 - Gameplay Fase 6 (Geometría Espacial) - Exhaustivo', () => {
         const theoryModal = page.locator('.f6-reading-overlay');
         await page.waitForTimeout(1500);
         if (await theoryModal.isVisible()) {
-          while (await page.locator('button:has-text("Siguiente")').isVisible()) {
-            await page.locator('button:has-text("Siguiente")').first().click();
-            await page.waitForTimeout(300);
-          }
-          const startBtn = page.locator('button:has-text("¡Entendido, empezar!")').first();
-          if (await startBtn.isVisible()) await startBtn.click();
+          await navigateGenericTheoryModal(page, FASE6_THEORY_ANSWERS, 'f6');
         }
 
         const splash = page.locator('.f6-start-splash-overlay').first();
@@ -169,7 +197,7 @@ test.describe('10 - Gameplay Fase 6 (Geometría Espacial) - Exhaustivo', () => {
         while (questionCounter < maxQuestionsSafety) {
           await page.waitForTimeout(1000);
           
-          const endScreen = page.locator('text=¡Desafío Terminado!, text=Nivel Completado, text=Dominado').first();
+          const endScreen = page.locator('text=¡Desafío Terminado!').or(page.locator('text=Nivel Completado')).or(page.locator('text=Dominado')).or(page.locator('text=Desafío Terminado')).or(page.locator('button:has-text("Ir al Nivel")')).first();
           if (await endScreen.isVisible().catch(()=>false)) {
              break;
           }
@@ -219,6 +247,11 @@ test.describe('10 - Gameplay Fase 6 (Geometría Espacial) - Exhaustivo', () => {
         unlockAllUpToModule(testUserEmail, 6, modulo.modulo_id);
         for (const n of modulo.niveles) {
            approveProgresoMaestria(testUserEmail, 6, n.seccion, 'MIXTA');
+        }
+        for (const d of modulo.desafios) {
+           if (d.nivel_id < desafio.nivel_id) {
+              approveProgresoMaestria(testUserEmail, 6, d.seccion, 'MIXTA');
+           }
         }
 
         await page.goto('/welcome-fase6');

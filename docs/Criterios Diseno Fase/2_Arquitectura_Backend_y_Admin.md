@@ -66,67 +66,84 @@ Originalmente implementada bajo una estructura estática y rígida con un único
 * **Compatibilidad Retrospectiva y Fallbacks**:
   - **Consultas del Dashboard**: El endpoint `/pedagogia/dashboard` ahora acepta parámetros opcionales de query `seccion` y `operacion` para buscar o inicializar el progreso específico.
   - **Fallbacks de Configuración y Preguntas**: Si un estudiante solicita jugar en un nivel dinámico (ej. sección `101` de suma) que carece de una configuración específica o un banco de preguntas dedicados, el backend realiza un fallback automático hacia la configuración legacy de la sección `1` (o en su defecto, a la de la sección `0` de la fase) y selecciona preguntas correspondientes del pool general de la operación, garantizando la continuidad del juego sin errores offline en el cliente.
-  - **Migración de Datos Semilla**: El script de semilla (`seed.py`) incorpora la rutina `migrar_datos_fase1_legacy` que duplica automáticamente la maestría y progreso de los alumnos que poseían aprobación en la sección legacy `1` de una operación hacia todas las nuevas secciones dinámicas (`101..105`, etc.) de esa misma operación, preservando los derechos adquiridos y evitando pérdidas de progreso.
+  - **Migración de Datos Semilla**: El script de semilla (`seed.py`) incorpora la rutina `migrar_datos_fase1_legacy` que duplica automáticamente la maestría y progreso de los alumnos que poseían aprobación en la sección legacy `1` de una operación hacia todas las nuevas secciones dinámicas (`101## 3. Paso 1: Definición del Modelo y Base de Datos (Arquitectura de Tablas Consolidadas)
 
----
+Para optimizar la mantenibilidad del esquema, la consistencia de las consultas relacionales y simplificar la capa del ORM (SQLAlchemy), **el sistema descarta el uso de tablas físicas segmentadas por fase** (ej. `fase{X}_...`). En su lugar, toda la plataforma utiliza un conjunto centralizado y consolidado de tablas, donde la separación de contenidos para cada fase se realiza de manera lógica utilizando la columna `fase_id` como clave foránea.
 
-## 3. Paso 1: Definición del Modelo y Base de Datos (Pools Segmentados por Fase)
-
-Para garantizar aislamiento absoluto de lógicas, rendimiento e independencia en el mantenimiento de contenidos, el sistema descarta el uso de tablas maestras globales y monolíticas para las preguntas. **Cada Fase `X` se mapea mediante su propio conjunto físico e independiente de tablas segmentadas**, prefijadas con el identificador de la fase (ej: `fase{X}_...`).
-
-### Diagrama Entidad-Relación (Arquitectura Segmentada)
+### Diagrama Entidad-Relación (Arquitectura Consolidada)
 
 ```mermaid
 erDiagram
     ALUMNO ||--o{ PROGRESO_MAESTRIA : "tiene"
     ALUMNO ||--o{ INTENTOS : "registra"
+    PREGUNTA ||--o{ ALTERNATIVA : "tiene_opciones"
+    PREGUNTA ||--o{ POOL_ASIGNADO_ALUMNO : "se_asigna"
+    ALUMNO ||--o{ POOL_ASIGNADO_ALUMNO : "tiene_asignado"
+    
     PROGRESO_MAESTRIA {
         int id PK
         int alumno_id FK
-        int fase_id
-        int modulo_id
-        int nivel_id
-        boolean completado
-        float porcentaje_precision
-        boolean desbloqueado_por_admin
+        int fase_id FK
+        int seccion
+        string operacion
+        string estado
+        int aciertos_acumulados
+        int intentos_totales
+        int porcentaje_actual
         boolean aprobado_por_admin
     }
     
-    FASE_X_TEORIA_POOL {
-        uuid id PK
+    NIVELES_TEORIA_POOL {
+        int id PK
+        int fase_id FK
+        int modulo_id
         int nivel_id
+        string titulo
+        string bienvenida_superpoder
         jsonb cuerpo_teoria
-        jsonb interactivos
+        jsonb diccionario_nivel
+        jsonb ejemplo_guiado
+        jsonb interactivos_desbloqueo
     }
     
-    FASE_X_PRACTICA_POOL ||--o{ FASE_X_RESPUESTAS_ERRONEAS : "mapea_errores"
-    FASE_X_PRACTICA_POOL {
-        uuid id PK
+    PREGUNTA {
+        int id PK
+        int fase_id FK
+        int seccion
         string operacion
-        string enunciado_visual
+        string tipo_pregunta
+        string enunciado
         string respuesta_correcta
         jsonb datos_numericos
+        jsonb payload_tokenizado
+        jsonb explicacion_paso_a_paso
+        boolean requiere_subrayado
+        jsonb palabras_clave
+        jsonb errores_previstos
+        string estado
     }
     
-    FASE_X_DESAFIOS_POOL ||--o{ FASE_X_ALTERNATIVAS_DESAFIOS_POOL : "tiene_opciones"
-    FASE_X_DESAFIOS_POOL {
-        uuid id PK
-        string enunciado_visual
-        string respuesta_correcta
-        jsonb datos_numericos
+    ALTERNATIVA {
+        int id PK
+        int pregunta_id FK
+        string texto
+        boolean es_correcta
+        int orden
+        string tipo_error
+        string feedback_error
     }
 ```
 
-> Regla de identificación: La fuente semántica de ubicación es `fase_id`, `modulo_id`, `nivel_id` o `desafio_id`. El campo `seccion` es un código de compatibilidad, filtros rápidos y sincronización de progreso. Las tablas se nombran físicamente como `fase{X}_teoria_pool`, `fase{X}_practica_pool` y `fase{X}_desafios_pool`.
+> **Regla de identificación:** La separación lógica se realiza a través del campo `fase_id` (ForeignKey a `fases.id`) y los códigos de nivel/desafío asociados al campo `seccion` (ej. `101` para Módulo 1 Nivel 1, `1011` para Módulo 1 Desafío 1, etc.).
 
-### 3.1. Modelo de Teoría y Evocación (`fase{X}_teoria_pool`)
+### 3.1. Modelo de Teoría y Evocación (`niveles_teoria_pool`)
 
-Toda la carga teórica y los interactivos de evocación se gestionan mediante una entidad relacional dedicada para contenido pre-renderizado e independiente por fase.
+Centraliza toda la carga teórica y los interactivos de evocación (Etapa 1) para todas las fases de la plataforma.
 
 Campos:
 
-* `id`: UUID Primary Key.
-* `fase_id`: ID de la fase.
+* `id`: Integer Primary Key.
+* `fase_id`: Integer. ForeignKey hacia `fases.id`.
 * `modulo_id`: ID del módulo.
 * `nivel_id`: ID del nivel.
 * `titulo`: Nombre del concepto.
@@ -136,96 +153,45 @@ Campos:
 * `diccionario_nivel`: JSONB con traducción de términos narrativos a operadores matemáticos.
 * `ejemplo_guiado`: JSONB de un mínimo de 5 ejemplos resueltos paso a paso, con palabras clave destacadas mediante la clase CSS `.keyword-highlight` (utilizando la etiqueta HTML `<span class="keyword-highlight">...</span>`).
 * `interactivos_desbloqueo`: JSONB de minipreguntas interactivas para evocación obligatoria (retos sin tiempo).
-* `estado`: Estado del registro.
 
-### 3.2. Modelo de Práctica Libre (`fase{X}_practica_pool`)
+### 3.2. Modelo de Banco de Preguntas (`preguntas`)
 
-Tabla especializada en Bucle Espejo y asistencia del Tutor Invisible por fase.
+Almacena el pool completo de ejercicios (Práctica Libre y Desafíos) para todas las fases.
 
 Campos:
 
-* `id`: UUID Primary Key.
-* `fase_id`: ID de la fase.
-* `modulo_id`: ID del módulo.
-* `nivel_id`: ID del nivel.
-* `seccion`: Código derivado calculado como `modulo_id * 100 + nivel_id`.
-* `estructura_padre_id`: ID que agrupa una pregunta original con sus 3 variantes espejo.
-* `operacion`: Tipo de operación matemática (`suma`, `resta`, `multiplicacion`, `division`, `mixta`).
-* `enunciado_visual`: Texto, fórmula o estructura que lee el alumno.
+* `id`: Integer Primary Key.
+* `fase_id`: Integer. ForeignKey hacia `fases.id`.
+* `seccion`: Código de nivel o sección calculada (ej. `modulo_id * 100 + nivel_id` para prácticas, o `modulo_id * 1000 + nivel_virtual` para desafíos).
+* `operacion`: Tipo de operación matemática (`SUMA`, `RESTA`, `MULTIPLICACION`, `DIVISION`, `MIXTA`).
+* `tipo_pregunta`: Enum de interfaz (`CALCULO_DIRECTO`, `MULTIPLE_OPCION`, `CONSTRUCTOR_SOLUCIONES`, `SUBRAYADO_TOKENS`, etc.).
+* `enunciado`: Enunciado o fórmula de la pregunta (puede incluir etiquetas HTML/SVG).
 * `respuesta_correcta`: Valor esperado almacenado como String.
-* `explicacion_profunda`: Texto HTML/Markdown con resolución de rescate paso a paso.
-* `datos_numericos`: JSONB con flags de control espejo.
-* `modo_interaccion`: Enum de interfaz (`INPUT_NUMERICO`, `MULTIPLE_OPCION`, `SUBRAYADO_TOKENS`).
-* `requiere_subrayado`: Booleano para indicar selección obligatoria de tokens.
-* `tokens_texto`: JSONB nullable con tokens renderizables.
-* `tokens_correctos`: JSONB nullable con IDs esperados.
-* `estado`: Estado del registro.
+* `datos_numericos`: JSONB que almacena variables de generación paramétrica, coordenadas de cuadrícula/vóxeles o configuraciones locales del temporizador.
+* `payload_tokenizado`: JSONB que contiene los tokens para preguntas de subrayado.
+* `explicacion_paso_a_paso`: JSONB con la resolución paso a paso para el Bloque de Rescate.
+* `requiere_subrayado`: Booleano para indicar selección obligatoria de tokens en la interfaz.
+* `palabras_clave`: JSONB con términos semánticos de la pregunta.
+* `errores_previstos`: JSONB (GIN index) que asocia respuestas incorrectas previstas con un tipo de error y feedback personalizado del Tutor Invisible.
+* `estado`: Estado del registro (`ACTIVO`, `INACTIVO`).
 
-Ejemplo de `tokens_texto`:
+### 3.3. Tabla Auxiliar de Alternativas (`alternativas`)
 
-```json
-[
-  { "id": 1, "texto": "Lucas", "rol": "sujeto" },
-  { "id": 2, "texto": "tiene 5 manzanas rojas", "rol": "dato_util" }
-]
-```
-
-### 3.3. Modelo de Desafíos (`fase{X}_desafios_pool`)
-
-Tabla desvinculada de la lógica de asistencia, diseñada para exámenes de alta intensidad con temporizador, aislada por fase.
+Almacena las opciones para las preguntas de tipo `MULTIPLE_OPCION` de todas las fases.
 
 Campos:
 
-* `id`: UUID Primary Key.
-* `fase_id`: ID de la fase.
-* `modulo_id`: ID del módulo. Usar **modulo_id 99** para el Desafío Final de Maestría de la Fase completa.
-* `desafio_id`: Identificador del desafío (`1`, `2` o `3`).
-* `seccion`: Código derivado calculado como `modulo_id * 1000 + nivel_virtual`. Para el Desafío Final de Fase el código estándar es **99099**.
-* `tipo_segmento`: Tipo de sección (`desafio_1`, `desafio_2`, `desafio_final`, `maestria_fase`).
-* `tipo_pregunta`: Enum estricto (`MULTIPLE_OPCION` o `EVOCACION_PURA`). El Desafío Final (Módulo 99) debe ser siempre `EVOCACION_PURA`.
-* `enunciado_visual`: Texto, fórmula o problema.
-* `respuesta_correcta`: Valor esperado.
-* `datos_numericos`: JSONB configuracional de tiempos y flags.
-* `modo_interaccion`: Enum de interfaz cuando aplique.
-* `requiere_subrayado`: Booleano cuando aplique.
-* `tokens_texto`: JSONB nullable cuando aplique.
-* `tokens_correctos`: JSONB nullable cuando aplique.
-* `estado`: Estado del registro.
-
-### 3.4. Tabla Auxiliar de Alternativas (`fase{X}_alternativas_desafios_pool`)
-
-Para desafíos de opción múltiple, vinculada mediante clave foránea a `fase{X}_desafios_pool`.
-
-Campos:
-
-* `id`: UUID Primary Key.
-* `desafio_id`: ForeignKey hacia `fase{X}_desafios_pool`.
-* `texto`: Texto mostrado.
-* `texto_opcion`: Campo espejo obligatorio para compatibilidad.
+* `id`: Integer Primary Key.
+* `pregunta_id`: ForeignKey hacia `preguntas.id`.
+* `texto`: Texto mostrado de la opción.
 * `es_correcta`: Booleano interno.
-* `orden`: Orden de presentación.
-* `tipo_error`: Tipo de error asociado si la alternativa es incorrecta.
+* `orden`: Orden visual de presentación.
+* `tipo_error`: Tipo de error asociado (Enum) si el alumno selecciona esta alternativa.
+* `feedback_error`: Texto descriptivo del error para el Tutor Invisible.
 
-El frontend jamás debe recibir `es_correcta`.
+El frontend jamás debe recibir el campo `es_correcta` en el payload de carga de preguntas.
 
-### 3.5. Tabla Auxiliar de Errores (`fase{X}_respuestas_erroneas`)
-
-Para el Tutor Invisible, vinculada mediante clave foránea a `fase{X}_practica_pool`.
-
-Campos:
-
-* `id`: UUID Primary Key.
-* `pregunta_id`: ForeignKey hacia `fase{X}_practica_pool`.
-* `mapeo_errores`: JSONB con respuestas incorrectas previstas, tipo de error y feedback específico.
-
-Ejemplo:
-
-```json
-{
-  "respuestas_erroneas": [
-    {
-      "valor": "22",
-      "tipo_error": "problema_incompleto",
+### 3.4. Modelo de Progreso Estudiantil (`progreso_maestria`)eto",
       "feedback": "Calculaste bien los gastos, pero falta restarlos del dinero inicial."
     }
   ]
@@ -617,7 +583,7 @@ sequenceDiagram
     participant DB
     
     Frontend->>FastAPI: GET /api/fases/2/pregunta
-    FastAPI->>DB: Consulta fase2_practica_pool
+    FastAPI->>DB: Consulta preguntas (fase_id=2)
     DB-->>FastAPI: Retorna pregunta
     FastAPI-->>Frontend: JSON Payload (sin respuesta_correcta)
     
@@ -1152,7 +1118,7 @@ Para evitar intervenciones accidentales y mantener un registro riguroso de las d
 
 ## 7. Banco de Preguntas y Teoría (`ContentTab.tsx`)
 
-Consola de administración de contenidos pedagógicos dividida en subpestañas. Para mantener el aislamiento y escalabilidad de la base de datos, cada fase cuenta con sus propias tablas segmentadas (`fase{X}_...`). El panel del administrador gestiona este contenido mediante consultas dinámicas: al seleccionar la Fase activa en la UI, el backend mapea dinámicamente el modelo ORM correspondiente a la tabla relacional de esa fase específica (`fase{fase_id}_teoria_pool`, `fase{fase_id}_practica_pool`, etc.). Esto permite que la consola de administración mantenga una interfaz uniforme, fluida y unificada sin importar la separación física de los datos.
+Consola de administración de contenidos pedagógicos dividida en subpestañas. Para mantener una organización limpia y escalable de la base de datos, el panel del administrador gestiona este contenido mediante filtros dinámicos. Al seleccionar la Fase activa en la UI, el backend filtra dinámicamente las consultas de las tablas consolidadas (`preguntas`, `niveles_teoria_pool`, etc.) utilizando el parámetro `fase_id`. Esto permite que la consola de administración mantenga una interfaz uniforme, fluida y unificada.
 
 ### 7.1. Contenido Teórico (`theory`)
 
@@ -1294,7 +1260,7 @@ Campos:
 
 ## 9. Modelo de Datos de Contenido Pedagógico
 
-> **Especificación completa:** El esquema de las tablas segmentadas (`fase{X}_teoria_pool`, `fase{X}_practica_pool`, `fase{X}_desafios_pool`, etc.) está definido en el [Blueprint Técnico](blueprint.md) §3. El panel administrador consulta estas tablas dinámicamente según la fase seleccionada.
+> **Especificación completa:** El esquema de las tablas consolidadas (`preguntas`, `alternativas`, `niveles_teoria_pool`, etc.) está definido en el [Blueprint Técnico](blueprint.md) §3. El backend y panel administrador consultan y filtran estas tablas lógicamente mediante la columna `fase_id` según la fase seleccionada.
 
 ---
 
