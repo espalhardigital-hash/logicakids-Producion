@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { 
   searchAlumnos, getAlumnoProgress, overrideAlumnoProgress, overrideAlumnoProgressBulk,
-  AlumnoSearchInfo, getAdminAlumnoInsights
+  AlumnoSearchInfo
 } from '../../services/storageService';
 import { LevelMap } from './phaseMaps';
 import { usePhaseMapContext } from './PhaseMapContext';
@@ -132,15 +132,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
   const [alumnoProgress, setAlumnoProgress] = useState<any[]>([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [selectedFaseId, setSelectedFaseId] = useState<number>(1);
-  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
+  const [activeModuleId, setActiveModuleId] = useState<Record<number, number>>({});
 
   // Action tracking: "level-{faseId}-{seccion}-{op}" | "module-{faseId}-{modId}" | "fase-{faseId}"
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
-
-  // AI Modal States
-  const [aiReport, setAiReport] = useState<string | null>(null);
-  const [loadingAI, setLoadingAI] = useState(false);
-  const [showAIModal, setShowAIModal] = useState(false);
 
   // Search trigger on input change
   useEffect(() => {
@@ -180,30 +175,17 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
 
   const handleSelectAlumno = (alumno: AlumnoSearchInfo) => {
     setSelectedAlumno(alumno);
-    setAiReport(null); // Reset AI report when selecting new student
     fetchProgress(alumno.alumno_id);
-    // Default: expand all modules for the current phase, and set the phase tab to the student's current phase
     setSelectedFaseId(alumno.fase_actual_id || 1);
-    const defaults: Record<string, boolean> = {};
-    PHASE_MAPS.forEach((phase) =>
-      phase.modules.forEach((mod) => { defaults[`${phase.id}-${mod.id}`] = true; })
-    );
-    setExpandedModules(defaults);
-  };
-
-  const handleFetchAIInsights = async () => {
-    if (!selectedAlumno) return;
-    setLoadingAI(true);
-    setShowAIModal(true);
-    try {
-      const report = await getAdminAlumnoInsights(selectedAlumno.alumno_id);
-      setAiReport(report);
-    } catch (e) {
-      console.error(e);
-      setAiReport("Ocurrió un error al obtener el informe de IA.");
-    } finally {
-      setLoadingAI(false);
-    }
+    
+    // Set first module as active for each phase
+    const defaultModules: Record<number, number> = {};
+    PHASE_MAPS.forEach((phase) => {
+      if (phase.modules.length > 0) {
+        defaultModules[phase.id] = phase.modules[0].id;
+      }
+    });
+    setActiveModuleId(defaultModules);
   };
 
   // ── Single-level override ──────────────────────────────────────────────────
@@ -449,10 +431,30 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                             />
                           </div>
 
-                          <div className="p-4 flex flex-col gap-4">
+                          {/* Modules Horizontal Tabs */}
+                          <div className="flex overflow-x-auto custom-scrollbar border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/20">
                             {phase.modules.map((mod) => {
-                              const modKey = `${phase.id}-${mod.id}`;
-                              const isModExpanded = expandedModules[modKey] ?? true;
+                              const isActive = activeModuleId[phase.id] === mod.id;
+                              const modStatus = computeAggregateStatusForPhase(phase.id, mod.levels, alumnoProgress);
+                              return (
+                                <button
+                                  key={mod.id}
+                                  onClick={() => setActiveModuleId(prev => ({ ...prev, [phase.id]: mod.id }))}
+                                  className={`shrink-0 flex items-center gap-2 px-4 py-3 border-b-2 transition-all cursor-pointer ${
+                                    isActive 
+                                      ? 'border-blue-500 bg-white dark:bg-white/5 text-blue-600 dark:text-blue-400' 
+                                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
+                                  }`}
+                                >
+                                  <h5 className="text-xs font-black truncate">{mod.name}</h5>
+                                  <StatusBadge status={modStatus} size="xs" />
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="p-4 flex flex-col gap-4">
+                            {phase.modules.filter(m => m.id === activeModuleId[phase.id]).map((mod) => {
                               const modStatus = computeAggregateStatusForPhase(phase.id, mod.levels, alumnoProgress);
                               const moduleBulkKey = `module-${phase.id}-${mod.id}`;
                               const moduleBulkLoading = actionInProgress === moduleBulkKey;
@@ -460,15 +462,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                               return (
                                 <div key={mod.id} className="bg-white/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden">
                                   
-                                  {/* Module header */}
-                                  <div className="flex items-center justify-between p-3 glass-panel/30 border-b border-slate-200 dark:border-white/5 hover:glass-panel/50 transition-colors cursor-pointer">
-                                    <div
-                                      className="flex items-center gap-2 flex-1 min-w-0"
-                                      onClick={() => setExpandedModules(prev => ({ ...prev, [modKey]: !prev[modKey] }))}
-                                    >
-                                      {isModExpanded ? <ChevronUp size={13} className="text-slate-500 shrink-0" /> : <ChevronDown size={13} className="text-slate-500 shrink-0" />}
-                                      <h5 className="text-xs font-black text-slate-600 dark:text-slate-300 truncate">{mod.name}</h5>
-                                      <StatusBadge status={modStatus} size="xs" />
+                                  {/* Module header actions */}
+                                  <div className="flex items-center justify-between p-3 glass-panel/30 border-b border-slate-200 dark:border-white/5">
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                      <h5 className="text-sm font-black text-slate-600 dark:text-slate-300 truncate">Niveles del {mod.name}</h5>
                                     </div>
                                     <div className="ml-2 shrink-0">
                                       <BulkActionButtons
@@ -482,9 +479,8 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                                   </div>
 
                                   {/* Individual levels */}
-                                  {isModExpanded && (
-                                    <div className="p-3 flex flex-col gap-2">
-                                      {mod.levels.map((lvl) => {
+                                  <div className="p-3 flex flex-col gap-2">
+                                    {mod.levels.map((lvl) => {
                                         const prog = alumnoProgress.find(
                                           (p) => p.fase_id === phase.id && p.seccion === lvl.seccion && p.operacion === lvl.operacion
                                         );
@@ -565,8 +561,6 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                                         );
                                       })}
                                     </div>
-                                  )}
-
                                 </div>
                               );
                             })}
@@ -584,55 +578,6 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
         </div>
 
       </div>
-
-      {/* AI Insights Modal */}
-      {showAIModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-2xl glass-panel/90 backdrop-blur-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col rounded-[2rem]"
-          >
-            <div className="px-6 py-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
-              <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="bg-gradient-to-r from-purple-500 to-indigo-500 text-transparent bg-clip-text">Tutor IA: Análisis de Rendimiento</span>
-              </h3>
-              <button 
-                onClick={() => setShowAIModal(false)}
-                className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors"
-              >
-                <div className="w-4 h-4 relative">
-                  <div className="absolute inset-0 w-full h-0.5 bg-slate-500 rotate-45 top-1/2 -translate-y-1/2 rounded" />
-                  <div className="absolute inset-0 w-full h-0.5 bg-slate-500 -rotate-45 top-1/2 -translate-y-1/2 rounded" />
-                </div>
-              </button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
-              {loadingAI ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-4">
-                  <Loader2 className="text-purple-500 animate-spin" size={40} />
-                  <p className="text-slate-500 font-bold text-sm">El Tutor IA está analizando los registros de {selectedAlumno?.alumno_nombre}...</p>
-                </div>
-              ) : (
-                <div className="prose prose-slate dark:prose-invert max-w-none text-sm md:text-base leading-relaxed whitespace-pre-wrap font-medium">
-                  {aiReport}
-                </div>
-              )}
-            </div>
-            
-            <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 flex justify-end bg-slate-50 dark:bg-slate-800/50">
-              <button
-                onClick={() => setShowAIModal(false)}
-                className="px-6 py-2.5 rounded-xl bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-700 dark:text-white font-bold transition-colors"
-              >
-                Cerrar
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
 
     </div>
   );

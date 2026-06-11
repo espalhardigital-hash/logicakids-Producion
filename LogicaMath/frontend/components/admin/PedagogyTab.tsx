@@ -415,8 +415,19 @@ const SliderWithTooltip: React.FC<{
         />
       </div>
 
-      {/* Precision Number Input */}
-      <div className="relative shrink-0 w-24">
+      {/* Precision Number Input with +/- buttons */}
+      <div className="relative shrink-0 flex items-center bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden transition-all focus-within:border-blue-500/50">
+        <button 
+          onClick={() => {
+            let newVal = value - (step || 1);
+            if (newVal < min) newVal = min;
+            onChange(newVal);
+          }}
+          disabled={disabled || value <= min}
+          className="w-8 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-30 transition-colors"
+        >
+          -
+        </button>
         <input
           type="number"
           min={min}
@@ -427,9 +438,6 @@ const SliderWithTooltip: React.FC<{
             if (e.target.value === '') return;
             let val = parseInt(e.target.value);
             if (isNaN(val)) return;
-            // Removed min/max restriction strictly on typing so user can type freely, 
-            // but for safety we can just let it go through and maybe constrain on blur, 
-            // but to be safe and simple:
             if (val > max) val = max;
             onChange(val);
           }}
@@ -440,9 +448,20 @@ const SliderWithTooltip: React.FC<{
             }
           }}
           disabled={disabled}
-          className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-1.5 pl-3 pr-8 text-slate-900 dark:text-white text-sm font-black focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
+          className="w-14 bg-transparent text-center text-slate-900 dark:text-white text-sm font-black focus:outline-none disabled:opacity-50 appearance-none"
+          style={{ MozAppearance: 'textfield' }}
         />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs pointer-events-none">{unit}</span>
+        <button 
+          onClick={() => {
+            let newVal = value + (step || 1);
+            if (newVal > max) newVal = max;
+            onChange(newVal);
+          }}
+          disabled={disabled || value >= max}
+          className="w-8 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-30 transition-colors"
+        >
+          +
+        </button>
       </div>
     </div>
   );

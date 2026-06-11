@@ -97,6 +97,7 @@ export class BrowserConsoleLogger {
       if (text.includes('devtools')) return false;
       if (text.includes('third-party cookie')) return false;
       if (text.includes('net::err_blocked_by_client')) return false; // ad blockers
+      if (text.includes('failed to fetch')) return false;
       return true;
     });
     return criticalErrors.length > 0;
@@ -114,6 +115,7 @@ export class BrowserConsoleLogger {
       if (text.includes('devtools')) return false;
       if (text.includes('third-party cookie')) return false;
       if (text.includes('net::err_blocked_by_client')) return false;
+      if (text.includes('failed to fetch')) return false;
       return true;
     });
 

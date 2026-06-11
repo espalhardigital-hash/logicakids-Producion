@@ -53,6 +53,11 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
   const [numericAnswer, setNumericAnswer] = useState('');
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; message: string } | null>(null);
   const [answersLog, setAnswersLog] = useState<{ questionId: number; isCorrect: boolean }[]>([]);
+  const answersLogRef = useRef(answersLog);
+  useEffect(() => {
+    answersLogRef.current = answersLog;
+  }, [answersLog]);
+
   const [levelCompleted, setLevelCompleted] = useState(false);
   const [shaking, setShaking] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | undefined>(undefined);
@@ -189,8 +194,17 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
       // Completed all questions in the level
-      const correctCount = answersLog.filter(a => a.isCorrect).length;
+      const correctCount = answersLogRef.current.filter(a => a.isCorrect).length;
       const successRate = correctCount / totalQuestions;
+
+      console.log('🔍 [handleNext Completion Check]:', {
+        answersLog: answersLogRef.current,
+        correctCount,
+        totalQuestions,
+        successRate,
+        isAdmin: userRoleIsAdmin(),
+        shouldSave: (successRate >= 0.9 || userRoleIsAdmin())
+      });
 
       if (successRate >= 0.9 || userRoleIsAdmin()) {
         saveProgress(moduloId, nivelId);
@@ -265,12 +279,14 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
   };
 
   const saveProgress = (mId: number, nId: number) => {
+    console.log(`💾 saveProgress llamada con moduloId: ${mId}, nivelId: ${nId}, faseId: ${faseId}`);
     try {
       const key = `lk_fase_progress_${faseId}`;
       const saved = localStorage.getItem(key);
       const progress = saved ? JSON.parse(saved) : {};
       progress[`${mId}_${nId}`] = true;
       localStorage.setItem(key, JSON.stringify(progress));
+      console.log(`💾 saveProgress completada. Llave: "${key}". Valor: "${JSON.stringify(progress)}"`);
     } catch (e) {
       console.error('Error saving progress', e);
     }

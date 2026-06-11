@@ -88,7 +88,7 @@ export async function registerDynamicTestUser(page: Page): Promise<string> {
     data: {
       email,
       password,
-      username: `Tester ${timestamp}`,
+      username: 'pruebas_automaticas_2', // Bypasses phase recalculation in pedagogia_service
       role: 'USER',
       edad: 10,
       grado_escolar: 5

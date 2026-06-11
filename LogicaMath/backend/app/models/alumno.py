@@ -15,7 +15,7 @@ class Alumno(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Vinculo con autenticacion
-    user_id = Column(String, ForeignKey("users.id"), unique=True, nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
 
     nombre = Column(String(120), nullable=False)
     edad = Column(Integer, nullable=True)
@@ -40,9 +40,9 @@ class Alumno(Base):
     # Relaciones
     user = relationship("User", back_populates="alumno")
     fase_actual = relationship("Fase")
-    pools = relationship("PoolAsignadoAlumno", back_populates="alumno")
-    progresos = relationship("ProgresoMaestria", back_populates="alumno")
-    intentos = relationship("Intento", back_populates="alumno")
+    pools = relationship("PoolAsignadoAlumno", back_populates="alumno", cascade="all, delete-orphan", passive_deletes=True)
+    progresos = relationship("ProgresoMaestria", back_populates="alumno", cascade="all, delete-orphan", passive_deletes=True)
+    intentos = relationship("Intento", back_populates="alumno", cascade="all, delete-orphan", passive_deletes=True)
 
     def __repr__(self):
         return f"<Alumno id={self.id} nombre={self.nombre} fase={self.fase_actual_id}>"

@@ -6,10 +6,11 @@ import { TEST_USER } from './constants';
  * @param query Consulta SQL a ejecutar
  */
 export function execDbQuery(query: string) {
+  const cleanedQuery = query.replace(/\s+/g, ' ').trim();
   try {
-    execSync(`docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "${query}"`);
+    execSync(`docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "${cleanedQuery}"`);
   } catch (e) {
-    console.error(`❌ Error ejecutando query DB: ${query}`, e);
+    console.error(`❌ Error ejecutando query DB: ${cleanedQuery}`, e);
   }
 }
 
@@ -67,6 +68,94 @@ export function setPhaseForUser(email: string, targetFase: number) {
   const queryPhase = `UPDATE alumnos SET fase_actual_id = ${targetFase} WHERE user_id = (SELECT id FROM users WHERE email = '${email}');`;
   execDbQuery(queryPhase);
   console.log(`✅ Progress injected: Test user (${email}) set to phase ${targetFase}.`);
+}
+
+/**
+ * Aprueba el progreso de maestría para una sección y operación dada de forma directa.
+ */
+export function approveProgresoMaestria(email: string, faseId: number, seccion: number, operacion: string) {
+  const upperOp = operacion.toUpperCase();
+  const query = `
+    INSERT INTO progreso_maestria (alumno_id, fase_id, seccion, operacion, estado, aciertos_acumulados, intentos_totales, porcentaje_actual, aprobado_por_admin, fecha_inicio, fecha_aprobacion, ultima_actualizacion)
+    VALUES (
+      (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}') LIMIT 1),
+      ${faseId},
+      ${seccion},
+      '${upperOp}',
+      'APROBADO',
+      15,
+      15,
+      100,
+      false,
+      NOW(),
+      NOW(),
+      NOW()
+    )
+    ON CONFLICT (alumno_id, fase_id, seccion, operacion) 
+    DO UPDATE SET 
+      estado = 'APROBADO', 
+      porcentaje_actual = 100, 
+      aciertos_acumulados = 15, 
+      intentos_totales = 15,
+      fecha_aprobacion = NOW(),
+      ultima_actualizacion = NOW();
+  `;
+  execDbQuery(query);
+  console.log(`✅ ProgresoMaestria aprobado inyectado para ${email}: Fase ${faseId}, Sección ${seccion}, Operación ${upperOp}`);
+}
+
+/**
+ * Desbloquea todos los módulos anteriores al moduloId especificado aprobando sus niveles y desafíos.
+ */
+export function unlockAllUpToModule(email: string, faseId: number, moduloId: number) {
+  // Configuración de secciones y operaciones por fase y módulo
+  // Modulos y secciones para Fase 2:
+  // Módulo 1: 101 (SUMA), 102 (MULTIPLICACION), 103 (MIXTA), desafíos 1011, 1012, 1013 (MIXTA)
+  // Módulo 2: 201 (SUMA), 202 (MULTIPLICACION), 203 (MIXTA), 204 (MIXTA), desafíos 2011, 2012, 2013 (MIXTA)
+  // Módulo 3: 301 (SUMA), 302 (MULTIPLICACION), 303 (MIXTA), 304 (MIXTA), desafíos 3011, 3012, 3013 (MIXTA)
+  
+  const configMap: Record<number, Record<number, Array<{seccion: number, operacion: string}>>> = {
+    2: {
+      1: [
+        { seccion: 101, operacion: 'SUMA' },
+        { seccion: 102, operacion: 'SUMA' },
+        { seccion: 103, operacion: 'SUMA' },
+        { seccion: 1011, operacion: 'MIXTA' },
+        { seccion: 1012, operacion: 'MIXTA' },
+        { seccion: 1013, operacion: 'MIXTA' }
+      ],
+      2: [
+        { seccion: 201, operacion: 'MULTIPLICACION' },
+        { seccion: 202, operacion: 'MULTIPLICACION' },
+        { seccion: 203, operacion: 'MULTIPLICACION' },
+        { seccion: 204, operacion: 'MULTIPLICACION' },
+        { seccion: 2011, operacion: 'MIXTA' },
+        { seccion: 2012, operacion: 'MIXTA' },
+        { seccion: 2013, operacion: 'MIXTA' }
+      ],
+      3: [
+        { seccion: 301, operacion: 'MIXTA' },
+        { seccion: 302, operacion: 'MIXTA' },
+        { seccion: 303, operacion: 'MIXTA' },
+        { seccion: 304, operacion: 'MIXTA' },
+        { seccion: 3011, operacion: 'MIXTA' },
+        { seccion: 3012, operacion: 'MIXTA' },
+        { seccion: 3013, operacion: 'MIXTA' }
+      ]
+    }
+  };
+
+  const faseConfigs = configMap[faseId];
+  if (!faseConfigs) return;
+
+  for (let mId = 1; mId < moduloId; mId++) {
+    const blocks = faseConfigs[mId];
+    if (blocks) {
+      for (const b of blocks) {
+        approveProgresoMaestria(email, faseId, b.seccion, b.operacion);
+      }
+    }
+  }
 }
 
 /**

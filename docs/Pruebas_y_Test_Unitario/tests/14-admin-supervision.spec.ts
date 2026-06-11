@@ -93,5 +93,44 @@ test.describe('14 - Modo Supervisión del Administrador (Modo Evaluador)', () =>
     const usersTab = page.locator('button', { hasText: 'Vista General' }).first();
     await usersTab.click();
     await expect(page.locator('text=Gestión de Usuarios').first()).toBeVisible();
+
+    // 6. Navegar a Rendimiento Estudiantil
+    const perfTab = page.locator('button', { hasText: 'Rendimiento Estudiantil' }).first();
+    await perfTab.click();
+    
+    // Validar carga de buscador
+    await expect(page.locator('text=Buscador de Alumnos').first()).toBeVisible();
+  });
+
+  test('ADMIN puede navegar las pestañas de módulos en Rendimiento Estudiantil', async ({ page }) => {
+    // 1. Ir al Panel de Admin -> Rendimiento
+    await page.goto('/admin');
+    await page.waitForLoadState('domcontentloaded');
+    
+    const perfTab = page.locator('button', { hasText: 'Rendimiento Estudiantil' }).first();
+    await perfTab.click();
+    await expect(page.locator('text=Buscador de Alumnos').first()).toBeVisible();
+
+    // 2. Buscar un alumno
+    const searchInput = page.locator('input[placeholder="Buscar por nombre o email..."]');
+    await searchInput.fill(process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com');
+    await page.waitForTimeout(1000); // Esperar debounce
+
+    // 3. Seleccionar Alumno
+    const studentBtn = page.locator('button', { hasText: 'pruebas_automaticas_2' }).first();
+    if (await studentBtn.isVisible()) {
+      await studentBtn.click();
+      
+      // 4. Verificar que se renderizan las Pestañas Horizontales de Módulos (reemplazo del árbol vertical)
+      await expect(page.locator('text=Progreso y Control de Maestría').first()).toBeVisible();
+      
+      // Verificar que la pestaña "La Fracción Visual" (Módulo 1) existe y hacer clic
+      const mod1Tab = page.locator('button', { hasText: 'La Fracción Visual' }).first();
+      await expect(mod1Tab).toBeVisible();
+      await mod1Tab.click();
+
+      // Verificar que el contenido de Niveles carga para el módulo seleccionado
+      await expect(page.locator('text=Niveles del La Fracción Visual').first()).toBeVisible();
+    }
   });
 });

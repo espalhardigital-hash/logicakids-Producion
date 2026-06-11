@@ -300,19 +300,19 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
               <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Gestión de Usuarios</h3>
               <button
                 onClick={handleCreate}
-                className="px-6 py-3 bg-[#007AFF] hover:bg-blue-500 rounded-2xl flex items-center justify-center gap-2 text-white font-bold shadow-[0_5px_15px_rgba(0,122,255,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="px-4 py-2 bg-[#007AFF] hover:bg-blue-500 rounded-xl flex items-center justify-center gap-2 text-white font-bold text-sm shadow-[0_5px_15px_rgba(0,122,255,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                <Plus size={20} /> Nuevo Usuario
+                <Plus size={16} /> Nuevo Usuario
               </button>
             </div>
             <div className="relative w-full max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 type="text"
                 placeholder="Buscar usuario o email..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-3 pl-12 pr-6 text-slate-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all placeholder:text-slate-400"
+                className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-2 pl-10 pr-4 text-slate-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all placeholder:text-slate-400"
               />
             </div>
           </div>

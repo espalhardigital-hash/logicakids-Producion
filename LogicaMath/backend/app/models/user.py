@@ -34,7 +34,7 @@ class User(Base):
     last_login = Column(DateTime(timezone=True), nullable=True)
 
     # Relacion con perfil pedagogico
-    alumno = relationship("Alumno", back_populates="user", uselist=False)
+    alumno = relationship("Alumno", back_populates="user", uselist=False, cascade="all, delete-orphan", passive_deletes=True)
 
     def __repr__(self):
         return f"<User id={self.id} username={self.username} role={self.role}>"

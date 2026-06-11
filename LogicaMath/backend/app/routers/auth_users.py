@@ -213,6 +213,11 @@ async def delete_user(user_id: str, db: AsyncSession = Depends(get_db), admin_us
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Manually delete Alumno first to avoid cascade issues with asyncpg
+    from ..models.sql_models import Alumno
+    await db.execute(delete(Alumno).where(Alumno.user_id == user_id))
+    
     await db.delete(user)
     await db.commit()
     return {"message": "Usuario eliminado correctamente", "id": user_id}

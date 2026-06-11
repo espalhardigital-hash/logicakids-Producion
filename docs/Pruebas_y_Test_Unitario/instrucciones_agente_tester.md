@@ -120,26 +120,6 @@ El flujo de trabajo automatizado para documentar fallos es el siguiente:
 
 ---
 
-## 7. Gestión del Entorno Local
 
-### Resetear la base de datos (empezar de cero)
-```bash
-docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml down -v
-docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml up -d --build
-```
-
-### Ver logs del backend para depuración
-```bash
-docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml logs -f backend
-```
-
-### Forzar re-siembra de preguntas
-```bash
-docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml stop backend
-docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml run --rm -e FORCE_SEED=true backend python run_migrations.py
-docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml up -d backend
-```
-
----
 
 *Nota para el Agente: Al ejecutar un ciclo de pruebas basándote en este documento, debes priorizar el aislamiento, la idempotencia y la lectura activa de interceptores de red para asegurar tests 100% fiables.*

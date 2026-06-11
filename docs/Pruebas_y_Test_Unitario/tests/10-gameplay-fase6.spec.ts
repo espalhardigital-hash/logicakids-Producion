@@ -14,9 +14,8 @@ function getCorrectAnswer(questionId: number): string {
   }
 }
 
-function clearTestUserProgress() {
+function clearTestUserProgress(email: string) {
   try {
-    const email = process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com';
     const queries = [
       `DELETE FROM intento_pasos WHERE intento_pregunta_id IN (SELECT id FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}')));`,
       `DELETE FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`,
@@ -97,35 +96,13 @@ async function failCurrentQuestion(page: any, questionId: number) {
 
 test.describe('10 - Gameplay Fase 6 (Geometría Espacial)', () => {
   let currentQuestionId: number | null = null;
-
-  test.beforeAll(() => {
-    try {
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE alumnos SET fase_actual_id = 6 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}');"`
-      );
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
-      );
-      console.log('✅ Test user successfully set to Phase 6 and role ADMIN in the database.');
-    } catch (e) {
-      console.error('❌ Failed to set test user state:', e);
-    }
-  });
-
-  test.afterAll(() => {
-    try {
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
-      );
-      console.log('✅ Test user role restored to USER in the database.');
-    } catch (e) {
-      console.error('❌ Failed to restore test user role:', e);
-    }
-  });
+  let testUserEmail: string;
 
   test.beforeEach(async ({ page }) => {
     currentQuestionId = null;
-    clearTestUserProgress();
+    testUserEmail = await registerDynamicTestUser(page);
+    setPhaseForUser(testUserEmail, 6);
+    clearTestUserProgress(testUserEmail);
 
     page.on('response', async (response) => {
       if (

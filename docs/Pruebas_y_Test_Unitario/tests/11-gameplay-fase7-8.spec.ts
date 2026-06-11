@@ -8,23 +8,24 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
   let testUserEmail: string;
 
   test.beforeEach(async ({ page }) => {
+    page.on('console', msg => {
+      console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
+    });
     // 1. Crear un usuario nuevo para aislamiento estricto
     testUserEmail = await registerDynamicTestUser(page);
     
     // 2. Inyectar progreso en DB para simular que avanzó hasta la Fase 8 naturalmente
     setPhaseForUser(testUserEmail, 8);
-
-    // 3. Limpiar localStorage por seguridad
-    await page.addInitScript(() => {
-      window.localStorage.removeItem('lk_fase_progress_7');
-      window.localStorage.removeItem('lk_fase_progress_8');
-    });
   });
 
   test('Fase 7 - Módulo 1 Nivel 1: Flujo Completo y Respuestas', async ({ page }) => {
     // 1. Navigate to Map page and click Phase 7
     await page.goto('/map');
     await page.waitForLoadState('domcontentloaded');
+    await page.evaluate(() => {
+      window.localStorage.removeItem('lk_fase_progress_7');
+      window.localStorage.removeItem('lk_fase_progress_8');
+    });
     await page.waitForTimeout(1000);
 
     const card = page.locator('div.group', { hasText: 'Fase 7' }).first();
@@ -55,27 +56,33 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
     for (let qIdx = 0; qIdx < 5; qIdx++) {
       await page.waitForTimeout(500);
       if (await page.locator('text=¡Desafío Terminado!').isVisible()) {
+        console.log('🏁 Desafío Terminado detectado al inicio del bucle.');
         break;
       }
       const questionTextEl = page.locator('.fg-question-text').first();
       if (!await questionTextEl.isVisible()) {
         if (await page.locator('text=¡Desafío Terminado!').isVisible()) {
+          console.log('🏁 Desafío Terminado detectado tras verificar visibilidad del enunciado.');
           break;
         }
       }
       await expect(questionTextEl).toBeVisible();
       const questionText = await questionTextEl.innerHTML();
+      console.log(`❓ Pregunta [${qIdx + 1}]: "${questionText.trim()}"`);
 
       const answer = findCorrectAnswerMetadata(7, 1, 1, questionText);
+      console.log(`💡 Respuesta calculada: "${answer}"`);
       expect(answer).not.toBe('');
 
       // Check question type
       const isMultipleChoice = await page.locator('.fg-options-grid').count() > 0;
+      console.log(`🔧 Tipo: ${isMultipleChoice ? 'OPCIÓN MÚLTIPLE' : 'NUMÉRICA'}`);
 
       if (isMultipleChoice) {
         // Select correct option
         const optionBtn = page.locator('.fg-option-text', { hasText: new RegExp(`^${escapeRegExp(answer)}$`) }).first();
         await optionBtn.click();
+        await page.waitForTimeout(200); // Dar tiempo a que React actualice el estado selectedOption
         
         // Confirm
         const confirmBtn = page.locator('.fg-mc-confirm-btn');
@@ -85,6 +92,10 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
         await submitNumericKeypad(page, answer);
       }
       await page.waitForTimeout(1500); // Wait for auto-advance or fade
+
+      // Log UI feedback
+      const feedbackText = await page.locator('.fg-ambient-glow').count() > 0;
+      console.log(`📢 UI Feedback visible: ${feedbackText}`);
     }
 
     // 6. Verification: Back to Welcome phase and level marked as Dominado
@@ -109,6 +120,10 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
     // 1. Navigate to Map page and click Phase 8
     await page.goto('/map');
     await page.waitForLoadState('domcontentloaded');
+    await page.evaluate(() => {
+      window.localStorage.removeItem('lk_fase_progress_7');
+      window.localStorage.removeItem('lk_fase_progress_8');
+    });
     await page.waitForTimeout(1000);
 
     const card = page.locator('div.group', { hasText: 'Fase 8' }).first();
@@ -156,6 +171,7 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
       if (isMultipleChoice) {
         const optionBtn = page.locator('.fg-option-text', { hasText: new RegExp(`^${escapeRegExp(answer)}$`) }).first();
         await optionBtn.click();
+        await page.waitForTimeout(200); // Dar tiempo a que React actualice el estado
         const confirmBtn = page.locator('.fg-mc-confirm-btn');
         await confirmBtn.click();
       } else {

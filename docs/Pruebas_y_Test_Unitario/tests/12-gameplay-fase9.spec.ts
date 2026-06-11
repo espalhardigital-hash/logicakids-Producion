@@ -49,39 +49,19 @@ function findCorrectAnswer(faseId: number, moduloId: number, nivelId: number, cu
 }
 
 test.describe('12 - Gameplay Fase 9 (Simulados Colegio Pedro II)', () => {
-  test.beforeAll(() => {
-    try {
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}'; UPDATE alumnos SET fase_actual_id = 9 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}');"`
-      );
-      console.log('✅ Test user set to role ADMIN and fase_actual_id = 9.');
-    } catch (e) {
-      console.error('❌ Failed to set test user state:', e);
-    }
-  });
-
-  test.afterAll(() => {
-    try {
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
-      );
-      console.log('✅ Test user role restored to USER.');
-    } catch (e) {
-      console.error('❌ Failed to restore test user role:', e);
-    }
-  });
+  let testUserEmail: string;
 
   test.beforeEach(async ({ page }) => {
-    const testUserEmail = await registerDynamicTestUser(page);
+    testUserEmail = await registerDynamicTestUser(page);
     setPhaseForUser(testUserEmail, 9);
-    await page.addInitScript(() => {
-      window.localStorage.removeItem('lk_fase_progress_9');
-    });
   });
 
   test('Fase 9 - Simulados Pedro II: Flujo Completo', async ({ page }) => {
     await page.goto('/map');
     await page.waitForLoadState('domcontentloaded');
+    await page.evaluate(() => {
+      window.localStorage.removeItem('lk_fase_progress_9');
+    });
     await page.waitForTimeout(1000);
 
     const card = page.locator('div.group', { hasText: 'Fase 9' }).first();

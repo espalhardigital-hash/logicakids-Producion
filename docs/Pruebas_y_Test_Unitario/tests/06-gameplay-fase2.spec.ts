@@ -1,7 +1,7 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { ROUTES } from '../helpers/constants';
 import { registerDynamicTestUser } from '../helpers/auth';
-import { setPhaseForUser } from '../helpers/db-utils';
+import { setPhaseForUser, approveProgresoMaestria, unlockAllUpToModule } from '../helpers/db-utils';
 import { execSync } from 'child_process';
 
 /**
@@ -34,9 +34,8 @@ function getChainedStepAnswer(questionId: number, stepNumber: number): string {
 /**
  * Clean up all attempts and progress for the test user to avoid state leakage.
  */
-function clearTestUserProgress() {
+function clearTestUserProgress(email: string) {
   try {
-    const email = process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com';
     const queries = [
       `DELETE FROM intento_pasos WHERE intento_pregunta_id IN (SELECT id FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}')));`,
       `DELETE FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`,
@@ -95,38 +94,13 @@ async function failCurrentQuestion(page: any, questionId: number) {
 
 test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
   let currentQuestionId: number | null = null;
-
-  test.beforeAll(() => {
-    // Force set the test user '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}' to Phase 2 (fase_actual_id = 2) and role = ADMIN
-    // so that all module cards and challenges are unlocked and clickable in the frontend.
-    try {
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE alumnos SET fase_actual_id = 2 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}');"`
-      );
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
-      );
-      console.log('✅ Test user successfully set to Phase 2 and role ADMIN in the database.');
-    } catch (e) {
-      console.error('❌ Failed to set test user state:', e);
-    }
-  });
-
-  test.afterAll(() => {
-    // Restore test user '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}' role to USER
-    try {
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
-      );
-      console.log('✅ Test user role restored to USER in the database.');
-    } catch (e) {
-      console.error('❌ Failed to restore test user role:', e);
-    }
-  });
+  let testUserEmail: string;
 
   test.beforeEach(async ({ page }) => {
     currentQuestionId = null;
-    clearTestUserProgress();
+    testUserEmail = await registerDynamicTestUser(page);
+    setPhaseForUser(testUserEmail, 2);
+    clearTestUserProgress(testUserEmail);
 
     // Listen to network responses to capture the question ID of loaded questions
     page.on('response', async (response) => {
@@ -280,6 +254,9 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
   });
 
   test('Módulo 4 Práctica (Constructor de Soluciones) - Flujo de Pregunta Chained (Multi-Paso)', async ({ page }) => {
+    // Desbloquear todos los módulos anteriores en la Fase 2 (1, 2 y 3) para este usuario dinámico
+    unlockAllUpToModule(testUserEmail, 2, 4);
+
     // Intercept reading data to remove interactives for quick and reliable theory modal traversal
     await page.route('**/api/fase2/lectura/**', async (route) => {
       const response = await route.fetch();
@@ -361,6 +338,11 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
   });
 
   test('Módulo 1 Desafío (Gimnasio Mental) - Salida Temprana (Early Exit) tras múltiples fallos', async ({ page }) => {
+    // Desbloquear el Desafío 1 del Módulo 1 aprobando sus niveles de práctica previos
+    approveProgresoMaestria(testUserEmail, 2, 101, 'suma');
+    approveProgresoMaestria(testUserEmail, 2, 102, 'suma');
+    approveProgresoMaestria(testUserEmail, 2, 103, 'suma');
+
     // 1. Navigate to Phase 2 Welcome Hub
     await page.goto('/welcome-fase2');
     await page.waitForLoadState('domcontentloaded');
@@ -397,7 +379,7 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
     let isEarlyExitVisible = false;
     const earlyExitModal = page.locator('.f2-feedback-card.early-exit');
     
-    // We try up to 5 times (desafio 1 max errors is typically 3)
+    // We try up to 5 times (desafio 1 max errors is typically 2 or 3)
     for (let attempts = 0; attempts < 5; attempts++) {
       expect(currentQuestionId).not.toBeNull();
       const oldQuestionId = currentQuestionId;
@@ -405,27 +387,15 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
       
       await failCurrentQuestion(page, currentQuestionId!);
 
-      // Dynamically wait for the browser to auto-advance to the next question.
-      // If it auto-advances, currentQuestionId changes.
-      // If it does not auto-advance after 2.4 seconds, it means early_exit is true and we must click Continuar.
-      let nextQuestionLoaded = false;
-      for (let waitStep = 0; waitStep < 12; waitStep++) {
-        await page.waitForTimeout(200);
-        if (currentQuestionId !== oldQuestionId) {
-          nextQuestionLoaded = true;
-          break;
-        }
-      }
-
-      if (!nextQuestionLoaded) {
-        console.log('Detected Early Exit feedback card. Clicking "Continuar" manually...');
-        const continueBtn = page.locator('.f2-submit-btn:has-text("Continuar")').first();
-        if (await continueBtn.isVisible()) {
-          await continueBtn.click();
-        }
-        
-        // Wait for the Early Exit modal to become visible
-        await expect(earlyExitModal).toBeVisible({ timeout: 5000 });
+      // Wait for feedback card "Continuar" button to be visible and click it
+      const continueBtn = page.locator('.f2-submit-btn:has-text("Continuar")').first();
+      await expect(continueBtn).toBeVisible({ timeout: 5000 });
+      await continueBtn.click();
+      
+      // Give a moment for transition and check if Early Exit modal is visible
+      await page.waitForTimeout(1000);
+      
+      if (await earlyExitModal.isVisible()) {
         isEarlyExitVisible = true;
         console.log('Early Exit Modal successfully triggered!');
         
@@ -434,6 +404,13 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
         await expect(exitBtn).toBeVisible();
         await exitBtn.click();
         break;
+      } else {
+        // Wait for the next question to be registered as loaded (currentQuestionId updates)
+        for (let i = 0; i < 30; i++) {
+          if (currentQuestionId !== oldQuestionId) break;
+          await page.waitForTimeout(100);
+        }
+        expect(currentQuestionId).not.toBe(oldQuestionId);
       }
     }
 
