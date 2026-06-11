@@ -246,7 +246,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
       >
         {/* Apple Style Header */}
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Vista General de Administrador</h2>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Vista General de Administrador</h2>
           <div className="flex gap-3">
             <button className="w-12 h-12 rounded-full bg-slate-200/50 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 flex items-center justify-center text-slate-500 dark:text-slate-300 transition-colors shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
@@ -297,7 +297,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
           {/* Toolbar */}
           <div className="p-8 border-b border-slate-200 dark:border-white/5 flex flex-col bg-white dark:bg-white/[0.02]">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Gestión de Usuarios</h3>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Gestión de Usuarios</h3>
               <button
                 onClick={handleCreate}
                 className="px-6 py-3 bg-[#007AFF] hover:bg-blue-500 rounded-2xl flex items-center justify-center gap-2 text-white font-bold shadow-[0_5px_15px_rgba(0,122,255,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -367,7 +367,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                       </span>
                     </td>
                     <td className="p-6">
-                      <div className="flex items-center justify-center gap-3 opacity-100 md:opacity-40 md:group-hover:opacity-100 transition-all">
+                      <div className="flex items-center justify-center gap-1.5 opacity-100 md:opacity-40 md:group-hover:opacity-100 transition-all">
                         {[
                           { icon: BarChart2, color: 'purple', onClick: () => handleViewStats(user), label: 'Estadísticas' },
                           { icon: user.status === 'ACTIVE' ? UserX : UserCheck, color: user.status === 'ACTIVE' ? 'slate' : 'green', onClick: () => toggleStatus(user), label: user.status === 'ACTIVE' ? 'Banear' : 'Activar' },
@@ -378,17 +378,17 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                           <button 
                             key={bIdx}
                             onClick={btn.onClick} 
-                            className={`p-2.5 rounded-xl transition-all hover:scale-110 active:scale-95 ${
-                              btn.color === 'purple' ? 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20' :
-                              btn.color === 'green' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' :
-                              btn.color === 'blue' ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20' :
-                              btn.color === 'amber' ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20' :
-                              btn.color === 'red' ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' :
-                              'bg-slate-500/10 text-slate-500 dark:text-slate-400 hover:bg-slate-500/20'
-                            }`} 
+                            className={`p-1.5 rounded-lg transition-all hover:scale-110 active:scale-95 ${
+                              btn.color === 'purple' ? 'hover:bg-purple-500/10 text-purple-400' :
+                              btn.color === 'green' ? 'hover:bg-green-500/10 text-green-400' :
+                              btn.color === 'blue' ? 'hover:bg-blue-500/10 text-blue-400' :
+                              btn.color === 'amber' ? 'hover:bg-amber-500/10 text-amber-400' :
+                              btn.color === 'red' ? 'hover:bg-red-500/10 text-red-400' :
+                              'hover:bg-slate-500/10 text-slate-500 dark:text-slate-400'
+                            } hover:shadow-sm`} 
                             title={btn.label}
                           >
-                            <btn.icon size={20} />
+                            <btn.icon size={18} strokeWidth={2.5} />
                           </button>
                         ))}
                       </div>

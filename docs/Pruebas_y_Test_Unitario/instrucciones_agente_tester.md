@@ -58,83 +58,67 @@ Antes de ejecutar cualquier prueba, el agente debe asegurar que el stack Docker 
 
 ---
 
-## 2. Flujo de Acceso Inicial
+## 2. Idempotencia y Limpieza de Estado (Aislamiento de Tests)
+
+Para garantizar que las pruebas no generen falsos positivos ni fallen en cadena, el agente debe asegurar la idempotencia estricta:
+
+1. **Aislamiento de Entorno:**
+   - **Antes y después** de cada flujo de prueba, se deben limpiar las tablas de progreso del usuario de prueba a nivel de base de datos (`intentos`, `intento_pasos`, `progreso_maestria`).
+2. **Limpieza de Sesión en Navegador:**
+   - Forzar el borrado de la caché del navegador y del `localStorage` (ej. limpiando variables persistentes como `lk_fase_progress_X`) al iniciar un test nuevo para evitar que sesiones previas afecten la evaluación actual.
+
+---
+
+## 3. Flujo de Acceso Inicial y Uso de Roles
 
 El agente deberá simular el comportamiento de un usuario real, siguiendo estos pasos iniciales:
 
-1. **Apertura y Navegación:** Abrir el navegador **Google Chrome** (establecido por defecto) e ingresar a `http://localhost:3000`.
-2. **Autenticación (Login):** Ingresar las credenciales del usuario de prueba y validar que el acceso sea exitoso (verificando la redirección al dashboard o pantalla principal).
-3. **Inicio del Recorrido:** 
-   - Navegar hacia la **Fase** indicada.
-   - Ingresar al **Módulo** correspondiente.
-   - Comenzar siempre desde el **Nivel 1** o el nivel/desafío específico que el usuario haya indicado en su instrucción.
+1. **Apertura y Navegación:** Abrir Google Chrome e ingresar a `http://localhost:3000`.
+2. **Autenticación (Login):** Ingresar las credenciales del usuario de prueba y validar redirección.
+3. **Uso del Rol de Administrador para Pruebas Aceleradas:**
+   - Cuando el objetivo sea evaluar un módulo avanzado o desafío final sin tener que "jugar" y aprobar los primeros niveles pre-requisito, el agente tiene permitido cambiar el rol del usuario a `ADMIN` directamente en la base de datos (`UPDATE users SET role = 'ADMIN'`) para desbloquear todo el frontend. 
+   - **Obligatorio:** El rol debe ser restaurado a `USER` inmediatamente después de finalizar el test para no contaminar otras pruebas.
 
 ---
 
-## 3. Validación Exhaustiva de UI y Lógica por Interfaz
+## 4. Validación Exhaustiva de UI y Lógica por Interfaz
 
 Por cada pantalla, nivel o desafío que el agente visite, deberá detenerse y realizar las siguientes comprobaciones de forma estricta:
 
-### A. Carga de Interfaz
-- Verificar que la interfaz se renderice completamente y sin errores. El agente evaluador debe leer activamente los errores proporcionados por la consola del navegador (browser) para identificar cualquier fallo que deba ser corregido.
-- Validar que los elementos visuales cumplan con los **Criterios de Diseño** estipulados y la configuración actual (disposición, visibilidad de los elementos de juego).
+### A. Carga de Interfaz y Manejo de Animaciones
+- **Transiciones y Framer Motion:** El agente **nunca debe usar esperas de tiempo fijo** (hardcoded timeouts como `wait(500ms)`). 
+- Se debe usar comprobación absoluta de estado: usar comandos explícitos de espera como `.waitFor({ state: 'hidden' })` al cerrar modales superpuestos, o `.toBeEnabled()` antes de presionar botones de interacción. Esto evita que los clics automatizados sean interceptados por animaciones en curso.
+- Verificar que la interfaz se renderice completamente, leyendo activamente los errores de consola del navegador.
 
-### B. Evaluación de Acciones y Respuestas
-El agente debe interactuar con las opciones disponibles y observar el comportamiento de la aplicación ante diferentes escenarios:
-
-1. **En Caso de Acierto:**
-   - Seleccionar la respuesta correcta.
-   - Validar que el sistema reconozca el acierto (ej. feedback visual positivo, incremento de puntaje).
-   - Comprobar que el flujo permite continuar de manera fluida.
-
-2. **En Caso de Fallo:**
-   - Seleccionar una respuesta incorrecta de manera intencional.
-   - Validar qué sucede en la interfaz (ej. feedback visual negativo, deducción de puntos si aplica).
-   - Validar el comportamiento del sistema ante el error según las reglas del juego.
-
-3. **La Pregunta Espejo:**
-   - Si la configuración del nivel dictamina que al fallar debe presentarse una "pregunta espejo" (o de refuerzo), el agente debe **verificar explícitamente** que esta pregunta cargue correctamente y que su lógica funcione igual que una pregunta normal.
-
-### C. Reglas Generales
-- Asegurar que en todo momento las interfaces y transiciones respeten las reglas generales establecidas para LogicaKids.
+### B. Evaluación de Acciones, Red y Respuestas
+- **Política de Timeouts de Red:** El agente debe interceptar las peticiones API reales (ej. esperar la respuesta `200 OK` de `/api/faseX/modulo/X/pregunta`) para saber que la pantalla ya cargó los datos, en lugar de depender solo de buscar elementos visuales.
+- **Caso de Acierto / Fallo:** Seleccionar respuestas correctas e incorrectas, validando que el feedback (positivo/negativo) y las reglas de puntuación se apliquen.
+- **La Pregunta Espejo:** Verificar explícitamente que tras un fallo, la "pregunta espejo" se dispare y que su lógica funcione igual que una pregunta normal.
 
 ---
 
-## 4. Validación de Progreso y Desbloqueos
+## 5. Validación de Progreso y Desbloqueos
 
-El flujo de navegación entre niveles y módulos es crítico. El agente debe probar:
-
-1. **Botones de Navegación:**
-   - Pulsar el botón "Siguiente" o botones de transición similares.
-   - Verificar que al presionarlo, la siguiente interfaz se cargue correctamente.
-
-2. **Criterios de Liberación (Bloqueo/Desbloqueo):**
-   - **Aprobación:** Verificar que al finalizar un nivel, desafío o módulo, el siguiente se libere **únicamente si** el usuario alcanzó la nota o grado mínimo de aprobación configurado.
-   - **Reprobación:** Comprobar que, si no se alcanza la nota mínima de aprobación, los niveles/módulos siguientes **permanezcan bloqueados** impidiendo el avance, tal como indica el diseño.
+1. **Botones de Navegación:** Verificar la correcta transición entre interfaces tras pulsar "Siguiente".
+2. **Criterios de Liberación:**
+   - **Aprobación:** Asegurar que los niveles siguientes se desbloqueen solo al alcanzar la nota mínima.
+   - **Reprobación:** Comprobar que los niveles siguientes permanezcan bloqueados si se falla, acorde al diseño.
 
 ---
 
-## 5. Sistema de Reportes de Bugs e Historial de Soluciones
+## 6. Sistema de Reportes de Bugs e Historial de Soluciones
 
-Durante la ejecución de las pruebas, el sistema genera automáticamente reportes y mantiene un historial acumulativo.
+El flujo de trabajo automatizado para documentar fallos es el siguiente:
 
-### Flujo de Trabajo
-1. **Ejecutar pruebas:** Al finalizar la ejecución completa, se genera un reporte consolidado en `reportes_bugs/reporte_ultima_ejecucion.md` con TODOS los bugs encontrados.
-2. **Corregir bugs:** El agente debe leer el reporte, corregir cada bug listado en orden de severidad (críticos primero), y aplicar las correcciones al código fuente.
-3. **Actualizar historial:** Después de corregir cada bug, el agente debe documentar la solución en el historial acumulativo `reportes_bugs/historial_bugs.md`, indicando qué se hizo y qué archivos se modificaron.
-4. **Re-ejecutar:** Se vuelven a correr las pruebas para verificar que los bugs fueron resueltos. El ciclo se repite hasta que el reporte salga limpio (sin bugs).
-
-### Archivos del Sistema de Reportes
-- `reportes_bugs/reporte_ultima_ejecucion.md` — Contiene todos los bugs de la última ejecución. Se sobreescribe en cada nueva ejecución.
-- `reportes_bugs/historial_bugs.md` — Base de conocimiento acumulativa. Cada entrada documenta un bug resuelto y su solución. Cuando un problema similar reaparece, el agente consulta este historial para saber cómo solucionarlo.
-- `reportes_bugs/screenshots/` — Capturas de pantalla automáticas al momento de cada fallo.
-
-### Consulta del Historial
-Antes de investigar un bug desde cero, el agente debe buscar en el historial si existe una solución previa para un problema similar. El sistema lo hace automáticamente durante la ejecución y muestra coincidencias en la consola.
+1. **Ejecutar pruebas:** Se genera un reporte consolidado en `reportes_bugs/reporte_ultima_ejecucion.md`.
+2. **Corregir bugs:** El agente lee el reporte, prioriza por severidad (críticos primero) y aplica correcciones directas al código fuente.
+3. **Actualizar historial:** Tras arreglar un bug, se documenta la solución en `reportes_bugs/historial_bugs.md` indicando el problema, solución y archivos modificados.
+4. **Re-ejecutar:** El ciclo se repite hasta lograr un reporte 100% limpio (0 bugs).
+5. *(Recomendación para CI/CD):* En entornos automatizados de integración (GitHub Actions/VPS), el agente debe procurar correr el navegador en modo "Headless" y solo conservar videos o pantallazos en caso de falla para ahorrar recursos.
 
 ---
 
-## 6. Gestión del Entorno Local
+## 7. Gestión del Entorno Local
 
 ### Resetear la base de datos (empezar de cero)
 ```bash
@@ -156,4 +140,4 @@ docker compose -f docs/Pruebas_y_Test_Unitario/docker-compose.local.yml up -d ba
 
 ---
 
-*Nota para el Agente: Al ejecutar un ciclo de pruebas basándote en este documento, debes reportar detalladamente cualquier anomalía en el reporte consolidado de bugs, corregir los errores encontrados, y actualizar el historial de soluciones para futura referencia.*
+*Nota para el Agente: Al ejecutar un ciclo de pruebas basándote en este documento, debes priorizar el aislamiento, la idempotencia y la lectura activa de interceptores de red para asegurar tests 100% fiables.*

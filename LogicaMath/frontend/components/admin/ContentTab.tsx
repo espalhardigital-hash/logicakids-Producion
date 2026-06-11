@@ -473,7 +473,7 @@ const ContentTab: React.FC = () => {
               className="bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
             >
               {PHASE_MAPS.map(p => (
-                <option key={p.id} value={p.id}>{p.name.split(':')[0]}</option>
+                <option key={p.id} value={p.id} className="text-slate-900 bg-white dark:text-white dark:bg-slate-900">{p.name.split(':')[0]}</option>
               ))}
             </select>
           </div>
@@ -491,7 +491,7 @@ const ContentTab: React.FC = () => {
               className="bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
             >
               {(PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules || []).map(m => (
-                <option key={m.id} value={m.id}>{m.name}</option>
+                <option key={m.id} value={m.id} className="text-slate-900 bg-white dark:text-white dark:bg-slate-900">{m.name}</option>
               ))}
             </select>
           </div>
@@ -505,7 +505,7 @@ const ContentTab: React.FC = () => {
               className="bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
             >
               {(PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules?.find(m => m.id === mgrModuloId)?.levels || PHASE_MAPS.find(p => p.id === mgrFaseId)?.levels || []).map(l => (
-                <option key={l.id} value={l.id}>{l.isChallenge ? 'Desafío' : 'Nivel'} {l.id}: {l.name}</option>
+                <option key={l.id} value={l.id} className="text-slate-900 bg-white dark:text-white dark:bg-slate-900">{l.isChallenge ? 'Desafío' : 'Nivel'} {l.id}: {l.name}</option>
               ))}
             </select>
           </div>

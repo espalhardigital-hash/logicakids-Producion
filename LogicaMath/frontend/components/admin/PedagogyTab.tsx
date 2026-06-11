@@ -375,43 +375,75 @@ const SliderWithTooltip: React.FC<{
   const activeColor = isThermal ? getThermalColor() : accentColor;
 
   return (
-    <div className="relative w-full group pt-2 select-none">
-      {/* Floating tooltip */}
-      <div
-        className="absolute -top-3 transform -translate-x-1/2 pointer-events-none transition-all duration-100 z-10"
-        style={{ left: `${percentage}%` }}
-      >
-        <div className={`glass-panel border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white font-black text-sm px-2 py-0.5 rounded shadow-xl whitespace-nowrap ${isThermal ? 'transition-colors duration-300' : ''}`}>
-          {value}{unit}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
-        </div>
-      </div>
-
-      {/* Track background */}
-      <div className="relative w-full h-2 bg-white/80 dark:bg-slate-800/80 rounded-full overflow-hidden">
-        {/* Filled portion */}
+    <div className="flex items-center gap-4 w-full">
+      <div className="relative flex-1 group pt-2 select-none">
+        {/* Floating tooltip */}
         <div
-          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-150 ${disabled ? 'bg-slate-600' : activeColor}`}
-          style={{ width: `${percentage}%` }}
-        />
-        {/* Thumb */}
-        <div
-          className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 -ml-2 rounded-full border-2 border-white bg-white/80 dark:bg-slate-950 shadow-[0_0_8px_rgba(0,0,0,0.5)] pointer-events-none z-20 transition-transform ${disabled ? 'scale-75 opacity-55' : 'group-hover:scale-110'}`}
+          className="absolute -top-3 transform -translate-x-1/2 pointer-events-none transition-all duration-100 z-10"
           style={{ left: `${percentage}%` }}
+        >
+          <div className={`glass-panel border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white font-black text-sm px-2 py-0.5 rounded shadow-xl whitespace-nowrap ${isThermal ? 'transition-colors duration-300' : ''}`}>
+            {value}{unit}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
+          </div>
+        </div>
+
+        {/* Track background */}
+        <div className="relative w-full h-2 bg-white/80 dark:bg-slate-800/80 rounded-full overflow-hidden">
+          {/* Filled portion */}
+          <div
+            className={`absolute top-0 left-0 h-full rounded-full transition-all duration-150 ${disabled ? 'bg-slate-600' : activeColor}`}
+            style={{ width: `${percentage}%` }}
+          />
+          {/* Thumb */}
+          <div
+            className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 -ml-2 rounded-full border-2 border-white bg-white/80 dark:bg-slate-950 shadow-[0_0_8px_rgba(0,0,0,0.5)] pointer-events-none z-20 transition-transform ${disabled ? 'scale-75 opacity-55' : 'group-hover:scale-110'}`}
+            style={{ left: `${percentage}%` }}
+          />
+        </div>
+
+        {/* Invisible range input on top */}
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(parseInt(e.target.value))}
+          disabled={disabled}
+          className="absolute top-2 left-0 w-full h-2 opacity-0 cursor-pointer disabled:cursor-not-allowed z-30"
         />
       </div>
 
-      {/* Invisible range input on top */}
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseInt(e.target.value))}
-        disabled={disabled}
-        className="absolute top-2 left-0 w-full h-2 opacity-0 cursor-pointer disabled:cursor-not-allowed z-30"
-      />
+      {/* Precision Number Input */}
+      <div className="relative shrink-0 w-24">
+        <input
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => {
+            if (e.target.value === '') return;
+            let val = parseInt(e.target.value);
+            if (isNaN(val)) return;
+            // Removed min/max restriction strictly on typing so user can type freely, 
+            // but for safety we can just let it go through and maybe constrain on blur, 
+            // but to be safe and simple:
+            if (val > max) val = max;
+            onChange(val);
+          }}
+          onBlur={(e) => {
+            let val = parseInt(e.target.value);
+            if (isNaN(val) || val < min) {
+               onChange(min);
+            }
+          }}
+          disabled={disabled}
+          className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-1.5 pl-3 pr-8 text-slate-900 dark:text-white text-sm font-black focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
+        />
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs pointer-events-none">{unit}</span>
+      </div>
     </div>
   );
 };

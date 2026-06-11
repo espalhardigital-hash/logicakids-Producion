@@ -1,75 +1,15 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { ensureAuthenticated } from '../helpers/auth';
-import { execSync } from 'child_process';
-import { getFaseMetadata } from '../../../LogicaMath/frontend/components/fase_generic/faseMetadata';
-
-function escapeRegExp(str: string) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function cleanText(html: string): string {
-  return html
-    .replace(/<img[^>]*>/g, '')
-    .replace(/<br\s*\/?>/g, ' ')
-    .replace(/['"‘“’”]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function findCorrectAnswer(faseId: number, moduloId: number, nivelId: number, currentQuestionText: string): string {
-  const metadata = getFaseMetadata(faseId);
-  if (!metadata) return '';
-
-  const cleanCurrent = cleanText(currentQuestionText);
-
-  if (moduloId === 99) {
-    // Mastery Challenge: search all questions in all modules
-    const allQuestions = metadata.modulos.flatMap(m => m.niveles.flatMap(n => n.preguntas));
-    for (const q of allQuestions) {
-      if (cleanText(q.enunciado) === cleanCurrent) {
-        return q.respuesta_correcta;
-      }
-    }
-    return '';
-  }
-
-  const modulo = metadata.modulos.find(m => m.moduloId === moduloId);
-  if (!modulo) return '';
-  const nivel = modulo.niveles.find(n => n.nivelId === nivelId);
-  if (!nivel) return '';
-
-  for (const q of nivel.preguntas) {
-    if (cleanText(q.enunciado) === cleanCurrent) {
-      return q.respuesta_correcta;
-    }
-  }
-
-  return '';
-}
+import { setAdminRoleAndPhase, restoreUserRole } from '../helpers/db-utils';
+import { findCorrectAnswerMetadata, navigateGenericTheoryModal, submitNumericKeypad, escapeRegExp } from '../helpers/gameplay-utils';
 
 test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Combinatoria y Probabilidad)', () => {
   test.beforeAll(() => {
-    try {
-      // Set user role to ADMIN and fase_actual_id to 8 in the DB to bypass locks
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}'; UPDATE alumnos SET fase_actual_id = 8 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}');"`
-      );
-      console.log('✅ Test user successfully set to role ADMIN in the database.');
-    } catch (e) {
-      console.error('❌ Failed to set test user state:', e);
-    }
+    setAdminRoleAndPhase(process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com', 8);
   });
 
   test.afterAll(() => {
-    try {
-      // Restore user role to USER
-      execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
-      );
-      console.log('✅ Test user role restored to USER in the database.');
-    } catch (e) {
-      console.error('❌ Failed to restore test user role:', e);
-    }
+    restoreUserRole(process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com');
   });
 
   test.beforeEach(async ({ page }) => {
@@ -103,50 +43,12 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
     await lvlCard.click();
 
     // 4. Handle Theory Modal
-    const theoryOverlay = page.locator('.fg-reading-overlay');
-    await expect(theoryOverlay).toBeVisible();
-    
-    while (true) {
-      const interactiveBoxes = page.locator('.fg-interactive-box');
-      const count = await interactiveBoxes.count();
-      for (let i = 0; i < count; i++) {
-        const box = interactiveBoxes.nth(i);
-        const isLocked = await box.locator('text=🔒').isVisible();
-        if (isLocked) continue;
-        const isCorrect = (await box.getAttribute('class'))?.includes('correct');
-        if (isCorrect) continue;
-        const qTextEl = box.locator('.fg-int-q');
-        const qText = await qTextEl.innerText();
-        let answer = '';
-        if (qText.includes('cohete avanza 2 casillas')) {
-          answer = '3';
-        } else if (qText.includes('Gira 90° a la izquierda')) {
-          answer = 'Norte';
-        } else if (qText.includes('4, 10, 16, 22')) {
-          answer = '28';
-        } else if (qText.includes('50, 45, 40, 35')) {
-          answer = '30';
-        }
-        if (answer) {
-          const input = box.locator('input.fg-int-input');
-          await input.fill(answer);
-          const verifyBtn = box.locator('button.fg-int-verify');
-          await verifyBtn.click();
-          await page.waitForTimeout(500);
-        }
-      }
-      const nextBtn = page.locator('button.fg-nav-btn.primary');
-      const startBtn = page.locator('button.fg-reading-close-btn');
-      if (await startBtn.isVisible()) {
-        await startBtn.click();
-        break;
-      } else if (await nextBtn.isVisible() && await nextBtn.isEnabled()) {
-        await nextBtn.click();
-        await page.waitForTimeout(500);
-      } else {
-        break;
-      }
-    }
+    await navigateGenericTheoryModal(page, {
+      'cohete avanza 2 casillas': '3',
+      'Gira 90° a la izquierda': 'Norte',
+      '4, 10, 16, 22': '28',
+      '50, 45, 40, 35': '30'
+    });
 
     // 5. Answer Level questions
     // There are 2 questions in Fase 7 Modulo 1 Level 1
@@ -164,7 +66,7 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
       await expect(questionTextEl).toBeVisible();
       const questionText = await questionTextEl.innerHTML();
 
-      const answer = findCorrectAnswer(7, 1, 1, questionText);
+      const answer = findCorrectAnswerMetadata(7, 1, 1, questionText);
       expect(answer).not.toBe('');
 
       // Check question type
@@ -179,13 +81,8 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
         const confirmBtn = page.locator('.fg-mc-confirm-btn');
         await confirmBtn.click();
       } else {
-        // Numeric - input using keypad
-        for (const char of answer) {
-          await page.locator(`button:has-text("${char}")`).last().click();
-          await page.waitForTimeout(50);
-        }
         // Submit using arrow button
-        await page.locator('button.bg-blue-600').first().click();
+        await submitNumericKeypad(page, answer);
       }
       await page.waitForTimeout(1500); // Wait for auto-advance or fade
     }
@@ -230,50 +127,10 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
     await lvlCard.click();
 
     // 4. Handle Theory Modal
-    const theoryOverlay = page.locator('.fg-reading-overlay');
-    await expect(theoryOverlay).toBeVisible();
-    
-    while (true) {
-      const interactiveBoxes = page.locator('.fg-interactive-box');
-      const count = await interactiveBoxes.count();
-      for (let i = 0; i < count; i++) {
-        const box = interactiveBoxes.nth(i);
-        const isLocked = await box.locator('text=🔒').isVisible();
-        if (isLocked) continue;
-        const isCorrect = (await box.getAttribute('class'))?.includes('correct');
-        if (isCorrect) continue;
-        const qTextEl = box.locator('.fg-int-q');
-        const qText = await qTextEl.innerText();
-        let answer = '';
-        if (qText.includes('cohete avanza 2 casillas')) {
-          answer = '3';
-        } else if (qText.includes('Gira 90° a la izquierda')) {
-          answer = 'Norte';
-        } else if (qText.includes('4, 10, 16, 22')) {
-          answer = '28';
-        } else if (qText.includes('50, 45, 40, 35')) {
-          answer = '30';
-        }
-        if (answer) {
-          const input = box.locator('input.fg-int-input');
-          await input.fill(answer);
-          const verifyBtn = box.locator('button.fg-int-verify');
-          await verifyBtn.click();
-          await page.waitForTimeout(500);
-        }
-      }
-      const nextBtn = page.locator('button.fg-nav-btn.primary');
-      const startBtn = page.locator('button.fg-reading-close-btn');
-      if (await startBtn.isVisible()) {
-        await startBtn.click();
-        break;
-      } else if (await nextBtn.isVisible() && await nextBtn.isEnabled()) {
-        await nextBtn.click();
-        await page.waitForTimeout(500);
-      } else {
-        break;
-      }
-    }
+    await navigateGenericTheoryModal(page, {
+      '4, 10, 16, 22': '28',
+      '50, 45, 40, 35': '30'
+    });
 
     // 5. Answer Level questions
     for (let qIdx = 0; qIdx < 5; qIdx++) {
@@ -290,7 +147,7 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
       await expect(questionTextEl).toBeVisible();
       const questionText = await questionTextEl.innerHTML();
 
-      const answer = findCorrectAnswer(8, 1, 1, questionText);
+      const answer = findCorrectAnswerMetadata(8, 1, 1, questionText);
       expect(answer).not.toBe('');
 
       // Check question type
@@ -302,11 +159,7 @@ test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Co
         const confirmBtn = page.locator('.fg-mc-confirm-btn');
         await confirmBtn.click();
       } else {
-        for (const char of answer) {
-          await page.locator(`button:has-text("${char}")`).last().click();
-          await page.waitForTimeout(50);
-        }
-        await page.locator('button.bg-blue-600').first().click();
+        await submitNumericKeypad(page, answer);
       }
       await page.waitForTimeout(1500);
     }

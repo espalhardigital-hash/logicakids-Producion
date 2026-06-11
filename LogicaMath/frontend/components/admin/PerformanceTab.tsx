@@ -131,11 +131,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
   // Progress states
   const [alumnoProgress, setAlumnoProgress] = useState<any[]>([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
-  const [expandedFases, setExpandedFases] = useState<Record<number, boolean>>(() => {
-    const defaults: Record<number, boolean> = {};
-    PHASE_MAPS.forEach(p => defaults[p.id] = true);
-    return defaults;
-  });
+  const [selectedFaseId, setSelectedFaseId] = useState<number>(1);
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
 
   // Action tracking: "level-{faseId}-{seccion}-{op}" | "module-{faseId}-{modId}" | "fase-{faseId}"
@@ -186,7 +182,8 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
     setSelectedAlumno(alumno);
     setAiReport(null); // Reset AI report when selecting new student
     fetchProgress(alumno.alumno_id);
-    // Default: expand all modules
+    // Default: expand all modules for the current phase, and set the phase tab to the student's current phase
+    setSelectedFaseId(alumno.fase_actual_id || 1);
     const defaults: Record<string, boolean> = {};
     PHASE_MAPS.forEach((phase) =>
       phase.modules.forEach((mod) => { defaults[`${phase.id}-${mod.id}`] = true; })
@@ -389,12 +386,6 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Estado</span>
                     <span className="text-base font-black text-green-400">{selectedAlumno.estado}</span>
                   </div>
-                  <button
-                    onClick={handleFetchAIInsights}
-                    className="ml-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white text-xs font-black shadow-lg shadow-purple-500/30 flex items-center gap-2 transition-transform hover:scale-105"
-                  >
-                    <User size={14} /> Consultar IA
-                  </button>
                 </div>
               </div>
 
@@ -408,32 +399,47 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                   </div>
                 ) : (
                   <div className="flex flex-col gap-5">
-                    {PHASE_MAPS.map((phase) => {
-                      const isExpanded = expandedFases[phase.id];
+                    {/* Horizontal Phase Tabs */}
+                    <div className="flex overflow-x-auto custom-scrollbar pb-2 gap-2">
+                      {PHASE_MAPS.map((phase) => {
+                        const allFaseLevels = phase.modules.flatMap((m) => m.levels);
+                        const faseStatus = computeAggregateStatusForPhase(phase.id, allFaseLevels, alumnoProgress);
+                        const isSelected = selectedFaseId === phase.id;
+                        
+                        return (
+                          <button
+                            key={phase.id}
+                            onClick={() => setSelectedFaseId(phase.id)}
+                            className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl border transition-all ${
+                              isSelected 
+                                ? 'bg-blue-600 text-white border-blue-500 shadow-[0_5px_15px_rgba(37,99,235,0.3)]' 
+                                : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
+                            }`}
+                          >
+                            <span className={`text-sm font-black whitespace-nowrap ${isSelected ? 'text-white' : ''}`}>Fase {phase.id}</span>
+                            {!isSelected && <StatusBadge status={faseStatus} size="xs" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Active Phase Content */}
+                    {PHASE_MAPS.filter(p => p.id === selectedFaseId).map((phase) => {
                       const allFaseLevels = phase.modules.flatMap((m) => m.levels);
                       const faseStatus = computeAggregateStatusForPhase(phase.id, allFaseLevels, alumnoProgress);
                       const faseBulkKey = `fase-${phase.id}`;
                       const faseBulkLoading = actionInProgress === faseBulkKey;
 
                       return (
-                        <div key={phase.id} className="rounded-3xl border border-slate-200 dark:border-white/5 bg-white/80 dark:bg-slate-950/20 overflow-hidden">
-
-                          {/* Phase header */}
-                          <div
-                            className="flex justify-between items-center p-4 glass-panel cursor-pointer border-b border-slate-200 dark:border-white/5 hover:glass-panel/60 transition-colors"
-                          >
-                            {/* Left: expand toggle + name + status */}
-                            <div
-                              className="flex items-center gap-3 flex-1 min-w-0"
-                              onClick={() => setExpandedFases(prev => ({ ...prev, [phase.id]: !prev[phase.id] }))}
-                            >
-                              {isExpanded ? <ChevronUp size={16} className="text-slate-500 dark:text-slate-400 shrink-0" /> : <ChevronDown size={16} className="text-slate-500 dark:text-slate-400 shrink-0" />}
-                              <Layers size={14} className="text-slate-500 shrink-0" />
-                              <span className="text-sm font-black text-slate-900 dark:text-white truncate">{phase.name}</span>
-                              <StatusBadge status={faseStatus} size="xs" />
+                        <div key={phase.id} className="rounded-3xl border border-slate-200 dark:border-white/5 bg-white/80 dark:bg-slate-950/20 overflow-hidden flex flex-col">
+                          
+                          {/* Phase Header for Bulk Actions */}
+                          <div className="flex justify-between items-center p-4 glass-panel border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/50">
+                            <div className="flex items-center gap-3">
+                              <Layers size={18} className="text-blue-500" />
+                              <span className="text-base font-black text-slate-900 dark:text-white">{phase.name}</span>
+                              <StatusBadge status={faseStatus} size="sm" />
                             </div>
-
-                            {/* Right: bulk action buttons */}
                             <BulkActionButtons
                               aggregateStatus={faseStatus}
                               loading={faseBulkLoading}
@@ -443,130 +449,128 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                             />
                           </div>
 
-                          {isExpanded && (
-                            <div className="p-4 flex flex-col gap-4">
-                              {phase.modules.map((mod) => {
-                                const modKey = `${phase.id}-${mod.id}`;
-                                const isModExpanded = expandedModules[modKey] ?? true;
-                                const modStatus = computeAggregateStatusForPhase(phase.id, mod.levels, alumnoProgress);
-                                const moduleBulkKey = `module-${phase.id}-${mod.id}`;
-                                const moduleBulkLoading = actionInProgress === moduleBulkKey;
+                          <div className="p-4 flex flex-col gap-4">
+                            {phase.modules.map((mod) => {
+                              const modKey = `${phase.id}-${mod.id}`;
+                              const isModExpanded = expandedModules[modKey] ?? true;
+                              const modStatus = computeAggregateStatusForPhase(phase.id, mod.levels, alumnoProgress);
+                              const moduleBulkKey = `module-${phase.id}-${mod.id}`;
+                              const moduleBulkLoading = actionInProgress === moduleBulkKey;
 
-                                return (
-                                  <div key={mod.id} className="bg-white/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden">
-                                    
-                                    {/* Module header */}
-                                    <div className="flex items-center justify-between p-3 glass-panel/30 border-b border-slate-200 dark:border-white/5 hover:glass-panel/50 transition-colors cursor-pointer">
-                                      <div
-                                        className="flex items-center gap-2 flex-1 min-w-0"
-                                        onClick={() => setExpandedModules(prev => ({ ...prev, [modKey]: !prev[modKey] }))}
-                                      >
-                                        {isModExpanded ? <ChevronUp size={13} className="text-slate-500 shrink-0" /> : <ChevronDown size={13} className="text-slate-500 shrink-0" />}
-                                        <h5 className="text-xs font-black text-slate-600 dark:text-slate-300 truncate">{mod.name}</h5>
-                                        <StatusBadge status={modStatus} size="xs" />
-                                      </div>
-                                      <div className="ml-2 shrink-0">
-                                        <BulkActionButtons
-                                          aggregateStatus={modStatus}
-                                          loading={moduleBulkLoading}
-                                          onApprove={() => handleModuleBulk(phase.id, mod.id, mod.levels, 'approve')}
-                                          onUnlock={() => handleModuleBulk(phase.id, mod.id, mod.levels, 'unlock')}
-                                          onLock={() => handleModuleBulk(phase.id, mod.id, mod.levels, 'lock')}
-                                        />
-                                      </div>
+                              return (
+                                <div key={mod.id} className="bg-white/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden">
+                                  
+                                  {/* Module header */}
+                                  <div className="flex items-center justify-between p-3 glass-panel/30 border-b border-slate-200 dark:border-white/5 hover:glass-panel/50 transition-colors cursor-pointer">
+                                    <div
+                                      className="flex items-center gap-2 flex-1 min-w-0"
+                                      onClick={() => setExpandedModules(prev => ({ ...prev, [modKey]: !prev[modKey] }))}
+                                    >
+                                      {isModExpanded ? <ChevronUp size={13} className="text-slate-500 shrink-0" /> : <ChevronDown size={13} className="text-slate-500 shrink-0" />}
+                                      <h5 className="text-xs font-black text-slate-600 dark:text-slate-300 truncate">{mod.name}</h5>
+                                      <StatusBadge status={modStatus} size="xs" />
                                     </div>
+                                    <div className="ml-2 shrink-0">
+                                      <BulkActionButtons
+                                        aggregateStatus={modStatus}
+                                        loading={moduleBulkLoading}
+                                        onApprove={() => handleModuleBulk(phase.id, mod.id, mod.levels, 'approve')}
+                                        onUnlock={() => handleModuleBulk(phase.id, mod.id, mod.levels, 'unlock')}
+                                        onLock={() => handleModuleBulk(phase.id, mod.id, mod.levels, 'lock')}
+                                      />
+                                    </div>
+                                  </div>
 
-                                    {/* Individual levels */}
-                                    {isModExpanded && (
-                                      <div className="p-3 flex flex-col gap-2">
-                                        {mod.levels.map((lvl) => {
-                                          const prog = alumnoProgress.find(
-                                            (p) => p.fase_id === phase.id && p.seccion === lvl.seccion && p.operacion === lvl.operacion
-                                          );
-                                          const state = normalizeState(prog ? prog.estado : 'BLOQUEADO');
-                                          const pct = prog ? prog.porcentaje_actual : 0;
-                                          const isApprovedByAdmin = prog ? prog.aprobado_por_admin : false;
-                                          const actionKey = `level-${phase.id}-${lvl.seccion}-${lvl.operacion}`;
-                                          const loadingThis = actionInProgress === actionKey;
+                                  {/* Individual levels */}
+                                  {isModExpanded && (
+                                    <div className="p-3 flex flex-col gap-2">
+                                      {mod.levels.map((lvl) => {
+                                        const prog = alumnoProgress.find(
+                                          (p) => p.fase_id === phase.id && p.seccion === lvl.seccion && p.operacion === lvl.operacion
+                                        );
+                                        const state = normalizeState(prog ? prog.estado : 'BLOQUEADO');
+                                        const pct = prog ? prog.porcentaje_actual : 0;
+                                        const isApprovedByAdmin = prog ? prog.aprobado_por_admin : false;
+                                        const actionKey = `level-${phase.id}-${lvl.seccion}-${lvl.operacion}`;
+                                        const loadingThis = actionInProgress === actionKey;
 
-                                          return (
-                                            <div
-                                              key={lvl.id}
-                                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 glass-panel/20 border border-slate-200 dark:border-white/5 rounded-xl"
-                                            >
-                                              {/* Level metadata */}
-                                              <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                  <span className={`text-xs font-black ${lvl.isChallenge ? 'text-amber-400' : 'text-slate-600 dark:text-slate-300'}`}>
-                                                    {lvl.isChallenge ? 'Desafío' : 'Nivel'} {lvl.id}: {lvl.name}
+                                        return (
+                                          <div
+                                            key={lvl.id}
+                                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 glass-panel/20 border border-slate-200 dark:border-white/5 rounded-xl"
+                                          >
+                                            {/* Level metadata */}
+                                            <div className="flex-1 min-w-0">
+                                              <div className="flex items-center gap-2">
+                                                <span className={`text-xs font-black ${lvl.isChallenge ? 'text-amber-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                  {lvl.isChallenge ? 'Desafío' : 'Nivel'} {lvl.id}: {lvl.name}
+                                                </span>
+                                                {isApprovedByAdmin && (
+                                                  <span className="text-[9px] bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full font-black flex items-center gap-1">
+                                                    <AlertTriangle size={10} /> Aprobado por Admin
                                                   </span>
-                                                  {isApprovedByAdmin && (
-                                                    <span className="text-[9px] bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full font-black flex items-center gap-1">
-                                                      <AlertTriangle size={10} /> Aprobado por Admin
-                                                    </span>
-                                                  )}
-                                                </div>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                  <StatusBadge status={state} />
-                                                  {state !== 'BLOQUEADO' && (
-                                                    <span className="text-xs text-slate-500 font-bold">{pct}% Aciertos</span>
-                                                  )}
-                                                  {prog && prog.ultimos_errores && prog.ultimos_errores.length > 0 && (
-                                                    <div className="flex gap-1 ml-2">
-                                                      {prog.ultimos_errores.map((err: any, idx: number) => (
-                                                        <span key={idx} className="text-[9px] bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded flex items-center gap-1 font-bold">
-                                                          <AlertTriangle size={8} /> {err.tipo} ({err.count})
-                                                        </span>
-                                                      ))}
-                                                    </div>
-                                                  )}
-                                                </div>
+                                                )}
                                               </div>
-
-                                              {/* Individual controls */}
-                                              <div className="flex items-center gap-1.5 self-end sm:self-center">
-                                                {loadingThis ? (
-                                                  <Loader2 size={16} className="animate-spin text-blue-400 mr-4" />
-                                                ) : (
-                                                  <>
-                                                    {state === 'BLOQUEADO' && (
-                                                      <button
-                                                        onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'unlock')}
-                                                        className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[10px] font-black text-blue-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
-                                                      >
-                                                        <Unlock size={10} /> Liberar
-                                                      </button>
-                                                    )}
-                                                    {state !== 'APROBADO' && (
-                                                      <button
-                                                        onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'approve')}
-                                                        className="px-3 py-1.5 rounded-lg bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[10px] font-black text-green-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
-                                                      >
-                                                        <Check size={10} /> Aprobar (90%)
-                                                      </button>
-                                                    )}
-                                                    {state !== 'BLOQUEADO' && (
-                                                      <button
-                                                        onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'lock')}
-                                                        className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-[10px] font-black text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
-                                                      >
-                                                        <RotateCcw size={10} /> Restablecer
-                                                      </button>
-                                                    )}
-                                                  </>
+                                              <div className="flex items-center gap-2 mt-1">
+                                                <StatusBadge status={state} />
+                                                {state !== 'BLOQUEADO' && (
+                                                  <span className="text-xs text-slate-500 font-bold">{pct}% Aciertos</span>
+                                                )}
+                                                {prog && prog.ultimos_errores && prog.ultimos_errores.length > 0 && (
+                                                  <div className="flex gap-1 ml-2">
+                                                    {prog.ultimos_errores.map((err: any, idx: number) => (
+                                                      <span key={idx} className="text-[9px] bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded flex items-center gap-1 font-bold">
+                                                        <AlertTriangle size={8} /> {err.tipo} ({err.count})
+                                                      </span>
+                                                    ))}
+                                                  </div>
                                                 )}
                                               </div>
                                             </div>
-                                          );
-                                        })}
-                                      </div>
-                                    )}
 
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
+                                            {/* Individual controls */}
+                                            <div className="flex items-center gap-1.5 self-end sm:self-center">
+                                              {loadingThis ? (
+                                                <Loader2 size={16} className="animate-spin text-blue-400 mr-4" />
+                                              ) : (
+                                                <>
+                                                  {state === 'BLOQUEADO' && (
+                                                    <button
+                                                      onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'unlock')}
+                                                      className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[10px] font-black text-blue-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                    >
+                                                      <Unlock size={10} /> Liberar
+                                                    </button>
+                                                  )}
+                                                  {state !== 'APROBADO' && (
+                                                    <button
+                                                      onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'approve')}
+                                                      className="px-3 py-1.5 rounded-lg bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[10px] font-black text-green-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                    >
+                                                      <Check size={10} /> Aprobar (90%)
+                                                    </button>
+                                                  )}
+                                                  {state !== 'BLOQUEADO' && (
+                                                    <button
+                                                      onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'lock')}
+                                                      className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-[10px] font-black text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                    >
+                                                      <RotateCcw size={10} /> Restablecer
+                                                    </button>
+                                                  )}
+                                                </>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+
+                                </div>
+                              );
+                            })}
+                          </div>
 
                         </div>
                       );

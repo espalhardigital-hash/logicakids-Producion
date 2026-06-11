@@ -62,7 +62,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
     const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT texto FROM alternativas WHERE pregunta_id = ${questionId} AND es_correcta = true LIMIT 1"`;
     const correctText = execSync(cmd).toString().trim();
     console.log(`Submitting correct alternative: "${correctText}" for question ID: ${questionId}`);
-    await page.locator(`.f2-mc-option-btn:has-text("${correctText}")`).first().click();
+    await page.locator('.f2-mc-option-btn').filter({ hasText: new RegExp(`^${correctText.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}$`) }).first().click();
   } else {
     const answer = getCorrectAnswer(questionId);
     console.log(`Submitting correct answer: "${answer}" for question ID: ${questionId}`);
@@ -83,7 +83,7 @@ async function failCurrentQuestion(page: any, questionId: number) {
     const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT texto FROM alternativas WHERE pregunta_id = ${questionId} AND es_correcta = false LIMIT 1"`;
     const wrongText = execSync(cmd).toString().trim();
     console.log(`Submitting incorrect alternative: "${wrongText}" for question ID: ${questionId}`);
-    await page.locator(`.f2-mc-option-btn:has-text("${wrongText}")`).first().click();
+    await page.locator('.f2-mc-option-btn').filter({ hasText: new RegExp(`^${wrongText.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}$`) }).first().click();
   } else {
     console.log(`Submitting incorrect answer: "9999" for question ID: ${questionId}`);
     await page.locator('.f2-hidden-input').fill('9999');
@@ -184,6 +184,7 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
       const startBtn = page.locator('button:has-text("¡Entendido, empezar!")').first();
       await expect(startBtn).toBeVisible();
       await startBtn.click();
+      await theoryModal.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     }
 
     // 5. Dismiss Splash Screen
@@ -251,22 +252,23 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
     await expect(mirrorModal).toBeVisible({ timeout: 10000 });
 
     // Solve Mirror Question Correctly
-    // The mirror question is pre-loaded, so currentQuestionId might not have updated via network.
-    // We can query the DB for the mirror_id of the current question, OR just query the DB using the question text.
-    expect(currentQuestionId).not.toBeNull();
-    const mirrorIdCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT id FROM preguntas WHERE estructura_padre_id = (SELECT estructura_padre_id FROM preguntas WHERE id = ${currentQuestionId}) AND (datos_numericos->>'es_espejo')::boolean = true LIMIT 1"`;
-    const mirrorId = execSync(mirrorIdCmd).toString().trim();
+    // Extraer el texto de la pregunta espejo de la UI para buscar la respuesta exacta
+    const mirrorQuestionTextRaw = await mirrorModal.locator('h2, h3, .text-xl, .text-2xl').first().innerText();
+    const mirrorQuestionTextClean = mirrorQuestionTextRaw.trim().replace(/'/g, "''"); // escape single quotes for SQL
+
+    console.log(`Mirror Question visible: "${mirrorQuestionTextRaw}"`);
     
+    const mirrorAnsCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT respuesta_correcta FROM preguntas WHERE enunciado ILIKE '%${mirrorQuestionTextClean}%' LIMIT 1"`;
     let mirrorAnswer = "1"; // fallback
-    if (mirrorId && mirrorId !== "null" && mirrorId !== "") {
-        const mirrorAnsCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT respuesta_correcta FROM preguntas WHERE id = ${mirrorId}"`;
-        mirrorAnswer = execSync(mirrorAnsCmd).toString().trim();
-    } else {
-        // If DB query fails, try to extract from UI if possible or fallback
-        mirrorAnswer = "48"; 
+    try {
+        const dbResult = execSync(mirrorAnsCmd).toString().trim();
+        if (dbResult) mirrorAnswer = dbResult;
+    } catch (e) {
+        console.error('Error fetching mirror answer', e);
+        mirrorAnswer = "48";
     }
     
-    console.log(`Submitting correct answer: "${mirrorAnswer}" for Mirror Question ID: ${mirrorId}`);
+    console.log(`Submitting correct answer: "${mirrorAnswer}" for Mirror Question: ${mirrorQuestionTextClean}`);
 
     const mirrorInput = mirrorModal.locator('.f2-hidden-input');
     await mirrorInput.fill(mirrorAnswer);
@@ -311,6 +313,7 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
         await page.waitForTimeout(300);
       }
       await page.locator('button:has-text("¡Entendido, empezar!")').first().click();
+      await theoryModal.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     }
 
     // 5. Dismiss Splash Screen
@@ -371,6 +374,7 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
     // 3. Click Desafío 1 (Estándar) in the challenge zone
     const desafio1Btn = page.locator('.f2-challenge-bar-btn').first();
     await expect(desafio1Btn).toBeVisible();
+    await expect(desafio1Btn).toBeEnabled({ timeout: 10000 });
     await desafio1Btn.click();
 
     // 4. Dismiss Splash Screen (Challenges always show the premium countdown splash)

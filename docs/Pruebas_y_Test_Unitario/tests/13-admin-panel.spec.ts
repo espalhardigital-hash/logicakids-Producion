@@ -45,6 +45,99 @@ test.describe('13 - Panel de Administración y Sincronización de Contenido', ()
     await ensureAuthenticated(page);
   });
 
+  test('ADMIN puede realizar CRUD completo de usuarios en Vista General', async ({ page }) => {
+    test.slow();
+    
+    // 1. Acceder al Panel de Administrador
+    const adminBtn = page.locator('button', { hasText: 'Panel Admin' });
+    if (await adminBtn.isVisible()) {
+        await adminBtn.click();
+    } else {
+        await page.goto('/admin');
+    }
+    await page.waitForURL('/admin');
+
+    // 2. Asegurarse de estar en Vista General (es la por defecto)
+    await page.locator('button', { hasText: 'Vista General' }).click();
+    
+    // Test CRUD data
+    const testUsername = `cruduser_${Date.now()}`;
+    const testEmail = `${testUsername}@gmail.com`;
+
+    // 3. Crear Usuario (CREATE)
+    await page.locator('button', { hasText: 'Nuevo Usuario' }).click();
+    
+    // Wait for modal input to be visible
+    const inputUsername = page.locator('input[placeholder="Ej: SuperMath"]');
+    await inputUsername.waitFor({ state: 'visible' });
+    
+    await inputUsername.fill(testUsername);
+    await page.locator('input[placeholder="correo@ejemplo.com"]').fill(testEmail);
+    await page.locator('input[placeholder="••••••••"]').fill('password123');
+    
+    // Use filter to find the correct select elements
+    const selects = page.locator('select');
+    await selects.filter({ has: page.locator('option[value="USER"]') }).first().selectOption({ value: 'USER' });
+    await selects.filter({ has: page.locator('option[value="ACTIVE"]') }).first().selectOption({ value: 'ACTIVE' });
+    
+    await page.locator('button', { hasText: 'Guardar Cambios' }).click();
+
+    // Verify creation by searching
+    const searchInput = page.locator('input[placeholder="Buscar usuario o email..."]');
+    await searchInput.fill(testUsername);
+    await expect(page.locator('td', { hasText: testUsername })).toBeVisible({ timeout: 5000 });
+
+    // 4. Editar Usuario (UPDATE)
+    const userRow = page.locator('tr', { hasText: testUsername });
+    // The buttons have group-hover opacity, they should still be clickable
+    await userRow.locator('button[title="Editar"]').click();
+    const updatedUsername = `${testUsername}_editado`;
+    await page.locator('input[placeholder="Ej: SuperMath"]').fill(updatedUsername);
+    await page.locator('button', { hasText: 'Guardar Cambios' }).click();
+    
+    // Verify update
+    await searchInput.fill('');
+    await searchInput.fill(updatedUsername);
+    await expect(page.locator('td', { hasText: updatedUsername })).toBeVisible({ timeout: 5000 });
+
+    // 5. Cambiar Estado (Banear/Activar)
+    const updatedRow = page.locator('tr', { hasText: updatedUsername });
+    await expect(updatedRow.locator('td', { hasText: 'Activo' })).toBeVisible();
+    await updatedRow.locator('button[title="Banear"]').click();
+    await expect(updatedRow.locator('td', { hasText: 'Baneado' })).toBeVisible({ timeout: 5000 });
+    
+    // Activar de nuevo
+    await updatedRow.locator('button[title="Activar"]').click();
+    await expect(updatedRow.locator('td', { hasText: 'Activo' })).toBeVisible({ timeout: 5000 });
+
+    // 6. Cambiar Contraseña
+    await updatedRow.locator('button[title="Clave"]').click();
+    await page.locator('input[placeholder="••••••••"]').fill('newpassword456');
+    page.once('dialog', dialog => dialog.accept()); // Fallback for native alert
+    await page.locator('button', { hasText: 'Actualizar Ahora' }).click();
+    
+    // Cerrar posible alerta custom si aparece (por si acaso)
+    const btnAceptarAlert = page.locator('button', { hasText: 'Aceptar' }).last();
+    if (await btnAceptarAlert.isVisible()) {
+        await btnAceptarAlert.click();
+    }
+
+    // 7. Eliminar Usuario (DELETE)
+    page.once('dialog', dialog => dialog.accept());
+    await updatedRow.locator('button[title="Borrar"]').click();
+    
+    await page.waitForTimeout(500);
+    const customConfirmBtn = page.locator('button', { hasText: 'Confirmar' }).last();
+    if (await customConfirmBtn.isVisible()) {
+        await customConfirmBtn.click();
+    }
+    
+    // Verify deletion
+    await searchInput.fill('');
+    await searchInput.fill(updatedUsername);
+    await expect(page.locator('text=No se encontraron usuarios')).toBeVisible({ timeout: 5000 });
+  });
+
   test('ADMIN puede crear una pregunta en ContentTab (Fase 4) y USER puede jugarla', async ({ page }) => {
     test.slow(); // Allow extra time for finding elements and playing the level
     // 1. Acceder al Panel de Administrador

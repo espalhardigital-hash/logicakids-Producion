@@ -236,3 +236,13 @@ Se inyectaron los props correctos en `<FaseGenericTheoryModal>` dentro de `FaseG
 
 ### Archivos Modificados
 - `LogicaMath/frontend/components/fase_generic/FaseGenericGameScreen.tsx`
+
+### Corrección: Modal Theory Interceptando Clicks
+**Descripción:** Los tests en Fase 2, 7 y 8 fallaban porque el overlay del modal de teoría (g-reading-overlay y 2-reading-overlay) no se cerraba lo suficientemente rápido, interceptando los clics en el teclado virtual al responder.
+**Archivos modificados:** 	ests/06-gameplay-fase2.spec.ts, helpers/gameplay-utils.ts.
+**Solución:** Se añadió una espera explícita wait theoryModal.waitFor({ state: 'hidden' }) en lugar de tiempos fijos.
+
+### Corrección 2: Modal Theory Animaciones y Botón Desafío
+**Descripción:** El test del desafío de Fase 2 fallaba porque el botón no estaba inmediatamente habilitado al cargar la vista. Además, la lógica del modal de teoría genérico fallaba al leer la visibilidad de los botones durante una animación.
+**Archivos modificados:** 	ests/06-gameplay-fase2.spec.ts, helpers/gameplay-utils.ts.
+**Solución:** Se añadió un expect(desafio1Btn).toBeEnabled() para esperar a que el estado del botón se propague, y se refactorizó la lógica de gameplay-utils.ts con waitFor({ state: 'visible' }) para garantizar que no omita los botones durante transiciones UI.
