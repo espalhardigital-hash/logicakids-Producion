@@ -1,6 +1,6 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { TEST_USER, SELECTORS, ROUTES } from '../helpers/constants';
-import { loginAsTestUser, logout } from '../helpers/auth';
+import { logout } from '../helpers/auth';
 
 /**
  * Suite 01: Flujo de Autenticación (Login)

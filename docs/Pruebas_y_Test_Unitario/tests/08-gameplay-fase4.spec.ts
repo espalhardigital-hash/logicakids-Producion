@@ -1,6 +1,7 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { ROUTES } from '../helpers/constants';
-import { ensureAuthenticated } from '../helpers/auth';
+import { registerDynamicTestUser } from '../helpers/auth';
+import { setPhaseForUser } from '../helpers/db-utils';
 import { execSync } from 'child_process';
 
 function getCorrectAnswer(questionId: number): string {
@@ -174,7 +175,6 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes)', () => {
       }
     });
 
-    await ensureAuthenticated(page);
   });
 
   test('Módulo 1 Práctica - Flujo Completo: Teoría, Acierto y Bucle Espejo', async ({ page }) => {

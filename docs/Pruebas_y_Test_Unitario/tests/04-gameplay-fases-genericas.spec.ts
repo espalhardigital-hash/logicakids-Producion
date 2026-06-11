@@ -1,6 +1,7 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { PHASES, SELECTORS } from '../helpers/constants';
-import { ensureAuthenticated, loginAsTestUser } from '../helpers/auth';
+import { registerDynamicTestUser } from '../helpers/auth';
+import { setPhaseForUser } from '../helpers/db-utils';
 
 /**
  * Suite 04: Gameplay Fases Genéricas (2-6)
@@ -11,7 +12,8 @@ import { ensureAuthenticated, loginAsTestUser } from '../helpers/auth';
  */
 test.describe('04 - Gameplay Fases Genéricas (2-6)', () => {
   test.beforeEach(async ({ page }) => {
-    await ensureAuthenticated(page);
+    const testUserEmail = await registerDynamicTestUser(page);
+    setPhaseForUser(testUserEmail, 1);
   });
 
   // ─── Tests dinámicos: GameScreen de cada Fase 2-6 ────────────────
@@ -27,12 +29,6 @@ test.describe('04 - Gameplay Fases Genéricas (2-6)', () => {
       await page.waitForTimeout(2500);
 
       // Re-autenticar si fue redirigido al login
-      if (page.url().includes('/login')) {
-        await loginAsTestUser(page);
-        await page.goto(phase.welcomePath);
-        await page.waitForLoadState('domcontentloaded');
-        await page.waitForTimeout(2500);
-      }
 
       // Verificar que la pantalla Welcome renderizó contenido
       const welcomeHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
@@ -62,12 +58,6 @@ test.describe('04 - Gameplay Fases Genéricas (2-6)', () => {
       await page.waitForTimeout(3000); // Más tiempo para React Lazy loading
 
       // Re-autenticar si fue redirigido
-      if (page.url().includes('/login')) {
-        await loginAsTestUser(page);
-        await page.goto(phase.playPath);
-        await page.waitForLoadState('domcontentloaded');
-        await page.waitForTimeout(3000);
-      }
 
       // Verificar que el GameScreen renderizó (no pantalla en blanco)
       const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
@@ -102,12 +92,6 @@ test.describe('04 - Gameplay Fases Genéricas (2-6)', () => {
       await page.waitForTimeout(4000);
 
       // Re-autenticar si es necesario
-      if (page.url().includes('/login')) {
-        await loginAsTestUser(page);
-        await page.goto(phase.playPath);
-        await page.waitForLoadState('domcontentloaded');
-        await page.waitForTimeout(4000);
-      }
 
       const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
       if (rootHtml.length <= 10) {

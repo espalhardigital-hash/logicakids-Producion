@@ -1,20 +1,20 @@
 import { test, expect } from '../helpers/test-fixtures';
-import { ensureAuthenticated } from '../helpers/auth';
-import { setAdminRoleAndPhase, restoreUserRole } from '../helpers/db-utils';
+import { registerDynamicTestUser } from '../helpers/auth';
+import { setPhaseForUser } from '../helpers/db-utils';
 import { findCorrectAnswerMetadata, navigateGenericTheoryModal, submitNumericKeypad, escapeRegExp } from '../helpers/gameplay-utils';
 
 test.describe('11 - Gameplay Fase 7 y 8 (Coordenadas, Rutas, Tiempo, Lógica, Combinatoria y Probabilidad)', () => {
-  test.beforeAll(() => {
-    setAdminRoleAndPhase(process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com', 8);
-  });
-
-  test.afterAll(() => {
-    restoreUserRole(process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com');
-  });
+  
+  let testUserEmail: string;
 
   test.beforeEach(async ({ page }) => {
-    await ensureAuthenticated(page);
-    // Clear localStorage progress for both phases
+    // 1. Crear un usuario nuevo para aislamiento estricto
+    testUserEmail = await registerDynamicTestUser(page);
+    
+    // 2. Inyectar progreso en DB para simular que avanzó hasta la Fase 8 naturalmente
+    setPhaseForUser(testUserEmail, 8);
+
+    // 3. Limpiar localStorage por seguridad
     await page.addInitScript(() => {
       window.localStorage.removeItem('lk_fase_progress_7');
       window.localStorage.removeItem('lk_fase_progress_8');

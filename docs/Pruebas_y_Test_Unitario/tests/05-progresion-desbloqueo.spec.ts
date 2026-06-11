@@ -1,6 +1,7 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { API, GAME_CONFIG } from '../helpers/constants';
-import { ensureAuthenticated } from '../helpers/auth';
+import { registerDynamicTestUser } from '../helpers/auth';
+import { setPhaseForUser } from '../helpers/db-utils';
 import { execSync } from 'child_process';
 
 function clearTestUserProgress() {
@@ -35,7 +36,8 @@ function clearTestUserProgress() {
 test.describe('05 - Progresión y Desbloqueo', () => {
   test.beforeEach(async ({ page }) => {
     clearTestUserProgress();
-    await ensureAuthenticated(page);
+    const testUserEmail = await registerDynamicTestUser(page);
+    setPhaseForUser(testUserEmail, 1);
   });
 
   // ─── Test: API de progreso responde correctamente ────────────────

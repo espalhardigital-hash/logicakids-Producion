@@ -75,9 +75,11 @@ El agente deberá simular el comportamiento de un usuario real, siguiendo estos 
 
 1. **Apertura y Navegación:** Abrir Google Chrome e ingresar a `http://localhost:3000`.
 2. **Autenticación (Login):** Ingresar las credenciales del usuario de prueba y validar redirección.
-3. **Uso del Rol de Administrador para Pruebas Aceleradas:**
-   - Cuando el objetivo sea evaluar un módulo avanzado o desafío final sin tener que "jugar" y aprobar los primeros niveles pre-requisito, el agente tiene permitido cambiar el rol del usuario a `ADMIN` directamente en la base de datos (`UPDATE users SET role = 'ADMIN'`) para desbloquear todo el frontend. 
-   - **Obligatorio:** El rol debe ser restaurado a `USER` inmediatamente después de finalizar el test para no contaminar otras pruebas.
+3. **Manejo de Usuarios y Simulación de Progreso Natural (Sin Rol Admin):**
+   - **Evaluación de una Fase o Módulo Específico:** Cuando se solicite testear una fase o módulo avanzado, se debe crear un **usuario nuevo** exclusivamente para ese test. Para simular el flujo de progresión natural sin usar el rol ADMIN, **todas las fases, módulos y desafíos anteriores** deben insertarse directamente en la base de datos como **aprobados**. De esta forma, el usuario no será bloqueado por no tener los pre-requisitos.
+   - **Evaluación Completa (E2E Completo):** Cuando se solicite probar todos los módulos desde el inicio, se debe crear un **usuario nuevo desde cero** y este debe avanzar paso a paso de forma natural en el test (sin insertar progreso previo).
+   - **Aislamiento Estricto:** **Siempre** que se pidan baterías de tests automatizados, se debe crear un usuario nuevo por cada test.
+   - **Prohibido:** No utilizar el rol `ADMIN` para bypassear candados, a menos que el objetivo de la prueba sea evaluar funcionalidades exclusivas de los administradores.
 
 ---
 

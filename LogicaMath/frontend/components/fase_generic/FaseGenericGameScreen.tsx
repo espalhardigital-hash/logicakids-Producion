@@ -423,7 +423,13 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
         ) : (
           /* Active Question View */
           <div className="fg-game-layout-wrap">
-            {/* Tarjeta de Pregunta (Left Column) */}
+            {!currentQuestion ? (
+               <div style={{ textAlign: 'center', padding: '100px 20px', color: 'red' }}>
+                 <h2>Error Crítico</h2>
+                 <p>La pregunta actual no pudo ser cargada. (Index: {currentQuestionIndex}, Módulo: {moduloId}, Nivel: {nivelId})</p>
+                 <button onClick={() => navigate(`/welcome-fase${faseId}`)} className="fg-submit-btn" style={{ marginTop: '20px' }}>Volver</button>
+               </div>
+            ) : (
             <motion.div 
               animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}}
               transition={{ duration: 0.4 }}
@@ -610,9 +616,10 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
                 </div>
               )}
             </motion.div>
+            )}
 
             {/* Virtual Numeric Keypad (Right Column - only for numeric questions) */}
-            {currentQuestion.tipo === 'numerico' && (
+            {currentQuestion?.tipo === 'numerico' && (
               <motion.div 
                 variants={keypadVariants}
                 initial="hidden"

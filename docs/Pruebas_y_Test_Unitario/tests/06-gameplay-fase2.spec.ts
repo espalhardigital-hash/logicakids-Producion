@@ -1,6 +1,7 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { ROUTES } from '../helpers/constants';
-import { ensureAuthenticated } from '../helpers/auth';
+import { registerDynamicTestUser } from '../helpers/auth';
+import { setPhaseForUser } from '../helpers/db-utils';
 import { execSync } from 'child_process';
 
 /**
@@ -145,7 +146,6 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
       }
     });
 
-    await ensureAuthenticated(page);
   });
 
   test('Módulo 1 Práctica (Gimnasio Mental) - Flujo Completo: Teoría, Acierto y Bucle Espejo', async ({ page }) => {

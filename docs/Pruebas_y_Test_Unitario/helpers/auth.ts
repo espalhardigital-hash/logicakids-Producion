@@ -70,3 +70,44 @@ export async function logout(page: Page): Promise<void> {
   await page.goto(ROUTES.LOGIN);
   await page.waitForLoadState('domcontentloaded');
 }
+
+/**
+ * Registra dinámicamente un usuario nuevo para aislamiento de test E2E y hace login.
+ * Cumple con la regla de test: Crear usuario nuevo por cada test.
+ * 
+ * @param page - Instancia de Page de Playwright
+ * @returns Email del usuario creado
+ */
+export async function registerDynamicTestUser(page: Page): Promise<string> {
+  const timestamp = Date.now();
+  const email = `test_e2e_${timestamp}@logicakids.test`;
+  const password = 'Pruebas2026#';
+
+  // Registrar via API (es más rápido y estable que la UI)
+  const response = await page.request.post('http://localhost:8000/api/auth/register', {
+    data: {
+      email,
+      password,
+      username: `Tester ${timestamp}`,
+      role: 'USER',
+      edad: 10,
+      grado_escolar: 5
+    }
+  });
+
+  if (!response.ok()) {
+    throw new Error(`Failed to register dynamic user: ${response.statusText()}`);
+  }
+
+  // Hacer login por UI para simular el flujo
+  await page.goto(ROUTES.LOGIN);
+  await page.waitForLoadState('domcontentloaded');
+  
+  await page.waitForSelector(SELECTORS.EMAIL_INPUT, { state: 'visible', timeout: 15000 });
+  await page.locator(SELECTORS.EMAIL_INPUT).fill(email);
+  await page.locator(SELECTORS.PASSWORD_INPUT).fill(password);
+  await page.locator(SELECTORS.SUBMIT_BUTTON_LOGIN).click();
+  await page.waitForURL('**/map', { timeout: 20000 });
+  
+  return email;
+}

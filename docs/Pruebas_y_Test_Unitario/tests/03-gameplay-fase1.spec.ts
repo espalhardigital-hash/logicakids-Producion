@@ -1,6 +1,7 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { ROUTES, API, SELECTORS } from '../helpers/constants';
-import { ensureAuthenticated, loginAsTestUser } from '../helpers/auth';
+import { registerDynamicTestUser } from '../helpers/auth';
+import { setPhaseForUser } from '../helpers/db-utils';
 
 /**
  * Suite 03: Gameplay Fase 1 — Validación de Lógica
@@ -15,7 +16,8 @@ import { ensureAuthenticated, loginAsTestUser } from '../helpers/auth';
  */
 test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
   test.beforeEach(async ({ page }) => {
-    await ensureAuthenticated(page);
+    const testUserEmail = await registerDynamicTestUser(page);
+    setPhaseForUser(testUserEmail, 1);
   });
 
   // ─── Test: Interfaz de juego Fase 1 carga correctamente ──────────
@@ -25,12 +27,6 @@ test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
-    if (page.url().includes('/login')) {
-      await loginAsTestUser(page);
-      await page.goto(ROUTES.WELCOME_FASE1);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-    }
 
     // Verificar que la pantalla welcome cargó
     const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
@@ -54,12 +50,6 @@ test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
-    if (page.url().includes('/login')) {
-      await loginAsTestUser(page);
-      await page.goto(ROUTES.LEVEL_SELECTION);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-    }
 
     // Verificar que hay contenido renderizado
     const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
@@ -74,7 +64,6 @@ test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
 
   // ─── Test: Dashboard de Fase 1 vía API ───────────────────────────
   test('El dashboard de Fase 1 responde correctamente vía API', async ({ page }) => {
-    await ensureAuthenticated(page);
 
     // Obtener el token de autenticación del localStorage
     const token = await page.evaluate(() => localStorage.getItem('auth_token'));
@@ -97,7 +86,6 @@ test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
 
   // ─── Test: Respuesta a pregunta vía API (simulación de acierto/fallo) ───
   test('El endpoint de responder preguntas funciona correctamente', async ({ page }) => {
-    await ensureAuthenticated(page);
 
     const token = await page.evaluate(() => localStorage.getItem('auth_token'));
     expect(token).toBeTruthy();
@@ -169,12 +157,6 @@ test.describe('03 - Gameplay Fase 1 (Aritmética Básica)', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(3000); // Esperar carga de pregunta + animaciones
 
-    if (page.url().includes('/login')) {
-      await loginAsTestUser(page);
-      await page.goto(ROUTES.PLAY_FASE1);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
-    }
 
     // Verificar que la interfaz tiene contenido
     const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);

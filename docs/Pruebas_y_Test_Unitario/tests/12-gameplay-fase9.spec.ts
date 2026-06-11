@@ -1,5 +1,6 @@
 import { test, expect } from '../helpers/test-fixtures';
-import { ensureAuthenticated } from '../helpers/auth';
+import { registerDynamicTestUser } from '../helpers/auth';
+import { setPhaseForUser } from '../helpers/db-utils';
 import { execSync } from 'child_process';
 import { getFaseMetadata } from '../../../LogicaMath/frontend/components/fase_generic/faseMetadata';
 
@@ -71,7 +72,8 @@ test.describe('12 - Gameplay Fase 9 (Simulados Colegio Pedro II)', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await ensureAuthenticated(page);
+    const testUserEmail = await registerDynamicTestUser(page);
+    setPhaseForUser(testUserEmail, 9);
     await page.addInitScript(() => {
       window.localStorage.removeItem('lk_fase_progress_9');
     });

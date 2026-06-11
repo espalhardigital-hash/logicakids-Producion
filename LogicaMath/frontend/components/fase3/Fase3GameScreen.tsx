@@ -1147,7 +1147,7 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
             readingData={readingData} 
             moduleColor={moduleColor} 
             onClose={() => setShowReading(false)} 
-            onAbort={() => isInitialReading ? navigate('/welcome-fase3') : setShowReading(false)} 
+            onAbort={() => navigate('/welcome-fase3')} 
             isInitialReading={isInitialReading} 
             userAvatar={userAvatar} 
           />

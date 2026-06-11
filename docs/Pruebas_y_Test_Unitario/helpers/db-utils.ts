@@ -58,6 +58,18 @@ export function clearTestUserProgress(email: string = TEST_USER.email) {
 }
 
 /**
+ * Actualiza la fase actual de un usuario sin alterar su rol.
+ * Esto simula que el usuario aprobó las fases previas y puede entrar a la fase indicada de forma natural.
+ * @param email Email del usuario
+ * @param targetFase Fase a la que se desea saltar
+ */
+export function setPhaseForUser(email: string, targetFase: number) {
+  const queryPhase = `UPDATE alumnos SET fase_actual_id = ${targetFase} WHERE user_id = (SELECT id FROM users WHERE email = '${email}');`;
+  execDbQuery(queryPhase);
+  console.log(`✅ Progress injected: Test user (${email}) set to phase ${targetFase}.`);
+}
+
+/**
  * Helper to query the local database for correct answers.
  */
 export function getCorrectAnswer(questionId: number): string {

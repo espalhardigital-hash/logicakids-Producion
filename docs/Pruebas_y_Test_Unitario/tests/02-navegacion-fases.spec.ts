@@ -1,6 +1,7 @@
 import { test, expect } from '../helpers/test-fixtures';
 import { ROUTES, PHASES, SELECTORS } from '../helpers/constants';
-import { loginAsTestUser, ensureAuthenticated } from '../helpers/auth';
+import { registerDynamicTestUser } from '../helpers/auth';
+import { setPhaseForUser } from '../helpers/db-utils';
 
 /**
  * Suite 02: Navegación por Fases
@@ -12,7 +13,8 @@ import { loginAsTestUser, ensureAuthenticated } from '../helpers/auth';
 test.describe('02 - Navegación por Fases', () => {
   test.beforeEach(async ({ page }) => {
     // Asegurar que el usuario está autenticado antes de cada test
-    await ensureAuthenticated(page);
+    const testUserEmail = await registerDynamicTestUser(page);
+    setPhaseForUser(testUserEmail, 1);
   });
 
   // ─── Test: Mapa de fases carga correctamente ─────────────────────
@@ -48,12 +50,6 @@ test.describe('02 - Navegación por Fases', () => {
       await page.waitForTimeout(2500); // Esperar React Suspense + animaciones
 
       // Si nos redirige a login, re-autenticar
-      if (page.url().includes('/login')) {
-        await loginAsTestUser(page);
-        await page.goto(phase.welcomePath);
-        await page.waitForLoadState('domcontentloaded');
-        await page.waitForTimeout(2500);
-      }
 
       // Verificar que la interfaz renderizó contenido
       const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
@@ -86,12 +82,6 @@ test.describe('02 - Navegación por Fases', () => {
       await page.waitForTimeout(2500);
 
       // Si redirige a login, re-autenticar
-      if (page.url().includes('/login')) {
-        await loginAsTestUser(page);
-        await page.goto(path);
-        await page.waitForLoadState('domcontentloaded');
-        await page.waitForTimeout(2500);
-      }
 
       // Verificar que la interfaz renderizó
       const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);

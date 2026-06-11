@@ -403,6 +403,81 @@ export default function WelcomeScreenPhaseGeneric({
                 );
               })}
             </div>
+
+            {/* Zona de Desafíos */}
+            <div className="fg-evaluation-card" style={{ marginTop: '2rem', textAlign: 'left', display: 'block' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <Lucide.Trophy size={24} color="#F59E0B" />
+                <h3 className="fg-eval-title" style={{ margin: 0 }}>ZONA DE DESAFÍOS</h3>
+              </div>
+              <p className="fg-eval-desc" style={{ marginBottom: '24px' }}>
+                Pon a prueba tu velocidad y precisión. Completa todos los niveles de práctica para desbloquear.
+              </p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {[
+                  { id: 11, name: 'Desafío 1: Estándar', diff: 'estandar', icon: '🎯', time: 30, err: 3 },
+                  { id: 12, name: 'Desafío 2: Avanzado', diff: 'avanzada', icon: '⚡', time: 45, err: 3 },
+                  { id: 13, name: 'Desafío Final: Maestría', diff: 'maestria', icon: '🏆', time: 60, err: 2 },
+                ].map((desafio) => {
+                  const allLevelsDominated = selectedModule.niveles.every(n => !!completedLevels[`${selectedModule.moduloId}_${n.nivelId}`]);
+                  let isUnlocked = false;
+                  
+                  if (userRole === 'ADMIN') {
+                    isUnlocked = true;
+                  } else if (allLevelsDominated) {
+                    if (desafio.id === 11) isUnlocked = true;
+                    else if (desafio.id === 12) isUnlocked = !!completedLevels[`${selectedModule.moduloId}_11`];
+                    else if (desafio.id === 13) isUnlocked = !!completedLevels[`${selectedModule.moduloId}_12`];
+                  }
+
+                  const isPassed = !!completedLevels[`${selectedModule.moduloId}_${desafio.id}`];
+
+                  return (
+                    <div 
+                      key={desafio.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '16px',
+                        background: isUnlocked ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.1)',
+                        border: `1px solid ${isUnlocked ? 'rgba(255,255,255,0.1)' : 'transparent'}`,
+                        borderRadius: '16px',
+                        opacity: isUnlocked ? 1 : 0.6
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ fontSize: '1.5rem' }}>{isPassed ? '✅' : desafio.icon}</div>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>{desafio.name}</h4>
+                          </div>
+                          <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '0.8rem', color: '#94a3b8' }}>
+                            <span>⏱️ {desafio.time}s</span>
+                            <span>❌ Máx {desafio.err} errores</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <button
+                        className="fg-eval-btn"
+                        style={{ 
+                          margin: 0, 
+                          padding: '8px 24px', 
+                          opacity: isUnlocked ? 1 : 0.5,
+                          background: isUnlocked ? selectedModule.color : 'rgba(255,255,255,0.1)'
+                        }}
+                        disabled={!isUnlocked}
+                        onClick={() => onModuleSelect(selectedModule.moduloId, desafio.id, faseId)}
+                      >
+                        {isPassed ? 'Repetir' : isUnlocked ? 'Iniciar' : '🔒 Bloqueado'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
       </main>
