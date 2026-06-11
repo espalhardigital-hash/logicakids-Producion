@@ -15,16 +15,17 @@ function getCorrectAnswer(questionId: number): string {
 
 function clearTestUserProgress() {
   try {
+    const email = process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com';
     const queries = [
-      `DELETE FROM intento_pasos WHERE intento_pregunta_id IN (SELECT id FROM intento_preguntas WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba'));`,
-      `DELETE FROM intento_preguntas WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba');`,
-      `DELETE FROM intentos WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba');`,
-      `DELETE FROM progreso_maestria WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba');`
+      `DELETE FROM intento_pasos WHERE intento_pregunta_id IN (SELECT id FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}')));`,
+      `DELETE FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`,
+      `DELETE FROM intentos WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`,
+      `DELETE FROM progreso_maestria WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`
     ];
     for (const q of queries) {
       execSync(`docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "${q}"`);
     }
-    console.log('🧹 Test user database progress successfully cleared.');
+    console.log(`🧹 Test user database progress successfully cleared for ${email}.`);
   } catch (e) {
     console.error('❌ Failed to clear test user database progress:', e);
   }
@@ -53,6 +54,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
           await page.waitForTimeout(50);
         }
       }
+      await page.waitForTimeout(300); // Wait for React state to propagate (race condition fix)
       await confirmBtn.click();
     } else {
       if (answer.includes('/')) {
@@ -100,6 +102,7 @@ async function failCurrentQuestion(page: any, questionId: number) {
     const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
     if (await confirmBtn.isVisible()) {
       await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
+      await page.waitForTimeout(300); // Wait for React state to propagate (race condition fix)
       await confirmBtn.click();
     } else {
       if (answer.includes('/')) {
@@ -130,10 +133,10 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes)', () => {
   test.beforeAll(() => {
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE alumnos SET fase_actual_id = 4 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}');"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE alumnos SET fase_actual_id = 4 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}');"`
       );
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
       );
       console.log('✅ Test user successfully set to Phase 4 and role ADMIN in the database.');
     } catch (e) {
@@ -144,7 +147,7 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes)', () => {
   test.afterAll(() => {
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
       );
       console.log('✅ Test user role restored to USER in the database.');
     } catch (e) {

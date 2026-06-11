@@ -21,6 +21,9 @@ export const ROUTES = {
   WELCOME_FASE4: '/welcome-fase4',
   WELCOME_FASE5: '/welcome-fase5',
   WELCOME_FASE6: '/welcome-fase6',
+  WELCOME_FASE7: '/welcome-fase7',
+  WELCOME_FASE8: '/welcome-fase8',
+  WELCOME_FASE9: '/welcome-fase9',
   WELCOME_FASE_GENERIC: '/welcome-fase', // Fases 7-8
   PLAY_FASE1: '/play',
   PLAY_FASE2: '/fase2/play',
@@ -102,6 +105,6 @@ export const PHASES = [
 ] as const;
 
 export const GENERIC_PHASES = [
-  { id: 7, name: 'Coordenadas y Tiempo', welcomePath: '/welcome-fase', playPath: '/fase/play' },
-  { id: 8, name: 'Lógica y Probabilidad', welcomePath: '/welcome-fase', playPath: '/fase/play' },
+  { id: 7, name: 'Coordenadas y Tiempo', welcomePath: '/welcome-fase7', playPath: '/fase/play' },
+  { id: 8, name: 'Lógica y Probabilidad', welcomePath: '/welcome-fase8', playPath: '/fase/play' },
 ] as const;

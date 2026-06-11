@@ -51,7 +51,7 @@ test.describe('12 - Gameplay Fase 9 (Simulados Colegio Pedro II)', () => {
   test.beforeAll(() => {
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}'; UPDATE alumnos SET fase_actual_id = 9 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}');"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}'; UPDATE alumnos SET fase_actual_id = 9 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}');"`
       );
       console.log('✅ Test user set to role ADMIN and fase_actual_id = 9.');
     } catch (e) {
@@ -62,7 +62,7 @@ test.describe('12 - Gameplay Fase 9 (Simulados Colegio Pedro II)', () => {
   test.afterAll(() => {
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
       );
       console.log('✅ Test user role restored to USER.');
     } catch (e) {

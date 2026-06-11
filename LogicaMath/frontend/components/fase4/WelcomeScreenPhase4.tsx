@@ -9,6 +9,7 @@ import './Fase4Styles.css';
 import { getFase4Dashboard } from './Fase4Service';
 import type { Fase4Dashboard, Fase4ModuloInfo } from './Fase4Types';
 import { getAvatarUrl } from '../../services/storageService';
+import { motion } from 'framer-motion';
 
 // ── Íconos SVG inline ───────────────────────────────────────────
 
@@ -231,27 +232,91 @@ export const WelcomeScreenPhase4: React.FC<Props> = ({
               ))}
             </div>
 
-            {/* Banner Desafío Mixto de la Fase */}
-            <div
-              className={`f4-mixed-challenge-banner ${dashboard.desafio_mixto_disponible ? 'active' : 'blocked'}`}
-            >
-              <div className="f4-mixed-challenge-icon">🏆</div>
-              <div className="f4-mixed-challenge-text">
-                <div className="f4-mixed-challenge-title">Desafío de Maestría de Fase 4</div>
-                <div className="f4-mixed-challenge-desc">
-                  {dashboard.desafio_mixto_disponible
-                    ? '¡Excelente trabajo! Has completado todas las etapas de la Fase 4. Enfrenta el Desafío final para abrir las puertas a la Fase 5.'
-                    : 'Domina los 4 módulos de fracciones y porcentajes para desbloquear esta gran prueba final acumulativa.'}
+            {/* Banner Desafío Mixto o Progreso General */}
+            {dashboard.desafio_mixto_disponible ? (
+              <div className="f4-mixed-challenge-banner active">
+                <div className="f4-mixed-challenge-icon">🏆</div>
+                <div className="f4-mixed-challenge-text">
+                  <div className="f4-mixed-challenge-title">Desafío de Maestría de Fase 4</div>
+                  <div className="f4-mixed-challenge-desc">
+                    ¡Excelente trabajo! Has completado todas las etapas de la Fase 4. Enfrenta el Desafío final para abrir las puertas a la Fase 5.
+                  </div>
                 </div>
+                <button
+                  className="f4-mixed-challenge-btn"
+                  onClick={handleChallengeClick}
+                >
+                  {dashboard.desafio_mixto_estado === 'completado' ? 'Repetir Desafío' : 'Iniciar Desafío'}
+                </button>
               </div>
-              <button
-                className="f4-mixed-challenge-btn"
-                onClick={handleChallengeClick}
-                disabled={!dashboard.desafio_mixto_disponible}
-              >
-                {dashboard.desafio_mixto_estado === 'completado' ? 'Repetir Desafío' : dashboard.desafio_mixto_disponible ? 'Iniciar Desafío' : '🔒 Bloqueado'}
-              </button>
-            </div>
+            ) : (() => {
+              const totalLevelsPassed = dashboard.modulos.reduce((sum, m) => sum + m.niveles.filter(n => n.estado === 'dominado').length, 0);
+              const maxTotalLevels = dashboard.modulos.reduce((sum, m) => sum + m.niveles.length, 0);
+              const globalProgressPercent = maxTotalLevels > 0 ? Math.round((totalLevelsPassed / maxTotalLevels) * 100) : 0;
+
+              return (
+                <div className="w-full bg-white dark:bg-[#162033] border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:shadow-none transition-all duration-300">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+                    <div className="flex items-center">
+                      <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center mr-5 shrink-0">
+                        <Icons.trophy size={32} color="#3b82f6" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1 font-display tracking-tight">
+                          Tu Camino a la Fase 5
+                        </h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed font-medium">
+                          Completa todos los niveles de práctica en cada módulo para desbloquear el Desafío Mixto y avanzar de fase.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="w-20 h-20 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 flex flex-col items-center justify-center shrink-0 shadow-sm">
+                      <span className="text-3xl font-black font-display leading-none">{globalProgressPercent}%</span>
+                      <span className="text-[9px] font-black tracking-wider mt-1 uppercase font-display">Progreso</span>
+                    </div>
+                  </div>
+
+                  {/* General Progress Bar */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2 font-sans">
+                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider">PROGRESO GENERAL DE LA FASE</span>
+                      <span className="text-xs font-black text-blue-600 dark:text-blue-400">{totalLevelsPassed} / {maxTotalLevels} Niveles</span>
+                    </div>
+                    <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-blue-600 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${globalProgressPercent}%` }}
+                        transition={{ duration: 1.2, ease: 'easeOut' }}
+                      />
+                    </div>
+
+                    {/* Per-category mini indicators */}
+                    <div className="flex justify-between mt-4">
+                      {dashboard.modulos.map((m) => {
+                        const completedCount = m.niveles.filter(n => n.estado === 'dominado').length;
+                        const totalCount = m.niveles.length;
+                        const pct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+                        return (
+                          <div key={m.modulo_id} className="flex flex-col items-center gap-1.5 flex-1 px-2">
+                            <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <motion.div
+                                className="h-full rounded-full"
+                                style={{ backgroundColor: m.color }}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+                              />
+                            </div>
+                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase text-center">{m.nombre}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </>
         ) : (
           <div className="f4-levels-layout-container">

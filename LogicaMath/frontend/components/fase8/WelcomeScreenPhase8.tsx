@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import * as Lucide from 'lucide-react';
-import { getFaseMetadata, FaseModulo, FaseNivel } from './faseMetadata';
+import { getFaseMetadata, FaseModulo, FaseNivel } from '../fase_generic/faseMetadata';
 import { getAvatarUrl } from '../../services/storageService';
 import { motion } from 'framer-motion';
-import './FaseGenericStyles.css';
+import '../fase_generic/FaseGenericStyles.css';
 
 // ── Icons Helper ───────────────────────────────────────────────
 
@@ -40,24 +39,22 @@ function DynamicIcon({ name, size = 24, color = '#fff' }: { name: string; size?:
 
 // ── Props ──────────────────────────────────────────────────────
 
-interface WelcomeScreenPhaseGenericProps {
+interface WelcomeScreenPhase8Props {
   studentName?: string;
   userAvatar?: string;
   userRole?: string;
-  onModuleSelect: (moduloId: number, nivelId: number, faseId: number) => void;
+  onModuleSelect: (moduloId: number, nivelId: number) => void;
   onBack: () => void;
 }
 
-export default function WelcomeScreenPhaseGeneric({
+export default function WelcomeScreenPhase8({
   studentName = 'Estudiante',
   userAvatar,
   userRole,
   onModuleSelect,
   onBack,
-}: WelcomeScreenPhaseGenericProps) {
-  const location = useLocation();
-  const paramFaseId = location.state?.faseId;
-  const faseId = Number(paramFaseId || '4');
+}: WelcomeScreenPhase8Props) {
+  const faseId = 8;
 
   const [selectedModule, setSelectedModule] = useState<FaseModulo | null>(null);
   const [completedLevels, setCompletedLevels] = useState<Record<string, boolean>>({});
@@ -72,7 +69,7 @@ export default function WelcomeScreenPhaseGeneric({
         setCompletedLevels(JSON.parse(saved));
       }
     } catch (e) {
-      console.error('[WelcomeScreenPhaseGeneric] Error loading progress', e);
+      console.error('[WelcomeScreenPhase8] Error loading progress', e);
     }
   }, [faseId]);
 
@@ -266,7 +263,7 @@ export default function WelcomeScreenPhaseGeneric({
                 </div>
                 <button 
                   className="fg-eval-btn"
-                  onClick={() => onModuleSelect(99, 99, faseId)}
+                  onClick={() => onModuleSelect(99, 99)}
                 >
                   Iniciar Desafío
                 </button>
@@ -366,7 +363,7 @@ export default function WelcomeScreenPhaseGeneric({
                   <div
                     key={nivel.nivelId}
                     className={`fg-level-card ${unlocked ? 'unlocked' : 'locked'}`}
-                    onClick={() => unlocked && onModuleSelect(selectedModule.moduloId, nivel.nivelId, faseId)}
+                    onClick={() => unlocked && onModuleSelect(selectedModule.moduloId, nivel.nivelId)}
                   >
                     <div className="fg-level-circle">
                       {completed ? (

@@ -142,7 +142,7 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
           <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '16px', color: '#f8fafc' }}>
             {!metadata ? 'Fase no encontrada' : 'Cargando Desafío...'}
           </h2>
-          <button onClick={() => navigate('/welcome-fase', { state: { faseId } })} className="fg-submit-btn" style={{ maxWidth: '200px', margin: '20px auto' }}>
+          <button onClick={() => navigate(`/welcome-fase${faseId}`)} className="fg-submit-btn" style={{ maxWidth: '200px', margin: '20px auto' }}>
             Volver
           </button>
         </div>
@@ -315,14 +315,14 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
             nivelId={nivelId}
             moduleColor={modulo.color}
             onClose={() => setShowReading(false)}
-            onAbort={() => navigate('/welcome-fase', { state: { faseId } })}
+            onAbort={() => navigate(`/welcome-fase${faseId}`)}
           />
         )}
       </AnimatePresence>
 
       {/* ── Header Unificado ── */}
       <header className="fg-game-header-modern">
-        <button className="fg-header-abort-btn" onClick={() => navigate('/welcome-fase', { state: { faseId } })} title="Salir del nivel">
+        <button className="fg-header-abort-btn" onClick={() => navigate(`/welcome-fase${faseId}`)} title="Salir del nivel">
           <IconArrowLeft />
         </button>
         <div className="fg-header-right-group">
@@ -414,7 +414,7 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
 
             <button 
               className="fg-submit-btn"
-              onClick={() => navigate('/welcome-fase', { state: { faseId } })}
+              onClick={() => navigate(`/welcome-fase${faseId}`)}
               style={{ background: modulo.color }}
             >
               Volver al Menú

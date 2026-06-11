@@ -10,7 +10,7 @@ test.describe('13 - Panel de Administración y Sincronización de Contenido', ()
     // Elevate user to ADMIN for the test and ensure Fase 4 is unlocked
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}'; UPDATE alumnos SET fase_actual_id = 4 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}');"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}'; UPDATE alumnos SET fase_actual_id = 4 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}');"`
       );
       console.log('✅ Test user successfully set to role ADMIN and reset to Fase 4.');
     } catch (e) {
@@ -22,7 +22,7 @@ test.describe('13 - Panel de Administración y Sincronización de Contenido', ()
     // Restore user to normal USER and delete test question if it exists
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
       );
       // Restore other questions first
       execSync(
@@ -126,7 +126,7 @@ test.describe('13 - Panel de Administración y Sincronización de Contenido', ()
     // Delete any cached question pool for the student for this level so the backend generates a new one
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "DELETE FROM pool_asignado_alumno WHERE alumno_id = (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}')) AND fase_id = 4 AND seccion = 101;"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "DELETE FROM pool_asignado_alumno WHERE alumno_id = (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}')) AND fase_id = 4 AND seccion = 101;"`
       );
       console.log('✅ Deleted cached question pool for the student.');
     } catch (e) {
@@ -135,7 +135,7 @@ test.describe('13 - Panel de Administración y Sincronización de Contenido', ()
 
     // 7. Simular Alumno: Cambiar rol a USER
     execSync(
-      `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
+      `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
     );
     
     // 8. Volver al mapa y acceder a la Fase 4

@@ -75,32 +75,35 @@ test.describe('02 - Navegación por Fases', () => {
     });
   }
 
-  // ─── Test: Pantalla Welcome genérica (Fases 7-8) ─────────────────
-  test('Fases genéricas (7-8): Welcome genérico se carga correctamente', async ({ page, consoleLogger }) => {
-    consoleLogger.clear();
+  // ─── Test: Pantalla Welcome de Fases 7, 8 y 9 ─────────────────
+  for (const phaseId of [7, 8, 9]) {
+    test(`Fase ${phaseId}: Welcome se carga correctamente`, async ({ page, consoleLogger }) => {
+      consoleLogger.clear();
 
-    await page.goto(ROUTES.WELCOME_FASE_GENERIC);
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2500);
-
-    // Si redirige a login, re-autenticar
-    if (page.url().includes('/login')) {
-      await loginAsTestUser(page);
-      await page.goto(ROUTES.WELCOME_FASE_GENERIC);
+      const path = `/welcome-fase${phaseId}`;
+      await page.goto(path);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2500);
-    }
 
-    // Verificar que la interfaz renderizó
-    const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
-    expect(rootHtml.length).toBeGreaterThan(10);
+      // Si redirige a login, re-autenticar
+      if (page.url().includes('/login')) {
+        await loginAsTestUser(page);
+        await page.goto(path);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(2500);
+      }
 
-    // Sin errores críticos en consola
-    expect(
-      consoleLogger.hasCriticalErrors(),
-      `Errores en consola de Welcome genérico:\n${consoleLogger.getCriticalErrorsSummary()}`
-    ).toBe(false);
-  });
+      // Verificar que la interfaz renderizó
+      const rootHtml = await page.innerHTML(SELECTORS.ROOT_CONTAINER);
+      expect(rootHtml.length).toBeGreaterThan(10);
+
+      // Sin errores críticos en consola
+      expect(
+        consoleLogger.hasCriticalErrors(),
+        `Errores en consola de Welcome Fase ${phaseId}:\n${consoleLogger.getCriticalErrorsSummary()}`
+      ).toBe(false);
+    });
+  }
 
   // ─── Test: Navegación directa al mapa tras login ─────────────────
   test('Tras login, la navegación a /map funciona sin redirección', async ({ page }) => {

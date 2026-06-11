@@ -7,6 +7,9 @@ const WelcomeScreen = React.lazy(() => import('./components/fase1/WelcomeScreen'
 const WelcomeScreenPhase2 = React.lazy(() => import('./components/fase2/WelcomeScreenPhase2'));
 const Fase2GameScreen = React.lazy(() => import('./components/fase2/Fase2GameScreen'));
 const WelcomeScreenPhaseGeneric = React.lazy(() => import('./components/fase_generic/WelcomeScreenPhaseGeneric'));
+const WelcomeScreenPhase7 = React.lazy(() => import('./components/fase7/WelcomeScreenPhase7'));
+const WelcomeScreenPhase8 = React.lazy(() => import('./components/fase8/WelcomeScreenPhase8'));
+const WelcomeScreenPhase9 = React.lazy(() => import('./components/fase9/WelcomeScreenPhase9'));
 const FaseGenericGameScreen = React.lazy(() => import('./components/fase_generic/FaseGenericGameScreen'));
 const WelcomeScreenPhase3 = React.lazy(() => import('./components/fase3/WelcomeScreenPhase3').then(module => ({ default: module.WelcomeScreenPhase3 })));
 const Fase3GameScreen = React.lazy(() => import('./components/fase3/Fase3GameScreen').then(module => ({ default: module.Fase3GameScreen })));
@@ -411,8 +414,12 @@ const AppContent: React.FC = () => {
                     navigate('/welcome-fase5');
                   } else if (phaseIndex === 6) {
                     navigate('/welcome-fase6');
-                  } else if (phaseIndex >= 7 && phaseIndex <= 9) {
-                    navigate(`/welcome-fase`, { state: { faseId: phaseIndex } });
+                  } else if (phaseIndex === 7) {
+                    navigate('/welcome-fase7');
+                  } else if (phaseIndex === 8) {
+                    navigate('/welcome-fase8');
+                  } else if (phaseIndex === 9) {
+                    navigate('/welcome-fase9');
                   } else {
                     alert(`¡La Fase ${phaseIndex} está desbloqueada! Muy pronto implementaremos sus dinámicas de juego.`);
                   }
@@ -479,6 +486,54 @@ const AppContent: React.FC = () => {
                 userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId) => {
                   navigate('/fase6/play', { state: { moduloId, nivelId: nivelId || 1 } });
+                }}
+                onBack={() => navigate('/map')}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+           <Route path="/welcome-fase7" element={
+            currentUser ? (
+              <WelcomeScreenPhase7
+                studentName={currentUser.username}
+                userAvatar={currentUser.avatar}
+                userRole={currentUser.role}
+                onModuleSelect={(moduloId, nivelId) => {
+                  navigate(`/fase/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 7 } });
+                }}
+                onBack={() => navigate('/map')}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/welcome-fase8" element={
+            currentUser ? (
+              <WelcomeScreenPhase8
+                studentName={currentUser.username}
+                userAvatar={currentUser.avatar}
+                userRole={currentUser.role}
+                onModuleSelect={(moduloId, nivelId) => {
+                  navigate(`/fase/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 8 } });
+                }}
+                onBack={() => navigate('/map')}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/welcome-fase9" element={
+            currentUser ? (
+              <WelcomeScreenPhase9
+                studentName={currentUser.username}
+                userAvatar={currentUser.avatar}
+                userRole={currentUser.role}
+                onModuleSelect={(moduloId, nivelId) => {
+                  navigate(`/fase/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 9 } });
                 }}
                 onBack={() => navigate('/map')}
               />

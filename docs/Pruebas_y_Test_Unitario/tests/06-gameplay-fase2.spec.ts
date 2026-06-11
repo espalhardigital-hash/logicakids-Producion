@@ -35,16 +35,17 @@ function getChainedStepAnswer(questionId: number, stepNumber: number): string {
  */
 function clearTestUserProgress() {
   try {
+    const email = process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com';
     const queries = [
-      `DELETE FROM intento_pasos WHERE intento_pregunta_id IN (SELECT id FROM intento_preguntas WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba'));`,
-      `DELETE FROM intento_preguntas WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba');`,
-      `DELETE FROM intentos WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba');`,
-      `DELETE FROM progreso_maestria WHERE alumno_id = (SELECT id FROM alumnos WHERE nombre = 'usuario_prueba');`
+      `DELETE FROM intento_pasos WHERE intento_pregunta_id IN (SELECT id FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}')));`,
+      `DELETE FROM intento_preguntas WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`,
+      `DELETE FROM intentos WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`,
+      `DELETE FROM progreso_maestria WHERE alumno_id IN (SELECT id FROM alumnos WHERE user_id = (SELECT id FROM users WHERE email = '${email}'));`
     ];
     for (const q of queries) {
       execSync(`docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "${q}"`);
     }
-    console.log('🧹 Test user database progress successfully cleared.');
+    console.log(`🧹 Test user database progress successfully cleared for ${email}.`);
   } catch (e) {
     console.error('❌ Failed to clear test user database progress:', e);
   }
@@ -95,14 +96,14 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
   let currentQuestionId: number | null = null;
 
   test.beforeAll(() => {
-    // Force set the test user '${process.env.TEST_EMAIL || 'prueba@gmail.com'}' to Phase 2 (fase_actual_id = 2) and role = ADMIN
+    // Force set the test user '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}' to Phase 2 (fase_actual_id = 2) and role = ADMIN
     // so that all module cards and challenges are unlocked and clickable in the frontend.
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE alumnos SET fase_actual_id = 2 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}');"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE alumnos SET fase_actual_id = 2 WHERE user_id = (SELECT id FROM users WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}');"`
       );
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'ADMIN' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
       );
       console.log('✅ Test user successfully set to Phase 2 and role ADMIN in the database.');
     } catch (e) {
@@ -111,10 +112,10 @@ test.describe('06 - Gameplay Fase 2 (Desarrollo Numérico)', () => {
   });
 
   test.afterAll(() => {
-    // Restore test user '${process.env.TEST_EMAIL || 'prueba@gmail.com'}' role to USER
+    // Restore test user '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}' role to USER
     try {
       execSync(
-        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'prueba@gmail.com'}';"`
+        `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -c "UPDATE users SET role = 'USER' WHERE email = '${process.env.TEST_EMAIL || 'pruebas_automaticas_2@gmail.com'}';"`
       );
       console.log('✅ Test user role restored to USER in the database.');
     } catch (e) {
