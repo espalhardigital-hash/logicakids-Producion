@@ -77,6 +77,15 @@ function getQuestionEnunciado(questionId: number): string {
     return '';
   }
 }
+function isQuestionBeakerInteractive(questionId: number): boolean {
+  try {
+    const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT COALESCE((datos_numericos->>'es_interactivo')::boolean, false) FROM preguntas WHERE id = ${questionId}"`;
+    return execSync(cmd).toString().trim() === 't';
+  } catch (e) {
+    console.error(`Error querying beaker interactivity for question ${questionId}:`, e);
+    return false;
+  }
+}
 
 function clearTestUserProgress(email: string) {
   try {
@@ -91,6 +100,39 @@ function clearTestUserProgress(email: string) {
     }
   } catch (e) {
     console.error('❌ Failed to clear test user database progress:', e);
+  }
+}
+
+function isQuestionInteractiveLayout(questionId: number): boolean {
+  try {
+    const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT COALESCE((datos_numericos->>'es_interactivo')::boolean, false) AND datos_numericos->>'tipo_visual' IN ('pizza', 'pie') FROM preguntas WHERE id = ${questionId}"`;
+    return execSync(cmd).toString().trim() === 't';
+  } catch (e) {
+    console.error(`Error querying interactive layout for question ${questionId}:`, e);
+    return false;
+  }
+}
+
+async function waitForLayoutReady(page: any, isInteractive: boolean, isMultipleOption: boolean) {
+  let retries = 0;
+  const confirmBtn = page.locator('button:has-text("CONFIRMAR")');
+  const numpadBtn = page.locator('[data-testid="submit-numpad"]');
+  
+  if (isMultipleOption) {
+    while ((await confirmBtn.count() !== 0 || await numpadBtn.count() !== 0) && retries < 30) {
+      await page.waitForTimeout(100);
+      retries++;
+    }
+  } else if (isInteractive) {
+    while ((await confirmBtn.count() !== 1 || await numpadBtn.count() !== 0) && retries < 30) {
+      await page.waitForTimeout(100);
+      retries++;
+    }
+  } else {
+    while ((await numpadBtn.count() !== 1 || await confirmBtn.count() !== 0) && retries < 30) {
+      await page.waitForTimeout(100);
+      retries++;
+    }
   }
 }
 
@@ -109,20 +151,31 @@ async function submitCorrectAnswer(page: any, questionId: number) {
 
   const typeCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT tipo_pregunta FROM preguntas WHERE id = ${questionId}"`;
   const tipo = execSync(typeCmd).toString().trim();
+  const isMultipleOption = tipo === 'MULTIPLE_OPCION';
+  const isInteractive = isQuestionInteractiveLayout(questionId);
 
-  if (tipo === 'MULTIPLE_OPCION') {
+  // Wait for the layouts to settle and exiting screens to unmount completely
+  await waitForLayoutReady(page, isInteractive, isMultipleOption);
+
+  if (isMultipleOption) {
     const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT texto FROM alternativas WHERE pregunta_id = ${questionId} AND es_correcta = true LIMIT 1"`;
     const correctText = execSync(cmd).toString().trim();
     await page.locator(`button:has-text("${correctText}")`).first().click();
   } else {
-    
-    const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
-    if (await confirmBtn.isVisible()) {
+    if (isInteractive) {
+      const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
       if (answer.includes('/')) {
-        const [num] = answer.split('/');
+        const [num, den] = answer.split('/');
         const numerator = parseInt(num, 10);
+        const denominator = parseInt(den, 10);
+        const paths = page.locator('path[stroke="rgba(255,255,255,0.15)"]');
+        let retries = 0;
+        while (await paths.count() !== denominator && retries < 30) {
+          await page.waitForTimeout(100);
+          retries++;
+        }
         for (let i = 0; i < numerator; i++) {
-          await page.locator('path[stroke="rgba(255,255,255,0.15)"]').nth(i).click({ force: true });
+          await paths.nth(i).click({ force: true });
           await page.waitForTimeout(200);
         }
       } else {
@@ -159,7 +212,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
       } else {
         const beakerSegments = page.locator('.flex-col-reverse > div');
         let beakerClicked = false;
-        if (await beakerSegments.count() > 0) {
+        if (isQuestionBeakerInteractive(questionId) && await beakerSegments.count() > 0) {
           const level = getBeakerCorrectLevel(questionId);
           if (level > 0 && level <= await beakerSegments.count()) {
             await beakerSegments.nth(level - 1).click({ force: true });
@@ -196,19 +249,31 @@ async function failCurrentQuestion(page: any, questionId: number) {
 
   const typeCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT tipo_pregunta FROM preguntas WHERE id = ${questionId}"`;
   const tipo = execSync(typeCmd).toString().trim();
+  const isMultipleOption = tipo === 'MULTIPLE_OPCION';
+  const isInteractive = isQuestionInteractiveLayout(questionId);
 
-  if (tipo === 'MULTIPLE_OPCION') {
+  // Wait for layout to be ready
+  await waitForLayoutReady(page, isInteractive, isMultipleOption);
+
+  if (isMultipleOption) {
     const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT texto FROM alternativas WHERE pregunta_id = ${questionId} AND es_correcta = false LIMIT 1"`;
     const wrongText = execSync(cmd).toString().trim();
     await page.locator(`button:has-text("${wrongText}")`).first().click();
   } else {
-    
-    const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
-    if (await confirmBtn.isVisible()) {
+    if (isInteractive) {
+      const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
       if (answer.includes('/')) {
-        await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
+        const [_, den] = answer.split('/');
+        const denominator = parseInt(den, 10);
+        const paths = page.locator('path[stroke="rgba(255,255,255,0.15)"]');
+        let retries = 0;
+        while (await paths.count() !== denominator && retries < 30) {
+          await page.waitForTimeout(100);
+          retries++;
+        }
+        await paths.first().click({ force: true });
         await page.waitForTimeout(100);
-        await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
+        await paths.first().click({ force: true });
         await page.waitForTimeout(300);
       } else {
         const hint = page.locator('text=👉 ¡TÓCAME!').first();
@@ -224,7 +289,7 @@ async function failCurrentQuestion(page: any, questionId: number) {
     } else {
       const beakerSegments = page.locator('.flex-col-reverse > div');
       let beakerClicked = false;
-      if (await beakerSegments.count() > 0) {
+      if (isQuestionBeakerInteractive(questionId) && await beakerSegments.count() > 0) {
         const level = getBeakerCorrectLevel(questionId);
         const wrongLevel = level === 1 ? 2 : 1;
         if (wrongLevel <= await beakerSegments.count()) {
@@ -325,8 +390,14 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
 
           if (currentQuestionId === null || answeredQuestionIds.has(currentQuestionId)) {
             const continueBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').first();
+            const submitBtn = page.locator('button:has-text("CONFIRMAR"), [data-testid="submit-numpad"]').first();
             if (await continueBtn.isVisible().catch(()=>false)) {
               await continueBtn.click();
+              await page.waitForTimeout(500);
+            } else if (currentQuestionId !== null && await submitBtn.isVisible().catch(()=>false)) {
+              answeredQuestionIds.delete(currentQuestionId);
+            } else {
+              await page.waitForTimeout(200);
             }
             continue;
           }

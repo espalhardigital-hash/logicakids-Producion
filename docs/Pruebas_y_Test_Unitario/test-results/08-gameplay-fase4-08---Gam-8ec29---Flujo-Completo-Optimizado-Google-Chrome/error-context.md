@@ -7,138 +7,276 @@
 # Test info
 
 - Name: 08-gameplay-fase4.spec.ts >> 08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo >> Módulo 1 Nivel 1 - Flujo Completo Optimizado
-- Location: tests\08-gameplay-fase4.spec.ts:285:11
+- Location: tests\08-gameplay-fase4.spec.ts:350:11
 
 # Error details
 
 ```
-Error: apiRequestContext.post: socket hang up
+TimeoutError: locator.click: Timeout 15000ms exceeded.
 Call log:
-  - → POST http://localhost:8000/api/auth/register
-    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36
-    - accept: */*
-    - accept-encoding: gzip,deflate,br
-    - content-type: application/json
-    - content-length: 153
+  - waiting for locator('button:has-text("CONFIRMAR")').first()
 
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - button [ref=e7] [cursor=pointer]:
+        - img [ref=e8]
+      - generic [ref=e10]:
+        - button "TEORÍA" [ref=e11] [cursor=pointer]:
+          - img [ref=e12]
+          - generic [ref=e14]: TEORÍA
+        - generic [ref=e15]:
+          - generic [ref=e16]: LA FRACCIÓN VISUAL
+          - generic [ref=e17]: "|"
+          - generic [ref=e18]: FASE 4
+          - generic [ref=e19]: "|"
+          - generic [ref=e20]: PROGRESO 2/15
+    - main [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - img [ref=e27]
+          - paragraph [ref=e42]: Identifica qué fracción representa la parte pintada de la pizza en la ilustración.
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - textbox "?" [ref=e46]
+              - textbox "?" [ref=e48]
+            - generic [ref=e49]:
+              - generic [ref=e50]:
+                - button "7" [ref=e51] [cursor=pointer]
+                - button "8" [ref=e52] [cursor=pointer]
+                - button "9" [ref=e53] [cursor=pointer]
+                - button "4" [ref=e54] [cursor=pointer]
+                - button "5" [ref=e55] [cursor=pointer]
+                - button "6" [ref=e56] [cursor=pointer]
+                - button "1" [ref=e57] [cursor=pointer]
+                - button "2" [ref=e58] [cursor=pointer]
+                - button "3" [ref=e59] [cursor=pointer]
+                - button [ref=e60] [cursor=pointer]:
+                  - img [ref=e61]
+                - button "0" [ref=e65] [cursor=pointer]
+                - button [disabled] [ref=e66]:
+                  - img [ref=e67]
+              - generic [ref=e69]: Teclado Numérico
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - generic [ref=e72]: CORRECTAS
+              - text: "2"
+            - generic [ref=e73]:
+              - generic [ref=e74]: ERRORES
+              - text: "3"
+  - button "Alternar Tema Claro/Oscuro" [ref=e75] [cursor=pointer]:
+    - img [ref=e77]
 ```
 
 # Test source
 
 ```ts
-  1   | import { Page, expect } from '@playwright/test';
-  2   | import { TEST_USER, SELECTORS, ROUTES } from './constants';
-  3   | 
-  4   | /**
-  5   |  * Realiza el login con el usuario de prueba y valida la redirección exitosa.
-  6   |  *
-  7   |  * Flujo:
-  8   |  * 1. Navega a /login
-  9   |  * 2. Llena email y contraseña del usuario de prueba
-  10  |  * 3. Hace clic en "Entrar"
-  11  |  * 4. Espera redirección a /map
-  12  |  * 5. Valida que la navegación fue exitosa
-  13  |  *
-  14  |  * @param page - Instancia de Page de Playwright
-  15  |  */
-  16  | export async function loginAsTestUser(page: Page): Promise<void> {
-  17  |   // Navegar a la página de login
-  18  |   await page.goto(ROUTES.LOGIN);
-  19  |   await page.waitForLoadState('domcontentloaded');
-  20  | 
-  21  |   // Esperar a que el formulario de login esté visible
-  22  |   await page.waitForSelector(SELECTORS.EMAIL_INPUT, { state: 'visible', timeout: 15000 });
-  23  | 
-  24  |   // Limpiar campos y llenar credenciales
-  25  |   const emailInput = page.locator(SELECTORS.EMAIL_INPUT);
-  26  |   const passwordInput = page.locator(SELECTORS.PASSWORD_INPUT);
-  27  | 
-  28  |   await emailInput.fill(TEST_USER.email);
-  29  |   await passwordInput.fill(TEST_USER.password);
-  30  | 
-  31  |   // Hacer clic en el botón de login ("Entrar")
-  32  |   const submitButton = page.locator(SELECTORS.SUBMIT_BUTTON_LOGIN);
-  33  |   await submitButton.click();
-  34  | 
-  35  |   // Esperar redirección a /map (o cualquier ruta post-login)
-  36  |   await page.waitForURL('**/map', { timeout: 20000 });
-  37  | 
-  38  |   // Validar que estamos en el mapa de fases
-  39  |   expect(page.url()).toContain('/map');
-  40  | }
-  41  | 
-  42  | /**
-  43  |  * Verifica si el usuario ya está autenticado revisando si estamos en /map.
-  44  |  * Si no lo está, realiza el login.
-  45  |  *
-  46  |  * @param page - Instancia de Page de Playwright
-  47  |  */
-  48  | export async function ensureAuthenticated(page: Page): Promise<void> {
-  49  |   // Intentar navegar al mapa
-  50  |   await page.goto(ROUTES.MAP);
-  51  |   await page.waitForLoadState('domcontentloaded');
-  52  |   await page.waitForTimeout(2000);
-  53  | 
-  54  |   // Si nos redirige al login, hacer login
-  55  |   if (page.url().includes('/login')) {
-  56  |     await loginAsTestUser(page);
-  57  |   }
-  58  | }
-  59  | 
-  60  | /**
-  61  |  * Cierra la sesión del usuario limpiando localStorage.
-  62  |  *
-  63  |  * @param page - Instancia de Page de Playwright
-  64  |  */
-  65  | export async function logout(page: Page): Promise<void> {
-  66  |   await page.evaluate(() => {
-  67  |     localStorage.removeItem('auth_token');
-  68  |     localStorage.removeItem('auth_user');
-  69  |   });
-  70  |   await page.goto(ROUTES.LOGIN);
-  71  |   await page.waitForLoadState('domcontentloaded');
-  72  | }
-  73  | 
-  74  | /**
-  75  |  * Registra dinámicamente un usuario nuevo para aislamiento de test E2E y hace login.
-  76  |  * Cumple con la regla de test: Crear usuario nuevo por cada test.
-  77  |  * 
-  78  |  * @param page - Instancia de Page de Playwright
-  79  |  * @returns Email del usuario creado
-  80  |  */
-  81  | export async function registerDynamicTestUser(page: Page): Promise<string> {
-  82  |   const timestamp = Date.now();
-  83  |   const email = `test_e2e_${timestamp}@logicakids.test`;
-  84  |   const password = 'Pruebas2026#';
-  85  | 
-  86  |   // Registrar via API (es más rápido y estable que la UI)
-> 87  |   const response = await page.request.post('http://localhost:8000/api/auth/register', {
-      |                                       ^ Error: apiRequestContext.post: socket hang up
-  88  |     data: {
-  89  |       email,
-  90  |       password,
-  91  |       username: 'pruebas_automaticas_2', // Bypasses phase recalculation in pedagogia_service
-  92  |       role: 'USER',
-  93  |       edad: 10,
-  94  |       grado_escolar: 5
-  95  |     }
-  96  |   });
-  97  | 
-  98  |   if (!response.ok()) {
-  99  |     throw new Error(`Failed to register dynamic user: ${response.statusText()}`);
-  100 |   }
-  101 | 
-  102 |   // Hacer login por UI para simular el flujo
-  103 |   await page.goto(ROUTES.LOGIN);
-  104 |   await page.waitForLoadState('domcontentloaded');
-  105 |   
-  106 |   await page.waitForSelector(SELECTORS.EMAIL_INPUT, { state: 'visible', timeout: 15000 });
-  107 |   await page.locator(SELECTORS.EMAIL_INPUT).fill(email);
-  108 |   await page.locator(SELECTORS.PASSWORD_INPUT).fill(password);
-  109 |   await page.locator(SELECTORS.SUBMIT_BUTTON_LOGIN).click();
-  110 |   await page.waitForURL('**/map', { timeout: 20000 });
-  111 |   
-  112 |   return email;
-  113 | }
-  114 | 
+  188 |         if (answer === '25') label = '1/4 (25%)';
+  189 |         else if (answer === '50') label = '1/2 (50%)';
+  190 |         
+  191 |         await page.locator(`button:has-text("${label}")`).first().click();
+  192 |         await page.waitForTimeout(200);
+  193 |       }
+  194 |       await page.waitForTimeout(300); // Wait for React state to propagate
+  195 |       await confirmBtn.click();
+  196 |     } else {
+  197 |       if (answer.includes('/')) {
+  198 |         const [num, den] = answer.split('/');
+  199 |         
+  200 |         for (const char of num) {
+  201 |           await page.locator(`button:has-text("${char}")`).last().click();
+  202 |           await page.waitForTimeout(50);
+  203 |         }
+  204 |         
+  205 |         await page.locator('.f4-fraction-input-field').nth(1).click();
+  206 |         await page.waitForTimeout(100);
+  207 |         
+  208 |         for (const char of den) {
+  209 |           await page.locator(`button:has-text("${char}")`).last().click();
+  210 |           await page.waitForTimeout(50);
+  211 |         }
+  212 |       } else {
+  213 |         const beakerSegments = page.locator('.flex-col-reverse > div');
+  214 |         let beakerClicked = false;
+  215 |         if (isQuestionBeakerInteractive(questionId) && await beakerSegments.count() > 0) {
+  216 |           const level = getBeakerCorrectLevel(questionId);
+  217 |           if (level > 0 && level <= await beakerSegments.count()) {
+  218 |             await beakerSegments.nth(level - 1).click({ force: true });
+  219 |             await page.waitForTimeout(200);
+  220 |             beakerClicked = true;
+  221 |           }
+  222 |         }
+  223 | 
+  224 |         if (!beakerClicked) {
+  225 |           for (const char of answer) {
+  226 |             await page.locator(`button:has-text("${char}")`).last().click();
+  227 |             await page.waitForTimeout(50);
+  228 |           }
+  229 |         }
+  230 |       }
+  231 |       await page.waitForTimeout(300);
+  232 |       await page.getByTestId('submit-numpad').click();
+  233 |     }
+  234 |   }
+  235 | }
+  236 | 
+  237 | async function failCurrentQuestion(page: any, questionId: number) {
+  238 |   const answer = getCorrectAnswer(questionId);
+  239 |   const enunciado = getQuestionEnunciado(questionId);
+  240 |   if (answer.includes('/')) {
+  241 |     await page.locator(`text=${answer}`).first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  242 |   } else if (enunciado) {
+  243 |     const cleanText = enunciado.replace(/\[ESPEJO\]/g, '').replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 30);
+  244 |     if (cleanText) {
+  245 |       await page.locator(`text=${cleanText}`).first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  246 |     }
+  247 |   }
+  248 |   await page.waitForTimeout(200);
+  249 | 
+  250 |   const typeCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT tipo_pregunta FROM preguntas WHERE id = ${questionId}"`;
+  251 |   const tipo = execSync(typeCmd).toString().trim();
+  252 |   const isMultipleOption = tipo === 'MULTIPLE_OPCION';
+  253 |   const isInteractive = isQuestionInteractiveLayout(questionId);
+  254 | 
+  255 |   // Wait for layout to be ready
+  256 |   await waitForLayoutReady(page, isInteractive, isMultipleOption);
+  257 | 
+  258 |   if (isMultipleOption) {
+  259 |     const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT texto FROM alternativas WHERE pregunta_id = ${questionId} AND es_correcta = false LIMIT 1"`;
+  260 |     const wrongText = execSync(cmd).toString().trim();
+  261 |     await page.locator(`button:has-text("${wrongText}")`).first().click();
+  262 |   } else {
+  263 |     if (isInteractive) {
+  264 |       const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
+  265 |       if (answer.includes('/')) {
+  266 |         const [_, den] = answer.split('/');
+  267 |         const denominator = parseInt(den, 10);
+  268 |         const paths = page.locator('path[stroke="rgba(255,255,255,0.15)"]');
+  269 |         let retries = 0;
+  270 |         while (await paths.count() !== denominator && retries < 30) {
+  271 |           await page.waitForTimeout(100);
+  272 |           retries++;
+  273 |         }
+  274 |         await paths.first().click({ force: true });
+  275 |         await page.waitForTimeout(100);
+  276 |         await paths.first().click({ force: true });
+  277 |         await page.waitForTimeout(300);
+  278 |       } else {
+  279 |         const hint = page.locator('text=👉 ¡TÓCAME!').first();
+  280 |         if (await hint.isVisible()) {
+  281 |           await hint.click({ force: true });
+  282 |           await page.waitForTimeout(200);
+  283 |         }
+  284 |         const wrongOption = answer === '10' ? '20%' : '10%';
+  285 |         await page.locator(`button:has-text("${wrongOption}")`).first().click();
+  286 |         await page.waitForTimeout(200);
+  287 |       }
+> 288 |       await confirmBtn.click();
+      |                        ^ TimeoutError: locator.click: Timeout 15000ms exceeded.
+  289 |     } else {
+  290 |       const beakerSegments = page.locator('.flex-col-reverse > div');
+  291 |       let beakerClicked = false;
+  292 |       if (isQuestionBeakerInteractive(questionId) && await beakerSegments.count() > 0) {
+  293 |         const level = getBeakerCorrectLevel(questionId);
+  294 |         const wrongLevel = level === 1 ? 2 : 1;
+  295 |         if (wrongLevel <= await beakerSegments.count()) {
+  296 |           await beakerSegments.nth(wrongLevel - 1).click({ force: true });
+  297 |           await page.waitForTimeout(200);
+  298 |           beakerClicked = true;
+  299 |         }
+  300 |       }
+  301 | 
+  302 |       if (!beakerClicked) {
+  303 |         if (answer.includes('/')) {
+  304 |           await page.locator(`button:has-text("9")`).last().click();
+  305 |           await page.locator('.f4-fraction-input-field').nth(1).click();
+  306 |           await page.locator(`button:has-text("9")`).last().click();
+  307 |         } else {
+  308 |           for (let i = 0; i < 4; i++) {
+  309 |             await page.locator(`button:has-text("9")`).last().click();
+  310 |             await page.waitForTimeout(50);
+  311 |           }
+  312 |         }
+  313 |       }
+  314 |       await page.waitForTimeout(300);
+  315 |       await page.getByTestId('submit-numpad').click();
+  316 |     }
+  317 |   }
+  318 | }
+  319 | 
+  320 | const metadata = getPhaseMetadata(4);
+  321 | 
+  322 | test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', () => {
+  323 |   let currentQuestionId: number | null = null;
+  324 |   let testUserEmail: string;
+  325 | 
+  326 |   test.beforeEach(async ({ page }) => {
+  327 |     test.setTimeout(240000);
+  328 |     currentQuestionId = null;
+  329 |     testUserEmail = await registerDynamicTestUser(page);
+  330 |     setPhaseForUser(testUserEmail, 4);
+  331 |     clearTestUserProgress(testUserEmail);
+  332 | 
+  333 |     page.on('response', async (response) => {
+  334 |       if (
+  335 |         response.url().includes('/api/fase4/modulo/') &&
+  336 |         response.url().includes('/pregunta')
+  337 |       ) {
+  338 |         try {
+  339 |           const json = await response.json();
+  340 |           if (json && json.id) {
+  341 |             currentQuestionId = json.id;
+  342 |           }
+  343 |         } catch (e) {}
+  344 |       }
+  345 |     });
+  346 |   });
+  347 | 
+  348 |   for (const modulo of metadata.modulos) {
+  349 |     for (const nivel of modulo.niveles) {
+  350 |       test(`Módulo ${modulo.modulo_id} Nivel ${nivel.nivel_id} - Flujo Completo Optimizado`, async ({ page }) => {
+  351 |         unlockAllUpToModule(testUserEmail, 4, modulo.modulo_id);
+  352 |         for (let l = 1; l < nivel.nivel_id; l++) {
+  353 |            approveProgresoMaestria(testUserEmail, 4, parseInt(`${modulo.modulo_id}0${l}`), 'MIXTA');
+  354 |         }
+  355 | 
+  356 |         await page.goto('/welcome-fase4');
+  357 |         await page.waitForLoadState('domcontentloaded');
+  358 |         await page.waitForTimeout(1000);
+  359 | 
+  360 |         const modCards = page.locator('.f4-module-card-item');
+  361 |         const modCard = modCards.nth(modulo.modulo_id - 1);
+  362 |         await expect(modCard).toBeVisible();
+  363 |         await modCard.click();
+  364 | 
+  365 |         const lvlBtn = page.locator('.f4-level-card-item').nth(nivel.nivel_id - 1);
+  366 |         await expect(lvlBtn).toBeVisible();
+  367 |         await lvlBtn.click();
+  368 | 
+  369 |         await navigateGenericTheoryModal(page, FASE4_THEORY_ANSWERS, 'f4');
+  370 | 
+  371 |         const splash = page.locator('.f4-start-splash-overlay').first();
+  372 |         if (await splash.isVisible({ timeout: 5000 }).catch(() => false)) {
+  373 |           await splash.click();
+  374 |           await splash.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+  375 |         }
+  376 | 
+  377 |         let errorsForced = 0;
+  378 |         const maxErrors = 4;
+  379 |         let questionCounter = 0;
+  380 |         const maxQuestionsSafety = 30; 
+  381 |         const answeredQuestionIds = new Set<number>();
+  382 | 
+  383 |         while (questionCounter < maxQuestionsSafety) {
+  384 |           await page.waitForTimeout(500);
+  385 |           
+  386 |           const endScreen = page.locator('text=¡Desafío Terminado!').or(page.locator('text=Nivel Completado')).or(page.locator('text=Dominado')).or(page.locator('text=Desafío Terminado')).or(page.locator('button:has-text("Ir al Nivel")')).first();
+  387 |           if (await endScreen.isVisible().catch(()=>false)) {
+  388 |              break;
 ```

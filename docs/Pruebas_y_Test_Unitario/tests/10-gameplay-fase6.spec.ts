@@ -202,6 +202,8 @@ test.describe('10 - Gameplay Fase 6 (Geometría Espacial) - Exhaustivo', () => {
             const continueBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').first();
             if (await continueBtn.isVisible().catch(()=>false)) {
               await continueBtn.click();
+            } else {
+              await page.waitForTimeout(200);
             }
             continue;
           }

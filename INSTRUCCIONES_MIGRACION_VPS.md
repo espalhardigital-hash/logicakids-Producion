@@ -1,22 +1,34 @@
-# INSTRUCCIONES PARA APLICAR MIGRACIÓN EN LA VPS
+# INSTRUCCIONES PARA APLICAR MIGRACIÓN EN LA VPS (MODO SEGURO)
 
-Ya que no tenemos conexión SSH, deberás aplicar estos archivos a través de la interfaz web de Portainer en tu VPS.
+Ya que no tenemos conexión SSH, no intentes copiar y pegar el contenido directamente en la consola web de Portainer. El archivo pesa más de 20MB y congelará tu navegador de forma inmediata.
 
-## 1. MIGRACIÓN EN DESARROLLO
-1. Ve al Portainer de tu VPS.
-2. Ingresa a la consola (`>_ Console`) del contenedor de PostgreSQL de desarrollo (suele llamarse `base_postgres_general`).
-3. Abre el archivo `final_migration.sql` que está en tu PC local (D:\Antigravity\APP_Logica_Matematicas_kids\final_migration.sql).
-4. Copia TODO el contenido del archivo.
-5. En la consola de Portainer, ejecuta `psql -U logicakids_admin_desarrollo -d bd_logicakids_desarrollo`
-6. Pega todo el contenido copiado y presiona Enter.
+Afortunadamente, como subimos los cambios a GitHub, podemos hacer que la base de datos descargue el archivo directamente de internet.
 
-## 2. MIGRACIÓN EN PRODUCCIÓN
-El proceso es idéntico, he creado una copia llamada `final_migration_producion.sql` para evitar confusiones, aunque el contenido es exactamente el mismo:
+Sigue estos pasos dentro de la consola (`>_ Console`) de tu contenedor `base_postgres_general` en Portainer:
 
-1. En Portainer, ingresa a la consola (`>_ Console`) del contenedor de PostgreSQL de Producción (su contenedor en el stack `matematicas-producion` o el contenedor compartido `base_postgres_general`).
-2. Abre el archivo `final_migration_producion.sql` en tu PC (D:\Antigravity\APP_Logica_Matematicas_kids\final_migration_producion.sql).
-3. Copia TODO el contenido.
-4. En la consola de Portainer, ejecuta `psql -U logicakids_admin_producion -d bd_logicakids_producion`
-5. Pega todo el contenido copiado y presiona Enter.
+### PASO 1: Descargar la herramienta de red (solo la primera vez)
+Como estás dentro del contenedor de la base de datos, primero debemos instalar una herramienta para descargar archivos:
+```bash
+apt-get update && apt-get install -y wget
+```
+*(Presiona Enter y espera a que termine de instalar)*
 
-¡Listo! Con esto, ambos entornos tendrán el 100% de las nuevas preguntas manteniendo intactos a los usuarios y sus progresos.
+### PASO 2: Descargar el archivo de migración desde GitHub
+Ejecuta esto para que el contenedor descargue el SQL maestro que creamos:
+```bash
+wget https://raw.githubusercontent.com/espalhardigital-hash/logicakids/desarrollo/final_migration.sql
+```
+
+### PASO 3: Aplicar en Desarrollo
+Ahora inyectaremos ese archivo a tu base de datos de desarrollo usando este comando exacto:
+```bash
+psql -U logicakids_admin_desarrollo -d bd_logicakids_desarrollo < final_migration.sql
+```
+
+### PASO 4: Aplicar en Producción
+Para inyectar esas mismas preguntas en la base de datos de producción (que vive en el mismo contenedor principal), ejecuta:
+```bash
+psql -U logicakids_admin_producion -d bd_logicakids_producion < final_migration.sql
+```
+
+¡Listo! Si no ves errores en la pantalla al ejecutar los comandos de `psql`, ambos entornos tendrán el 100% de las nuevas preguntas manteniendo intactos a los usuarios y sus progresos.
