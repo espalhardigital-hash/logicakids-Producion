@@ -945,8 +945,8 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             feedback = "Sustituye el valor conocido de los cuadernos en la segunda cuenta, resta ese valor del total, y divide el sobrante entre las 2 reglas."
             vals = {"cuadernos": cant_cuadernos, "tot_a": tot_a, "tot_b": tot_b}
         else: # Álgebra Visual
-            total = rng.randint(20, 250)
             dif = rng.randint(2, 40)
+            total = rng.randint(dif + 10, 250)
             # Asegurar consistencia para evitar decimales extraños
             if (total - dif) % 2 != 0:
                 total += 1

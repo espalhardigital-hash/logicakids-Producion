@@ -25,7 +25,7 @@ export const PieChartVisualizer: React.FC<Props> = ({
   const [showSelector, setShowSelector] = useState(false);
 
   // Opciones disponibles para seleccionar
-  const OPTIONS = [10, 20, 25, 30, 35, 40, 50, 60];
+  const OPTIONS = [10, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75];
 
   const handleOptionClick = (val: number) => {
     setSelectedPercentage(val);

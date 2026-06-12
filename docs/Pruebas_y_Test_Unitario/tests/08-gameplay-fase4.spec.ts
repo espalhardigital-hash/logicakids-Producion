@@ -7,6 +7,9 @@ import { execSync } from 'child_process';
 import { navigateGenericTheoryModal } from '../helpers/gameplay-utils';
 
 const FASE4_THEORY_ANSWERS: Record<string, string> = {
+  'Un círculo está dividido en 5 partes': '2/5',
+  'Si pintas 4 partes de un rectángulo': '4/6',
+  'Un círculo tiene 4 partes y todas': '4/4',
   'Encuentra la fracción equivalente a 1/2': '3/6',
   'Amplifica 2/3 por un factor de 2': '4/6',
   '¿Qué fracción equivalente a 4/8': '1/2',
@@ -91,6 +94,18 @@ async function submitCorrectAnswer(page: any, questionId: number) {
           await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
           await page.waitForTimeout(50);
         }
+      } else {
+        const hint = page.locator('text=👉 ¡TÓCAME!').first();
+        if (await hint.isVisible()) {
+          await hint.click();
+          await page.waitForTimeout(200);
+        }
+        let label = `${answer}%`;
+        if (answer === '25') label = '1/4 (25%)';
+        else if (answer === '50') label = '1/2 (50%)';
+        
+        await page.locator(`button:has-text("${label}")`).first().click();
+        await page.waitForTimeout(200);
       }
       await page.waitForTimeout(300); // Wait for React state to propagate
       await confirmBtn.click();
@@ -116,6 +131,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
           await page.waitForTimeout(50);
         }
       }
+      await page.waitForTimeout(300);
       await page.getByTestId('submit-numpad').click();
     }
   }
@@ -134,8 +150,19 @@ async function failCurrentQuestion(page: any, questionId: number) {
     
     const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
     if (await confirmBtn.isVisible()) {
-      await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
-      await page.waitForTimeout(300);
+      if (answer.includes('/')) {
+        await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
+        await page.waitForTimeout(300);
+      } else {
+        const hint = page.locator('text=👉 ¡TÓCAME!').first();
+        if (await hint.isVisible()) {
+          await hint.click();
+          await page.waitForTimeout(200);
+        }
+        const wrongOption = answer === '10' ? '20%' : '10%';
+        await page.locator(`button:has-text("${wrongOption}")`).first().click();
+        await page.waitForTimeout(200);
+      }
       await confirmBtn.click();
     } else {
       if (answer.includes('/')) {
@@ -148,6 +175,7 @@ async function failCurrentQuestion(page: any, questionId: number) {
           await page.waitForTimeout(50);
         }
       }
+      await page.waitForTimeout(300);
       await page.getByTestId('submit-numpad').click();
     }
   }
@@ -215,7 +243,7 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
         const maxQuestionsSafety = 30; 
 
         while (questionCounter < maxQuestionsSafety) {
-          await page.waitForTimeout(1000);
+          await page.waitForTimeout(2000);
           
           const endScreen = page.locator('text=¡Desafío Terminado!').or(page.locator('text=Nivel Completado')).or(page.locator('text=Dominado')).or(page.locator('text=Desafío Terminado')).or(page.locator('button:has-text("Ir al Nivel")')).first();
           if (await endScreen.isVisible().catch(()=>false)) {
@@ -245,9 +273,11 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
             await page.waitForTimeout(1500);
             if (currentQuestionId) {
                await submitCorrectAnswer(page, currentQuestionId);
+               currentQuestionId = null;
             }
           } else {
             await submitCorrectAnswer(page, qId);
+            currentQuestionId = null;
           }
 
           await page.waitForTimeout(1000);

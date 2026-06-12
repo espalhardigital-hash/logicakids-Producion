@@ -728,9 +728,9 @@ def generate_practice_question_fase4(modulo_id: int, nivel_id: int, fam: int, va
                 "factor": factor
             }
         else: # Asimetría
-            ans = "no"
-            enunciado = f"{prefix}Un cuadrado está cortado en 4 secciones. Si 2 de ellas son rectángulos gigantes y las otras son cuadrangulares pequeños, ¿representa cada sección exactamente 1/4?"
-            feedback = "En las fracciones, cada porción debe tener la misma área. Si el tamaño de las partes difiere, no representa la fracción 1/4. Escribe 'sí' o 'no'."
+            ans = "0"
+            enunciado = f"{prefix}Un cuadrado está cortado en 4 secciones. Si 2 de ellas son rectángulos gigantes y las otras son cuadrangulares pequeños, ¿representa cada sección exactamente 1/4? (Ingresa 0 para NO, o 1 para SÍ)"
+            feedback = "En las fracciones, cada porción debe tener la misma área. Si el tamaño de las partes difiere, no representa la fracción 1/4. Ingresa 0 para NO, o 1 para SÍ."
             vals = {}
 
     # ── MÓDULO 2: Fracción de Cantidad ───────────────────────────────────────

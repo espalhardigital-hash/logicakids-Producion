@@ -1,4 +1,22 @@
 {
-  "fechaInicio": "2026-06-12T00:31:52.926Z",
-  "bugs": []
+  "fechaInicio": "2026-06-12T09:50:41.285Z",
+  "bugs": [
+    {
+      "suite": "08-gameplay-fase4.spec.ts",
+      "test": "Módulo 1 Nivel 1 - Flujo Completo Optimizado",
+      "severidad": "alto",
+      "categoria": "rendimiento",
+      "descripcion": "El test \"Módulo 1 Nivel 1 - Flujo Completo Optimizado\" falló con el Administrative / Code error:\n\n\u001b[31mTest timeout of 120000ms exceeded.\u001b[39m",
+      "pasos_reproduccion": [
+        "Ejecutar la suite: 08-gameplay-fase4.spec.ts",
+        "Ejecutar el test: Módulo 1 Nivel 1 - Flujo Completo Optimizado",
+        "URL actual: http://localhost:3000/fase4/play"
+      ],
+      "resultado_esperado": "El test debería pasar sin errores",
+      "resultado_obtenido": "\u001b[31mTest timeout of 120000ms exceeded.\u001b[39m",
+      "url": "http://localhost:3000/fase4/play",
+      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\M_dulo_1_Nivel_1___Flujo_Completo_Optimizado_1781257962652.png",
+      "id": "BUG-08gameplay-20260612095242-DG1W"
+    }
+  ]
 }

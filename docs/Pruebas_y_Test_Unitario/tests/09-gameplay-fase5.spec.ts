@@ -99,6 +99,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
         await page.locator(`button:has-text("${char}")`).last().click();
         await page.waitForTimeout(50);
       }
+      await page.waitForTimeout(300);
       await page.locator('button.bg-\\[\\#2563eb\\], button:has(svg)').last().click();
     }
   }
@@ -122,6 +123,7 @@ async function failCurrentQuestion(page: any, questionId: number) {
       await page.locator(`button:has-text("9")`).last().click();
       await page.waitForTimeout(50);
     }
+    await page.waitForTimeout(300);
     await page.locator('button.bg-\\[\\#2563eb\\], button:has(svg)').last().click();
   }
 }
@@ -218,9 +220,11 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas) - Exhaustivo', 
             await page.waitForTimeout(1500);
             if (currentQuestionId) {
                await submitCorrectAnswer(page, currentQuestionId);
+               currentQuestionId = null;
             }
           } else {
             await submitCorrectAnswer(page, qId);
+            currentQuestionId = null;
           }
 
           await page.waitForTimeout(1000);

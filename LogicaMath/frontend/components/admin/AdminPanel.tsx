@@ -6,6 +6,7 @@ import PedagogyTab from './PedagogyTab';
 import PerformanceTab from './PerformanceTab';
 import ContentTab from './ContentTab';
 import SystemTab from './SystemTab';
+import SreTab from './SreTab';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { PhaseMapProvider } from './PhaseMapContext';
 
@@ -14,7 +15,7 @@ interface Props {
   onLogout: () => void;
 }
 
-type TabType = 'general' | 'pedagogy' | 'performance' | 'content' | 'system';
+type TabType = 'general' | 'pedagogy' | 'performance' | 'content' | 'system' | 'sre';
 
 const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
   const [activeTab, setActiveTab] = useState<TabType>('general');
@@ -87,6 +88,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
     { id: 'performance', label: 'Rendimiento Estudiantil', icon: Activity },
     { id: 'content', label: 'Banco de Preguntas', icon: BookOpen },
     { id: 'system', label: 'Servidor y BD', icon: Server },
+    { id: 'sre', label: 'Monitoreo SRE', icon: Shield },
   ];
 
   const handleTabChange = (tabId: TabType) => {
@@ -393,6 +395,11 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
             {activeTab === 'system' && (
               <motion.div key="system" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                 <SystemTab showAlert={showAlert} />
+              </motion.div>
+            )}
+            {activeTab === 'sre' && (
+              <motion.div key="sre" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
+                <SreTab />
               </motion.div>
             )}
           </AnimatePresence>

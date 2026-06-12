@@ -221,9 +221,11 @@ test.describe('10 - Gameplay Fase 6 (Geometría Espacial) - Exhaustivo', () => {
             await page.waitForTimeout(1500);
             if (currentQuestionId) {
                await submitCorrectAnswer(page, currentQuestionId);
+               currentQuestionId = null;
             }
           } else {
             await submitCorrectAnswer(page, qId);
+            currentQuestionId = null;
           }
 
           await page.waitForTimeout(1000);

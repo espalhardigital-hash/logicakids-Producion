@@ -716,6 +716,7 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
   const stopTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = null;
+    setTimer(null);
   };
 
   const handleEvaluatorSkip = useCallback(() => {
@@ -754,6 +755,7 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
   }, [feedback.visible, maxAciertos, progreso, pregunta]);
 
   const handleFeedbackClose = useCallback(() => {
+    console.log("handleFeedbackClose triggered! feedback.resultado:", feedback.resultado);
     if (feedback.resultado?.early_exit) {
       setFeedback({ visible: false, esCorrecta: false });
       setShowEarlyExit(true);
@@ -768,11 +770,13 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
     setFeedback({ visible: false, esCorrecta: false });
 
     if (feedback.resultado?.fase_completada) {
+      console.log("Setting showGraduation to true");
       setShowGraduation(true);
       return;
     }
 
     if (feedback.resultado?.bloque_completado) {
+      console.log("Setting showCompletion to true");
       setShowCompletion(true);
       return;
     }
@@ -788,6 +792,21 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
       }
     }
   }, [feedback, navigate]);
+
+  useEffect(() => {
+    console.log("Completion useEffect evaluated. feedback.visible:", feedback.visible, "feedback.esCorrecta:", feedback.esCorrecta, "bloque_completado:", feedback.resultado?.bloque_completado);
+    if (feedback.visible && feedback.esCorrecta && (feedback.resultado?.fase_completada || feedback.resultado?.bloque_completado)) {
+      console.log("Scheduling completion timeout for 2000ms");
+      const timer = setTimeout(() => {
+        console.log("Completion timeout fired!");
+        handleFeedbackClose();
+      }, 2000);
+      return () => {
+        console.log("Completion timeout cleared!");
+        clearTimeout(timer);
+      };
+    }
+  }, [feedback, handleFeedbackClose]);
 
   const handleSubmit = useCallback(async (customAnswer?: string | number) => {
     if (!pregunta) return;

@@ -13,7 +13,7 @@ const FASE3_THEORY_ANSWERS: Record<string, string> = {
   'Pedro tiene 11 años. Ayer compró 10 chocolates y 4 chupetines. Se comió 3 chocolates. ¿Cuántos chocolates le quedan?': '7',
   'A las 4:00 PM, un tren partió con 20 pasajeros. En el año 2025, el tren sumó 5 pasajeros en la estación. ¿Cuántos pasajeros van ahora?': '25',
   'En una tienda que abre a las 8:00 AM, un niño de 12 años compra 15 galletas. Le regala 6 a su amigo. ¿Cuántas galletas le quedan?': '9',
-  'En una mochila hay 8 lápices, 2 botellas de agua (litros) and 3 gomas. ¿Cuántos útiles escolares (lápices y gomas) hay?': '11',
+  'En una mochila hay 8 lápices, 2 botellas de agua (litros) y 3 gomas. ¿Cuántos útiles escolares (lápices y gomas) hay?': '11',
   'Un camión transporta 10 cajas de manzanas, 50 litros de gasolina en el tanque y 4 cajas de peras. ¿Cuántas cajas de frutas transporta en total?': '14',
   'Un pintor compró 6 latas de pintura, 2 escaleras y 3 pinceles. ¿Cuántas herramientas de aplicación (latas y pinceles) tiene?': '9',
   'Sofía inicia el día con 15 tazos. Pierde 5 jugando, y luego su hermano le regala 8. ¿Cuántos tiene ahora?': '18',
@@ -46,7 +46,7 @@ const FASE3_THEORY_ANSWERS: Record<string, string> = {
   'Un saltamontes da saltos de 5 metros. ¿Cuántos saltos necesita para recorrer 35 metros?': '7',
   'Queremos llenar cajas de 6 bombones. Si tenemos 48 bombones en total, ¿cuántas cajas exactas podemos completar?': '8',
   'Un robot avanza dando pasos de 4 centímetros. ¿Cuántos pasos debe dar para recorrer 40 centímetros?': '10',
-  'Un faro parpadea cada 3 segundos y otro cada 5 segundos. Si parpadean juntos ahora, ¿en cuántos segundos volverán a parcapar juntos?': '15',
+  'Un faro parpadea cada 3 segundos y otro cada 5 segundos. Si parpadean juntos ahora, ¿en cuántos segundos volverán a parpadear juntos?': '15',
   'Dos campanas suenan en una iglesia: una cada 6 minutos y otra cada 8 minutos. Si suenan juntas ahora, ¿en cuántos minutos volverán a sonar juntas?': '24',
   'Un semáforo se pone en verde cada 4 segundos y otro cada 8 segundos. ¿En cuántos segundos coinciden si arrancan juntos?': '8',
   'Queremos armar bolsas idénticas de dulces sin que sobre nada, usando 15 bombones de fresa y 20 de menta. ¿Cuál es el número máximo de bolsas idénticas que podemos armar?': '5',
@@ -95,6 +95,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
       await page.locator('button').filter({ hasText: new RegExp(`^${char}$`) }).last().click();
       await page.waitForTimeout(50);
     }
+    await page.waitForTimeout(300);
     await page.getByTestId('submit-numpad').click();
   }
 }
@@ -113,6 +114,7 @@ async function failCurrentQuestion(page: any, questionId: number) {
       await page.locator('button').filter({ hasText: new RegExp(`^9$`) }).last().click();
       await page.waitForTimeout(50);
     }
+    await page.waitForTimeout(300);
     await page.getByTestId('submit-numpad').click();
   }
 }
@@ -128,6 +130,10 @@ test.describe('07 - Gameplay Fase 3 (Problemas de Texto) - Exhaustivo', () => {
     testUserEmail = await registerDynamicTestUser(page);
     setPhaseForUser(testUserEmail, 3);
     clearTestUserProgress(testUserEmail);
+
+    page.on('console', msg => {
+      console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
+    });
 
     page.on('response', async (response) => {
       if (
@@ -180,7 +186,7 @@ test.describe('07 - Gameplay Fase 3 (Problemas de Texto) - Exhaustivo', () => {
         const maxQuestionsSafety = 30; 
 
         while (questionCounter < maxQuestionsSafety) {
-          await page.waitForTimeout(1000);
+          await page.waitForTimeout(2000);
           
           const endScreen = page.locator('text=¡Desafío Terminado!').or(page.locator('text=Nivel Completado')).or(page.locator('text=Dominado')).or(page.locator('text=Desafío Terminado')).or(page.locator('button:has-text("Ir al Nivel")')).first();
           if (await endScreen.isVisible().catch(()=>false)) {
@@ -217,9 +223,11 @@ test.describe('07 - Gameplay Fase 3 (Problemas de Texto) - Exhaustivo', () => {
             await page.waitForTimeout(1500);
             if (currentQuestionId) {
                await submitCorrectAnswer(page, currentQuestionId);
+               currentQuestionId = null;
             }
           } else {
             await submitCorrectAnswer(page, qId);
+            currentQuestionId = null;
           }
 
           await page.waitForTimeout(1000);

@@ -115,6 +115,17 @@ services:
       - backend
     restart: unless-stopped
 
+  # ===== TEST REPORTS SERVER =====
+  test-reports:
+    image: nginx:alpine
+    container_name: logicakids_local_reports
+    ports:
+      - "9323:80"
+    volumes:
+      - ./resultados:/usr/share/nginx/html:ro
+      - ./nginx-reports.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
 volumes:
   logicakids_pgdata:
     name: logicakids_local_pgdata

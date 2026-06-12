@@ -737,6 +737,7 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
   const stopTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = null;
+    setTimer(null);
   };
 
   const handleEvaluatorSkip = useCallback(() => {
@@ -809,6 +810,15 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
       }
     }
   }, [feedback, navigate, isChallenge, loadNextQuestion]);
+
+  useEffect(() => {
+    if (feedback.visible && feedback.esCorrecta && (feedback.resultado?.fase_completada || feedback.resultado?.bloque_completado)) {
+      const timer = setTimeout(() => {
+        handleFeedbackClose();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback, handleFeedbackClose]);
 
   const handleSubmit = useCallback(async (customAnswer?: string) => {
     if (!pregunta) return;

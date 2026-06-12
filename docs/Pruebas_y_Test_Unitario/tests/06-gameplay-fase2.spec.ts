@@ -41,7 +41,7 @@ const FASE2_THEORY_ANSWERS: Record<string, string> = {
   'tres monedas de 0,25': '0,75',
   'cuesta 1,50 pesos y pago con un billete de 2,00': '0,50',
   'cuesta 3,00 pesos. El cliente me paga con un billete de 5,00': '2,00',
-  'cuesta 4,25 pesos y pago con un billete limpio de 5,00': '0,75',
+  '4,25 pesos y pago con un billete limpio de 5,00': '0,75',
   'jugo de 1,25 pesos y unas galletas de 1,25': '2,50',
   'helado de 2,75 pesos y un chicle de 0,25': '3,00',
   'cómic de 5,50 pesos y un lápiz de 1,50': '7,00',
@@ -267,9 +267,11 @@ test.describe('06 - Gameplay Fase 2 (Aritmética Intermedia) - Exhaustivo', () =
             await page.waitForTimeout(1500);
             if (currentQuestionId) {
                await submitCorrectAnswer(page, currentQuestionId);
+               currentQuestionId = null;
             }
           } else {
             await submitCorrectAnswer(page, qId);
+            currentQuestionId = null;
           }
 
           // Clic en Siguiente después de acertar

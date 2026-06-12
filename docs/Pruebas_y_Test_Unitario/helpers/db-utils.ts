@@ -128,53 +128,30 @@ export function unlockAllUpToModule(email: string, faseId: number, moduloId: num
     return;
   }
 
-  // Configuración de secciones y operaciones por fase y módulo
-  // Modulos y secciones para Fase 2:
-  // Módulo 1: 101 (SUMA), 102 (MULTIPLICACION), 103 (MIXTA), desafíos 1011, 1012, 1013 (MIXTA)
-  // Módulo 2: 201 (SUMA), 202 (MULTIPLICACION), 203 (MIXTA), 204 (MIXTA), desafíos 2011, 2012, 2013 (MIXTA)
-  // Módulo 3: 301 (SUMA), 302 (MULTIPLICACION), 303 (MIXTA), 304 (MIXTA), desafíos 3011, 3012, 3013 (MIXTA)
-  
-  const configMap: Record<number, Record<number, Array<{seccion: number, operacion: string}>>> = {
-    2: {
-      1: [
-        { seccion: 101, operacion: 'SUMA' },
-        { seccion: 102, operacion: 'SUMA' },
-        { seccion: 103, operacion: 'SUMA' },
-        { seccion: 1011, operacion: 'MIXTA' },
-        { seccion: 1012, operacion: 'MIXTA' },
-        { seccion: 1013, operacion: 'MIXTA' }
-      ],
-      2: [
-        { seccion: 201, operacion: 'MULTIPLICACION' },
-        { seccion: 202, operacion: 'MULTIPLICACION' },
-        { seccion: 203, operacion: 'MULTIPLICACION' },
-        { seccion: 204, operacion: 'MULTIPLICACION' },
-        { seccion: 2011, operacion: 'MIXTA' },
-        { seccion: 2012, operacion: 'MIXTA' },
-        { seccion: 2013, operacion: 'MIXTA' }
-      ],
-      3: [
-        { seccion: 301, operacion: 'MIXTA' },
-        { seccion: 302, operacion: 'MIXTA' },
-        { seccion: 303, operacion: 'MIXTA' },
-        { seccion: 304, operacion: 'MIXTA' },
-        { seccion: 3011, operacion: 'MIXTA' },
-        { seccion: 3012, operacion: 'MIXTA' },
-        { seccion: 3013, operacion: 'MIXTA' }
-      ]
-    }
-  };
+  try {
+    const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT seccion, operacion FROM configuracion_progreso WHERE fase_id = ${faseId} AND activo = true"`;
+    const lines = execSync(cmd).toString().trim().split('\n');
+    for (const line of lines) {
+      if (!line) continue;
+      const [seccionStr, operacion] = line.split('|');
+      const seccion = parseInt(seccionStr, 10);
+      
+      let mId = 0;
+      if (seccion >= 1000) {
+        mId = Math.floor(seccion / 1000);
+      } else {
+        mId = Math.floor(seccion / 100);
+      }
+      
+      // Ignore mastery challenge (e.g. 99099)
+      if (mId === 99) continue;
 
-  const faseConfigs = configMap[faseId];
-  if (!faseConfigs) return;
-
-  for (let mId = 1; mId < moduloId; mId++) {
-    const blocks = faseConfigs[mId];
-    if (blocks) {
-      for (const b of blocks) {
-        approveProgresoMaestria(email, faseId, b.seccion, b.operacion);
+      if (mId < moduloId) {
+        approveProgresoMaestria(email, faseId, seccion, operacion);
       }
     }
+  } catch (e) {
+    console.error(`❌ Failed to dynamically unlock all up to module ${moduloId} for phase ${faseId}:`, e);
   }
 }
 
