@@ -365,6 +365,11 @@ El banner de control inferior en los dashboards y mapas de fase (`WelcomeScreen`
    - El botón cambia de acción a **"Volver al Mapa"** o avanzar a la siguiente fase, eliminando el acceso al examen y evitando bucles de reintento innecesarios en fases ya aprobadas.
    - El ícono del trofeo (`Trophy`) del banner debe ejecutar una animación continua y cíclica de oscilación de ángulo y escala (efecto vaivén) para denotar recompensa y llamar la atención del alumno.
 
+### 7.8. Homologación Visual y Desbloqueo Dinámico del Dashboard
+Para garantizar una experiencia de usuario sin fricciones y evitar inconsistencias entre el frontend y el estado real del estudiante, todos los endpoints de dashboard (independientemente de la fase) deben adherirse a las siguientes dos reglas rectoras:
+1. **Visualmente Perfecto (Porcentaje a 100%):** Si un nivel, desafío o módulo alcanza el estado `APROBADO` (dominado), el backend debe forzar incondicionalmente el envío de `porcentaje = 100` a la interfaz. Esto previene escenarios confusos donde un alumno ve un módulo aprobado en verde pero con un progreso del 92% o 98% debido a parámetros de `porcentaje_aprobacion` dinámicos (ej. 90%), lo que generaría frustración e incertidumbre.
+2. **Desbloqueo Dinámico e Inmunidad a Estados Rígidos:** La condición de bloqueo (candado) de los niveles y módulos subsecuentes en el dashboard NO debe depender nunca de la verificación directa de si `progreso.estado == EstadoProgresoEnum.BLOQUEADO` en la base de datos. Dado que este campo estático puede quedar obsoleto (por ejemplo, si el administrador modifica las reglas o por un bug de recálculo), el bloqueo/desbloqueo debe evaluarse SIEMPRE en tiempo real utilizando funciones dinámicas de cálculo de prerrequisitos (ej. `_is_nivel_unlocked()` o `_is_desafio_unlocked()`).
+
 ---
 
 ## 8. Especificaciones Técnicas y de Base de Datos (Arquitectura de Tablas Consolidadas)

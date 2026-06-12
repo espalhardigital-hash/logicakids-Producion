@@ -342,8 +342,7 @@ async def get_fase3_dashboard(
                 porcentaje = min(100, progreso.porcentaje_actual)
                 if progreso.estado == EstadoProgresoEnum.APROBADO:
                     estado = "dominado"
-                elif progreso.estado == EstadoProgresoEnum.BLOQUEADO:
-                    estado = "bloqueado"
+                    porcentaje = 100
                 else:
                     estado = "en_progreso" if _is_nivel_unlocked(progresos, mod_id, niv_id) else "bloqueado"
 
@@ -390,8 +389,7 @@ async def get_fase3_dashboard(
                 porcentaje = min(100, progreso.porcentaje_actual)
                 if progreso.estado == EstadoProgresoEnum.APROBADO:
                     estado = "dominado"
-                elif progreso.estado == EstadoProgresoEnum.BLOQUEADO:
-                    estado = "bloqueado"
+                    porcentaje = 100
                 else:
                     estado = "en_progreso" if _is_desafio_unlocked(progresos, mod_id, des_id, all_practice_approved) else "bloqueado"
 

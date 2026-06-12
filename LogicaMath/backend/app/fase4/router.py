@@ -273,6 +273,7 @@ async def get_dashboard(
                     porcentaje_n = prog.porcentaje_actual
                     if prog.estado == EstadoProgresoEnum.APROBADO:
                         estado_n = "dominado"
+                        porcentaje_n = 100
                         tot_puntos += 10
             
             if estado_n != "dominado":
@@ -318,6 +319,7 @@ async def get_dashboard(
                     porcentaje_d = prog.porcentaje_actual
                     if prog.estado == EstadoProgresoEnum.APROBADO:
                         estado_d = "dominado"
+                        porcentaje_d = 100
                         tot_puntos += 25
                         
             if estado_d != "dominado":
