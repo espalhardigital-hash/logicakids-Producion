@@ -4,3 +4,14 @@ node_modules/
 dist/
 build/
 .DS_Store
+
+# Pruebas y configuración local SRE
+/docs/Pruebas_y_Test_Unitario/
+
+# Entornos y datos sensibles de VPS
+/Datos_Desarrollo/
+/Datos_Producion/
+
+# Documentación específica y otros
+/docs/Theme/
+/docs/cambio_para_vps.md

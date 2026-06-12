@@ -90,6 +90,8 @@ services:
     container_name: logicakids_local_backend
     ports:
       - "8000:8000"
+    volumes:
+      - ../../LogicaMath/backend:/app
     env_file:
       - .env.local
     depends_on:

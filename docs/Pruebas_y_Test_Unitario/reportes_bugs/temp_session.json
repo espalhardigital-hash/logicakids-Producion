@@ -1,5 +1,5 @@
 {
-  "fechaInicio": "2026-06-12T10:10:40.950Z",
+  "fechaInicio": "2026-06-12T10:32:47.414Z",
   "bugs": [
     {
       "suite": "08-gameplay-fase4.spec.ts",
@@ -15,42 +15,8 @@
       "resultado_esperado": "El test debería pasar sin errores",
       "resultado_obtenido": "\u001b[31mTest timeout of 120000ms exceeded.\u001b[39m",
       "url": "http://localhost:3000/fase4/play",
-      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\M_dulo_1_Nivel_1___Flujo_Completo_Optimizado_1781259162523.png",
-      "id": "BUG-08gameplay-20260612101242-SH90"
-    },
-    {
-      "suite": "08-gameplay-fase4.spec.ts",
-      "test": "Módulo 1 Nivel 3 - Flujo Completo Optimizado",
-      "severidad": "medio",
-      "categoria": "otro",
-      "descripcion": "El test \"Módulo 1 Nivel 3 - Flujo Completo Optimizado\" falló con el Administrative / Code error:\n\nTimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"n\")').last()\u001b[22m\n",
-      "pasos_reproduccion": [
-        "Ejecutar la suite: 08-gameplay-fase4.spec.ts",
-        "Ejecutar el test: Módulo 1 Nivel 3 - Flujo Completo Optimizado",
-        "URL actual: http://localhost:3000/fase4/play"
-      ],
-      "resultado_esperado": "El test debería pasar sin errores",
-      "resultado_obtenido": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"n\")').last()\u001b[22m\n",
-      "url": "http://localhost:3000/fase4/play",
-      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\M_dulo_1_Nivel_3___Flujo_Completo_Optimizado_1781259286893.png",
-      "id": "BUG-08gameplay-20260612101446-PSA8"
-    },
-    {
-      "suite": "08-gameplay-fase4.spec.ts",
-      "test": "Módulo 3 Nivel 2 - Flujo Completo Optimizado",
-      "severidad": "medio",
-      "categoria": "otro",
-      "descripcion": "El test \"Módulo 3 Nivel 2 - Flujo Completo Optimizado\" falló con el Administrative / Code error:\n\nTimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"30%\")').first()\u001b[22m\n",
-      "pasos_reproduccion": [
-        "Ejecutar la suite: 08-gameplay-fase4.spec.ts",
-        "Ejecutar el test: Módulo 3 Nivel 2 - Flujo Completo Optimizado",
-        "URL actual: http://localhost:3000/fase4/play"
-      ],
-      "resultado_esperado": "El test debería pasar sin errores",
-      "resultado_obtenido": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"30%\")').first()\u001b[22m\n",
-      "url": "http://localhost:3000/fase4/play",
-      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\M_dulo_3_Nivel_2___Flujo_Completo_Optimizado_1781259708833.png",
-      "id": "BUG-08gameplay-20260612102148-PKUS"
+      "screenshot": "D:\\Antigravity\\APP_Logica_Matematicas_kids\\docs\\Pruebas_y_Test_Unitario\\reportes_bugs\\screenshots\\M_dulo_1_Nivel_1___Flujo_Completo_Optimizado_1781260488713.png",
+      "id": "BUG-08gameplay-20260612103448-0H9K"
     }
   ]
 }

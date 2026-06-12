@@ -153,9 +153,11 @@ export const PieChartVisualizer: React.FC<Props> = ({
         {/* Float bubble hint to click target */}
         {interactive && selectedPercentage === null && !showSelector && (
           <motion.div 
+            onClick={() => setShowSelector(true)}
+            style={{ cursor: 'pointer' }}
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="absolute top-1/2 left-[82%] -translate-y-1/2 bg-purple-500 text-white font-black text-[10px] py-1 px-2.5 rounded-full border border-white/20 shadow-lg tracking-wider"
+            className="absolute top-1/2 left-[82%] -translate-y-1/2 bg-purple-500 text-white font-black text-[10px] py-1 px-2.5 rounded-full border border-white/20 shadow-lg tracking-wider select-none cursor-pointer"
           >
             👉 ¡TÓCAME!
           </motion.div>

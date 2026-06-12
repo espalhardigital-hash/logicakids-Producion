@@ -91,7 +91,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
         const [num] = answer.split('/');
         const numerator = parseInt(num, 10);
         for (let i = 0; i < numerator; i++) {
-          await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
+          await page.locator('path[stroke="rgba(255,255,255,0.15)"]').nth(i).click({ force: true });
           await page.waitForTimeout(50);
         }
       } else {
@@ -151,6 +151,8 @@ async function failCurrentQuestion(page: any, questionId: number) {
     const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
     if (await confirmBtn.isVisible()) {
       if (answer.includes('/')) {
+        await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
+        await page.waitForTimeout(100);
         await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
         await page.waitForTimeout(300);
       } else {
