@@ -219,8 +219,17 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas) - Exhaustivo', 
               await continueBtnWrong.click();
             }
 
-            await page.waitForTimeout(1000);
-            await submitCorrectAnswer(page, qId);
+            // Wait for the new question to load and currentQuestionId to change from qId
+            let waitRetries = 0;
+            while (currentQuestionId === qId && waitRetries < 30) {
+              await page.waitForTimeout(100);
+              waitRetries++;
+            }
+
+            if (currentQuestionId && !answeredQuestionIds.has(currentQuestionId)) {
+              await submitCorrectAnswer(page, currentQuestionId);
+              answeredQuestionIds.add(currentQuestionId);
+            }
           } else {
             await submitCorrectAnswer(page, qId);
           }

@@ -32,9 +32,10 @@ export const PizzaFractionVisualizer: React.FC<Props> = ({
 }) => {
   const [sombreados, setSombreados] = useState<number[]>(initialSombreados);
 
+  const initialSombreadosStr = JSON.stringify(initialSombreados);
   useEffect(() => {
     setSombreados(initialSombreados);
-  }, [initialSombreados]);
+  }, [initialSombreadosStr]);
 
   const handleSliceClick = (index: number) => {
     if (!interactive) return;

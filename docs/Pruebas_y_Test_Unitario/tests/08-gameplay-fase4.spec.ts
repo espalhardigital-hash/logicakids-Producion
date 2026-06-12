@@ -68,6 +68,16 @@ function getBeakerCorrectLevel(questionId: number): number {
   }
 }
 
+function getQuestionEnunciado(questionId: number): string {
+  try {
+    const cmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT enunciado FROM preguntas WHERE id = ${questionId}"`;
+    return execSync(cmd).toString().trim();
+  } catch (e) {
+    console.error(`Error querying enunciado for question ${questionId}:`, e);
+    return '';
+  }
+}
+
 function clearTestUserProgress(email: string) {
   try {
     const queries = [
@@ -85,6 +95,18 @@ function clearTestUserProgress(email: string) {
 }
 
 async function submitCorrectAnswer(page: any, questionId: number) {
+  const answer = getCorrectAnswer(questionId);
+  const enunciado = getQuestionEnunciado(questionId);
+  if (answer.includes('/')) {
+    await page.locator(`text=${answer}`).first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  } else if (enunciado) {
+    const cleanText = enunciado.replace(/\[ESPEJO\]/g, '').replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 30);
+    if (cleanText) {
+      await page.locator(`text=${cleanText}`).first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    }
+  }
+  await page.waitForTimeout(200);
+
   const typeCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT tipo_pregunta FROM preguntas WHERE id = ${questionId}"`;
   const tipo = execSync(typeCmd).toString().trim();
 
@@ -93,7 +115,6 @@ async function submitCorrectAnswer(page: any, questionId: number) {
     const correctText = execSync(cmd).toString().trim();
     await page.locator(`button:has-text("${correctText}")`).first().click();
   } else {
-    const answer = getCorrectAnswer(questionId);
     
     const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
     if (await confirmBtn.isVisible()) {
@@ -102,7 +123,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
         const numerator = parseInt(num, 10);
         for (let i = 0; i < numerator; i++) {
           await page.locator('path[stroke="rgba(255,255,255,0.15)"]').nth(i).click({ force: true });
-          await page.waitForTimeout(50);
+          await page.waitForTimeout(200);
         }
       } else {
         const hint = page.locator('text=👉 ¡TÓCAME!').first();
@@ -136,9 +157,22 @@ async function submitCorrectAnswer(page: any, questionId: number) {
           await page.waitForTimeout(50);
         }
       } else {
-        for (const char of answer) {
-          await page.locator(`button:has-text("${char}")`).last().click();
-          await page.waitForTimeout(50);
+        const beakerSegments = page.locator('.flex-col-reverse > div');
+        let beakerClicked = false;
+        if (await beakerSegments.count() > 0) {
+          const level = getBeakerCorrectLevel(questionId);
+          if (level > 0 && level <= await beakerSegments.count()) {
+            await beakerSegments.nth(level - 1).click({ force: true });
+            await page.waitForTimeout(200);
+            beakerClicked = true;
+          }
+        }
+
+        if (!beakerClicked) {
+          for (const char of answer) {
+            await page.locator(`button:has-text("${char}")`).last().click();
+            await page.waitForTimeout(50);
+          }
         }
       }
       await page.waitForTimeout(300);
@@ -148,6 +182,18 @@ async function submitCorrectAnswer(page: any, questionId: number) {
 }
 
 async function failCurrentQuestion(page: any, questionId: number) {
+  const answer = getCorrectAnswer(questionId);
+  const enunciado = getQuestionEnunciado(questionId);
+  if (answer.includes('/')) {
+    await page.locator(`text=${answer}`).first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  } else if (enunciado) {
+    const cleanText = enunciado.replace(/\[ESPEJO\]/g, '').replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 30);
+    if (cleanText) {
+      await page.locator(`text=${cleanText}`).first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    }
+  }
+  await page.waitForTimeout(200);
+
   const typeCmd = `docker exec logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A -c "SELECT tipo_pregunta FROM preguntas WHERE id = ${questionId}"`;
   const tipo = execSync(typeCmd).toString().trim();
 
@@ -156,7 +202,6 @@ async function failCurrentQuestion(page: any, questionId: number) {
     const wrongText = execSync(cmd).toString().trim();
     await page.locator(`button:has-text("${wrongText}")`).first().click();
   } else {
-    const answer = getCorrectAnswer(questionId);
     
     const confirmBtn = page.locator('button:has-text("CONFIRMAR")').first();
     if (await confirmBtn.isVisible()) {
@@ -177,14 +222,28 @@ async function failCurrentQuestion(page: any, questionId: number) {
       }
       await confirmBtn.click();
     } else {
-      if (answer.includes('/')) {
-        await page.locator(`button:has-text("9")`).last().click();
-        await page.locator('.f4-fraction-input-field').nth(1).click();
-        await page.locator(`button:has-text("9")`).last().click();
-      } else {
-        for (let i = 0; i < 4; i++) {
+      const beakerSegments = page.locator('.flex-col-reverse > div');
+      let beakerClicked = false;
+      if (await beakerSegments.count() > 0) {
+        const level = getBeakerCorrectLevel(questionId);
+        const wrongLevel = level === 1 ? 2 : 1;
+        if (wrongLevel <= await beakerSegments.count()) {
+          await beakerSegments.nth(wrongLevel - 1).click({ force: true });
+          await page.waitForTimeout(200);
+          beakerClicked = true;
+        }
+      }
+
+      if (!beakerClicked) {
+        if (answer.includes('/')) {
           await page.locator(`button:has-text("9")`).last().click();
-          await page.waitForTimeout(50);
+          await page.locator('.f4-fraction-input-field').nth(1).click();
+          await page.locator(`button:has-text("9")`).last().click();
+        } else {
+          for (let i = 0; i < 4; i++) {
+            await page.locator(`button:has-text("9")`).last().click();
+            await page.waitForTimeout(50);
+          }
         }
       }
       await page.waitForTimeout(300);
@@ -284,8 +343,17 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
               await continueBtnWrong.click();
             }
 
-            await page.waitForTimeout(1000);
-            await submitCorrectAnswer(page, qId);
+            // Wait for the new question to load and currentQuestionId to change from qId
+            let waitRetries = 0;
+            while (currentQuestionId === qId && waitRetries < 30) {
+              await page.waitForTimeout(100);
+              waitRetries++;
+            }
+
+            if (currentQuestionId && !answeredQuestionIds.has(currentQuestionId)) {
+              await submitCorrectAnswer(page, currentQuestionId);
+              answeredQuestionIds.add(currentQuestionId);
+            }
           } else {
             await submitCorrectAnswer(page, qId);
           }
