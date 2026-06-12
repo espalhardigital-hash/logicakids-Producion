@@ -39,7 +39,7 @@ export interface BugEntry {
   /** Severidad: 'critico' | 'alto' | 'medio' | 'bajo' */
   severidad: 'critico' | 'alto' | 'medio' | 'bajo';
   /** Categoría del bug */
-  categoria: 'ui' | 'logica' | 'api' | 'consola' | 'rendimiento' | 'progresion' | 'otro';
+  categoria: 'ui' | 'logica' | 'api' | 'consola' | 'rendimiento' | 'progresion' | 'contenido' | 'otro';
   /** Suite de prueba */
   suite: string;
   /** Test específico */

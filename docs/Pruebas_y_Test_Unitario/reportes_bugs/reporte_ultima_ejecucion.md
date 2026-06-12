@@ -2,12 +2,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Fecha inicio** | 2026-06-12T13:21:21.783Z |
-| **Fecha fin** | 2026-06-12T13:50:01.139Z |
-| **Total bugs encontrados** | 2 |
+| **Fecha inicio** | 2026-06-12T14:32:28.950Z |
+| **Fecha fin** | 2026-06-12T14:33:46.554Z |
+| **Total bugs encontrados** | 1 |
 | 🔴 Críticos | 0 |
 | 🟠 Altos | 0 |
-| 🟡 Medios | 2 |
+| 🟡 Medios | 1 |
 | 🔵 Bajos | 0 |
 
 > **Instrucciones para el Agente:** Corrige los bugs listados a continuación en orden de severidad
@@ -21,113 +21,36 @@
 
 | # | ID | Severidad | Categoría | Suite | Test | Estado |
 |---|---|---|---|---|---|---|
-| 1 | `BUG-08gameplay-20260612132326-JMDV` | 🟡 medio | otro | 08-gameplay-fase4.spec.ts | Módulo 1 Nivel 1 - Flujo Completo Optimizado | 🔴 Pendiente |
-| 2 | `BUG-08gameplay-20260612134939-KEET` | 🟡 medio | otro | 08-gameplay-fase4.spec.ts | Módulo 4 Nivel 3 - Flujo Completo Optimizado | 🔴 Pendiente |
+| 1 | `BUG-17visualre-20260612143346-CCEV` | 🟡 medio | contenido | 17-visual-regression.spec.ts | Teoría y Gameplay - Fase 6 | 🔴 Pendiente |
 
 ---
 
-## Bug 1: `BUG-08gameplay-20260612132326-JMDV`
+## Bug 1: `BUG-17visualre-20260612143346-CCEV`
 
 | Campo | Valor |
 |---|---|
 | **Severidad** | 🟡 MEDIO |
-| **Categoría** | otro |
-| **Suite** | 08-gameplay-fase4.spec.ts |
-| **Test** | Módulo 1 Nivel 1 - Flujo Completo Optimizado |
-| **URL** | http://localhost:3000/fase4/play |
+| **Categoría** | contenido |
+| **Suite** | 17-visual-regression.spec.ts |
+| **Test** | Teoría y Gameplay - Fase 6 |
+| **URL** | http://localhost:3000/fase6/play |
 
 ### Descripción
-El test "Módulo 1 Nivel 1 - Flujo Completo Optimizado" falló con el Administrative / Code error:
-
-TimeoutError: locator.click: Timeout 15000ms exceeded.
-Call log:
-[2m  - waiting for locator('path[stroke="rgba(255,255,255,0.15)"]').nth(3)[22m
-
+[Content Lint] Se detectó metadato de desarrollo en la respuesta de la API: Ruta JSON: .enunciado, Valor: "¿Cuántas caras tiene una pirámide con base cuadrada (pirámide cuadrangular)? (Considera: fase6=True)", Patrón: /=true/i
 
 ### Pasos para Reproducir
-1. Ejecutar la suite: 08-gameplay-fase4.spec.ts
-2. Ejecutar el test: Módulo 1 Nivel 1 - Flujo Completo Optimizado
-3. URL actual: http://localhost:3000/fase4/play
+1. Ejecutar la suite: 17-visual-regression.spec.ts
+2. Ejecutar el test: Teoría y Gameplay - Fase 6
+3. URL actual: http://localhost:3000/fase6/play
 
 ### Resultado Esperado
-El test debería pasar sin errores
+La respuesta de la API no debe contener metadatos de desarrollo
 
 ### Resultado Obtenido
-TimeoutError: locator.click: Timeout 15000ms exceeded.
-Call log:
-[2m  - waiting for locator('path[stroke="rgba(255,255,255,0.15)"]').nth(3)[22m
-
+[Content Lint] Se detectó metadato de desarrollo en la respuesta de la API: Ruta JSON: .enunciado, Valor: "¿Cuántas caras tiene una pirámide con base cuadrada (pirámide cuadrangular)? (Considera: fase6=True)", Patrón: /=true/i
 
 ### Screenshot
-![Bug 1](D:\Antigravity\APP_Logica_Matematicas_kids\docs\Pruebas_y_Test_Unitario\reportes_bugs\screenshots\M_dulo_1_Nivel_1___Flujo_Completo_Optimizado_1781270606504.png)
-
-### ✅ Corrección Aplicada
-> ⏳ _Pendiente — El agente debe corregir este bug y documentar la solución aquí._
-
----
-
-## Bug 2: `BUG-08gameplay-20260612134939-KEET`
-
-| Campo | Valor |
-|---|---|
-| **Severidad** | 🟡 MEDIO |
-| **Categoría** | otro |
-| **Suite** | 08-gameplay-fase4.spec.ts |
-| **Test** | Módulo 4 Nivel 3 - Flujo Completo Optimizado |
-| **URL** | http://localhost:3000/fase4/play |
-
-### Descripción
-El test "Módulo 4 Nivel 3 - Flujo Completo Optimizado" falló con el Administrative / Code error:
-
-TimeoutError: locator.click: Timeout 15000ms exceeded.
-Call log:
-[2m  - waiting for getByTestId('submit-numpad')[22m
-[2m    - locator resolved to <button disabled tabindex="0" type="button" data-testid="submit-numpad" class="aspect-square rounded-[1.5rem] bg-[#2563eb] hover:bg-blue-600 text-white flex items-center justify-center cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed select-none border-none">…</button>[22m
-[2m  - attempting click action[22m
-[2m    2 × waiting for element to be visible, enabled and stable[22m
-[2m      - element is not enabled[22m
-[2m    - retrying click action[22m
-[2m    - waiting 20ms[22m
-[2m    2 × waiting for element to be visible, enabled and stable[22m
-[2m      - element is not enabled[22m
-[2m    - retrying click action[22m
-[2m      - waiting 100ms[22m
-[2m    29 × waiting for element to be visible, enabled and stable[22m
-[2m       - element is not enabled[22m
-[2m     - retrying click action[22m
-[2m       - waiting 500ms[22m
-
-
-### Pasos para Reproducir
-1. Ejecutar la suite: 08-gameplay-fase4.spec.ts
-2. Ejecutar el test: Módulo 4 Nivel 3 - Flujo Completo Optimizado
-3. URL actual: http://localhost:3000/fase4/play
-
-### Resultado Esperado
-El test debería pasar sin errores
-
-### Resultado Obtenido
-TimeoutError: locator.click: Timeout 15000ms exceeded.
-Call log:
-[2m  - waiting for getByTestId('submit-numpad')[22m
-[2m    - locator resolved to <button disabled tabindex="0" type="button" data-testid="submit-numpad" class="aspect-square rounded-[1.5rem] bg-[#2563eb] hover:bg-blue-600 text-white flex items-center justify-center cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed select-none border-none">…</button>[22m
-[2m  - attempting click action[22m
-[2m    2 × waiting for element to be visible, enabled and stable[22m
-[2m      - element is not enabled[22m
-[2m    - retrying click action[22m
-[2m    - waiting 20ms[22m
-[2m    2 × waiting for element to be visible, enabled and stable[22m
-[2m      - element is not enabled[22m
-[2m    - retrying click action[22m
-[2m      - waiting 100ms[22m
-[2m    29 × waiting for element to be visible, enabled and stable[22m
-[2m       - element is not enabled[22m
-[2m     - retrying click action[22m
-[2m       - waiting 500ms[22m
-
-
-### Screenshot
-![Bug 2](D:\Antigravity\APP_Logica_Matematicas_kids\docs\Pruebas_y_Test_Unitario\reportes_bugs\screenshots\M_dulo_4_Nivel_3___Flujo_Completo_Optimizado_1781272179597.png)
+![Bug 1](D:\Antigravity\APP_Logica_Matematicas_kids\docs\Pruebas_y_Test_Unitario\reportes_bugs\screenshots\Teor_a_y_Gameplay___Fase_6_1781274826313.png)
 
 ### ✅ Corrección Aplicada
 > ⏳ _Pendiente — El agente debe corregir este bug y documentar la solución aquí._

@@ -95,7 +95,12 @@ Por cada pantalla, nivel o desafío que el agente visite, deberá detenerse y re
 ### B. Evaluación de Acciones, Red y Respuestas
 - **Política de Timeouts de Red:** El agente debe interceptar las peticiones API reales (ej. esperar la respuesta `200 OK` de `/api/faseX/modulo/X/pregunta`) para saber que la pantalla ya cargó los datos, en lugar de depender solo de buscar elementos visuales.
 - **Caso de Acierto / Fallo:** Seleccionar respuestas correctas e incorrectas, validando que el feedback (positivo/negativo) y las reglas de puntuación se apliquen.
-- **La Pregunta Espejo:** Verificar explícitamente que tras un fallo, la "pregunta espejo" se dispare y que su lógica funcione igual que una pregunta normal.
+### C. Reglas de Consistencia Visual y Diseño en Welcome Screens
+- **Checkmark de Nivel Superado:** 
+  - En todas las fases (Fases 1 a 9), cuando un nivel de práctica es superado (100% de progreso), su tarjeta de nivel debe renderizarse en color verde y con un círculo de checkmark (`✓`) indicando que ha sido superado (tal como se ve en la Fase 1 y 2). Los tests automatizados deben validar la presencia de la clase CSS de completado (ej. `.completed` o `.unlocked` con icono `✓`) y el cambio de color.
+- **Títulos Descriptivos en Letras de los Niveles:**
+  - Todas las tarjetas de nivel de práctica en todas las fases deben mostrar un título descriptivo en letra debajo del número del nivel (ej. Fase 3: *"Agrupación Visual"*, *"Análisis de Resto"*, *"Sucesión Circular"*).
+  - **Excepción a validar:** Actualmente la Fase 2 **no muestra esta descripción** en texto. Los tests automatizados deben validar la presencia del elemento de texto de descripción en las tarjetas de nivel de todas las fases y reportar el fallo en Fase 2 como un bug de diseño (hasta que sea corregido en el frontend).
 
 ---
 
@@ -126,7 +131,36 @@ El flujo de trabajo automatizado para documentar fallos es el siguiente:
 
 ---
 
-## 7. Prompt Maestro de Ejecución por Fase
+## 7. Pruebas de Regresión Visual y Linter de Contenido (Aseguramiento Adicional)
+
+Para robustecer la validación y evitar que metadatos técnicos de desarrollo o roturas de diseño se filtren al usuario final, se implementaron dos capas de QA adicionales:
+
+### A. Linter de Contenido / Sanitización (Filtros de Texto)
+1. **Auditoría Estática de Base de Datos:**
+   - **Herramienta:** Script `scripts/lint-database-content.ts` (ejecutable con `npx ts-node scripts/lint-database-content.ts`).
+   - **Función:** Conectarse a la base de datos local y escanear los campos de enunciados y texto de alternativas contra expresiones como `es_desafio=True`, `es_espejo=True`, `[OBJETO]`, etc.
+   - **Reporte:** La auditoría reporta fallos en la consola y detalla las discrepancias de contenido. (Nota: Existen más de 6,000 filtraciones técnicas identificadas en la base de datos actual).
+2. **Auditoría Dinámica (Interceptor de API en E2E):**
+   - **Uso:** Integrado automáticamente en el fixture `helpers/test-fixtures.ts`.
+   - **Función:** Escucha pasivamente las respuestas JSON de preguntas (`**/pregunta*`). Si detecta cadenas técnicas de depuración, el test continuará de forma normal (para no bloquear aserciones visuales) pero al finalizar registrará el bug como categoría `contenido` y forzará el fallo del test en Playwright.
+
+### B. Pruebas de Regresión Visual (Visual Regression Testing)
+1. **Suite de Pruebas:**
+   - **Uso:** Archivo `tests/17-visual-regression.spec.ts`.
+   - **Páginas Evaluadas:** Pantalla de Bienvenida, Modal de Lectura/Teoría y Gameplay (primera pregunta) de las Fases 3, 4, 5 y 6.
+2. **Mitigación de Falsos Positivos (Reglas de Estabilidad):**
+   - **Viewport Estricto:** Las capturas de pantalla de la UI deben hacerse omitiendo `fullPage: true` (usando el viewport por defecto de `1280x720`) para evitar descuadres de altura o scrollbars dinámicos.
+   - **Enmascaramientos:** Se debe enmascarar (`mask`) todo el elemento `<header>` (que contiene relojes dinámicos y progreso cambiante) y cualquier otro elemento dinámico que cambie con el tiempo.
+   - **Tolerancia de Antialiasing y Glow:** Se definió una tolerancia global de `maxDiffPixelRatio: 0.05` (5%) en `playwright.config.ts` para tolerar resplandores de UI (*ambient glow*) y renderizado de fuentes de CPU/GPU sin causar falsas alertas.
+3. **Actualización de Baselines:**
+   - Si se cambia la UI o el diseño aprobado, se deben regenerar los baselines ejecutando:
+     ```bash
+     npx playwright test tests/17-visual-regression.spec.ts --update-snapshots
+     ```
+
+---
+
+## 8. Prompt Maestro de Ejecución por Fase
 
 Para solicitar al agente que ejecute y depure una Fase completa de manera automática, selecciona este archivo como contexto y pégale el siguiente prompt en el chat:
 

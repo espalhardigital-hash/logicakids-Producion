@@ -11,6 +11,13 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
 
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.05,
+      animations: 'disabled',
+    },
+  },
+
   /* Generar reporte consolidado de bugs al finalizar */
   globalTeardown: './helpers/global-teardown.ts',
   globalSetup: './helpers/global-setup.ts',
