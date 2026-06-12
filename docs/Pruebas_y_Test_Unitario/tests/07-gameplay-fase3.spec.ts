@@ -171,6 +171,7 @@ test.describe('07 - Gameplay Fase 3 (Problemas de Texto) - Exhaustivo', () => {
         const splash = page.locator('.f3-start-splash-overlay').first();
         if (await splash.isVisible({ timeout: 5000 }).catch(() => false)) {
           await splash.click();
+          await splash.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
         }
 
         let errorsForced = 0;
@@ -264,6 +265,7 @@ test.describe('07 - Gameplay Fase 3 (Problemas de Texto) - Exhaustivo', () => {
             const splash = page.locator('.f3-start-splash-overlay').first();
             if (await splash.isVisible({ timeout: 5000 }).catch(()=>false)) {
                 await splash.click();
+                await splash.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
             }
 
             for (let attempts = 0; attempts < 5; attempts++) {

@@ -86,15 +86,34 @@ function clearTestUserProgress(email: string) {
 }
 
 async function submitCorrectAnswer(page: any, questionId: number) {
+  const splash = page.locator('.f2-start-splash-overlay').first();
+  if (await splash.isVisible().catch(() => false)) {
+      await splash.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+  }
   const psqlBase = `docker exec -i logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A`;
   const tipo = execSync(psqlBase, { input: `SELECT tipo_pregunta FROM preguntas WHERE id = ${questionId};` }).toString().trim();
 
-  if (tipo === 'MULTIPLE_OPCION') {
+  if (tipo === 'MULTIPLE_OPCION' || tipo === 'multiple_opcion') {
     const correctText = execSync(psqlBase, { input: `SELECT texto FROM alternativas WHERE pregunta_id = ${questionId} AND es_correcta = true LIMIT 1;` }).toString().trim();
     console.log(`[Q:${questionId}] MULTIPLE_OPCION -> CorrectText: "${correctText}"`);
     await page.locator(`button:has-text("${correctText}")`).first().click({ timeout: 5000 });
     await page.waitForTimeout(300); // Evitar pregunta espejo
     await page.locator('button:has-text("Confirmar")').first().click({ timeout: 5000 });
+  } else if (tipo === 'CONSTRUCTOR_CHAINED' || tipo === 'constructor_soluciones_chained') {
+    const ans1 = execSync(psqlBase, { input: `SELECT datos_numericos->'pasos'->0->>'respuesta_correcta' FROM preguntas WHERE id = ${questionId};` }).toString().trim();
+    const ans2 = execSync(psqlBase, { input: `SELECT datos_numericos->'pasos'->1->>'respuesta_correcta' FROM preguntas WHERE id = ${questionId};` }).toString().trim();
+    console.log(`[Q:${questionId}] CHAINED -> Paso 1: "${ans1}", Paso 2: "${ans2}"`);
+    const hiddenInput = page.locator('input.f2-hidden-input').first();
+    await hiddenInput.fill(ans1);
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(1000);
+    const continueBtn = page.locator('button:has-text("Continuar →")').first();
+    if (await continueBtn.isVisible().catch(()=>false)) {
+      await continueBtn.click({ timeout: 5000 });
+    }
+    await page.waitForTimeout(500);
+    await hiddenInput.fill(ans2);
+    await page.keyboard.press('Enter');
   } else {
     const answer = getCorrectAnswer(questionId);
     console.log(`[Q:${questionId}] INTERACTIVA -> Answer: "${answer}"`);
@@ -115,15 +134,24 @@ async function submitCorrectAnswer(page: any, questionId: number) {
 }
 
 async function failCurrentQuestion(page: any, questionId: number) {
+  const splash = page.locator('.f2-start-splash-overlay').first();
+  if (await splash.isVisible().catch(() => false)) {
+      await splash.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+  }
   const psqlBase = `docker exec -i logicakids_local_db psql -U logicakids_local_user -d logicakids_local -t -A`;
   const tipo = execSync(psqlBase, { input: `SELECT tipo_pregunta FROM preguntas WHERE id = ${questionId};` }).toString().trim();
 
-  if (tipo === 'MULTIPLE_OPCION') {
+  if (tipo === 'MULTIPLE_OPCION' || tipo === 'multiple_opcion') {
     const wrongText = execSync(psqlBase, { input: `SELECT texto FROM alternativas WHERE pregunta_id = ${questionId} AND es_correcta = false LIMIT 1;` }).toString().trim();
     console.log(`[Q:${questionId}] MULTIPLE_OPCION (FAIL) -> WrongText: "${wrongText}"`);
     await page.locator(`button:has-text("${wrongText}")`).first().click({ timeout: 5000 });
     await page.waitForTimeout(300); // Evitar pregunta espejo
     await page.locator('button:has-text("Confirmar")').first().click({ timeout: 5000 });
+  } else if (tipo === 'CONSTRUCTOR_CHAINED' || tipo === 'constructor_soluciones_chained') {
+    console.log(`[Q:${questionId}] CHAINED (FAIL) -> Forcing '9999' on Paso 1`);
+    const hiddenInput = page.locator('input.f2-hidden-input').first();
+    await hiddenInput.fill('9999');
+    await page.keyboard.press('Enter');
   } else {
     const hiddenInput = page.locator('input.f2-hidden-input').first();
     if (await hiddenInput.count() > 0) {
@@ -195,7 +223,7 @@ test.describe('06 - Gameplay Fase 2 (Aritmética Intermedia) - Exhaustivo', () =
 
         const splash = page.locator('.f2-start-splash-overlay').first();
         if (await splash.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await splash.click();
+          await splash.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
         }
 
         let errorsForced = 0;
@@ -288,29 +316,52 @@ test.describe('06 - Gameplay Fase 2 (Aritmética Intermedia) - Exhaustivo', () =
 
             const splash = page.locator('.f2-start-splash-overlay').first();
             if (await splash.isVisible({ timeout: 5000 }).catch(()=>false)) {
-                await splash.click();
+                await splash.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
             }
 
             for (let attempts = 0; attempts < 5; attempts++) {
-              await page.waitForTimeout(1500);
-              if (currentQuestionId === null) continue;
+              if (currentQuestionId === null) {
+                 await page.waitForTimeout(1000);
+                 attempts--; // Don't count waiting as an attempt
+                 continue;
+              }
               
               const oldQuestionId = currentQuestionId;
               await failCurrentQuestion(page, currentQuestionId!);
 
               let isEarlyExitVisible = false;
-              const earlyExitModal = page.locator('.f2-feedback-card.early-exit, .early-exit-modal');
+              const earlyExitModal = page.locator('.f2-feedback-overlay, .early-exit-modal').filter({ hasText: '¡Desafío Incompleto!' }).first();
               
-              const continueBtn = page.locator('button:has-text("Continuar"), button:has-text("Siguiente Pregunta →")').first();
+              // Wait 3 seconds to let the normal auto-close handle it (which takes 1.5s)
+              await page.waitForTimeout(3000);
+              
+              // If we are still here and Continuar is visible, auto-close didn't happen!
+              // This means it's an early exit.
+              const continueBtn = page.locator('button:has-text("Continuar →"), button:has-text("Continuar")').first();
               if (await continueBtn.isVisible().catch(()=>false)) {
-                await continueBtn.click();
+                  await continueBtn.click().catch(()=>{});
+                  
+                  // Now wait for EarlyExitModal to appear
+                  try {
+                      await earlyExitModal.waitFor({ state: 'visible', timeout: 4000 });
+                      isEarlyExitVisible = true;
+                      const exitBtn = earlyExitModal.locator('button:has-text("Entendido"), button:has-text("Salir")').first();
+                      if (await exitBtn.isVisible().catch(()=>false)) {
+                          await exitBtn.click();
+                      }
+                  } catch (e) {
+                      console.log("Early exit modal didn't appear after clicking Continuar");
+                  }
               }
-              
-              if (await earlyExitModal.isVisible({ timeout: 2000 }).catch(()=>false)) {
-                  isEarlyExitVisible = true;
-                  const exitBtn = earlyExitModal.locator('button:has-text("Entendido"), button:has-text("Salir")').first();
-                  if (await exitBtn.isVisible()) await exitBtn.click();
+
+              if (isEarlyExitVisible) {
                   break;
+              }
+
+              // Wait for new question to load if it hasn't already
+              for (let waitCount = 0; waitCount < 10; waitCount++) {
+                 if (currentQuestionId !== oldQuestionId) break;
+                 await page.waitForTimeout(500);
               }
             }
         }

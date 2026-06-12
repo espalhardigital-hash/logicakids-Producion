@@ -174,16 +174,12 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas) - Exhaustivo', 
         await expect(lvlBtn).toBeVisible();
         await lvlBtn.click();
 
-        const theoryModal = page.locator('.f5-reading-overlay');
-        await page.waitForTimeout(1500);
-        if (await theoryModal.isVisible()) {
-          await navigateGenericTheoryModal(page, FASE5_THEORY_ANSWERS, 'f5');
-        }
+        await navigateGenericTheoryModal(page, FASE5_THEORY_ANSWERS, 'f5');
 
         const splash = page.locator('.f5-start-splash-overlay').first();
-        await page.waitForTimeout(1500);
-        if (await splash.isVisible()) {
+        if (await splash.isVisible({ timeout: 5000 }).catch(() => false)) {
           await splash.click();
+          await splash.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
         }
 
         let errorsForced = 0;
@@ -270,6 +266,7 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas) - Exhaustivo', 
             const splash = page.locator('.f5-start-splash-overlay').first();
             if (await splash.isVisible({ timeout: 5000 }).catch(()=>false)) {
                 await splash.click();
+                await splash.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
             }
 
             for (let attempts = 0; attempts < 5; attempts++) {

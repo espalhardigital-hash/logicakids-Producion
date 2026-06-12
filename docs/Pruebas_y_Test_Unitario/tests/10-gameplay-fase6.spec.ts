@@ -177,16 +177,12 @@ test.describe('10 - Gameplay Fase 6 (Geometría Espacial) - Exhaustivo', () => {
         await expect(lvlBtn).toBeVisible();
         await lvlBtn.click();
 
-        const theoryModal = page.locator('.f6-reading-overlay');
-        await page.waitForTimeout(1500);
-        if (await theoryModal.isVisible()) {
-          await navigateGenericTheoryModal(page, FASE6_THEORY_ANSWERS, 'f6');
-        }
+        await navigateGenericTheoryModal(page, FASE6_THEORY_ANSWERS, 'f6');
 
         const splash = page.locator('.f6-start-splash-overlay').first();
-        await page.waitForTimeout(1500);
-        if (await splash.isVisible()) {
+        if (await splash.isVisible({ timeout: 5000 }).catch(() => false)) {
           await splash.click();
+          await splash.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
         }
 
         let errorsForced = 0;
@@ -273,6 +269,7 @@ test.describe('10 - Gameplay Fase 6 (Geometría Espacial) - Exhaustivo', () => {
             const splash = page.locator('.f6-start-splash-overlay').first();
             if (await splash.isVisible({ timeout: 5000 }).catch(()=>false)) {
                 await splash.click();
+                await splash.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
             }
 
             for (let attempts = 0; attempts < 5; attempts++) {
