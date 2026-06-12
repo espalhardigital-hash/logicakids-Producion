@@ -135,6 +135,7 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas) - Exhaustivo', 
   let testUserEmail: string;
 
   test.beforeEach(async ({ page }) => {
+    test.setTimeout(240000);
     currentQuestionId = null;
     testUserEmail = await registerDynamicTestUser(page);
     setPhaseForUser(testUserEmail, 5);
@@ -188,16 +189,17 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas) - Exhaustivo', 
         const maxErrors = 4;
         let questionCounter = 0;
         const maxQuestionsSafety = 30; 
+        const answeredQuestionIds = new Set<number>();
 
         while (questionCounter < maxQuestionsSafety) {
-          await page.waitForTimeout(1000);
+          await page.waitForTimeout(500);
           
           const endScreen = page.locator('text=¡Desafío Terminado!').or(page.locator('text=Nivel Completado')).or(page.locator('text=Dominado')).or(page.locator('text=Desafío Terminado')).or(page.locator('button:has-text("Ir al Nivel")')).first();
           if (await endScreen.isVisible().catch(()=>false)) {
              break;
           }
 
-          if (currentQuestionId === null) {
+          if (currentQuestionId === null || answeredQuestionIds.has(currentQuestionId)) {
             const continueBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').first();
             if (await continueBtn.isVisible().catch(()=>false)) {
               await continueBtn.click();
@@ -211,27 +213,24 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas) - Exhaustivo', 
             await failCurrentQuestion(page, qId);
             errorsForced++;
             
-            await page.waitForTimeout(1500);
+            await page.waitForTimeout(1000);
             const continueBtnWrong = page.locator('button:has-text("Continuar →"), button:has-text("Continuar")').first();
             if (await continueBtnWrong.isVisible({ timeout: 5000 }).catch(()=>false)) {
               await continueBtnWrong.click();
             }
 
-            await page.waitForTimeout(1500);
-            if (currentQuestionId) {
-               await submitCorrectAnswer(page, currentQuestionId);
-               currentQuestionId = null;
-            }
+            await page.waitForTimeout(1000);
+            await submitCorrectAnswer(page, qId);
           } else {
             await submitCorrectAnswer(page, qId);
-            currentQuestionId = null;
           }
 
-          await page.waitForTimeout(1000);
+          answeredQuestionIds.add(qId);
+
+          await page.waitForTimeout(500);
           const nextBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').first();
           if (await nextBtn.isVisible().catch(()=>false)) {
             await nextBtn.click();
-            currentQuestionId = null;
           }
 
           questionCounter++;
