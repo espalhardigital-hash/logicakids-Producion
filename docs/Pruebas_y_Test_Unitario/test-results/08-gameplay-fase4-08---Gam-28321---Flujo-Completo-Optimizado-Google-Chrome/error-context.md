@@ -6,25 +6,15 @@
 
 # Test info
 
-- Name: 08-gameplay-fase4.spec.ts >> 08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo >> Módulo 1 Nivel 1 - Flujo Completo Optimizado
+- Name: 08-gameplay-fase4.spec.ts >> 08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo >> Módulo 3 Nivel 2 - Flujo Completo Optimizado
 - Location: tests\08-gameplay-fase4.spec.ts:213:11
 
 # Error details
 
 ```
-Test timeout of 120000ms exceeded.
-```
-
-```
-Error: locator.click: Test timeout of 120000ms exceeded.
+TimeoutError: locator.click: Timeout 15000ms exceeded.
 Call log:
-  - waiting for locator('path[stroke="rgba(255,255,255,0.15)"]').first()
-    - locator resolved to <path stroke-width="2" fill="transparent" stroke="rgba(255,255,255,0.15)" class="hover:brightness-110 active:scale-[0.98]" d="M 100 100 L 100.00000000000001 -30 A 130 130 0 0 1 176.41208279802152 -5.172209268743174 Z"></path>
-  - attempting click action
-    - scrolling into view if needed
-    - done scrolling
-    - forcing action
-    - performing click action
+  - waiting for locator('button:has-text("30%")').first()
 
 ```
 
@@ -41,43 +31,49 @@ Call log:
           - img [ref=e12]
           - generic [ref=e14]: TEORÍA
         - generic [ref=e15]:
-          - generic [ref=e16]: LA FRACCIÓN VISUAL
+          - generic [ref=e16]: PORCENTAJES RÁPIDOS Y PROMEDIOS
           - generic [ref=e17]: "|"
           - generic [ref=e18]: FASE 4
           - generic [ref=e19]: "|"
-          - generic [ref=e20]: PROGRESO 11/15
-    - main [ref=e23]:
-      - generic [ref=e24]:
-        - generic [ref=e25]:
-          - img [ref=e27]
-          - generic [ref=e42]: 0/10
-          - generic [ref=e43]:
-            - generic [ref=e44]: "SOMBREA EXACTAMENTE LA FRACCIÓN:"
-            - generic [ref=e45]: 7/10
-        - generic [ref=e46]:
-          - button "CONFIRMAR ✓" [ref=e47] [cursor=pointer]:
-            - generic [ref=e49]: CONFIRMAR
-            - generic [ref=e51]: ✓
-          - generic [ref=e52]:
-            - generic [ref=e53]:
-              - generic [ref=e54]: CORRECTAS
-              - text: "11"
-            - generic [ref=e55]:
-              - generic [ref=e56]: ERRORES
-              - text: "16"
-  - button "Alternar Tema Claro/Oscuro" [ref=e57] [cursor=pointer]:
-    - img [ref=e59]
+          - generic [ref=e20]: PROGRESO 0/15
+    - main [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]:
+              - img [ref=e27]:
+                - generic [ref=e29]:
+                  - generic: 50%
+                - generic [ref=e31]:
+                  - generic: 20%
+                - generic [ref=e33] [cursor=pointer]:
+                  - generic: "?"
+              - generic [ref=e36]: 👉 ¡TÓCAME!
+            - generic [ref=e37]:
+              - generic [ref=e40]: "Rojas: 50%"
+              - generic [ref=e43]: "Verdes: 20%"
+              - generic [ref=e46]: "Uvas: ¿?"
+          - generic [ref=e47]:
+            - generic [ref=e48]: "PORCENTAJE SELECCIONADO:"
+            - generic [ref=e49]: "?"
+        - generic [ref=e50]:
+          - button "CONFIRMAR ✓" [ref=e51] [cursor=pointer]:
+            - generic [ref=e53]: CONFIRMAR
+            - generic [ref=e55]: ✓
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: CORRECTAS
+              - text: "0"
+            - generic [ref=e59]:
+              - generic [ref=e60]: ERRORES
+              - text: "0"
+  - button "Alternar Tema Claro/Oscuro" [ref=e61] [cursor=pointer]:
+    - img [ref=e63]
 ```
 
 # Test source
 
 ```ts
-  1   | import { test, expect } from '../helpers/test-fixtures';
-  2   | import { ROUTES } from '../helpers/constants';
-  3   | import { registerDynamicTestUser } from '../helpers/auth';
-  4   | import { setPhaseForUser, approveProgresoMaestria, unlockAllUpToModule } from '../helpers/db-utils';
-  5   | import { getPhaseMetadata } from '../helpers/metadata-utils';
-  6   | import { execSync } from 'child_process';
   7   | import { navigateGenericTheoryModal } from '../helpers/gameplay-utils';
   8   | 
   9   | const FASE4_THEORY_ANSWERS: Record<string, string> = {
@@ -165,8 +161,7 @@ Call log:
   91  |         const [num] = answer.split('/');
   92  |         const numerator = parseInt(num, 10);
   93  |         for (let i = 0; i < numerator; i++) {
-> 94  |           await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
-      |                                                                               ^ Error: locator.click: Test timeout of 120000ms exceeded.
+  94  |           await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
   95  |           await page.waitForTimeout(50);
   96  |         }
   97  |       } else {
@@ -179,7 +174,8 @@ Call log:
   104 |         if (answer === '25') label = '1/4 (25%)';
   105 |         else if (answer === '50') label = '1/2 (50%)';
   106 |         
-  107 |         await page.locator(`button:has-text("${label}")`).first().click();
+> 107 |         await page.locator(`button:has-text("${label}")`).first().click();
+      |                                                                   ^ TimeoutError: locator.click: Timeout 15000ms exceeded.
   108 |         await page.waitForTimeout(200);
   109 |       }
   110 |       await page.waitForTimeout(300); // Wait for React state to propagate
@@ -267,4 +263,17 @@ Call log:
   192 |     testUserEmail = await registerDynamicTestUser(page);
   193 |     setPhaseForUser(testUserEmail, 4);
   194 |     clearTestUserProgress(testUserEmail);
+  195 | 
+  196 |     page.on('response', async (response) => {
+  197 |       if (
+  198 |         response.url().includes('/api/fase4/modulo/') &&
+  199 |         response.url().includes('/pregunta')
+  200 |       ) {
+  201 |         try {
+  202 |           const json = await response.json();
+  203 |           if (json && json.id) {
+  204 |             currentQuestionId = json.id;
+  205 |           }
+  206 |         } catch (e) {}
+  207 |       }
 ```

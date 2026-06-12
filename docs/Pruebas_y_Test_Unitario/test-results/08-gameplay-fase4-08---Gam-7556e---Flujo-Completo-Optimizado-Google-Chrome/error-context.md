@@ -6,25 +6,15 @@
 
 # Test info
 
-- Name: 08-gameplay-fase4.spec.ts >> 08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo >> Módulo 1 Nivel 1 - Flujo Completo Optimizado
+- Name: 08-gameplay-fase4.spec.ts >> 08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo >> Módulo 1 Nivel 3 - Flujo Completo Optimizado
 - Location: tests\08-gameplay-fase4.spec.ts:213:11
 
 # Error details
 
 ```
-Test timeout of 120000ms exceeded.
-```
-
-```
-Error: locator.click: Test timeout of 120000ms exceeded.
+TimeoutError: locator.click: Timeout 15000ms exceeded.
 Call log:
-  - waiting for locator('path[stroke="rgba(255,255,255,0.15)"]').first()
-    - locator resolved to <path stroke-width="2" fill="transparent" stroke="rgba(255,255,255,0.15)" class="hover:brightness-110 active:scale-[0.98]" d="M 100 100 L 100.00000000000001 -30 A 130 130 0 0 1 176.41208279802152 -5.172209268743174 Z"></path>
-  - attempting click action
-    - scrolling into view if needed
-    - done scrolling
-    - forcing action
-    - performing click action
+  - waiting for locator('button:has-text("n")').last()
 
 ```
 
@@ -45,26 +35,39 @@ Call log:
           - generic [ref=e17]: "|"
           - generic [ref=e18]: FASE 4
           - generic [ref=e19]: "|"
-          - generic [ref=e20]: PROGRESO 11/15
-    - main [ref=e23]:
-      - generic [ref=e24]:
-        - generic [ref=e25]:
-          - img [ref=e27]
-          - generic [ref=e42]: 0/10
-          - generic [ref=e43]:
-            - generic [ref=e44]: "SOMBREA EXACTAMENTE LA FRACCIÓN:"
-            - generic [ref=e45]: 7/10
-        - generic [ref=e46]:
-          - button "CONFIRMAR ✓" [ref=e47] [cursor=pointer]:
-            - generic [ref=e49]: CONFIRMAR
-            - generic [ref=e51]: ✓
+          - generic [ref=e20]: PROGRESO 0/15
+    - main [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e25]: 🍕 🧪
+          - paragraph [ref=e26]: Un cuadrado está cortado en 4 secciones. Si 2 de ellas son rectángulos gigantes y las otras son cuadrangulares pequeños, ¿representa cada sección exactamente 1/4?
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - textbox "Respuesta" [ref=e30]
+            - generic [ref=e31]:
+              - generic [ref=e32]:
+                - button "7" [ref=e33] [cursor=pointer]
+                - button "8" [ref=e34] [cursor=pointer]
+                - button "9" [ref=e35] [cursor=pointer]
+                - button "4" [ref=e36] [cursor=pointer]
+                - button "5" [ref=e37] [cursor=pointer]
+                - button "6" [ref=e38] [cursor=pointer]
+                - button "1" [ref=e39] [cursor=pointer]
+                - button "2" [ref=e40] [cursor=pointer]
+                - button "3" [ref=e41] [cursor=pointer]
+                - button [ref=e42] [cursor=pointer]:
+                  - img [ref=e43]
+                - button "0" [ref=e47] [cursor=pointer]
+                - button [disabled] [ref=e48]:
+                  - img [ref=e49]
+              - generic [ref=e51]: Teclado Numérico
           - generic [ref=e52]:
             - generic [ref=e53]:
               - generic [ref=e54]: CORRECTAS
-              - text: "11"
+              - text: "0"
             - generic [ref=e55]:
               - generic [ref=e56]: ERRORES
-              - text: "16"
+              - text: "0"
   - button "Alternar Tema Claro/Oscuro" [ref=e57] [cursor=pointer]:
     - img [ref=e59]
 ```
@@ -72,35 +75,6 @@ Call log:
 # Test source
 
 ```ts
-  1   | import { test, expect } from '../helpers/test-fixtures';
-  2   | import { ROUTES } from '../helpers/constants';
-  3   | import { registerDynamicTestUser } from '../helpers/auth';
-  4   | import { setPhaseForUser, approveProgresoMaestria, unlockAllUpToModule } from '../helpers/db-utils';
-  5   | import { getPhaseMetadata } from '../helpers/metadata-utils';
-  6   | import { execSync } from 'child_process';
-  7   | import { navigateGenericTheoryModal } from '../helpers/gameplay-utils';
-  8   | 
-  9   | const FASE4_THEORY_ANSWERS: Record<string, string> = {
-  10  |   'Un círculo está dividido en 5 partes': '2/5',
-  11  |   'Si pintas 4 partes de un rectángulo': '4/6',
-  12  |   'Un círculo tiene 4 partes y todas': '4/4',
-  13  |   'Encuentra la fracción equivalente a 1/2': '3/6',
-  14  |   'Amplifica 2/3 por un factor de 2': '4/6',
-  15  |   '¿Qué fracción equivalente a 4/8': '1/2',
-  16  |   'Un cuadrado se divide en 2 rectángulos': '1/2',
-  17  |   'Un cuadrado de 4x4 cuadraditos tiene 8 pintados': '1/2',
-  18  |   'Si cortamos un círculo en 4 porciones, pero 2 de ellas': 'no',
-  19  |   'Calcula 1/4 de 16': '4',
-  20  |   'Si tienes 15 manzanas y regalas 1/3': '5',
-  21  |   'Calcula 1/5 de 40': '8',
-  22  |   'Calcula 3/4 de 24': '18',
-  23  |   'Un cofre tiene 30 monedas. Tomas 2/3': '20',
-  24  |   'Calcula 4/5 de 50': '40',
-  25  |   'Si gastas 3/8 de tu dinero': '5/8',
-  26  |   'Tenías 30 manzanas y regalaste 1/3. ¿Cuántas': '20',
-  27  |   'Un tanque de 50 litros vacía 2/5': '30',
-  28  |   'Calcula el 50% de 80.': '40',
-  29  |   'Calcula el 25% de 120.': '30',
   30  |   'Calcula el 10% de 450.': '45',
   31  |   'En una encuesta del 100%, 45% prefiere chocolate': '25',
   32  |   'De un total de 400 personas, el 50%': '200',
@@ -165,8 +139,7 @@ Call log:
   91  |         const [num] = answer.split('/');
   92  |         const numerator = parseInt(num, 10);
   93  |         for (let i = 0; i < numerator; i++) {
-> 94  |           await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
-      |                                                                               ^ Error: locator.click: Test timeout of 120000ms exceeded.
+  94  |           await page.locator('path[stroke="rgba(255,255,255,0.15)"]').first().click({ force: true });
   95  |           await page.waitForTimeout(50);
   96  |         }
   97  |       } else {
@@ -202,7 +175,8 @@ Call log:
   127 |         }
   128 |       } else {
   129 |         for (const char of answer) {
-  130 |           await page.locator(`button:has-text("${char}")`).last().click();
+> 130 |           await page.locator(`button:has-text("${char}")`).last().click();
+      |                                                                   ^ TimeoutError: locator.click: Timeout 15000ms exceeded.
   131 |           await page.waitForTimeout(50);
   132 |         }
   133 |       }
@@ -267,4 +241,40 @@ Call log:
   192 |     testUserEmail = await registerDynamicTestUser(page);
   193 |     setPhaseForUser(testUserEmail, 4);
   194 |     clearTestUserProgress(testUserEmail);
+  195 | 
+  196 |     page.on('response', async (response) => {
+  197 |       if (
+  198 |         response.url().includes('/api/fase4/modulo/') &&
+  199 |         response.url().includes('/pregunta')
+  200 |       ) {
+  201 |         try {
+  202 |           const json = await response.json();
+  203 |           if (json && json.id) {
+  204 |             currentQuestionId = json.id;
+  205 |           }
+  206 |         } catch (e) {}
+  207 |       }
+  208 |     });
+  209 |   });
+  210 | 
+  211 |   for (const modulo of metadata.modulos) {
+  212 |     for (const nivel of modulo.niveles) {
+  213 |       test(`Módulo ${modulo.modulo_id} Nivel ${nivel.nivel_id} - Flujo Completo Optimizado`, async ({ page }) => {
+  214 |         unlockAllUpToModule(testUserEmail, 4, modulo.modulo_id);
+  215 |         for (let l = 1; l < nivel.nivel_id; l++) {
+  216 |            approveProgresoMaestria(testUserEmail, 4, parseInt(`${modulo.modulo_id}0${l}`), 'MIXTA');
+  217 |         }
+  218 | 
+  219 |         await page.goto('/welcome-fase4');
+  220 |         await page.waitForLoadState('domcontentloaded');
+  221 |         await page.waitForTimeout(1000);
+  222 | 
+  223 |         const modCards = page.locator('.f4-module-card-item');
+  224 |         const modCard = modCards.nth(modulo.modulo_id - 1);
+  225 |         await expect(modCard).toBeVisible();
+  226 |         await modCard.click();
+  227 | 
+  228 |         const lvlBtn = page.locator('.f4-level-card-item').nth(nivel.nivel_id - 1);
+  229 |         await expect(lvlBtn).toBeVisible();
+  230 |         await lvlBtn.click();
 ```

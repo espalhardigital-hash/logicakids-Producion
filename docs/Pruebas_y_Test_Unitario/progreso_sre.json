@@ -47,13 +47,13 @@
         "id": "regression_passed",
         "nombre": "Regression Tests Passed",
         "descripcion": "Pruebas E2E completas (Playwright) 100% en verde",
-        "completado": false
+        "completado": true
       },
       {
         "id": "acceptance_confirmed",
         "nombre": "User Acceptance Confirmed",
         "descripcion": "Flujos funcionales de juego validados",
-        "completado": false
+        "completado": true
       }
     ]
   },

@@ -97,7 +97,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
       } else {
         const hint = page.locator('text=👉 ¡TÓCAME!').first();
         if (await hint.isVisible()) {
-          await hint.click();
+          await hint.click({ force: true });
           await page.waitForTimeout(200);
         }
         let label = `${answer}%`;
@@ -156,7 +156,7 @@ async function failCurrentQuestion(page: any, questionId: number) {
       } else {
         const hint = page.locator('text=👉 ¡TÓCAME!').first();
         if (await hint.isVisible()) {
-          await hint.click();
+          await hint.click({ force: true });
           await page.waitForTimeout(200);
         }
         const wrongOption = answer === '10' ? '20%' : '10%';
