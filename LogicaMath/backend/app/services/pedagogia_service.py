@@ -68,10 +68,10 @@ async def recalcular_y_sincronizar_fase_actual(alumno_id: int, db: AsyncSession)
         if fases:
             nueva_fase_id = fases[-1].id
 
-    # 3. Actualizar en base de datos si hubo cambios
-    if alumno.fase_actual_id != nueva_fase_id:
+    # 3. Actualizar en base de datos previniendo demociones
+    if alumno.fase_actual_id is None or alumno.fase_actual_id < nueva_fase_id:
         alumno.fase_actual_id = nueva_fase_id
         db.add(alumno)
         await db.commit()
         
-    return nueva_fase_id
+    return alumno.fase_actual_id
