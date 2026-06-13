@@ -856,6 +856,10 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
 
   // 30: handleFeedbackClose
   const handleFeedbackClose = useCallback(() => {
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
     if (feedback.resultado?.early_exit) {
       setFeedback({ visible: false, esCorrecta: false });
       setShowEarlyExit(true);
@@ -974,7 +978,7 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
           setLastWrongAnswer(respuesta || String(selectedAltId || ''));
         }
         if (isChallenge) {
-          setTimeout(() => handleFeedbackClose(), 1500);
+          autoAdvanceTimeoutRef.current = setTimeout(() => handleFeedbackClose(), 1500);
         }
       }
     } catch (error: any) {
@@ -1264,7 +1268,7 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
               <div className="f6-header-badge-pill">
                 <span className="f6-badge-module" style={{ color: moduleColor }}>{moduleName.toUpperCase()}</span>
                 <span className="f6-badge-divider">|</span>
-                <span className="f6-badge-level">FASE 2</span>
+                <span className="f6-badge-level">FASE 6</span>
                 <span className="f6-badge-divider">|</span>
                 <span className="f6-badge-level">MÓDULO {moduloId === 99 ? 'MAESTRÍA' : moduloId}</span>
                 <span className="f6-badge-divider">|</span>

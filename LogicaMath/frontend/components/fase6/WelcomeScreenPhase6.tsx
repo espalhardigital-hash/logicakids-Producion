@@ -262,8 +262,8 @@ const WelcomeScreenPhase6: React.FC<Props> = ({
                 </button>
               </div>
             ) : (() => {
-              const totalLevelsPassed = dashboard.modulos.reduce((sum, m) => sum + m.niveles.filter(n => n.estado === 'dominado').length, 0);
-              const maxTotalLevels = dashboard.modulos.reduce((sum, m) => sum + m.niveles.length, 0);
+              const totalLevelsPassed = dashboard.modulos.reduce((sum, m) => sum + m.niveles.filter(n => n.estado === 'dominado').length + (m.desafios || []).filter(d => d.estado === 'dominado').length, 0);
+              const maxTotalLevels = dashboard.modulos.reduce((sum, m) => sum + m.niveles.length + (m.desafios || []).length, 0);
               const globalProgressPercent = maxTotalLevels > 0 ? Math.round((totalLevelsPassed / maxTotalLevels) * 100) : 0;
 
               return (
@@ -278,7 +278,7 @@ const WelcomeScreenPhase6: React.FC<Props> = ({
                           Tu Camino a la Fase 7
                         </h3>
                         <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed font-medium">
-                          Completa todos los niveles de práctica en cada módulo para desbloquear el Desafío Mixto y avanzar de fase.
+                          Completa todos los niveles y desafíos en cada módulo para desbloquear el Desafío Mixto y avanzar de fase.
                         </p>
                       </div>
                     </div>
@@ -292,7 +292,7 @@ const WelcomeScreenPhase6: React.FC<Props> = ({
                   <div>
                     <div className="flex justify-between items-center mb-2 font-sans">
                       <span className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider">PROGRESO GENERAL DE LA FASE</span>
-                      <span className="text-xs font-black text-blue-600 dark:text-blue-400">{totalLevelsPassed} / {maxTotalLevels} Niveles</span>
+                      <span className="text-xs font-black text-blue-600 dark:text-blue-400">{totalLevelsPassed} / {maxTotalLevels} Niveles y Desafíos</span>
                     </div>
                     <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                       <motion.div
@@ -306,8 +306,8 @@ const WelcomeScreenPhase6: React.FC<Props> = ({
                     {/* Per-category mini indicators */}
                     <div className="flex justify-between mt-4">
                       {dashboard.modulos.map((m) => {
-                        const completedCount = m.niveles.filter(n => n.estado === 'dominado').length;
-                        const totalCount = m.niveles.length;
+                        const completedCount = m.niveles.filter(n => n.estado === 'dominado').length + (m.desafios || []).filter(d => d.estado === 'dominado').length;
+                        const totalCount = m.niveles.length + (m.desafios || []).length;
                         const pct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
                         return (
                           <div key={m.modulo_id} className="flex flex-col items-center gap-1.5 flex-1 px-2">
