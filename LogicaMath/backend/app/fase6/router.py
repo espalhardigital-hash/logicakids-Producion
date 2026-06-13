@@ -209,7 +209,7 @@ def _is_nivel_unlocked(progresos: dict, modulo_id: int, nivel_id: int) -> bool:
     
     if nivel_id == 1 and modulo_id > 1:
         prev_mod = modulo_id - 1
-        prev_mod_levels = {1: 3, 2: 4, 3: 4}[prev_mod]
+        prev_mod_levels = {1: 3, 2: 3, 3: 3}[prev_mod]
         
         # Check all practice levels of previous module
         for p_level in range(1, prev_mod_levels + 1):
@@ -1085,7 +1085,7 @@ async def responder_fase6(
                         Intento.id != intento.id
                     ))
                 )
-                if result_previo.scalar_one_or_none():
+                if result_previo.first() is not None:
                     ya_resuelta = True
 
             if es_correcta and not ya_resuelta:
@@ -1163,7 +1163,7 @@ async def responder_fase6(
                     Intento.id != intento.id
                 ))
             )
-            if result_previo.scalar_one_or_none():
+            if result_previo.first() is not None:
                 ya_resuelta = True
 
         if es_correcta and not ya_resuelta:
