@@ -51,7 +51,15 @@ export const test = base.extend<TestFixtures>({
 
     await page.route('**/pregunta*', async (route) => {
       try {
-        const response = await route.fetch();
+        const headers = {
+          ...route.request().headers(),
+          'cache-control': 'no-cache',
+          'pragma': 'no-cache',
+        };
+        delete headers['if-none-match'];
+        delete headers['if-modified-since'];
+
+        const response = await route.fetch({ headers });
         const json = await response.json();
 
         // Helper recursivo para buscar patrones inválidos en el JSON

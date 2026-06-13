@@ -204,6 +204,7 @@ test.describe('09 - Gameplay Fase 5 (Geometría Plana y Medidas) - Exhaustivo', 
             const submitBtn = page.locator('button:has-text("Confirmar"), [data-testid="submit-numpad"]').first();
             if (await continueBtn.isVisible().catch(()=>false)) {
               await continueBtn.click();
+              currentQuestionId = null;
               await page.waitForTimeout(500);
             } else if (currentQuestionId !== null && await submitBtn.isVisible().catch(()=>false)) {
               answeredQuestionIds.delete(currentQuestionId);

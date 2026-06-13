@@ -175,7 +175,7 @@ async function submitCorrectAnswer(page: any, questionId: number) {
           retries++;
         }
         for (let i = 0; i < numerator; i++) {
-          await paths.nth(i).click({ force: true });
+          await paths.nth(i).dispatchEvent('click');
           await page.waitForTimeout(200);
         }
       } else {
@@ -194,23 +194,24 @@ async function submitCorrectAnswer(page: any, questionId: number) {
       await page.waitForTimeout(300); // Wait for React state to propagate
       await confirmBtn.click();
     } else {
+      const numpadContainer = page.locator('[data-testid="submit-numpad"]:visible').locator('..');
       if (answer.includes('/')) {
         const [num, den] = answer.split('/');
         
         for (const char of num) {
-          await page.locator(`button:has-text("${char}")`).last().click();
+          await numpadContainer.locator('button', { hasText: new RegExp('^' + char + '$') }).filter({ visible: true }).first().click();
           await page.waitForTimeout(50);
         }
         
-        await page.locator('.f4-fraction-input-field').nth(1).click();
+        await page.locator('.f4-fraction-input-field').filter({ visible: true }).nth(1).click();
         await page.waitForTimeout(100);
         
         for (const char of den) {
-          await page.locator(`button:has-text("${char}")`).last().click();
+          await numpadContainer.locator('button', { hasText: new RegExp('^' + char + '$') }).filter({ visible: true }).first().click();
           await page.waitForTimeout(50);
         }
       } else {
-        const beakerSegments = page.locator('.flex-col-reverse > div');
+        const beakerSegments = page.locator('.flex-col-reverse > div').filter({ visible: true });
         let beakerClicked = false;
         if (isQuestionBeakerInteractive(questionId) && await beakerSegments.count() > 0) {
           const level = getBeakerCorrectLevel(questionId);
@@ -221,15 +222,13 @@ async function submitCorrectAnswer(page: any, questionId: number) {
           }
         }
 
-        if (!beakerClicked) {
-          for (const char of answer) {
-            await page.locator(`button:has-text("${char}")`).last().click();
-            await page.waitForTimeout(50);
-          }
+        for (const char of answer) {
+          await numpadContainer.locator('button', { hasText: new RegExp('^' + char + '$') }).filter({ visible: true }).first().click();
+          await page.waitForTimeout(50);
         }
       }
       await page.waitForTimeout(300);
-      await page.getByTestId('submit-numpad').click();
+      await page.getByTestId('submit-numpad').filter({ visible: true }).click();
     }
   }
 }
@@ -271,9 +270,9 @@ async function failCurrentQuestion(page: any, questionId: number) {
           await page.waitForTimeout(100);
           retries++;
         }
-        await paths.first().click({ force: true });
+        await paths.first().dispatchEvent('click');
         await page.waitForTimeout(100);
-        await paths.first().click({ force: true });
+        await paths.first().dispatchEvent('click');
         await page.waitForTimeout(300);
       } else {
         const hint = page.locator('text=👉 ¡TÓCAME!').first();
@@ -287,7 +286,7 @@ async function failCurrentQuestion(page: any, questionId: number) {
       }
       await confirmBtn.click();
     } else {
-      const beakerSegments = page.locator('.flex-col-reverse > div');
+      const beakerSegments = page.locator('.flex-col-reverse > div').filter({ visible: true });
       let beakerClicked = false;
       if (isQuestionBeakerInteractive(questionId) && await beakerSegments.count() > 0) {
         const level = getBeakerCorrectLevel(questionId);
@@ -299,20 +298,19 @@ async function failCurrentQuestion(page: any, questionId: number) {
         }
       }
 
-      if (!beakerClicked) {
-        if (answer.includes('/')) {
-          await page.locator(`button:has-text("9")`).last().click();
-          await page.locator('.f4-fraction-input-field').nth(1).click();
-          await page.locator(`button:has-text("9")`).last().click();
-        } else {
-          for (let i = 0; i < 4; i++) {
-            await page.locator(`button:has-text("9")`).last().click();
-            await page.waitForTimeout(50);
-          }
+      const numpadContainer = page.locator('[data-testid="submit-numpad"]:visible').locator('..');
+      if (answer.includes('/')) {
+        await numpadContainer.locator('button', { hasText: new RegExp('^9$') }).filter({ visible: true }).first().click();
+        await page.locator('.f4-fraction-input-field').filter({ visible: true }).nth(1).click();
+        await numpadContainer.locator('button', { hasText: new RegExp('^9$') }).filter({ visible: true }).first().click();
+      } else {
+        for (let i = 0; i < 4; i++) {
+          await numpadContainer.locator('button', { hasText: new RegExp('^9$') }).filter({ visible: true }).first().click();
+          await page.waitForTimeout(50);
         }
       }
       await page.waitForTimeout(300);
-      await page.getByTestId('submit-numpad').click();
+      await page.getByTestId('submit-numpad').filter({ visible: true }).click();
     }
   }
 }
@@ -389,10 +387,11 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
           }
 
           if (currentQuestionId === null || answeredQuestionIds.has(currentQuestionId)) {
-            const continueBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').first();
-            const submitBtn = page.locator('button:has-text("CONFIRMAR"), [data-testid="submit-numpad"]').first();
+            const continueBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').filter({ visible: true }).first();
+            const submitBtn = page.locator('button:has-text("CONFIRMAR"), [data-testid="submit-numpad"]').filter({ visible: true }).first();
             if (await continueBtn.isVisible().catch(()=>false)) {
               await continueBtn.click();
+              currentQuestionId = null;
               await page.waitForTimeout(500);
             } else if (currentQuestionId !== null && await submitBtn.isVisible().catch(()=>false)) {
               answeredQuestionIds.delete(currentQuestionId);
@@ -409,7 +408,7 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
             errorsForced++;
             
             await page.waitForTimeout(1000);
-            const continueBtnWrong = page.locator('button:has-text("Continuar →"), button:has-text("Continuar")').first();
+            const continueBtnWrong = page.locator('button:has-text("Continuar →"), button:has-text("Continuar")').filter({ visible: true }).first();
             if (await continueBtnWrong.isVisible({ timeout: 5000 }).catch(()=>false)) {
               await continueBtnWrong.click();
             }
@@ -427,14 +426,16 @@ test.describe('08 - Gameplay Fase 4 (Fracciones y Porcentajes) - Exhaustivo', ()
             }
           } else {
             await submitCorrectAnswer(page, qId);
+            currentQuestionId = null;
           }
 
           answeredQuestionIds.add(qId);
 
           await page.waitForTimeout(500);
-          const nextBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').first();
+          const nextBtn = page.locator('button:has-text("Siguiente Pregunta →"), button:has-text("Continuar")').filter({ visible: true }).first();
           if (await nextBtn.isVisible().catch(()=>false)) {
             await nextBtn.click();
+            currentQuestionId = null;
           }
 
           questionCounter++;
