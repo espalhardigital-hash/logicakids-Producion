@@ -1554,16 +1554,13 @@ const Fase7GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                        {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
                          <button key={num} onClick={() => handleKeypadInput(num.toString())} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">{num}</button>
                        ))}
-                       <button onClick={() => handleKeypadInput('-')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">-</button>
-                       <button onClick={() => handleKeypadInput('0')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">0</button>
                        <button onClick={() => handleKeypadInput('.')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">.</button>
+                       <button onClick={() => handleKeypadInput('0')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">0</button>
+                       <button onClick={handleBackspace} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-red-500/10 text-red-400 flex items-center justify-center"><Delete size={28} /></button>
                      </div>
-                     <div className="flex gap-3 mt-2">
-                       <button onClick={handleBackspace} disabled={feedback.visible} className="px-5 rounded-[1.5rem] bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition-colors" title="Borrar último carácter"><Delete size={28} /></button>
-                       <button onClick={handleSubmit} disabled={!feedback.visible && !respuesta.trim()} className="flex-1 py-4 rounded-[1.5rem] bg-blue-600 text-white flex items-center justify-center font-bold text-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
-                         {feedback.visible ? 'Continuar' : 'Confirmar'} <ArrowRight size={24} className="ml-2"/>
-                       </button>
-                     </div>
+                     <button onClick={handleSubmit} disabled={!feedback.visible && !respuesta.trim()} className="w-full mt-4 py-4 rounded-[1.5rem] bg-blue-600 text-white flex items-center justify-center font-bold text-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
+                       {feedback.visible ? 'Continuar' : 'Confirmar'} <ArrowRight size={24} className="ml-2"/>
+                     </button>
                   </div>
                 </motion.div>
               )}

@@ -82,7 +82,7 @@ const WelcomeScreen: React.FC<Props> = ({ user, onSelectCategory, onLogout, onGo
     return (getCategoryLevel(prevCat) - 1) < 4; // Requires previous level 4 cleared (at least 4 passed levels)
   };
 
-  const currentPhaseId = user?.fase_actual_id ?? 1;
+  const currentPhaseId = 1;
 
   return (
     <div className="fixed inset-0 bg-slate-50 text-slate-900 dark:bg-[#070b14] dark:text-white overflow-y-auto w-full h-full custom-scrollbar transition-colors duration-300">

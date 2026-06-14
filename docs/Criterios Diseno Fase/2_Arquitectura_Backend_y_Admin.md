@@ -308,6 +308,10 @@ Al construir y sembrar pools de base de datos, se deben aplicar las siguientes d
      - Que todas las opciones múltiples tengan exactamente 4 alternativas y solo 1 de ellas sea la correcta.
      - Que no existan preguntas en estado `INACTIVO`.
      - Que la coherencia matemática de todas las preguntas de la base de datos sea del 100% mediante un motor de resolución autónomo.
+6. **Soporte Visual de Cuerpos y Figuras mediante Inyección SVG:**
+   * En preguntas que involucren conceptos espaciales, cuerpos geométricos o figuras planas (por ejemplo, conteo de caras, vértices o aristas en la Fase 6), el seeder debe incorporar ilustraciones vectoriales SVG representativas e incrustadas en formato HTML dentro de la columna `enunciado`.
+   * Los SVGs deben ser auto-contenidos (sin depender de URLs externas) y declararse con un `viewBox` que encierre holgadamente el gráfico.
+   * Para representaciones en 3D (como poliedros), se deben aplicar caras con rellenos semitransparentes para distinguir los volúmenes, y aristas traseras/ocultas dibujadas con trazos punteados (`stroke-dasharray`), facilitando el conteo visual exacto del alumno.
 
 ### 5.1. Parte A: Textos de Teoría y Validación Estricta
 

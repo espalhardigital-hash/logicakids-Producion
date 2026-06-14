@@ -350,33 +350,27 @@ export default function WelcomeScreenPhase8({
             </div>
 
             <div className="fg-levels-grid">
-              {selectedModule.niveles.map((nivel) => {
+              {selectedModule.niveles.filter(n => !n.nombre.toLowerCase().includes('desafío')).map((nivel) => {
                 const unlocked = isLevelUnlocked(selectedModule, nivel);
                 const completed = !!completedLevels[`${selectedModule.moduloId}_${nivel.nivelId}`];
-                const isDesafio = nivel.nombre.toLowerCase().includes('desafío');
 
                 return (
                   <div
                     key={nivel.nivelId}
-                    className={`fg-level-card ${unlocked ? 'unlocked' : 'locked'} ${isDesafio ? 'desafio-card' : ''}`}
+                    className={`fg-level-card ${unlocked ? 'unlocked' : 'locked'}`}
                     onClick={() => unlocked && onModuleSelect(selectedModule.moduloId, nivel.nivelId)}
-                    style={isDesafio ? { border: '1px solid rgba(245, 158, 11, 0.4)', background: 'rgba(245, 158, 11, 0.05)' } : {}}
                   >
-                    <div className="fg-level-circle" style={isDesafio ? { background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.4)' } : {}}>
+                    <div className="fg-level-circle">
                       {completed ? (
                         <Lucide.Check size={32} color="#10B981" />
                       ) : !unlocked ? (
                         <Lucide.Lock size={24} color="#64748b" />
-                      ) : isDesafio ? (
-                        <Lucide.Shield size={28} color="#F59E0B" />
                       ) : (
                         nivel.nivelId
                       )}
                     </div>
 
-                    <h4 className="fg-level-title" style={isDesafio ? { color: '#FCD34D' } : {}}>
-                      {isDesafio ? 'Evaluación' : `Nivel ${nivel.nivelId}`}
-                    </h4>
+                    <h4 className="fg-level-title">Nivel {nivel.nivelId}</h4>
                     <p className="fg-level-desc">{nivel.nombre}</p>
 
                     {/* Status Badge */}
@@ -401,6 +395,84 @@ export default function WelcomeScreenPhase8({
                 );
               })}
             </div>
+
+            {selectedModule.niveles.filter(n => n.nombre.toLowerCase().includes('desafío')).length > 0 && (
+              <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                  <Lucide.Trophy size={22} color="#F59E0B" />
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 900, letterSpacing: '0.05em', color: '#fff', margin: 0 }}>
+                    ZONA DE DESAFÍOS
+                  </h2>
+                </div>
+                <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '24px', maxWidth: '600px', lineHeight: 1.5 }}>
+                  Pon a prueba tu velocidad y precisión. Completa todos los niveles de práctica para desbloquear la evaluación.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {selectedModule.niveles.filter(n => n.nombre.toLowerCase().includes('desafío')).map((desafio) => {
+                    const unlocked = isLevelUnlocked(selectedModule, desafio);
+                    const completed = !!completedLevels[`${selectedModule.moduloId}_${desafio.nivelId}`];
+                    return (
+                      <div
+                        key={desafio.nivelId}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '20px 24px',
+                          borderRadius: '16px',
+                          background: unlocked 
+                            ? `linear-gradient(135deg, ${selectedModule.color}cc 0%, ${selectedModule.color} 100%)` 
+                            : 'rgba(255,255,255,0.02)',
+                          border: unlocked ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                          cursor: unlocked ? 'pointer' : 'not-allowed',
+                          opacity: unlocked ? 1 : 0.6,
+                          transition: 'all 0.2s',
+                        }}
+                        onClick={() => unlocked && onModuleSelect(selectedModule.moduloId, desafio.nivelId)}
+                        role={unlocked ? 'button' : undefined}
+                        tabIndex={unlocked ? 0 : undefined}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                          <div style={{
+                            width: '48px', height: '48px', borderRadius: '12px', 
+                            background: completed ? 'rgba(255,255,255,0.2)' : unlocked ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          }}>
+                            {completed ? <Lucide.Check size={24} color="#fff" /> : 
+                             !unlocked ? <Lucide.Lock size={20} color="#64748b" /> : 
+                             <Lucide.Target size={24} color="#fff" />}
+                          </div>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                              <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: unlocked ? '#fff' : '#94a3b8', margin: 0 }}>
+                                Evaluación
+                              </h3>
+                              <span style={{ 
+                                fontSize: '0.65rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px',
+                                background: completed ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)', color: unlocked ? '#fff' : '#64748b'
+                              }}>
+                                DESAFÍO
+                              </span>
+                            </div>
+                            <p style={{ fontSize: '0.875rem', color: unlocked ? 'rgba(255,255,255,0.9)' : '#64748b', margin: 0 }}>
+                              {desafio.nombre}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{
+                          background: unlocked && !completed ? '#fff' : 'rgba(255,255,255,0.1)',
+                          color: unlocked && !completed ? selectedModule.color : '#fff',
+                          padding: '10px 20px', borderRadius: '8px', fontWeight: 800, fontSize: '0.875rem'
+                        }}>
+                          {completed ? 'Dominado' : 'Iniciar Desafío'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>

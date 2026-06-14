@@ -63,6 +63,7 @@ Todos los componentes de pantalla de fase del frontend (ej. `WelcomeScreenPhase2
   2. Dejar el dashboard en `null`.
   3. Mostrar la **pantalla de error con botón "Reintentar"** ya existente en el componente.
   4. Registrar el error en `console.error()` con el contexto completo.
+* **Prohibición de Datos Estáticos (Mocks) en Todas las Fases:** Ninguna fase (ya sea Fase 7, Fase 8, Fase 9 o futuras) debe operar bajo el supuesto de "mocks" (datos simulados) cuando falta el backend. Toda la información, tanto para preguntas normales como para Simulados (Fase 9), DEBE provenir siempre de la Base de Datos a través de los endpoints de la API correspondientes.
 * **Los datos mock (`MOCK_DASHBOARD`, etc.) solo son válidos** en herramientas de desarrollo aisladas, storybooks o scripts de prueba desconectados del backend real. Nunca deben estar activos en un componente que ya tiene conexión a la API.
 * **Criterio de aceptación:** En ninguna fase nueva se debe añadir código del tipo `catch (e) { setDashboard(MOCK_DATA); }` en componentes de producción.
 
@@ -75,7 +76,14 @@ Cada fase está compuesta por **módulos**, y cada módulo debe respetar el sigu
 1. **Fase de Aprendizaje Teórico:** Lectura fragmentada por niveles.
 2. **Desbloqueo por Evocación:** Resolución obligatoria de 3 mini-retos numéricos sin temporizador.
 3. **Práctica Libre:** Batería de preguntas con asistencia algorítmica mediante Bucle Espejo.
-4. **Zona de Desafíos:** 3 niveles de evaluación con temporizador y reglas estrictas de expulsión por Early Exit.
+4. **Zona de Desafíos:** 3 niveles de evaluación con temporizador y reglas estrictas de expulsión por Early Exit. NOTA: En la Zona de Desafíos NO se revela la respuesta correcta, se avanza directamente descontando vidas o tiempo.
+
+**Variante Especial: Modo Examen (Fase 9 y Simulados)**
+Los "Simulados Pedro II" (y otras evaluaciones tipo examen) difieren del módulo estándar. Sus reglas son:
+* **Cronómetro Global:** En lugar de tiempo por pregunta, existe un tiempo global (ej. 25-35 minutos para toda la batería).
+* **Navegación Libre:** El alumno puede moverse entre preguntas, marcarlas "Para revisión" y cambiar sus respuestas usando una cuadrícula/grid visual.
+* **Ausencia de Feedback Inmediato:** No hay "Bucle Espejo" ni alertas tempranas de error.
+* **Validación al Entregar:** Las respuestas se evalúan en lote únicamente al momento de hacer clic en "Entregar Examen", invocando el modelo Server-Authoritative del backend para producir los resultados en una "Clínica de Errores".
 
 ---
 

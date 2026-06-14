@@ -43,6 +43,7 @@ class Alumno(Base):
     pools = relationship("PoolAsignadoAlumno", back_populates="alumno", cascade="all, delete-orphan", passive_deletes=True)
     progresos = relationship("ProgresoMaestria", back_populates="alumno", cascade="all, delete-orphan", passive_deletes=True)
     intentos = relationship("Intento", back_populates="alumno", cascade="all, delete-orphan", passive_deletes=True)
+    simulados = relationship("SimuladoSession", back_populates="alumno", cascade="all, delete-orphan", passive_deletes=True)
 
     def __repr__(self):
         return f"<Alumno id={self.id} nombre={self.nombre} fase={self.fase_actual_id}>"

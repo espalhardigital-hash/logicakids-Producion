@@ -21,6 +21,8 @@ const WelcomeScreenPhase6 = React.lazy(() => import('./components/fase6/WelcomeS
 const Fase6GameScreen = React.lazy(() => import('./components/fase6/Fase6GameScreen'));
 const Fase7GameScreen = React.lazy(() => import('./components/fase7/Fase7GameScreen'));
 const Fase8GameScreen = React.lazy(() => import('./components/fase8/Fase8GameScreen'));
+const Fase9GameScreen = React.lazy(() => import('./components/fase9/Fase9GameScreen').then(m => ({ default: m.Fase9GameScreen })));
+const Fase9ResultsScreen = React.lazy(() => import('./components/fase9/Fase9ResultsScreen').then(m => ({ default: m.Fase9ResultsScreen })));
 const PhaseMapScreen = React.lazy(() => import('./components/map/PhaseMapScreen'));
 const GameScreen = React.lazy(() => import('./components/fase1/GameScreen'));
 const ResultsScreen = React.lazy(() => import('./components/fase1/ResultsScreen'));
@@ -156,6 +158,8 @@ const Fase8GameScreenWrapper: React.FC<{ isEvaluatorMode: boolean }> = ({ isEval
     />
   );
 };
+
+
 
 const AppContent: React.FC = () => {
   // Current User Session (null if guest)
@@ -581,7 +585,7 @@ const AppContent: React.FC = () => {
                 userAvatar={currentUser.avatar}
                 userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId) => {
-                  navigate(`/fase/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 9 } });
+                  navigate(`/fase9/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 9 } });
                 }}
                 onBack={() => navigate('/map')}
               />
@@ -689,6 +693,22 @@ const AppContent: React.FC = () => {
           <Route path="/fase8/play" element={
             currentUser ? (
               <Fase8GameScreenWrapper isEvaluatorMode={isEvaluatorMode} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/fase/9/game/:moduloId/:nivelId" element={
+            currentUser ? (
+              <Fase9GameScreen />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/fase/9/resultados" element={
+            currentUser ? (
+              <Fase9ResultsScreen />
             ) : (
               <Navigate to="/login" replace />
             )

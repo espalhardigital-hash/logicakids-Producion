@@ -118,6 +118,39 @@ async def _gen_fase7_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             "errores_previstos": {}
         }
 
+async def seed_configuracion_progreso_fase7(session: AsyncSession):
+    print("Sembrando configuraciones de progreso Fase 7...")
+    sections = [(m, l) for m in range(1, 5) for l in [1, 2, 3, 11, 12, 13]]
+    for mod_id, lvl_id in sections:
+        if lvl_id > 10:
+            seccion_id = mod_id * 1000 + lvl_id
+            num_questions = 25 if lvl_id < 13 else 10
+            usa_crono = True
+            if lvl_id == 11:
+                tiempo = 30
+            elif lvl_id == 12:
+                tiempo = 45
+            else:
+                tiempo = 60
+        else:
+            seccion_id = mod_id * 100 + lvl_id
+            num_questions = 15
+            usa_crono = False
+            tiempo = None
+            
+        config = ConfiguracionProgreso(
+            fase_id=FASE7_ID,
+            seccion=seccion_id,
+            operacion=OperacionEnum.MIXTA,
+            cantidad_requerida=num_questions,
+            porcentaje_aprobacion=90,
+            orden_desbloqueo=lvl_id,
+            usa_cronometro=usa_crono,
+            tiempo_default_segundos=tiempo
+        )
+        session.add(config)
+    await session.commit()
+
 async def seed_practica_pool_fase7(session: AsyncSession):
     print("Sembrando pool de práctica Fase 7...")
     # 3 modulos x (3 practica + 3 desafios)
@@ -165,6 +198,7 @@ async def run_fase7_seed():
             
         await clear_fase7_data(session)
         await seed_teoria_niveles_fase7(session)
+        await seed_configuracion_progreso_fase7(session)
         await seed_practica_pool_fase7(session)
     print("FASE 7 COMPLETADA.")
     print("=" * 60)

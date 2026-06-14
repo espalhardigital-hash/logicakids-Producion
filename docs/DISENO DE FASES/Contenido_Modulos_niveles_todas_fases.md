@@ -6,6 +6,12 @@ He ajustado la numeración (por ejemplo, en la Fase 2, al eliminar la redundanci
 MAPA DE RUTA PEDAGÓGICO GLOBAL: LOGICAKIDS PRO (FASES 1 A 9)
 ARQUITECTURA COMPLETA DE NIVELES Y CONCEPTOS MATEMÁTICOS
 
+**NOTA SOBRE LOS DESAFÍOS (Niveles 11, 12 y 13):**
+* Todos los "DESAFÍO 1" en este mapa corresponden técnicamente al Nivel 11 en la base de datos (25 preguntas, Opción Múltiple).
+* Todos los "DESAFÍO 2" corresponden al Nivel 12 (25 preguntas, Opción Múltiple).
+* Todos los "DESAFÍO FINAL" corresponden al Nivel 13 (10 preguntas, Evocación Pura).
+* Ningún desafío usa mocks, el flujo es 100% server-authoritative extraído del endpoint `/api/fases/{id}/dashboard`.
+
 ================================================================================
 [FASE 1: ARITMÉTICA BÁSICA]
 Propósito: Garantizar la comprensión del sistema decimal y la automatización y fluidez de las operaciones.

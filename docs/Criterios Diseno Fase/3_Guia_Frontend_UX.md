@@ -264,6 +264,13 @@ Reglas:
 * exigir interactivos para desbloquear práctica;
 * no permitir avanzar si los interactivos obligatorios no fueron respondidos correctamente.
 
+### 7.1. Seguridad y Proporciones en Ilustraciones SVG
+
+Para garantizar que todas las ilustraciones vectoriales SVG explicativas o interactivas (como desarrollos planos, cuerpos 3D o esquemas) se rendericen correctamente sin recortarse:
+* **Límites de Canvas Seguros (viewBox):** Todo elemento `<svg>` debe definir un atributo `viewBox` que encapsule con suficiente holgura las coordenadas máximas y mínimas de sus elementos secundarios (`<rect>`, `<path>`, `<text>`, etc.).
+* **Márgenes y Holgura de Texto:** Se debe incluir un margen mínimo de seguridad de `20px` a `30px` alrededor de los bordes del dibujo y en el posicionamiento de textos/etiquetas descriptivas, previniendo recortes visuales en distintos tamaños de pantalla.
+* **Escala y Dimensionamiento de Elementos:** Al dibujar figuras complejas o redes de poliedros que superen el alto estándar de los modales pedagógicos, es mandatorio reducir proporcionalmente la escala de los componentes (por ejemplo, reducir el lado de las caras cuadradas de una red a `24px`) para evitar desbordamientos verticales.
+
 ---
 
 ## 8. Interfaz de Práctica y Juego
@@ -274,7 +281,7 @@ La práctica debe usar un input numérico grande y claro.
 
 ### 8.2. Custom Keyboard
 
-El teclado numérico personalizado evita distracciones del teclado nativo del dispositivo.
+El teclado numérico personalizado evita distracciones del teclado nativo del dispositivo y garantiza un comportamiento controlado para el público infantil.
 
 Debe incluir:
 
@@ -282,7 +289,12 @@ Debe incluir:
 * borrar;
 * confirmar;
 * separador decimal si el módulo lo requiere;
-* compatibilidad con dinero cuando aplique.
+* compatibilidad con dinero cuando aplique;
+
+#### Reglas de Layout y Comportamiento del Teclado:
+* **Diseño de Grilla Simétrica (3x4):** Para asegurar coherencia visual y facilidad táctil, las teclas se organizan en una cuadrícula simétrica de 3 columnas por 4 filas. La fila final debe ubicarse en la disposición exacta `[.]` `[0]` `[Borrar]` (separador decimal, cero, retroceso).
+* **Ubicación de Teclas de Control:** La tecla de retroceso (`Backspace`) se ubica dentro de la cuadrícula numérica principal (esquina inferior derecha) para mantener un diseño compacto. El botón principal de "Confirmar" debe ubicarse debajo de la cuadrícula, ocupando todo el ancho disponible (`w-full`), para facilitar su pulsación.
+* **Manejo de Signos Negativos:** El teclado numérico en pantalla **no** incluye botón de signo negativo (`-`). Si el módulo requiere ingresos negativos, el diseño base asume ingreso por teclado físico o adaptaciones futuras, priorizando la simplicidad del layout estándar de 3x4.
 
 ### 8.3. Subrayado por Tokens
 

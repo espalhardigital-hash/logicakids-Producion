@@ -71,6 +71,8 @@ let _qid = 0;
 const qid = () => ++_qid;
 
 // Helpers para Mocks eliminados de Fase 7 y 8 ya que ahora usan PostgreSQL
+const generateFase7Questions = (a: number, b: number) => [];
+const generateFase8Questions = (a: number, b: number, c?: number) => [];
 
 // ── FASE 3: Problemas de Texto ─────────────────────────────────
 
@@ -770,17 +772,17 @@ const FASE_7: FaseMetadata = {
         {
           nivelId: 11, nombre: 'Desafío 1: Navegación', descripcion: 'Mecánica: El Filtro, >80%',
           teoria: { titulo: 'Desafío de Navegación', parrafos: ['¡Demuestra que eres el mejor explorador cardinal!'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(11, 25)
+          preguntas: []
         },
         {
           nivelId: 12, nombre: 'Desafío 2: Explorador', descripcion: 'Mecánica: El Filtro, >90%',
           teoria: { titulo: 'Desafío Explorador', parrafos: ['Toma el control absoluto.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(12, 25)
+          preguntas: []
         },
         {
           nivelId: 13, nombre: 'Desafío Final: Maestro', descripcion: 'Mecánica: El Jefe, >90%',
           teoria: { titulo: 'Evaluación Final', parrafos: ['Máxima concentración.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(13, 10)
+          preguntas: []
         }
       ]
     },
@@ -948,17 +950,17 @@ const FASE_7: FaseMetadata = {
         {
           nivelId: 11, nombre: 'Desafío 1: Cartesiano', descripcion: 'Mecánica: El Filtro, >80%',
           teoria: { titulo: 'Desafío Cartesiano', parrafos: ['Domina las coordenadas exactas.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(11, 25)
+          preguntas: []
         },
         {
           nivelId: 12, nombre: 'Desafío 2: Topógrafo', descripcion: 'Mecánica: El Filtro, >90%',
           teoria: { titulo: 'Desafío de Topógrafo', parrafos: ['Mediciones precisas.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(12, 25)
+          preguntas: []
         },
         {
           nivelId: 13, nombre: 'Desafío Final: Geómetra', descripcion: 'Mecánica: El Jefe, >90%',
           teoria: { titulo: 'Evaluación Final', parrafos: ['Máxima precisión.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(13, 10)
+          preguntas: []
         }
       ]
     },
@@ -1128,17 +1130,17 @@ const FASE_7: FaseMetadata = {
         {
           nivelId: 11, nombre: 'Desafío 1: Cronómetro', descripcion: 'Mecánica: El Filtro, >80%',
           teoria: { titulo: 'Desafío del Tiempo', parrafos: ['¡Mide el tiempo sin dudar!'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(11, 25)
+          preguntas: []
         },
         {
           nivelId: 12, nombre: 'Desafío 2: Calculista', descripcion: 'Mecánica: El Filtro, >90%',
           teoria: { titulo: 'Desafío Calculista', parrafos: ['Añade y resta horas.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(12, 25)
+          preguntas: []
         },
         {
           nivelId: 13, nombre: 'Desafío Final: Maestro del Tiempo', descripcion: 'Mecánica: El Jefe, >90%',
           teoria: { titulo: 'Evaluación Final', parrafos: ['Máxima sincronización.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(13, 10)
+          preguntas: []
         }
       ]
     },
@@ -1304,17 +1306,17 @@ const FASE_7: FaseMetadata = {
         {
           nivelId: 11, nombre: 'Desafío 1: Coordinador', descripcion: 'Mecánica: El Filtro, >80%',
           teoria: { titulo: 'Desafío Coordinador', parrafos: ['¡Coordina todos los horarios!'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(11, 25)
+          preguntas: []
         },
         {
           nivelId: 12, nombre: 'Desafío 2: Despachador', descripcion: 'Mecánica: El Filtro, >90%',
           teoria: { titulo: 'Desafío Despachador', parrafos: ['Gestiona flujos de transporte.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(12, 25)
+          preguntas: []
         },
         {
           nivelId: 13, nombre: 'Desafío Final: Logístico', descripcion: 'Mecánica: El Jefe, >90%',
           teoria: { titulo: 'Evaluación Final', parrafos: ['Máxima eficiencia.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
-          preguntas: generateFase7Questions(13, 10)
+          preguntas: []
         }
       ]
     }
@@ -1522,7 +1524,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: '¡Concéntrate, necesitas un 80% de precisión!'
           },
-          preguntas: generateFase8Questions(1, 11, 25)
+          preguntas: []
         },
         {
           nivelId: 12, nombre: 'Desafío 2: Reglas simultáneas', descripcion: 'Mecánica: La Trampa',
@@ -1556,7 +1558,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Separa la serie en dos subseries para descubrir las reglas individuales.'
           },
-          preguntas: generateFase8Questions(1, 12, 25)
+          preguntas: []
         },
         {
           nivelId: 13, nombre: 'Desafío Final: Exponencial', descripcion: 'Mecánica: El Candado, ≥90%',
@@ -1591,7 +1593,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Recuerda que la multiplicación sucesiva crece muy rápido.'
           },
-          preguntas: generateFase8Questions(1, 13, 10)
+          preguntas: []
         }
       ]
     },
@@ -1723,7 +1725,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: '¡Alcanza más del 80%!'
           },
-          preguntas: generateFase8Questions(2, 11, 25)
+          preguntas: []
         },
         {
           nivelId: 12, nombre: 'Desafío 2: Restricciones', descripcion: 'Mecánica: La Trampa',
@@ -1752,7 +1754,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Resta las opciones imposibles al total.'
           },
-          preguntas: generateFase8Questions(2, 12, 25)
+          preguntas: []
         },
         {
           nivelId: 13, nombre: 'Desafío Final: Empaquetado tech', descripcion: 'Mecánica: El Candado, ≥90%',
@@ -1781,7 +1783,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Encuentra el divisor común o multiplica sabiamente.'
           },
-          preguntas: generateFase8Questions(2, 13, 10)
+          preguntas: []
         }
       ]
     },
@@ -1953,7 +1955,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Velocidad y precisión.'
           },
-          preguntas: generateFase8Questions(3, 11, 25)
+          preguntas: []
         },
         {
           nivelId: 12, nombre: 'Desafío 2: Cambio de espacio', descripcion: 'Mecánica: La Trampa',
@@ -1982,7 +1984,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Resta 1 al total si ya sacaste un elemento.'
           },
-          preguntas: generateFase8Questions(3, 12, 25)
+          preguntas: []
         },
         {
           nivelId: 13, nombre: 'Desafío Final: Mezcla compleja', descripcion: 'Mecánica: El Candado, ≥90%',
@@ -2011,7 +2013,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Identifica el sólido correcto entre la mezcla.'
           },
-          preguntas: generateFase8Questions(3, 13, 10)
+          preguntas: []
         }
       ]
     }

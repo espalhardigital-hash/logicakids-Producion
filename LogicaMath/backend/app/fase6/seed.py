@@ -750,7 +750,7 @@ async def run_fase6_seed():
         await seed_configuracion_progreso(session)
         await seed_practica_pool(session)
         await seed_preguntas_desafios(session)
-        await update_seed_version(session, "fase_6", SEED_VERSIONS.get("fase_6", "20260603_v1"))
+        await update_seed_version(session, "fase_6", SEED_VERSIONS.get("fase_6", "20260614_v1"))
         await session.commit()
     print("Fase 6 inyectada con éxito!")
 
