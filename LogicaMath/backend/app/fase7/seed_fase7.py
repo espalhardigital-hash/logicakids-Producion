@@ -50,60 +50,93 @@ async def seed_teoria_niveles_fase7(session: AsyncSession):
         session.add(nt)
     await session.commit()
 
+import base64
+
+def _svg_to_base64(svg_str: str) -> str:
+    return "data:image/svg+xml;base64," + base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
+
+def _generate_svg_fase7(mod_id: int, rng: random.Random) -> str:
+    if mod_id == 1:
+        # Fracciones Visuales: Grilla
+        svg = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="80" height="80" fill="none" stroke="#374151" stroke-width="4"/><rect x="10" y="10" width="40" height="40" fill="#10B981"/><rect x="50" y="10" width="40" height="40" fill="white"/><rect x="10" y="50" width="40" height="40" fill="white"/><rect x="50" y="50" width="40" height="40" fill="white"/></svg>'
+        return _svg_to_base64(svg)
+    elif mod_id == 2:
+        # Operaciones con fracciones
+        svg = '<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="30" width="40" height="40" fill="#8B5CF6"/><text x="80" y="60" font-size="30" fill="black">+</text><rect x="120" y="30" width="40" height="40" fill="#C4B5FD"/></svg>'
+        return _svg_to_base64(svg)
+    else:
+        # Decimales visuales
+        svg = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" fill="none" stroke="#F59E0B" stroke-width="4"/><path d="M 50 50 L 50 10 A 40 40 0 0 1 90 50 Z" fill="#F59E0B"/></svg>'
+        return _svg_to_base64(svg)
+
 async def _gen_fase7_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
-    # Generador algorítmico de variantes
-    if mod_id == 4: # Tiempo y Horarios
-        if lvl_id == 1:
-            hora_inicio = rng.randint(8, 11)
-            min_inicio = rng.choice([0, 15, 30])
-            duracion = rng.choice([25, 45, 50])
-            
-            # Cálculo
-            total_min = min_inicio + duracion
-            hora_fin = hora_inicio + (total_min // 60)
-            min_fin = total_min % 60
-            
-            ans = f"{hora_fin:02d}:{min_fin:02d}"
-            
-            enunciado = f"El bus sale a las {hora_inicio:02d}:{min_inicio:02d} y el viaje dura {duracion} minutos. ¿A qué hora llega?"
-            expl = f"Sumamos los minutos: {min_inicio} + {duracion} = {total_min}. Esto es {total_min//60} hora(s) y {total_min%60} minutos. La hora final es {ans}."
-            
-            return {
-                "enunciado": enunciado,
-                "respuesta_correcta": ans,
-                "expl": expl,
-                "alts": [ans, f"{hora_fin+1:02d}:{min_fin:02d}", f"{hora_inicio:02d}:{min_fin:02d}", f"{hora_inicio+1:02d}:{(min_fin+10)%60:02d}"],
-                "datos_numericos": {
-                    "tipo_visual": "reloj",
-                    "hora": f"{hora_inicio:02d}:{min_inicio:02d}"
-                },
-                "errores_previstos": {
-                    f"{hora_inicio+1:02d}:{(total_min):02d}": {"tutor_msg": "Recuerda que una hora tiene 60 minutos, no 100."}
-                }
-            }
+    svg_data = _generate_svg_fase7(mod_id, rng)
     
-    # Default estandar para otros niveles no implementados completamente en el seeder aún
-    ans = "10"
-    return {
-        "enunciado": "Pregunta generada dinámicamente Fase 7",
-        "respuesta_correcta": ans,
-        "expl": "Explicación algorítmica.",
-        "alts": [ans, "11", "12", "13"],
-        "metadata_visual": {"requiere_imagen": False},
-        "errores_previstos": {}
-    }
+    if mod_id == 1:
+        # Fracciones Visuales
+        numerador = rng.randint(1, 4)
+        denominador = rng.randint(5, 10)
+        ans_str = f"{numerador}/{denominador}"
+        enunciado = f"¿Qué fracción representa la parte coloreada si hay {numerador} cuadros pintados de un total de {denominador}?"
+        return {
+            "enunciado": enunciado,
+            "respuesta_correcta": ans_str,
+            "expl": f"Numerador: {numerador}. Denominador: {denominador}.",
+            "alts": [ans_str, f"{denominador}/{numerador}", f"{numerador+1}/{denominador}", f"{numerador}/{denominador+1}"],
+            "metadata_visual": {"requiere_imagen": True, "svg_base64": svg_data},
+            "errores_previstos": {}
+        }
+    elif mod_id == 2:
+        # Operaciones
+        num1 = rng.randint(1, 3)
+        num2 = rng.randint(1, 3)
+        den = rng.randint(4, 7)
+        ans = num1 + num2
+        ans_str = f"{ans}/{den}"
+        enunciado = f"Calcula la suma: {num1}/{den} + {num2}/{den}"
+        return {
+            "enunciado": enunciado,
+            "respuesta_correcta": ans_str,
+            "expl": f"Al tener el mismo denominador, se suman los numeradores: {num1} + {num2} = {ans}.",
+            "alts": [ans_str, f"{ans}/{den*2}", f"{num1}/{den}", f"{num2}/{den}"],
+            "metadata_visual": {"requiere_imagen": True, "svg_base64": svg_data},
+            "errores_previstos": {}
+        }
+    else:
+        # Decimales
+        frac_num = rng.randint(1, 9)
+        frac_den = 10
+        ans = frac_num / frac_den
+        ans_str = f"0.{frac_num}"
+        enunciado = f"Convierte la fracción {frac_num}/{frac_den} a decimal."
+        return {
+            "enunciado": enunciado,
+            "respuesta_correcta": ans_str,
+            "expl": f"Al dividir por 10, movemos el punto decimal un lugar: {ans_str}.",
+            "alts": [ans_str, f"0.0{frac_num}", f"{frac_num}.0", f"1.{frac_num}"],
+            "metadata_visual": {"requiere_imagen": True, "svg_base64": svg_data},
+            "errores_previstos": {}
+        }
 
 async def seed_practica_pool_fase7(session: AsyncSession):
     print("Sembrando pool de práctica Fase 7...")
-    sections = [(4, 1)] # Ejemplo
+    # 3 modulos x (3 practica + 3 desafios)
+    sections = [(m, l) for m in range(1, 4) for l in [1, 2, 3, 11, 12, 13]]
     
     for mod_id, lvl_id in sections:
-        seccion_id = mod_id * 100 + lvl_id
-        for i in range(10): # 10 variantes por nivel para testing
+        if lvl_id > 10:
+            seccion_id = mod_id * 1000 + lvl_id
+            num_questions = 25 if lvl_id < 13 else 10
+        else:
+            seccion_id = mod_id * 100 + lvl_id
+            num_questions = 15
+            
+        for i in range(num_questions):
             rng = random.Random(FASE7_ID * 100000 + seccion_id * 1000 + i)
             q_data = await _gen_fase7_pool(rng, mod_id, lvl_id)
             
-            payload = q_data.get("datos_numericos", {"fase7": True})
+            payload = q_data.get("metadata_visual", {})
+            payload["fase7"] = True
             
             p = Pregunta(
                 fase_id=FASE7_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,

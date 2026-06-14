@@ -235,7 +235,14 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                     ans, expl = 8, "Un cubo tiene 8 vértices (4 esquinas arriba y 4 abajo)."
                 else:
                     ans, expl = 12, "Un cubo tiene 12 aristas (4 bordes arriba, 4 abajo y 4 bordes verticales)."
-                enunciado = f"¿Cuántas {param} tiene un cubo regular?"
+                enunciado = (
+                    f"¿Cuántas {param} tiene un cubo regular?<br/>"
+                    "<svg width='160' height='160' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                    "  <polygon points='60,20 90,35 60,50 30,35' fill='#3B82F6' fill-opacity='0.6' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <polygon points='30,35 60,50 60,90 30,75' fill='#1D4ED8' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <polygon points='60,50 90,35 90,75 60,90' fill='#1E40AF' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                    "</svg>"
+                )
             elif solid_type == "prisma rectangular":
                 param = rng.choice(["caras", "vértices", "aristas"])
                 if param == "caras":
@@ -244,7 +251,14 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                     ans, expl = 8, "Un prisma rectangular tiene 8 vértices (4 arriba y 4 abajo)."
                 else:
                     ans, expl = 12, "Un prisma rectangular tiene 12 aristas en total."
-                enunciado = f"¿Cuántas {param} tiene un prisma rectangular?"
+                enunciado = (
+                    f"¿Cuántas {param} tiene un prisma rectangular?<br/>"
+                    "<svg width='160' height='160' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                    "  <polygon points='60,25 100,40 60,55 20,40' fill='#3B82F6' fill-opacity='0.6' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <polygon points='20,40 60,55 60,95 20,80' fill='#1D4ED8' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <polygon points='60,55 100,40 100,80 60,95' fill='#1E40AF' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                    "</svg>"
+                )
             elif solid_type == "pirámide cuadrangular":
                 param = rng.choice(["caras", "vértices", "aristas"])
                 if param == "caras":
@@ -253,7 +267,16 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                     ans, expl = 5, "Una pirámide cuadrangular tiene 5 vértices (4 esquinas en la base y la cúspide)."
                 else:
                     ans, expl = 8, "Una pirámide cuadrangular tiene 8 aristas (4 en la base cuadrada y 4 que suben a la punta)."
-                enunciado = f"¿Cuántas {param} tiene una pirámide con base cuadrada (pirámide cuadrangular)?"
+                enunciado = (
+                    f"¿Cuántas {param} tiene una pirámide con base cuadrada (pirámide cuadrangular)?<br/>"
+                    "<svg width='160' height='160' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                    "  <line x1='30' y1='80' x2='60' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='90' y1='80' x2='60' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='60' y1='65' x2='60' y2='25' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <polygon points='60,25 30,80 60,95' fill='#3B82F6' fill-opacity='0.6' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <polygon points='60,25 60,95 90,80' fill='#1D4ED8' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                    "</svg>"
+                )
             else: # prisma triangular
                 param = rng.choice(["caras", "vértices", "aristas"])
                 if param == "caras":
@@ -262,7 +285,19 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                     ans, expl = 6, "Un prisma triangular tiene 6 vértices (3 esquinas en la base inferior y 3 en la superior)."
                 else:
                     ans, expl = 9, "Un prisma triangular tiene 9 aristas (3 en la base de arriba, 3 abajo y 3 uniendo ambas bases)."
-                enunciado = f"¿Cuántas {param} tiene un prisma triangular?"
+                enunciado = (
+                    f"¿Cuántas {param} tiene un prisma triangular?<br/>"
+                    "<svg width='160' height='160' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                    "  <line x1='30' y1='40' x2='60' y2='25' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='90' y1='40' x2='60' y2='25' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='30' y1='80' x2='65' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='90' y1='80' x2='65' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='60' y1='25' x2='65' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <polygon points='30,40 30,80 75,95 75,55' fill='#3B82F6' fill-opacity='0.6' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <polygon points='75,55 75,95 90,80 90,40' fill='#1D4ED8' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <polygon points='30,40 75,55 90,40' fill='#1E40AF' fill-opacity='0.5' stroke='#1E3A8A' stroke-width='2'/>"
+                    "</svg>"
+                )
             
             ans_str = str(ans)
             return {

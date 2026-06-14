@@ -132,13 +132,21 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
       }
     : (modulo && 'niveles' in modulo ? (modulo as any).niveles.find((n: any) => n.nivelId === nivelId) : undefined);
 
+  const currentQuestion = moduloId === 99 
+    ? challengeQuestions[currentQuestionIndex] 
+    : nivel?.preguntas?.[currentQuestionIndex];
+
+  const totalQuestions = moduloId === 99 
+    ? challengeQuestions.length 
+    : (nivel?.preguntas?.length || 0);
+
   // Focus hidden input for numeric question
   useEffect(() => {
     const isNumeric = currentQuestion?.tipo === 'numerico';
     if (!showReading && !levelCompleted && isNumeric) {
       setTimeout(() => inputRef.current?.focus(), 150);
     }
-  }, [showReading, levelCompleted, currentQuestionIndex, challengeQuestions]);
+  }, [showReading, levelCompleted, currentQuestionIndex, challengeQuestions, currentQuestion]);
 
   if (!metadata || !modulo || !nivel || (moduloId === 99 && challengeQuestions.length === 0)) {
     return (
@@ -154,12 +162,6 @@ export default function FaseGenericGameScreen({ isEvaluatorMode }: { isEvaluator
       </div>
     );
   }
-
-  const currentQuestion = moduloId === 99 
-    ? challengeQuestions[currentQuestionIndex] 
-    : nivel.preguntas[currentQuestionIndex];
-
-  const totalQuestions = moduloId === 99 ? challengeQuestions.length : nivel.preguntas.length;
 
   const currentAciertos = answersLog.filter(a => a.isCorrect).length;
   const currentErrores = answersLog.filter(a => !a.isCorrect).length;

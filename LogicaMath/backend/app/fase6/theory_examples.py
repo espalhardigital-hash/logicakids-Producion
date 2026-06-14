@@ -9,23 +9,23 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
         (1, 1): [
             {
                 "enunciado": "Contar las caras, aristas y vértices en un cubo regular 3D:<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='0 0 180 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
                              "  <!-- Cubo isométrico -->"
                              "  <!-- Cara superior (Tapa) -->"
-                             "  <polygon points='60,20 90,35 60,50 30,35' fill='#3B82F6' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                             "  <polygon points='90,20 120,35 90,50 60,35' fill='#3B82F6' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
                              "  <!-- Cara frontal izquierda -->"
-                             "  <polygon points='30,35 60,50 60,90 30,75' fill='#1D4ED8' stroke='#1E3A8A' stroke-width='2'/>"
+                             "  <polygon points='60,35 90,50 90,90 60,75' fill='#1D4ED8' stroke='#1E3A8A' stroke-width='2'/>"
                              "  <!-- Cara frontal derecha -->"
-                             "  <polygon points='60,50 90,35 90,75 60,90' fill='#1E40AF' stroke='#1E3A8A' stroke-width='2'/>"
+                             "  <polygon points='90,50 120,35 120,75 90,90' fill='#1E40AF' stroke='#1E3A8A' stroke-width='2'/>"
                              "  <!-- Vértices marcados -->"
-                             "  <circle cx='60' cy='20' r='3.5' fill='#FDE047'/>"
-                             "  <circle cx='90' cy='35' r='3.5' fill='#FDE047'/>"
-                             "  <circle cx='60' cy='50' r='3.5' fill='#FDE047'/>"
-                             "  <circle cx='30' cy='35' r='3.5' fill='#FDE047'/>"
-                             "  <circle cx='30' cy='75' r='3.5' fill='#FDE047'/>"
-                             "  <circle cx='60' cy='90' r='3.5' fill='#FDE047'/>"
-                             "  <circle cx='90' cy='75' r='3.5' fill='#FDE047'/>"
-                             "  <text x='60' y='110' fill='#FFF' font-size='9' text-anchor='middle'>Esquinas amarillas = Vértices</text>"
+                             "  <circle cx='90' cy='20' r='3.5' fill='#FDE047'/>"
+                             "  <circle cx='120' cy='35' r='3.5' fill='#FDE047'/>"
+                             "  <circle cx='90' cy='50' r='3.5' fill='#FDE047'/>"
+                             "  <circle cx='60' cy='35' r='3.5' fill='#FDE047'/>"
+                             "  <circle cx='60' cy='75' r='3.5' fill='#FDE047'/>"
+                             "  <circle cx='90' cy='90' r='3.5' fill='#FDE047'/>"
+                             "  <circle cx='120' cy='75' r='3.5' fill='#FDE047'/>"
+                             "  <text x='90' y='110' fill='#FFF' font-size='9' text-anchor='middle'>Esquinas amarillas = Vértices</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Las <span class=\"keyword-highlight\">caras</span> son las paredes planas (un cubo tiene 6 caras)."},
@@ -35,15 +35,15 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "¿Cuántas caras tiene un cubo regular?<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='0 0 160 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
                              "  <!-- Caras desplegadas tipo cruz -->"
-                             "  <rect x='45' y='15' width='30' height='30' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
-                             "  <rect x='15' y='45' width='30' height='30' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
-                             "  <rect x='45' y='45' width='30' height='30' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
-                             "  <rect x='75' y='45' width='30' height='30' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
-                             "  <rect x='45' y='75' width='30' height='30' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
-                             "  <rect x='45' y='105' width='30' height='30' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
-                             "  <text x='60' y='72' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>6 caras</text>"
+                             "  <rect x='68' y='12' width='24' height='24' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
+                             "  <rect x='44' y='36' width='24' height='24' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
+                             "  <rect x='68' y='36' width='24' height='24' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
+                             "  <rect x='92' y='36' width='24' height='24' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
+                             "  <rect x='68' y='60' width='24' height='24' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
+                             "  <rect x='68' y='84' width='24' height='24' fill='#3B82F6' fill-opacity='0.5' stroke='#FFF'/>"
+                             "  <text x='80' y='51' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>6 caras</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Un cubo es como un dado para jugar juegos de mesa."},
@@ -53,17 +53,17 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "¿Cuántos vértices (esquinas) tiene un cubo?<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
-                             "  <polygon points='60,30 90,45 60,60 30,45' fill='none' stroke='#FFF'/>"
-                             "  <polygon points='30,45 60,60 60,95 30,80' fill='none' stroke='#FFF'/>"
-                             "  <polygon points='60,60 90,45 90,80 60,95' fill='none' stroke='#FFF'/>"
-                             "  <circle cx='60' cy='30' r='4' fill='#FDE047'/><circle cx='90' cy='45' r='4' fill='#FDE047'/>"
-                             "  <circle cx='60' cy='60' r='4' fill='#FDE047'/><circle cx='30' cy='45' r='4' fill='#FDE047'/>"
-                             "  <circle cx='30' cy='80' r='4' fill='#FDE047'/><circle cx='60' cy='95' r='4' fill='#FDE047'/>"
-                             "  <circle cx='90' cy='80' r='4' fill='#FDE047'/>"
+                             "<svg width='260' height='260' viewBox='0 0 160 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                             "  <polygon points='80,30 110,45 80,60 50,45' fill='none' stroke='#FFF'/>"
+                             "  <polygon points='50,45 80,60 80,95 50,80' fill='none' stroke='#FFF'/>"
+                             "  <polygon points='80,60 110,45 110,80 80,95' fill='none' stroke='#FFF'/>"
+                             "  <circle cx='80' cy='30' r='4' fill='#FDE047'/><circle cx='110' cy='45' r='4' fill='#FDE047'/>"
+                             "  <circle cx='80' cy='60' r='4' fill='#FDE047'/><circle cx='50' cy='45' r='4' fill='#FDE047'/>"
+                             "  <circle cx='50' cy='80' r='4' fill='#FDE047'/><circle cx='80' cy='95' r='4' fill='#FDE047'/>"
+                             "  <circle cx='110' cy='80' r='4' fill='#FDE047'/>"
                              "  <!-- Punto invisible de atrás -->"
-                             "  <circle cx='60' cy='65' r='3' fill='#FDE047' fill-opacity='0.4'/>"
-                             "  <text x='60' y='112' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>8 vértices en total</text>"
+                             "  <circle cx='80' cy='65' r='3' fill='#FDE047' fill-opacity='0.4'/>"
+                             "  <text x='80' y='112' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>8 vértices en total</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Contamos las esquinas de la tapa superior: hay 4."},
@@ -73,13 +73,13 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "¿Cuántas aristas (bordes) tiene un cubo?<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
-                             "  <polygon points='60,30 90,45 60,60 30,45' fill='none' stroke='#EF4444' stroke-width='2'/>"
-                             "  <line x1='30' y1='45' x2='30' y2='80' stroke='#10B981' stroke-width='2'/>"
-                             "  <line x1='60' y1='60' x2='60' y2='95' stroke='#10B981' stroke-width='2'/>"
-                             "  <line x1='90' y1='45' x2='90' y2='80' stroke='#10B981' stroke-width='2'/>"
-                             "  <polygon points='30,80 60,95 90,80' fill='none' stroke='#EF4444' stroke-width='2'/>"
-                             "  <text x='60' y='112' fill='#FFF' font-size='9' text-anchor='middle'>Rojos: 8, Verdes/Azules: 4 = 12</text>"
+                             "<svg width='260' height='260' viewBox='0 0 180 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                             "  <polygon points='90,30 120,45 90,60 60,45' fill='none' stroke='#EF4444' stroke-width='2'/>"
+                             "  <line x1='60' y1='45' x2='60' y2='80' stroke='#10B981' stroke-width='2'/>"
+                             "  <line x1='90' y1='60' x2='90' y2='95' stroke='#10B981' stroke-width='2'/>"
+                             "  <line x1='120' y1='45' x2='120' y2='80' stroke='#10B981' stroke-width='2'/>"
+                             "  <polygon points='60,80 90,95 120,80' fill='none' stroke='#EF4444' stroke-width='2'/>"
+                             "  <text x='90' y='112' fill='#FFF' font-size='9' text-anchor='middle'>Rojos: 8, Verdes/Azules: 4 = 12</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Contamos los bordes de arriba (4) y los de abajo (4)."},
@@ -91,17 +91,17 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
         (1, 2): [
             {
                 "enunciado": "Contamos los bloques de una torre y encontramos los bloques ocultos abajo:<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='0 0 160 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
                              "  <!-- Columna izquierda (2 de altura) -->"
-                             "  <polygon points='35,50 55,40 75,50 55,60' fill='#A855F7' stroke='#5B21B6'/>"
-                             "  <polygon points='35,50 55,60 55,80 35,70' fill='#8B5CF6' stroke='#5B21B6'/>"
-                             "  <polygon points='55,60 75,50 75,70 55,80' fill='#7C3AED' stroke='#5B21B6'/>"
+                             "  <polygon points='55,50 75,40 95,50 75,60' fill='#A855F7' stroke='#5B21B6'/>"
+                             "  <polygon points='55,50 75,60 75,80 55,70' fill='#8B5CF6' stroke='#5B21B6'/>"
+                             "  <polygon points='75,60 95,50 95,70 75,80' fill='#7C3AED' stroke='#5B21B6'/>"
                              "  <!-- Bloque flotante encima (nivel 3) -->"
-                             "  <polygon points='35,20 55,10 75,20 55,30' fill='#EC4899' stroke='#BE185D'/>"
-                             "  <polygon points='35,20 55,30 55,50 35,40' fill='#D946EF' stroke='#BE185D'/>"
-                             "  <polygon points='55,30 75,20 75,40 55,50' fill='#C084FC' stroke='#BE185D'/>"
-                             "  <text x='95' y='30' fill='#EF4444' font-size='10' font-weight='bold'>Nivel 3</text>"
-                             "  <text x='95' y='65' fill='#A855F7' font-size='9' font-weight='bold'>Soportes</text>"
+                             "  <polygon points='55,20 75,10 95,20 75,30' fill='#EC4899' stroke='#BE185D'/>"
+                             "  <polygon points='55,20 75,30 75,50 55,40' fill='#D946EF' stroke='#BE185D'/>"
+                             "  <polygon points='75,30 95,20 95,40 75,50' fill='#C084FC' stroke='#BE185D'/>"
+                             "  <text x='115' y='30' fill='#EF4444' font-size='10' font-weight='bold'>Nivel 3</text>"
+                             "  <text x='115' y='65' fill='#A855F7' font-size='9' font-weight='bold'>Soportes</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Si ves un cubo en el aire en el Nivel 3, significa que no puede flotar mágicamente."},
@@ -111,16 +111,16 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Si ves un bloque a una altura de 3 niveles, ¿cuántos bloques hay en su columna completa?<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='0 0 160 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
                              "  <!-- Columna vertical de 3 bloques -->"
-                             "  <polygon points='60,20 80,10 100,20 80,30' fill='#EC4899' stroke='#BE185D'/>"
-                             "  <polygon points='60,20 80,30 80,50 60,40' fill='#D946EF' stroke='#BE185D'/>"
-                             "  <polygon points='80,30 100,20 100,50 80,50' fill='#C084FC' stroke='#BE185D'/>"
-                             "  <polygon points='60,50 80,60 80,80 60,70' fill='#8B5CF6' stroke='#5B21B6'/>"
-                             "  <polygon points='80,60 100,50 100,80 80,80' fill='#7C3AED' stroke='#5B21B6'/>"
-                             "  <polygon points='60,80 80,90 80,110 60,100' fill='#3B82F6' stroke='#1E3A8A'/>"
-                             "  <polygon points='80,90 100,80 100,110 80,110' fill='#1D4ED8' stroke='#1E3A8A'/>"
-                             "  <text x='35' y='60' fill='#FFF' font-size='10' font-weight='bold'>3 bloques</text>"
+                             "  <polygon points='80,20 100,10 120,20 100,30' fill='#EC4899' stroke='#BE185D'/>"
+                             "  <polygon points='80,20 100,30 100,50 80,40' fill='#D946EF' stroke='#BE185D'/>"
+                             "  <polygon points='100,30 120,20 120,50 100,50' fill='#C084FC' stroke='#BE185D'/>"
+                             "  <polygon points='80,50 100,60 100,80 80,70' fill='#8B5CF6' stroke='#5B21B6'/>"
+                             "  <polygon points='100,60 120,50 120,80 100,80' fill='#7C3AED' stroke='#5B21B6'/>"
+                             "  <polygon points='80,80 100,90 100,110 80,100' fill='#3B82F6' stroke='#1E3A8A'/>"
+                             "  <polygon points='100,90 120,80 120,110 100,110' fill='#1D4ED8' stroke='#1E3A8A'/>"
+                             "  <text x='55' y='60' fill='#FFF' font-size='10' font-weight='bold'>3 bloques</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "El nivel superior es el 3."},
@@ -130,12 +130,12 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "En una estructura en forma de cruz, el bloque central está en el nivel 2. ¿Cuántos bloques ocultos hay debajo?<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='0 0 160 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
                              "  <!-- Bloque Nivel 2 -->"
-                             "  <polygon points='50,40 70,30 90,40 70,50' fill='#EC4899' stroke='#BE185D'/>"
-                             "  <polygon points='50,40 70,50 70,70 50,60' fill='#D946EF' stroke='#BE185D'/>"
-                             "  <polygon points='70,50 90,40 90,70 70,70' fill='#C084FC' stroke='#BE185D'/>"
-                             "  <text x='70' y='95' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>Soporte oculto abajo</text>"
+                             "  <polygon points='70,40 90,30 110,40 90,50' fill='#EC4899' stroke='#BE185D'/>"
+                             "  <polygon points='70,40 90,50 90,70 70,60' fill='#D946EF' stroke='#BE185D'/>"
+                             "  <polygon points='90,50 110,40 110,70 90,70' fill='#C084FC' stroke='#BE185D'/>"
+                             "  <text x='90' y='95' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>Soporte oculto abajo</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "El bloque central que estás viendo está en el segundo piso."},
@@ -198,11 +198,11 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Un molde de cilindro se compone de 2 círculos (las tapas) y un...<br/>"
-                             "<svg width='260' height='160' viewBox='0 0 120 80' style='margin:10px auto; display:block; background:#111827; border:2px solid #10B981; border-radius:12px;'>"
-                             "  <circle cx='60' cy='18' r='12' fill='#10B981' fill-opacity='0.4' stroke='#FFF'/>"
-                             "  <rect x='30' y='33' width='60' height='26' fill='#10B981' fill-opacity='0.4' stroke='#FFF'/>"
-                             "  <circle cx='60' cy='68' r='12' fill='#10B981' fill-opacity='0.4' stroke='#FFF'/>"
-                             "  <text x='60' y='48' fill='#FFF' font-size='9' text-anchor='middle'>Rectángulo</text>"
+                             "<svg width='260' height='160' viewBox='0 0 140 85' style='margin:10px auto; display:block; background:#111827; border:2px solid #10B981; border-radius:12px;'>"
+                             "  <circle cx='70' cy='21' r='12' fill='#10B981' fill-opacity='0.4' stroke='#FFF'/>"
+                             "  <rect x='40' y='36' width='60' height='26' fill='#10B981' fill-opacity='0.4' stroke='#FFF'/>"
+                             "  <circle cx='70' cy='71' r='12' fill='#10B981' fill-opacity='0.4' stroke='#FFF'/>"
+                             "  <text x='70' y='51' fill='#FFF' font-size='9' text-anchor='middle'>Rectángulo</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "El cilindro es redondo como una lata de refresco."},
@@ -276,16 +276,16 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
         (1, 4): [
             {
                 "enunciado": "Calcula el volumen sumando los bloques de una pirámide capa por capa (estratos):<br/>"
-                             "<svg width='260' height='220' viewBox='0 0 120 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #10B981; border-radius:12px;'>"
+                             "<svg width='260' height='220' viewBox='0 0 180 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #10B981; border-radius:12px;'>"
                              "  <!-- Capa inferior: 4 bloques (en cruz isométrica) -->"
-                             "  <polygon points='60,50 80,40 100,50 80,60' fill='#059669' stroke='#047857'/>"
-                             "  <polygon points='40,60 60,50 80,60 60,70' fill='#059669' stroke='#047857'/>"
-                             "  <polygon points='20,50 40,40 60,50 40,60' fill='#059669' stroke='#047857'/>"
+                             "  <polygon points='90,50 110,40 130,50 110,60' fill='#059669' stroke='#047857'/>"
+                             "  <polygon points='70,60 90,50 110,60 90,70' fill='#059669' stroke='#047857'/>"
+                             "  <polygon points='50,50 70,40 90,50 70,60' fill='#059669' stroke='#047857'/>"
                              "  <!-- Capa superior: 1 bloque flotante -->"
-                             "  <polygon points='40,30 60,20 80,30 60,40' fill='#34D399' stroke='#047857'/>"
-                             "  <polygon points='40,30 60,40 60,50 40,40' fill='#6EE7B7' stroke='#047857'/>"
-                             "  <polygon points='60,40 80,30 80,40 60,50' fill='#A7F3D0' stroke='#047857'/>"
-                             "  <text x='60' y='92' fill='#FFF' font-size='9' text-anchor='middle'>Arriba: 1, Abajo: 4 = 5 bloques</text>"
+                             "  <polygon points='70,30 90,20 110,30 90,40' fill='#34D399' stroke='#047857'/>"
+                             "  <polygon points='70,30 90,40 90,50 70,40' fill='#6EE7B7' stroke='#047857'/>"
+                             "  <polygon points='90,40 110,30 110,40 90,50' fill='#A7F3D0' stroke='#047857'/>"
+                             "  <text x='90' y='92' fill='#FFF' font-size='9' text-anchor='middle'>Arriba: 1, Abajo: 4 = 5 bloques</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "<b>Capa de abajo (Piso 1):</b> Hay 4 bloques sirviendo de base."},
@@ -365,8 +365,8 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Regla: N + 4. ¿Cuántos bloques en la etapa N = 10?<br/>"
-                             "<svg width='260' height='100' viewBox='0 0 160 50' style='margin:10px auto; display:block; background:#111827; border:2px solid #EF4444; border-radius:12px;'>"
-                             "  <text x='80' y='30' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>N = 10  →  10 + 4 = 14</text>"
+                             "<svg width='260' height='100' viewBox='0 0 180 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #EF4444; border-radius:12px;'>"
+                             "  <text x='90' y='55' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>N = 10  →  10 + 4 = 14</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Reemplazamos 'N' por 10 en la fórmula."},
@@ -380,18 +380,18 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
         (3, 1): [
             {
                 "enunciado": "Calcula el volumen contando los cubitos unitarios de 1x1x1 (u³) de esta figura:<br/>"
-                             "<svg width='260' height='220' viewBox='0 0 140 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #EC4899; border-radius:12px;'>"
+                             "<svg width='260' height='220' viewBox='0 0 180 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #EC4899; border-radius:12px;'>"
                              "  <!-- Fila de 3 cubos isométricos -->"
-                             "  <polygon points='20,50 40,40 60,50 40,60' fill='#F59E0B' stroke='#D97706'/>"
-                             "  <polygon points='20,50 40,60 40,80 20,70' fill='#D97706' stroke='#B45309'/>"
-                             "  <polygon points='40,60 60,50 60,70 40,80' fill='#B45309' stroke='#B45309'/>"
-                             "  <polygon points='50,50 70,40 90,50 70,60' fill='#F59E0B' stroke='#D97706'/>"
-                             "  <polygon points='50,50 70,60 70,80 50,70' fill='#D97706' stroke='#B45309'/>"
-                             "  <polygon points='70,60 90,50 90,70 70,80' fill='#B45309' stroke='#B45309'/>"
-                             "  <polygon points='80,50 100,40 120,50 100,60' fill='#F59E0B' stroke='#D97706'/>"
-                             "  <polygon points='80,50 100,60 100,80 80,70' fill='#D97706' stroke='#B45309'/>"
-                             "  <polygon points='100,60 120,50 120,70 100,80' fill='#B45309' stroke='#B45309'/>"
-                             "  <text x='70' y='94' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>3 cubos unitarios = 3 u³</text>"
+                             "  <polygon points='40,50 60,40 80,50 60,60' fill='#F59E0B' stroke='#D97706'/>"
+                             "  <polygon points='40,50 60,60 60,80 40,70' fill='#D97706' stroke='#B45309'/>"
+                             "  <polygon points='60,60 80,50 80,70 60,80' fill='#B45309' stroke='#B45309'/>"
+                             "  <polygon points='70,50 90,40 110,50 90,60' fill='#F59E0B' stroke='#D97706'/>"
+                             "  <polygon points='70,50 90,60 90,80 70,70' fill='#D97706' stroke='#B45309'/>"
+                             "  <polygon points='90,60 110,50 110,70 90,80' fill='#B45309' stroke='#B45309'/>"
+                             "  <polygon points='100,50 120,40 140,50 120,60' fill='#F59E0B' stroke='#D97706'/>"
+                             "  <polygon points='100,50 120,60 120,80 100,70' fill='#D97706' stroke='#B45309'/>"
+                             "  <polygon points='120,60 140,50 140,70 120,80' fill='#B45309' stroke='#B45309'/>"
+                             "  <text x='90' y='94' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>3 cubos unitarios = 3 u³</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Cada cubito unitario representa 1 unidad cúbica (1 u³)."},
@@ -401,12 +401,12 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Si apilo 4 cubos en el suelo y luego pongo otros 4 cubos encima, ¿cuál es el volumen total?<br/>"
-                             "<svg width='260' height='220' viewBox='0 0 120 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #EC4899; border-radius:12px;'>"
+                             "<svg width='260' height='220' viewBox='0 0 180 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #EC4899; border-radius:12px;'>"
                              "  <!-- 4 abajo, 4 arriba -->"
-                             "  <polygon points='40,40 60,30 80,40 60,50' fill='#EC4899' stroke='#FFF'/>"
-                             "  <polygon points='40,40 60,50 60,70 40,60' fill='#D946EF' stroke='#FFF'/>"
-                             "  <polygon points='60,50 80,40 80,70 60,70' fill='#C084FC' stroke='#FFF'/>"
-                             "  <text x='60' y='90' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>4 base + 4 arriba = 8 u³</text>"
+                             "  <polygon points='70,40 90,30 110,40 90,50' fill='#EC4899' stroke='#FFF'/>"
+                             "  <polygon points='70,40 90,50 90,70 70,60' fill='#D946EF' stroke='#FFF'/>"
+                             "  <polygon points='90,50 110,40 110,70 90,70' fill='#C084FC' stroke='#FFF'/>"
+                             "  <text x='90' y='90' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>4 base + 4 arriba = 8 u³</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Sumamos los cubos del primer piso y del segundo piso."},
@@ -440,14 +440,14 @@ def obtener_ejemplos_expandidos_fase6(modulo_id: int, nivel_id: int) -> list:
         (3, 2): [
             {
                 "enunciado": "Calcula el volumen de un prisma usando la fórmula: Volumen = Largo × Ancho × Alto:<br/>"
-                             "<svg width='280' height='200' viewBox='0 0 140 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #8B5CF6; border-radius:12px;'>"
+                             "<svg width='280' height='200' viewBox='0 0 160 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #8B5CF6; border-radius:12px;'>"
                              "  <!-- Prisma Rectangular 3D -->"
-                             "  <polygon points='30,30 80,20 110,35 60,45' fill='#EC4899' fill-opacity='0.3' stroke='#DB2777' stroke-width='2'/>"
-                             "  <polygon points='30,30 60,45 60,85 30,70' fill='#D946EF' fill-opacity='0.3' stroke='#DB2777' stroke-width='2'/>"
-                             "  <polygon points='60,45 110,35 110,75 60,85' fill='#C084FC' fill-opacity='0.3' stroke='#DB2777' stroke-width='2'/>"
-                             "  <text x='45' y='65' fill='#FFF' font-size='9' font-weight='bold'>Largo = 2</text>"
-                             "  <text x='92' y='65' fill='#FFF' font-size='9' font-weight='bold'>Ancho = 3</text>"
-                             "  <text x='70' y='25' fill='#FFF' font-size='9' font-weight='bold'>Alto = 4</text>"
+                             "  <polygon points='40,30 90,20 120,35 70,45' fill='#EC4899' fill-opacity='0.3' stroke='#DB2777' stroke-width='2'/>"
+                             "  <polygon points='40,30 70,45 70,85 40,70' fill='#D946EF' fill-opacity='0.3' stroke='#DB2777' stroke-width='2'/>"
+                             "  <polygon points='70,45 120,35 120,75 70,85' fill='#C084FC' fill-opacity='0.3' stroke='#DB2777' stroke-width='2'/>"
+                             "  <text x='55' y='65' fill='#FFF' font-size='9' font-weight='bold'>Largo = 2</text>"
+                             "  <text x='102' y='65' fill='#FFF' font-size='9' font-weight='bold'>Ancho = 3</text>"
+                             "  <text x='80' y='25' fill='#FFF' font-size='9' font-weight='bold'>Alto = 4</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Multiplicamos el largo por el ancho para hallar el área de la base: 2 × 3 = 6."},

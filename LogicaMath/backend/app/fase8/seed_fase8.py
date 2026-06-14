@@ -69,9 +69,34 @@ async def seed_teoria_niveles_fase8(session: AsyncSession):
         session.add(nt)
     await session.commit()
 
-async def _gen_fase8_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
+import base64
+
+def _svg_to_base64(svg_str: str) -> str:
+    return "data:image/svg+xml;base64," + base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
+
+def _generate_svg_fase8(mod_id: int, rng: random.Random) -> str:
     if mod_id == 1:
-        # Secuencias Lógicas
+        # Secuencias: Bolas amarillas en fila
+        svg = '<svg viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">'
+        for i in range(4):
+            svg += f'<circle cx="{50 + i*100}" cy="50" r="30" fill="#FDE047" stroke="#CA8A04" stroke-width="4"/>'
+            if i < 3:
+                svg += f'<path d="M {85 + i*100} 50 L {115 + i*100} 50" stroke="#CA8A04" stroke-width="4" marker-end="url(#arrow)"/>'
+        svg += '</svg>'
+        return _svg_to_base64(svg)
+    elif mod_id == 2:
+        # Combinatoria: Árbol simple
+        svg = '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="30" r="15" fill="#8B5CF6"/><path d="M 100 45 L 50 120" stroke="#8B5CF6" stroke-width="3"/><path d="M 100 45 L 150 120" stroke="#8B5CF6" stroke-width="3"/><circle cx="50" cy="135" r="15" fill="#C4B5FD"/><circle cx="150" cy="135" r="15" fill="#C4B5FD"/></svg>'
+        return _svg_to_base64(svg)
+    else:
+        # Probabilidad: Dado
+        svg = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="20" width="60" height="60" rx="10" fill="white" stroke="#374151" stroke-width="4"/><circle cx="50" cy="50" r="6" fill="#EF4444"/></svg>'
+        return _svg_to_base64(svg)
+
+async def _gen_fase8_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
+    svg_data = _generate_svg_fase8(mod_id, rng)
+    
+    if mod_id == 1:
         start = rng.randint(2, 10)
         step = rng.randint(2, 5)
         ans = start + step * 4
@@ -82,68 +107,57 @@ async def _gen_fase8_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             "respuesta_correcta": ans_str,
             "expl": f"El patrón es sumar {step}.",
             "alts": [ans_str, str(ans+1), str(ans-1), str(ans+step)],
-            "metadata_visual": {"requiere_imagen": False},
+            "metadata_visual": {"requiere_imagen": True, "svg_base64": svg_data},
             "errores_previstos": {}
         }
     elif mod_id == 2:
-        # Combinatoria Visual
         op1 = rng.randint(3, 6)
         op2 = rng.randint(2, 5)
         ans = op1 * op2
         ans_str = str(ans)
-        enunciado = f"Tienes {op1} camisas y {op2} pantalones. ¿Cuántas combinaciones diferentes puedes armar?"
+        enunciado = f"Tienes {op1} opciones del primer tipo y {op2} del segundo. ¿Cuántas combinaciones diferentes puedes armar en total?"
         return {
             "enunciado": enunciado,
             "respuesta_correcta": ans_str,
             "expl": f"Multiplicamos {op1} x {op2} = {ans}.",
             "alts": [ans_str, str(op1+op2), str(ans+1), str(ans-1)],
-            "metadata_visual": {"requiere_imagen": False},
-            "errores_previstos": {
-                str(op1+op2): {"tutor_msg": "Recuerda que por cada camisa, tienes varios pantalones. ¡Debes multiplicar!"}
-            }
+            "metadata_visual": {"requiere_imagen": True, "svg_base64": svg_data},
+            "errores_previstos": {}
         }
-    elif mod_id == 3:
-        # Probabilidad
+    else:
         rojas = rng.randint(2, 5)
         azules = rng.randint(2, 5)
         total = rojas + azules
         ans_str = f"{rojas}/{total}"
-        enunciado = f"En una caja hay {rojas} bolas rojas y {azules} bolas azules. ¿Cuál es la probabilidad de sacar una roja?"
+        enunciado = f"En una caja hay {rojas} esferas rojas y {azules} esferas azules. ¿Cuál es la probabilidad de sacar una roja?"
         return {
             "enunciado": enunciado,
             "respuesta_correcta": ans_str,
             "expl": f"Casos favorables = {rojas}. Total = {total}.",
             "alts": [ans_str, f"{azules}/{total}", f"{rojas}/{azules}", f"1/{total}"],
-            "metadata_visual": {"requiere_imagen": False},
+            "metadata_visual": {"requiere_imagen": True, "svg_base64": svg_data},
             "errores_previstos": {}
         }
-    
-    ans = "10"
-    return {
-        "enunciado": "Pregunta base Fase 8",
-        "respuesta_correcta": ans,
-        "expl": "Explicación algorítmica.",
-        "alts": [ans, "11", "12", "13"],
-        "metadata_visual": {},
-        "errores_previstos": {}
-    }
 
 async def seed_practica_pool_fase8(session: AsyncSession):
     print("Sembrando pool de práctica Fase 8...")
-    # 3 modulos x 6 niveles
-    sections = [(m, l) for m in range(1, 4) for l in range(1, 7)]
+    # 3 modulos x (3 practica + 3 desafios)
+    sections = [(m, l) for m in range(1, 4) for l in [1, 2, 3, 11, 12, 13]]
     
     for mod_id, lvl_id in sections:
-        seccion_id = mod_id * 100 + lvl_id
-        # Sembrar 10 preguntas por sección
-        for i in range(10):
+        if lvl_id > 10:
+            seccion_id = mod_id * 1000 + lvl_id
+            num_questions = 25 if lvl_id < 13 else 10
+        else:
+            seccion_id = mod_id * 100 + lvl_id
+            num_questions = 15
+            
+        for i in range(num_questions):
             rng = random.Random(FASE8_ID * 100000 + seccion_id * 1000 + i)
             q_data = await _gen_fase8_pool(rng, mod_id, lvl_id)
             
-            payload = {
-                "fase8": True,
-                "metadata_visual": q_data.get("metadata_visual", {})
-            }
+            payload = q_data.get("metadata_visual", {})
+            payload["fase8"] = True
             
             p = Pregunta(
                 fase_id=FASE8_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,

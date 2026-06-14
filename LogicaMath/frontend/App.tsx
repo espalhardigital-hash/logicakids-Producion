@@ -19,6 +19,8 @@ const WelcomeScreenPhase5 = React.lazy(() => import('./components/fase5/WelcomeS
 const Fase5GameScreen = React.lazy(() => import('./components/fase5/Fase5GameScreen'));
 const WelcomeScreenPhase6 = React.lazy(() => import('./components/fase6/WelcomeScreenPhase6'));
 const Fase6GameScreen = React.lazy(() => import('./components/fase6/Fase6GameScreen'));
+const Fase7GameScreen = React.lazy(() => import('./components/fase7/Fase7GameScreen'));
+const Fase8GameScreen = React.lazy(() => import('./components/fase8/Fase8GameScreen'));
 const PhaseMapScreen = React.lazy(() => import('./components/map/PhaseMapScreen'));
 const GameScreen = React.lazy(() => import('./components/fase1/GameScreen'));
 const ResultsScreen = React.lazy(() => import('./components/fase1/ResultsScreen'));
@@ -105,6 +107,52 @@ const Fase6GameScreenWrapper: React.FC<{ isEvaluatorMode: boolean }> = ({ isEval
       isEvaluatorMode={isEvaluatorMode}
       onComplete={() => navigate('/welcome-fase6')}
       onBack={() => navigate('/welcome-fase6')}
+    />
+  );
+};
+
+const Fase7GameScreenWrapper: React.FC<{ isEvaluatorMode: boolean }> = ({ isEvaluatorMode }) => {
+  const location = useLocation();
+  const moduloId = location.state?.moduloId || 1;
+  const nivelId = location.state?.nivelId || 1;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!location.state?.moduloId) {
+      navigate('/welcome-fase7', { replace: true });
+    }
+  }, [location.state, navigate]);
+
+  return (
+    <Fase7GameScreen
+      moduloId={parseInt(moduloId as string, 10)}
+      nivelId={parseInt(nivelId as string, 10)}
+      isEvaluatorMode={isEvaluatorMode}
+      onComplete={() => navigate('/welcome-fase7')}
+      onBack={() => navigate('/welcome-fase7')}
+    />
+  );
+};
+
+const Fase8GameScreenWrapper: React.FC<{ isEvaluatorMode: boolean }> = ({ isEvaluatorMode }) => {
+  const location = useLocation();
+  const moduloId = location.state?.moduloId || 1;
+  const nivelId = location.state?.nivelId || 1;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!location.state?.moduloId) {
+      navigate('/welcome-fase8', { replace: true });
+    }
+  }, [location.state, navigate]);
+
+  return (
+    <Fase8GameScreen
+      moduloId={parseInt(moduloId as string, 10)}
+      nivelId={parseInt(nivelId as string, 10)}
+      isEvaluatorMode={isEvaluatorMode}
+      onComplete={() => navigate('/welcome-fase8')}
+      onBack={() => navigate('/welcome-fase8')}
     />
   );
 };
@@ -501,7 +549,7 @@ const AppContent: React.FC = () => {
                 userAvatar={currentUser.avatar}
                 userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId) => {
-                  navigate(`/fase/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 7 } });
+                  navigate(`/fase7/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 7 } });
                 }}
                 onBack={() => navigate('/map')}
               />
@@ -517,7 +565,7 @@ const AppContent: React.FC = () => {
                 userAvatar={currentUser.avatar}
                 userRole={currentUser.role}
                 onModuleSelect={(moduloId, nivelId) => {
-                  navigate(`/fase/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 8 } });
+                  navigate(`/fase8/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 8 } });
                 }}
                 onBack={() => navigate('/map')}
               />
@@ -625,6 +673,22 @@ const AppContent: React.FC = () => {
           <Route path="/fase6/play" element={
             currentUser ? (
               <Fase6GameScreenWrapper isEvaluatorMode={isEvaluatorMode} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/fase7/play" element={
+            currentUser ? (
+              <Fase7GameScreenWrapper isEvaluatorMode={isEvaluatorMode} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          <Route path="/fase8/play" element={
+            currentUser ? (
+              <Fase8GameScreenWrapper isEvaluatorMode={isEvaluatorMode} />
             ) : (
               <Navigate to="/login" replace />
             )

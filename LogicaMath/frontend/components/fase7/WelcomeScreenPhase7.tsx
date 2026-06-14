@@ -358,24 +358,30 @@ export default function WelcomeScreenPhase7({
               {selectedModule.niveles.map((nivel) => {
                 const unlocked = isLevelUnlocked(selectedModule, nivel);
                 const completed = !!completedLevels[`${selectedModule.moduloId}_${nivel.nivelId}`];
+                const isDesafio = nivel.nombre.toLowerCase().includes('desafío');
 
                 return (
                   <div
                     key={nivel.nivelId}
-                    className={`fg-level-card ${unlocked ? 'unlocked' : 'locked'}`}
+                    className={`fg-level-card ${unlocked ? 'unlocked' : 'locked'} ${isDesafio ? 'desafio-card' : ''}`}
                     onClick={() => unlocked && onModuleSelect(selectedModule.moduloId, nivel.nivelId)}
+                    style={isDesafio ? { border: '1px solid rgba(245, 158, 11, 0.4)', background: 'rgba(245, 158, 11, 0.05)' } : {}}
                   >
-                    <div className="fg-level-circle">
+                    <div className="fg-level-circle" style={isDesafio ? { background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.4)' } : {}}>
                       {completed ? (
                         <Lucide.Check size={32} color="#10B981" />
                       ) : !unlocked ? (
                         <Lucide.Lock size={24} color="#64748b" />
+                      ) : isDesafio ? (
+                        <Lucide.Shield size={28} color="#F59E0B" />
                       ) : (
                         nivel.nivelId
                       )}
                     </div>
 
-                    <h4 className="fg-level-title">Nivel {nivel.nivelId}</h4>
+                    <h4 className="fg-level-title" style={isDesafio ? { color: '#FCD34D' } : {}}>
+                      {isDesafio ? 'Evaluación' : `Nivel ${nivel.nivelId}`}
+                    </h4>
                     <p className="fg-level-desc">{nivel.nombre}</p>
 
                     {/* Status Badge */}

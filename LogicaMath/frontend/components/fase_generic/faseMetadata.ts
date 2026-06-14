@@ -70,6 +70,8 @@ export interface FaseMetadata {
 let _qid = 0;
 const qid = () => ++_qid;
 
+// Helpers para Mocks eliminados de Fase 7 y 8 ya que ahora usan PostgreSQL
+
 // ── FASE 3: Problemas de Texto ─────────────────────────────────
 
 const FASE_3: FaseMetadata = {
@@ -764,6 +766,21 @@ const FASE_7: FaseMetadata = {
             { id: qid(), enunciado: 'En una cuadrícula 5×5, desde (1,1): ¿cuál ruta es imposible? A) Norte 4 + Este 2 B) Norte 6', tipo: 'opcion_multiple', opciones: ['Ruta A', 'Ruta B', 'Ambas son posibles'], respuesta_correcta: 'Ruta B' },
             { id: qid(), enunciado: 'Para ir de (2,1) a (5,4), ¿cuántas casillas hacia el Norte y hacia el Este necesitas?', tipo: 'opcion_multiple', opciones: ['Norte 3, Este 3', 'Norte 2, Este 4', 'Norte 4, Este 2'], respuesta_correcta: 'Norte 3, Este 3' },
           ]
+        },
+        {
+          nivelId: 11, nombre: 'Desafío 1: Navegación', descripcion: 'Mecánica: El Filtro, >80%',
+          teoria: { titulo: 'Desafío de Navegación', parrafos: ['¡Demuestra que eres el mejor explorador cardinal!'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(11, 25)
+        },
+        {
+          nivelId: 12, nombre: 'Desafío 2: Explorador', descripcion: 'Mecánica: El Filtro, >90%',
+          teoria: { titulo: 'Desafío Explorador', parrafos: ['Toma el control absoluto.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(12, 25)
+        },
+        {
+          nivelId: 13, nombre: 'Desafío Final: Maestro', descripcion: 'Mecánica: El Jefe, >90%',
+          teoria: { titulo: 'Evaluación Final', parrafos: ['Máxima concentración.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(13, 10)
         }
       ]
     },
@@ -927,6 +944,21 @@ const FASE_7: FaseMetadata = {
             { id: qid(), enunciado: 'El punto A está en (3,2) y B en (7,5). ¿Cuánto debes moverte en la dirección horizontal X para ir de A a B?<br/><img src=\'http://localhost:9100/logicakids/graphics/ca5216e9e0ed4d30b05ef2ce15793dfa.png\' class=\'lk-question-graphic\' />', tipo: 'numerico', respuesta_correcta: '4' },
             { id: qid(), enunciado: 'Desde (1,1), me moví (+3,+2) y luego (+1,+4). ¿Dónde estoy?', tipo: 'opcion_multiple', opciones: ['(5,7)', '(4,6)', '(5,6)'], respuesta_correcta: '(5,7)' },
           ]
+        },
+        {
+          nivelId: 11, nombre: 'Desafío 1: Cartesiano', descripcion: 'Mecánica: El Filtro, >80%',
+          teoria: { titulo: 'Desafío Cartesiano', parrafos: ['Domina las coordenadas exactas.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(11, 25)
+        },
+        {
+          nivelId: 12, nombre: 'Desafío 2: Topógrafo', descripcion: 'Mecánica: El Filtro, >90%',
+          teoria: { titulo: 'Desafío de Topógrafo', parrafos: ['Mediciones precisas.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(12, 25)
+        },
+        {
+          nivelId: 13, nombre: 'Desafío Final: Geómetra', descripcion: 'Mecánica: El Jefe, >90%',
+          teoria: { titulo: 'Evaluación Final', parrafos: ['Máxima precisión.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(13, 10)
         }
       ]
     },
@@ -1092,6 +1124,21 @@ const FASE_7: FaseMetadata = {
             { id: qid(), enunciado: 'Un colegio tiene 5 clases de 45 minutos y 2 recreos de 15 minutos. ¿Cuánto dura el día escolar en minutos?', tipo: 'numerico', respuesta_correcta: '255' },
             { id: qid(), enunciado: 'Si las clases de la escuela empiezan a las 7:30 (como se ilustra) y duran 255 minutos, ¿a qué hora terminan?<br/><img src=\'http://localhost:9100/logicakids/graphics/3db00a1f872343a082a55f73b5c0532d.png\' class=\'lk-question-graphic\' />', tipo: 'opcion_multiple', opciones: ['11:45', '11:30', '12:00'], respuesta_correcta: '11:45' },
           ]
+        },
+        {
+          nivelId: 11, nombre: 'Desafío 1: Cronómetro', descripcion: 'Mecánica: El Filtro, >80%',
+          teoria: { titulo: 'Desafío del Tiempo', parrafos: ['¡Mide el tiempo sin dudar!'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(11, 25)
+        },
+        {
+          nivelId: 12, nombre: 'Desafío 2: Calculista', descripcion: 'Mecánica: El Filtro, >90%',
+          teoria: { titulo: 'Desafío Calculista', parrafos: ['Añade y resta horas.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(12, 25)
+        },
+        {
+          nivelId: 13, nombre: 'Desafío Final: Maestro del Tiempo', descripcion: 'Mecánica: El Jefe, >90%',
+          teoria: { titulo: 'Evaluación Final', parrafos: ['Máxima sincronización.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(13, 10)
         }
       ]
     },
@@ -1253,6 +1300,21 @@ const FASE_7: FaseMetadata = {
             { id: qid(), enunciado: 'Ruta A: bus 30 min + caminar 10 min = 40 min. Ruta B: metro 20 min + esperar 15 min + caminar 5 min = 40 min. ¿Cuál es más rápida?', tipo: 'opcion_multiple', opciones: ['Ruta A', 'Ruta B', 'Son iguales'], respuesta_correcta: 'Son iguales' },
             { id: qid(), enunciado: 'Opción 1: salir 7:00 y llegar 7:50. Opción 2: salir 7:15 y llegar 7:55. ¿Cuál dura menos?', tipo: 'opcion_multiple', opciones: ['Opción 1 (50 min)', 'Opción 2 (40 min)', 'Iguales'], respuesta_correcta: 'Opción 2 (40 min)' },
           ]
+        },
+        {
+          nivelId: 11, nombre: 'Desafío 1: Coordinador', descripcion: 'Mecánica: El Filtro, >80%',
+          teoria: { titulo: 'Desafío Coordinador', parrafos: ['¡Coordina todos los horarios!'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(11, 25)
+        },
+        {
+          nivelId: 12, nombre: 'Desafío 2: Despachador', descripcion: 'Mecánica: El Filtro, >90%',
+          teoria: { titulo: 'Desafío Despachador', parrafos: ['Gestiona flujos de transporte.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(12, 25)
+        },
+        {
+          nivelId: 13, nombre: 'Desafío Final: Logístico', descripcion: 'Mecánica: El Jefe, >90%',
+          teoria: { titulo: 'Evaluación Final', parrafos: ['Máxima eficiencia.'], diccionario: {}, ejemplos: [], interactivos: [], tip_pedagogico: '' },
+          preguntas: generateFase7Questions(13, 10)
         }
       ]
     }
@@ -1431,7 +1493,7 @@ const FASE_8: FaseMetadata = {
           preguntas: [ { id: qid(), enunciado: '4, ___, 12, 16, 20. ¿Cuál es el número faltante?', tipo: 'numerico', respuesta_correcta: '8' } ]
         },
         {
-          nivelId: 4, nombre: 'Desafío 1: Extensión directa', descripcion: 'Mecánica: El Filtro, >80%',
+          nivelId: 11, nombre: 'Desafío 1: Extensión directa', descripcion: 'Mecánica: El Filtro, >80%',
           teoria: {
             titulo: 'Extensión de serie directa',
             parrafos: [
@@ -1460,10 +1522,10 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: '¡Concéntrate, necesitas un 80% de precisión!'
           },
-          preguntas: [ { id: qid(), enunciado: '20, 17, 14, 11, ___. ¿Cuál sigue?', tipo: 'numerico', respuesta_correcta: '8' } ]
+          preguntas: generateFase8Questions(1, 11, 25)
         },
         {
-          nivelId: 5, nombre: 'Desafío 2: Reglas simultáneas', descripcion: 'Mecánica: La Trampa',
+          nivelId: 12, nombre: 'Desafío 2: Reglas simultáneas', descripcion: 'Mecánica: La Trampa',
           teoria: {
             titulo: 'Series con dos reglas',
             parrafos: [
@@ -1494,10 +1556,10 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Separa la serie en dos subseries para descubrir las reglas individuales.'
           },
-          preguntas: [ { id: qid(), enunciado: '2, 5, 4, 10, 8, 20, ___. ¿Cuál sigue?', tipo: 'numerico', respuesta_correcta: '16' } ]
+          preguntas: generateFase8Questions(1, 12, 25)
         },
         {
-          nivelId: 6, nombre: 'Desafío Final: Exponencial', descripcion: 'Mecánica: El Candado, ≥90%',
+          nivelId: 13, nombre: 'Desafío Final: Exponencial', descripcion: 'Mecánica: El Candado, ≥90%',
           teoria: {
             titulo: 'Crecimiento Exponencial',
             parrafos: [
@@ -1529,7 +1591,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Recuerda que la multiplicación sucesiva crece muy rápido.'
           },
-          preguntas: [ { id: qid(), enunciado: 'Un video tiene 2 vistas el primer día. Cada día las vistas se triplican. ¿Cuántas vistas tendrá al cuarto día?', tipo: 'numerico', respuesta_correcta: '54' } ]
+          preguntas: generateFase8Questions(1, 13, 10)
         }
       ]
     },
@@ -1635,7 +1697,7 @@ const FASE_8: FaseMetadata = {
           preguntas: [ { id: qid(), enunciado: '36 alumnos se dividen en equipos de 4. ¿Cuántos equipos se forman?', tipo: 'numerico', respuesta_correcta: '9' } ]
         },
         {
-          nivelId: 4, nombre: 'Desafío 1: Multiplicación', descripcion: 'Mecánica: El Filtro, >80%',
+          nivelId: 11, nombre: 'Desafío 1: Multiplicación', descripcion: 'Mecánica: El Filtro, >80%',
           teoria: {
             titulo: 'Multiplicación de uniformes',
             parrafos: [
@@ -1661,10 +1723,10 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: '¡Alcanza más del 80%!'
           },
-          preguntas: [ { id: qid(), enunciado: '5 tipos de pan y 4 tipos de queso. ¿Cuántos sándwiches posibles?', tipo: 'numerico', respuesta_correcta: '20' } ]
+          preguntas: generateFase8Questions(2, 11, 25)
         },
         {
-          nivelId: 5, nombre: 'Desafío 2: Restricciones', descripcion: 'Mecánica: La Trampa',
+          nivelId: 12, nombre: 'Desafío 2: Restricciones', descripcion: 'Mecánica: La Trampa',
           teoria: {
             titulo: 'Restricciones excluyentes',
             parrafos: [
@@ -1690,10 +1752,10 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Resta las opciones imposibles al total.'
           },
-          preguntas: [ { id: qid(), enunciado: '3 camisas y 3 pantalones. No puedes usar la camisa roja con pantalón rojo. ¿Cuántas combinaciones válidas hay?', tipo: 'numerico', respuesta_correcta: '8' } ]
+          preguntas: generateFase8Questions(2, 12, 25)
         },
         {
-          nivelId: 6, nombre: 'Desafío Final: Empaquetado tech', descripcion: 'Mecánica: El Candado, ≥90%',
+          nivelId: 13, nombre: 'Desafío Final: Empaquetado tech', descripcion: 'Mecánica: El Candado, ≥90%',
           teoria: {
             titulo: 'Lotes Mínimos',
             parrafos: [
@@ -1719,7 +1781,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Encuentra el divisor común o multiplica sabiamente.'
           },
-          preguntas: [ { id: qid(), enunciado: 'Tenemos 120 chips que deben ser empaquetados en lotes de 15. ¿Cuántos lotes se formarán?', tipo: 'numerico', respuesta_correcta: '8' } ]
+          preguntas: generateFase8Questions(2, 13, 10)
         }
       ]
     },
@@ -1865,7 +1927,7 @@ const FASE_8: FaseMetadata = {
           preguntas: [ { id: qid(), enunciado: '3 bolas rojas y 1 azul. ¿Qué es más probable sacar?', tipo: 'opcion_multiple', opciones: ['Roja', 'Azul'], respuesta_correcta: 'Roja' } ]
         },
         {
-          nivelId: 4, nombre: 'Desafío 1: Fracción simple', descripcion: 'Mecánica: El Filtro, >80%',
+          nivelId: 11, nombre: 'Desafío 1: Fracción simple', descripcion: 'Mecánica: El Filtro, >80%',
           teoria: {
             titulo: 'Fracción de probabilidad simple',
             parrafos: [
@@ -1891,17 +1953,17 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Velocidad y precisión.'
           },
-          preguntas: [ { id: qid(), enunciado: 'Moneda justa. Probabilidad de cruz:', tipo: 'opcion_multiple', opciones: ['1/2', '1/3', '1/4'], respuesta_correcta: '1/2' } ]
+          preguntas: generateFase8Questions(3, 11, 25)
         },
         {
-          nivelId: 5, nombre: 'Desafío 2: Cambio de espacio', descripcion: 'Mecánica: La Trampa',
+          nivelId: 12, nombre: 'Desafío 2: Cambio de espacio', descripcion: 'Mecánica: La Trampa',
           teoria: {
             titulo: 'Extracción sin reposición',
             parrafos: [
               'El espacio muestral disminuye si no devuelves el elemento al contenedor.'
             ],
             diccionario: {
-              'Inventario Decreciente': 'Cuando cada suceso altera las proporciones del siguiente.'
+              'Inventario Decreciente': 'Cuando cada suceso altera las proportions del siguiente.'
             },
             ejemplos: [
               {
@@ -1920,10 +1982,10 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Resta 1 al total si ya sacaste un elemento.'
           },
-          preguntas: [ { id: qid(), enunciado: 'Urna con 2 bolas rojas y 2 azules. Saco 1 roja y NO la devuelvo. ¿Cuántas bolas quedan en total?', tipo: 'numerico', respuesta_correcta: '3' } ]
+          preguntas: generateFase8Questions(3, 12, 25)
         },
         {
-          nivelId: 6, nombre: 'Desafío Final: Mezcla compleja', descripcion: 'Mecánica: El Candado, ≥90%',
+          nivelId: 13, nombre: 'Desafío Final: Mezcla compleja', descripcion: 'Mecánica: El Candado, ≥90%',
           teoria: {
             titulo: 'Problemas complejos',
             parrafos: [
@@ -1949,7 +2011,7 @@ const FASE_8: FaseMetadata = {
             ],
             tip_pedagogico: 'Identifica el sólido correcto entre la mezcla.'
           },
-          preguntas: [ { id: qid(), enunciado: 'En una caja hay 4 esferas, 3 cilindros y 3 cubos. ¿Cuál es la probabilidad de sacar un sólido que no rueda (el cubo)?', tipo: 'opcion_multiple', opciones: ['3/10', '4/10', '7/10'], respuesta_correcta: '3/10' } ]
+          preguntas: generateFase8Questions(3, 13, 10)
         }
       ]
     }

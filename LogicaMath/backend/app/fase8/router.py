@@ -44,7 +44,7 @@ from .schemas import (
 
 router = APIRouter(prefix="/fase8", tags=["fase8"])
 
-fase8_ID = 6
+fase8_ID = 8
 MAX_ESPEJO = 3  # Intentos máximos en Bucle Espejo
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -80,25 +80,21 @@ async def _sync_unlocked_levels(db: AsyncSession, alumno_id: int, operacion: str
 # ─────────────────────────────────────────────────────────────────────────────
 
 MODULOS_META = {
-    1: {"nombre": "Reconocimiento 3D", "descripcion": "Identificación de poliedros y vistas 3D.", "icono": "box", "color": "#10B981"},
-    2: {"nombre": "Patrones de Crecimiento", "descripcion": "Análisis de sucesiones espaciales.", "icono": "bar-chart", "color": "#8B5CF6"},
-    3: {"nombre": "Cubos Unitarios", "descripcion": "Modelado del concepto de volumen (u³).", "icono": "database", "color": "#F59E0B"},
-    4: {"nombre": "Medidas Físicas", "descripcion": "Magnitudes de masa y temperatura.", "icono": "thermometer", "color": "#EC4899"},
+    1: {"nombre": "Secuencias Lógicas", "descripcion": "Progresiones y patrones numéricos.", "icono": "bar-chart", "color": "#10B981"},
+    2: {"nombre": "Combinatoria Visual", "descripcion": "Diagramas de árbol y multiplicativos.", "icono": "share-2", "color": "#8B5CF6"},
+    3: {"nombre": "Probabilidad", "descripcion": "Espacios muestrales y fracciones.", "icono": "help-circle", "color": "#F59E0B"},
 }
 
 NIVELES_META = {
-    (1, 1): {"nombre": "Identificación de poliedros", "descripcion": "Vértices, aristas y caras ocultas en formas sólidas."},
-    (1, 2): {"nombre": "Detección de bloques", "descripcion": "Detección de bloques ocultos por perspectivas isométricas."},
-    (1, 3): {"nombre": "Moldes desplegados", "descripcion": "Asociación de moldes desplegados a figuras cerradas 3D."},
-    (2, 1): {"nombre": "Análisis de sucesiones", "descripcion": "Análisis de sucesiones espaciales (Patrones geométricos crecientes)."},
-    (2, 2): {"nombre": "Conteo volumétrico", "descripcion": "Conteo volumétrico estratificado (Capa por capa)."},
-    (2, 3): {"nombre": "Generalización", "descripcion": "Generalización algebraica de la capa N."},
-    (3, 1): {"nombre": "Concepto de volumen", "descripcion": "Modelado del concepto de volumen (u³)."},
-    (3, 2): {"nombre": "Prismas rectangulares", "descripcion": "Cálculo analítico formal de prismas rectangulares (Base x Altura)."},
-    (3, 3): {"nombre": "Volumen y líquidos", "descripcion": "Relación entre volumen cúbico y líquidos (1 dm³ = 1 L)."},
-    (4, 1): {"nombre": "Balanzas y termómetros", "descripcion": "Interpretación analítica de balanzas y termómetros."},
-    (4, 2): {"nombre": "Variaciones térmicas", "descripcion": "Variaciones térmicas y comprensión del signo negativo térmico."},
-    (4, 3): {"nombre": "La Máquina Kelvin", "descripcion": "La Máquina Kelvin: Sumar 273 grados (conversión sin negativos)."},
+    (1, 1): {"nombre": "Progresiones Aritméticas", "descripcion": "Hallar patrón de suma/resta."},
+    (1, 2): {"nombre": "Progresiones Compuestas", "descripcion": "Multiplicación e intercaladas."},
+    (1, 3): {"nombre": "Interpolación", "descripcion": "Deducir término faltante."},
+    (2, 1): {"nombre": "Diagramas de Árbol", "descripcion": "Combinaciones filas x columnas."},
+    (2, 2): {"nombre": "Principio Multiplicativo", "descripcion": "Opciones sin repetición."},
+    (2, 3): {"nombre": "Divisores Comunes", "descripcion": "Empacar grupos exactos."},
+    (3, 1): {"nombre": "Clasificación Determinística", "descripcion": "Evento seguro, posible, imposible."},
+    (3, 2): {"nombre": "Definición de Laplace", "descripcion": "Casos Favorables / Posibles."},
+    (3, 3): {"nombre": "Análisis Probabilístico", "descripcion": "Fracciones comparativas."},
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -283,12 +279,12 @@ async def get_fase8_dashboard(
     modulos = []
     modulo_niveles_map = {1: 3, 2: 3, 3: 3, 4: 3}
     
-    for mod_id in range(1, 5):
+    for mod_id in range(1, 4):
         meta = MODULOS_META[mod_id]
         niveles = []
         desafios = []
         mod_porcentaje_total = 0
-        num_niveles = modulo_niveles_map[mod_id]
+        num_niveles = 3
 
         # 1. Cargar niveles de práctica libre
         for niv_id in range(1, num_niveles + 1):
@@ -418,7 +414,7 @@ async def get_fase8_dashboard(
         1 for p in progresos.values() if p.estado == EstadoProgresoEnum.APROBADO
     )
     
-    desafio_mixto_disponible = (total_niveles_aprobados >= 12)
+    desafio_mixto_disponible = (total_niveles_aprobados >= 9)
     desafio_mixto_estado = "completado" if desafio_mixto_disponible else "bloqueado"
 
     return fase8Dashboard(

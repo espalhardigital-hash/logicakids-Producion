@@ -44,7 +44,7 @@ from .schemas import (
 
 router = APIRouter(prefix="/fase7", tags=["fase7"])
 
-fase7_ID = 6
+fase7_ID = 7
 MAX_ESPEJO = 3  # Intentos máximos en Bucle Espejo
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -80,25 +80,21 @@ async def _sync_unlocked_levels(db: AsyncSession, alumno_id: int, operacion: str
 # ─────────────────────────────────────────────────────────────────────────────
 
 MODULOS_META = {
-    1: {"nombre": "Reconocimiento 3D", "descripcion": "Identificación de poliedros y vistas 3D.", "icono": "box", "color": "#10B981"},
-    2: {"nombre": "Patrones de Crecimiento", "descripcion": "Análisis de sucesiones espaciales.", "icono": "bar-chart", "color": "#8B5CF6"},
-    3: {"nombre": "Cubos Unitarios", "descripcion": "Modelado del concepto de volumen (u³).", "icono": "database", "color": "#F59E0B"},
-    4: {"nombre": "Medidas Físicas", "descripcion": "Magnitudes de masa y temperatura.", "icono": "thermometer", "color": "#EC4899"},
+    1: {"nombre": "Fracciones Visuales", "descripcion": "Identificar fracciones con grillas.", "icono": "pie-chart", "color": "#10B981"},
+    2: {"nombre": "Operaciones con Fracciones", "descripcion": "Sumar y restar fracciones.", "icono": "plus-square", "color": "#8B5CF6"},
+    3: {"nombre": "Decimales Visuales", "descripcion": "Relacionar fracciones y decimales.", "icono": "hash", "color": "#F59E0B"},
 }
 
 NIVELES_META = {
-    (1, 1): {"nombre": "Identificación de poliedros", "descripcion": "Vértices, aristas y caras ocultas en formas sólidas."},
-    (1, 2): {"nombre": "Detección de bloques", "descripcion": "Detección de bloques ocultos por perspectivas isométricas."},
-    (1, 3): {"nombre": "Moldes desplegados", "descripcion": "Asociación de moldes desplegados a figuras cerradas 3D."},
-    (2, 1): {"nombre": "Análisis de sucesiones", "descripcion": "Análisis de sucesiones espaciales (Patrones geométricos crecientes)."},
-    (2, 2): {"nombre": "Conteo volumétrico", "descripcion": "Conteo volumétrico estratificado (Capa por capa)."},
-    (2, 3): {"nombre": "Generalización", "descripcion": "Generalización algebraica de la capa N."},
-    (3, 1): {"nombre": "Concepto de volumen", "descripcion": "Modelado del concepto de volumen (u³)."},
-    (3, 2): {"nombre": "Prismas rectangulares", "descripcion": "Cálculo analítico formal de prismas rectangulares (Base x Altura)."},
-    (3, 3): {"nombre": "Volumen y líquidos", "descripcion": "Relación entre volumen cúbico y líquidos (1 dm³ = 1 L)."},
-    (4, 1): {"nombre": "Balanzas y termómetros", "descripcion": "Interpretación analítica de balanzas y termómetros."},
-    (4, 2): {"nombre": "Variaciones térmicas", "descripcion": "Variaciones térmicas y comprensión del signo negativo térmico."},
-    (4, 3): {"nombre": "La Máquina Kelvin", "descripcion": "La Máquina Kelvin: Sumar 273 grados (conversión sin negativos)."},
+    (1, 1): {"nombre": "Identificación Visual", "descripcion": "Asignar fracciones a áreas sombreadas."},
+    (1, 2): {"nombre": "Fracciones Equivalentes", "descripcion": "Simplificar y amplificar fracciones."},
+    (1, 3): {"nombre": "Comparación de Fracciones", "descripcion": "Mayor que, menor que, igual."},
+    (2, 1): {"nombre": "Suma con igual denominador", "descripcion": "Sumar fracciones homogéneas."},
+    (2, 2): {"nombre": "Suma con distinto denominador", "descripcion": "Usar Mínimo Común Múltiplo."},
+    (2, 3): {"nombre": "Resta de Fracciones", "descripcion": "Restar fracciones heterogéneas."},
+    (3, 1): {"nombre": "Décimas y Centésimas", "descripcion": "Entender la notación decimal base 10."},
+    (3, 2): {"nombre": "Conversión Fracción-Decimal", "descripcion": "De 1/2 a 0.5."},
+    (3, 3): {"nombre": "Operaciones con Decimales", "descripcion": "Sumar y restar números con punto decimal."},
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -283,12 +279,12 @@ async def get_fase7_dashboard(
     modulos = []
     modulo_niveles_map = {1: 3, 2: 3, 3: 3, 4: 3}
     
-    for mod_id in range(1, 5):
+    for mod_id in range(1, 4):
         meta = MODULOS_META[mod_id]
         niveles = []
         desafios = []
         mod_porcentaje_total = 0
-        num_niveles = modulo_niveles_map[mod_id]
+        num_niveles = 3
 
         # 1. Cargar niveles de práctica libre
         for niv_id in range(1, num_niveles + 1):
@@ -418,7 +414,7 @@ async def get_fase7_dashboard(
         1 for p in progresos.values() if p.estado == EstadoProgresoEnum.APROBADO
     )
     
-    desafio_mixto_disponible = (total_niveles_aprobados >= 12)
+    desafio_mixto_disponible = (total_niveles_aprobados >= 9)
     desafio_mixto_estado = "completado" if desafio_mixto_disponible else "bloqueado"
 
     return fase7Dashboard(
