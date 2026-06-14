@@ -143,8 +143,11 @@ test.describe('12 - Gameplay Fase 7 E2E', () => {
                 }
 
                 const theoryModal = page.locator('.f7-reading-overlay, .fg-theory-modal, .theory-modal').first();
-                if (await theoryModal.isVisible({ timeout: 3000 }).catch(() => false)) {
+                if (await theoryModal.isVisible({ timeout: 8000 }).catch(() => false)) {
+                    console.log(`[DEBUG] Theory modal found. Calling navigateGenericTheoryModal...`);
                     await navigateGenericTheoryModal(page, {}, 'f7');
+                } else {
+                    console.log(`[DEBUG] Theory modal NOT found within 8000ms.`);
                 }
 
                 let questionCounter = 0;
