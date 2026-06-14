@@ -143,7 +143,14 @@ test.describe('12 - Gameplay Fase 7 E2E', () => {
                 }
 
                 const theoryModal = page.locator('.f7-reading-overlay, .fg-theory-modal, .theory-modal').first();
-                if (await theoryModal.isVisible({ timeout: 8000 }).catch(() => false)) {
+                let isModalVisible = true;
+                try {
+                    await theoryModal.waitFor({ state: 'visible', timeout: 8000 });
+                } catch (e) {
+                    isModalVisible = false;
+                }
+                
+                if (isModalVisible) {
                     console.log(`[DEBUG] Theory modal found. Calling navigateGenericTheoryModal...`);
                     await navigateGenericTheoryModal(page, {}, 'f7');
                 } else {
