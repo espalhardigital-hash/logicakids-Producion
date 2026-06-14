@@ -1053,7 +1053,7 @@ const PedagogyTab: React.FC = () => {
         {/* CONTENT PANELS */}
         {/* ========================================================= */}
         <AnimatePresence mode="wait">
-          {sectionsCollapsed ? (
+          {sectionsCollapsed && (
             <motion.div
               key="collapsed-hint"
               initial={{ opacity: 0, y: 10 }}
@@ -1064,10 +1064,10 @@ const PedagogyTab: React.FC = () => {
               <Minimize2 size={20} className="inline mr-2 opacity-50" />
               Las secciones de configuración están colapsadas. Haz clic en <strong>"Expandir todo"</strong> para verlas.
             </motion.div>
-          ) : (
-            <>
+          )}
+
           {/* VIEW A: PLATFORM GLOBALS */}
-          {selectedPhaseId === 0 && (
+          {!sectionsCollapsed && selectedPhaseId === 0 && (
             <motion.div
               key="globals"
               initial={{ opacity: 0, y: 15 }}
@@ -1322,7 +1322,7 @@ const PedagogyTab: React.FC = () => {
           )}
 
           {/* VIEW B: PHASE DEFAULT SETTINGS */}
-          {selectedPhaseId > 0 && !selectedModule && (
+          {!sectionsCollapsed && selectedPhaseId > 0 && !selectedModule && (
             <motion.div
               key={`phase-${selectedPhaseId}`}
               initial={{ opacity: 0, y: 15 }}
@@ -1456,7 +1456,7 @@ const PedagogyTab: React.FC = () => {
           )}
 
           {/* VIEW C: MODULE SPECIFIC SETTINGS */}
-          {selectedPhaseId > 0 && selectedModule && (
+          {!sectionsCollapsed && selectedPhaseId > 0 && selectedModule && (
             <motion.div
               key={`module-${selectedPhaseId}-${selectedModule.name}`}
               initial={{ opacity: 0, y: 15 }}
@@ -1664,9 +1664,6 @@ const PedagogyTab: React.FC = () => {
 
               </div>
             </motion.div>
-          )}
-
-            </>
           )}
 
         </AnimatePresence>

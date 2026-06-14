@@ -139,13 +139,14 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
       {/* Sidebar - Apple macOS style navigation */}
       <div className={`fixed md:relative z-40 h-full w-64 flex flex-col bg-white/80 dark:bg-[#14151b]/80 backdrop-blur-3xl border-r border-slate-200 dark:border-slate-800 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-6">
+          <div className="flex gap-2 mb-6">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          </div>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 flex items-center justify-center">
-              <Shield className="text-[#007AFF]" size={20} />
-            </div>
             <div>
-              <h2 className="text-[17px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none">Administrador</h2>
-              <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-wide mt-1 uppercase">LogicaKids Pro</p>
+              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">LogicaKids Pro</p>
             </div>
           </div>
         </div>
@@ -157,13 +158,12 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id as TabType)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 font-medium text-[14.5px] tracking-normal relative overflow-hidden group ${
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 font-medium text-[14px] tracking-wide relative overflow-hidden group ${
                   isActive 
-                    ? 'text-slate-900 dark:text-white bg-[#007AFF]' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-white/5'
+                    ? 'text-white bg-[#30589d] shadow-sm' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-200'
                 }`}
               >
-                <tab.icon size={17} className="relative z-10" />
                 <span className="relative z-10 flex-1 text-left">{tab.label}</span>
                 {tabBadges[tab.id as TabType] && (
                   <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center font-bold">
@@ -175,14 +175,15 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
           })}
         </nav>
 
-        {/* Settings button (replaces inline Ajustes Visuales) */}
-        <div className="px-3.5 py-3 border-t border-slate-200 dark:border-white/5">
+        {/* Settings button */}
+        <div className="px-6 py-4 border-t border-slate-200 dark:border-white/5">
+          <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-3">Configuración visual</p>
           <button
             onClick={() => setShowSettingsModal(true)}
-            className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 text-[13.5px] font-medium transition-colors"
+            className="w-full flex items-center gap-2 px-0 py-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 text-[13px] font-medium transition-colors"
           >
-            <Settings2 size={16} />
-            Ajustes de pantalla
+            <Settings2 size={14} />
+            Ajustes UI
           </button>
         </div>
 
