@@ -480,6 +480,9 @@ const PedagogyTab: React.FC = () => {
   const [selectedSubLevelId, setSelectedSubLevelId] = useState<number | null>(null);
   const [isSelectedChallenge, setIsSelectedChallenge] = useState<boolean>(false);
 
+  // Collapse/Expand all config sections (MEJORA-5)
+  const [sectionsCollapsed, setSectionsCollapsed] = useState(false);
+
   // Main config states
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -857,9 +860,6 @@ const PedagogyTab: React.FC = () => {
 
   const changesExist = hasChanges();
 
-  // Collapse/Expand all config sections (MEJORA-5)
-  const [sectionsCollapsed, setSectionsCollapsed] = useState(false);
-
   return (
     <motion.div variants={itemVariants} className="w-full flex flex-col gap-6 lg:gap-10 select-none">
       
@@ -1053,7 +1053,7 @@ const PedagogyTab: React.FC = () => {
         {/* CONTENT PANELS */}
         {/* ========================================================= */}
         <AnimatePresence mode="wait">
-          {sectionsCollapsed && (
+          {sectionsCollapsed ? (
             <motion.div
               key="collapsed-hint"
               initial={{ opacity: 0, y: 10 }}
@@ -1064,10 +1064,7 @@ const PedagogyTab: React.FC = () => {
               <Minimize2 size={20} className="inline mr-2 opacity-50" />
               Las secciones de configuración están colapsadas. Haz clic en <strong>"Expandir todo"</strong> para verlas.
             </motion.div>
-          )}
-
-          {/* VIEW A: PLATFORM GLOBALS */}
-          {!sectionsCollapsed && selectedPhaseId === 0 && (
+          ) : selectedPhaseId === 0 ? (
             <motion.div
               key="globals"
               initial={{ opacity: 0, y: 15 }}
@@ -1319,10 +1316,7 @@ const PedagogyTab: React.FC = () => {
                 </div>
               </div>
             </motion.div>
-          )}
-
-          {/* VIEW B: PHASE DEFAULT SETTINGS */}
-          {!sectionsCollapsed && selectedPhaseId > 0 && !selectedModule && (
+          ) : !selectedModule ? (
             <motion.div
               key={`phase-${selectedPhaseId}`}
               initial={{ opacity: 0, y: 15 }}
@@ -1453,10 +1447,7 @@ const PedagogyTab: React.FC = () => {
 
               </div>
             </motion.div>
-          )}
-
-          {/* VIEW C: MODULE SPECIFIC SETTINGS */}
-          {!sectionsCollapsed && selectedPhaseId > 0 && selectedModule && (
+          ) : (
             <motion.div
               key={`module-${selectedPhaseId}-${selectedModule.name}`}
               initial={{ opacity: 0, y: 15 }}
