@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Trash2, Edit, Save, FileText, Loader2, X, 
   Settings, ToggleRight, ToggleLeft, Shield, BookOpen,
-  Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Award, AlertTriangle, Check
+  Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Award, AlertTriangle, Check, HelpCircle
 } from 'lucide-react';
 import { 
   deletePregunta, createPregunta, updatePregunta,
@@ -34,7 +34,16 @@ const TokenHighlighter: React.FC<{
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase">Selecciona los tokens correctos (WYSIWYG)</label>
+      <div className="flex items-center gap-2">
+        <label className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase">Selecciona los tokens correctos (WYSIWYG)</label>
+        <div className="relative group inline-block">
+          <HelpCircle size={14} className="text-slate-400 cursor-help" />
+          <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-700 text-white text-[11px] rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 leading-relaxed">
+            Haz clic en las palabras del enunciado para marcarlas como términos clave de la pregunta.
+            <div className="absolute top-full left-4 border-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
+          </div>
+        </div>
+      </div>
       <div className="flex flex-wrap gap-1.5 p-3 bg-white/80 dark:bg-slate-950/20 border border-slate-200 dark:border-white/5 rounded-xl min-h-[50px]">
         {words.map((word, idx) => {
           const isSelected = selectedIndices.includes(idx);
@@ -54,7 +63,12 @@ const TokenHighlighter: React.FC<{
 };
 
 
-const ContentTab: React.FC = () => {
+interface ContentTabProps {
+  showAlert?: (title: string, message: string, type?: 'info' | 'success' | 'error') => void;
+  showConfirm?: (title: string, message: string, onConfirm: () => void) => void;
+}
+
+const ContentTab: React.FC<ContentTabProps> = ({ showAlert, showConfirm: showConfirmProp }) => {
   const { phaseMaps: PHASE_MAPS } = usePhaseMapContext();
   // Navigation / Tabs State
   const [activeSubTab, setActiveSubTab] = useState<'theory' | 'questions'>('theory');
@@ -77,25 +91,6 @@ const ContentTab: React.FC = () => {
   const [expandGlosario, setExpandGlosario] = useState(true);
   const [expandEjemplos, setExpandEjemplos] = useState(true);
 
-  // Toast & Confirm Dialog State
-  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
-    show: false,
-    message: '',
-    type: 'success'
-  });
-
-  const [confirmDialog, setConfirmDialog] = useState<{
-    show: boolean;
-    title: string;
-    message: string;
-    onConfirm: () => void;
-  }>({
-    show: false,
-    title: '',
-    message: '',
-    onConfirm: () => {}
-  });
-
   // Question Pagination & Filter State
   const [questionsPerPage, setQuestionsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -106,22 +101,19 @@ const ContentTab: React.FC = () => {
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [savingQuestion, setSavingQuestion] = useState(false);
 
-  // Auto-clear Toast after 3 seconds
-  useEffect(() => {
-    if (toast.show) {
-      const timer = setTimeout(() => {
-        setToast(prev => ({ ...prev, show: false }));
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast.show]);
-
+  // Unified notification helpers (delegating to global system)
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ show: true, message, type });
+    if (showAlert) {
+      showAlert(type === 'success' ? 'Éxito' : 'Error', message, type === 'success' ? 'success' : 'error');
+    }
   };
 
   const showConfirm = (title: string, message: string, onConfirm: () => void) => {
-    setConfirmDialog({ show: true, title, message, onConfirm });
+    if (showConfirmProp) {
+      showConfirmProp(title, message, onConfirm);
+    } else if (window.confirm(message)) {
+      onConfirm();
+    }
   };
 
   // Load handled by useAdminContent hook
@@ -131,6 +123,12 @@ const ContentTab: React.FC = () => {
     setCurrentPage(1);
     setQuestionSearchQuery('');
   }, [mgrFaseId, mgrModuloId, mgrLevelId]);
+
+  // Persist selector to localStorage (MEJORA-4)
+  useEffect(() => {
+    localStorage.setItem('admin_content_fase', String(mgrFaseId));
+    localStorage.setItem('admin_content_modulo', String(mgrModuloId));
+  }, [mgrFaseId, mgrModuloId]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -513,6 +511,24 @@ const ContentTab: React.FC = () => {
 
         {/* Right Column: Dynamic Tabs Content */}
         <div className="lg:col-span-3 flex flex-col gap-6">
+
+          {/* Breadcrumb Navigation (MEJORA-3) */}
+          <nav className="flex items-center gap-1.5 text-[12px] text-slate-500 dark:text-slate-400 font-medium px-1">
+            <span className="text-slate-700 dark:text-slate-300">Banco de Preguntas</span>
+            <ChevronRight size={12} />
+            <span className="text-slate-700 dark:text-slate-300">
+              {PHASE_MAPS.find(p => p.id === mgrFaseId)?.name?.split(':')[0] || `Fase ${mgrFaseId}`}
+            </span>
+            <ChevronRight size={12} />
+            <span className="text-slate-700 dark:text-slate-300">
+              {PHASE_MAPS.find(p => p.id === mgrFaseId)?.modules?.find(m => m.id === mgrModuloId)?.name?.split(':')[0] || `Módulo ${mgrModuloId}`}
+            </span>
+            <ChevronRight size={12} />
+            <span className="text-blue-500 dark:text-blue-400 font-bold">
+              Nivel {mgrLevelId}
+            </span>
+          </nav>
+
           <AnimatePresence mode="wait">
             
             {/* TAB A: THEORY / CONCEPTS EDITOR */}
@@ -1441,84 +1457,7 @@ const ContentTab: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Custom Toast Notification */}
-      <AnimatePresence>
-        {toast.show && (
-          <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-2xl border backdrop-blur-xl shadow-2xl ${
-              toast.type === 'success'
-                ? 'bg-emerald-950/85 border-emerald-500/40 text-emerald-200 shadow-emerald-950/20 shadow-[0_0_25px_rgba(16,185,129,0.15)]'
-                : 'bg-rose-950/85 border-rose-500/40 text-rose-200 shadow-rose-955/20 shadow-[0_0_25px_rgba(244,63,94,0.15)]'
-            }`}
-          >
-            {toast.type === 'success' ? (
-              <div className="p-1 bg-emerald-500/20 rounded-lg border border-emerald-500/30">
-                <Check className="text-emerald-400" size={18} />
-              </div>
-            ) : (
-              <div className="p-1 bg-rose-500/20 rounded-lg border border-rose-500/30">
-                <X className="text-rose-400" size={18} />
-              </div>
-            )}
-            <span className="font-extrabold text-sm tracking-wide">{toast.message}</span>
-            <button 
-              onClick={() => setToast(prev => ({ ...prev, show: false }))}
-              className="ml-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-colors cursor-pointer"
-            >
-              <X size={14} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Custom Confirm Dialog Modal */}
-      <AnimatePresence>
-        {confirmDialog.show && (
-          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="glass-panel border border-slate-200 dark:border-white/10 w-full max-w-md rounded-[2rem] p-6 shadow-2xl flex flex-col gap-6 text-slate-900 dark:text-white select-none shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-            >
-              <div className="flex items-center gap-3 text-rose-400 font-black border-b border-slate-200 dark:border-white/5 pb-3">
-                <div className="p-2 bg-rose-500/20 rounded-xl border border-rose-500/30">
-                  <AlertTriangle size={20} />
-                </div>
-                <h4 className="text-lg">{confirmDialog.title}</h4>
-              </div>
-              
-              <p className="text-sm font-bold text-slate-600 dark:text-slate-300 leading-relaxed">
-                {confirmDialog.message}
-              </p>
-              
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
-                  className="px-5 py-2.5 rounded-xl bg-white dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-white/10 text-xs font-black transition-all border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    confirmDialog.onConfirm();
-                    setConfirmDialog(prev => ({ ...prev, show: false }));
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black shadow-lg shadow-rose-900/20 active:scale-95 transition-all cursor-pointer"
-                >
-                  Sí, eliminar
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Toast and Confirm dialogs now use the global system from AdminPanel */}
 
     </div>
   );

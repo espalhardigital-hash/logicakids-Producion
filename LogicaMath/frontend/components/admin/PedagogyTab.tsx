@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Save, Settings, Clock, Layers, ToggleLeft, ToggleRight, 
   CheckCircle, AlertCircle, Loader2, Target, HelpCircle, 
-  ChevronRight, ChevronDown, ChevronUp, ShieldAlert, Cpu
+  ChevronRight, ChevronDown, ChevronUp, ShieldAlert, Cpu, Minimize2, Maximize2
 } from 'lucide-react';
 import { 
   getAdminSettings, saveAdminSettings, 
@@ -857,6 +857,9 @@ const PedagogyTab: React.FC = () => {
 
   const changesExist = hasChanges();
 
+  // Collapse/Expand all config sections (MEJORA-5)
+  const [sectionsCollapsed, setSectionsCollapsed] = useState(false);
+
   return (
     <motion.div variants={itemVariants} className="w-full flex flex-col gap-6 lg:gap-10 select-none">
       
@@ -891,6 +894,16 @@ const PedagogyTab: React.FC = () => {
            saveStatus === 'success' ? '¡Todo Guardado!' :
            saveStatus === 'error' ? 'Error al guardar' :
            changesExist ? 'Guardar Cambios' : 'Sin Cambios'}
+        </button>
+
+        {/* Collapse/Expand All (MEJORA-5) */}
+        <button
+          onClick={() => setSectionsCollapsed(!sectionsCollapsed)}
+          className="px-4 py-3.5 lg:px-5 lg:py-4 rounded-2xl flex items-center gap-2 font-bold text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white/80 dark:hover:bg-white/10 transition-all"
+          title={sectionsCollapsed ? 'Expandir todas las secciones' : 'Colapsar todas las secciones'}
+        >
+          {sectionsCollapsed ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
+          {sectionsCollapsed ? 'Expandir todo' : 'Colapsar todo'}
         </button>
       </div>
 
@@ -1020,10 +1033,13 @@ const PedagogyTab: React.FC = () => {
                     <Layers size={14} /> {mod.name.split(':')[0]}
                     {isModModified && <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse ml-1" />}
                     {hasOverride && (
-                      <span className={`text-[8px] px-1.5 py-0.5 rounded-full ml-1 ${
-                        selectedModule?.name === mod.name ? 'bg-white/20' : 'bg-amber-500/20 text-amber-500 dark:text-amber-400'
-                      }`}>
-                        Override
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full ml-1 cursor-help ${
+                          selectedModule?.name === mod.name ? 'bg-white/20' : 'bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/20'
+                        }`}
+                        title="Este módulo tiene configuración propia que sobreescribe la configuración global de la plataforma"
+                      >
+                        ⬆ Config propia
                       </span>
                     )}
                   </button>
@@ -1037,7 +1053,19 @@ const PedagogyTab: React.FC = () => {
         {/* CONTENT PANELS */}
         {/* ========================================================= */}
         <AnimatePresence mode="wait">
-
+          {sectionsCollapsed ? (
+            <motion.div
+              key="collapsed-hint"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 rounded-2xl text-center text-sm text-slate-500 dark:text-slate-400"
+            >
+              <Minimize2 size={20} className="inline mr-2 opacity-50" />
+              Las secciones de configuración están colapsadas. Haz clic en <strong>"Expandir todo"</strong> para verlas.
+            </motion.div>
+          ) : (
+            <>
           {/* VIEW A: PLATFORM GLOBALS */}
           {selectedPhaseId === 0 && (
             <motion.div
@@ -1636,6 +1664,9 @@ const PedagogyTab: React.FC = () => {
 
               </div>
             </motion.div>
+          )}
+
+            </>
           )}
 
         </AnimatePresence>

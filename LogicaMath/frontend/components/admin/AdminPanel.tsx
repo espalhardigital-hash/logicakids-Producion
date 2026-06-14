@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut, BookOpen, Server } from 'lucide-react';
+import { Shield, LayoutDashboard, Settings, Activity, Menu, X, LogOut, BookOpen, Server, ArrowLeft, Settings2 } from 'lucide-react';
+import './admin.css';
 import GeneralTab from './GeneralTab';
 import PedagogyTab from './PedagogyTab';
 import PerformanceTab from './PerformanceTab';
@@ -20,10 +21,19 @@ type TabType = 'general' | 'pedagogy' | 'performance' | 'content' | 'system' | '
 const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  // Tab notification badges (MEJORA-1)
+  const [tabBadges, setTabBadges] = useState<Partial<Record<TabType, number>>>({});
   
   // Custom Admin UI Settings
   const [adminScale, setAdminScale] = useState<number>(100);
   const [adminFontFamily, setAdminFontFamily] = useState<string>('');
+
+  // Evaluator Mode — proper React state (BUG-1 fix)
+  const [evaluatorMode, setEvaluatorMode] = useState<boolean>(
+    () => localStorage.getItem('evaluatorMode') === 'true'
+  );
 
   // Dialog (Modal Alert/Confirm) State
   const [dialogState, setDialogState] = useState<{
@@ -101,126 +111,6 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
       className="apple-admin fixed inset-0 bg-[var(--apple-bg)] text-[var(--apple-text)] overflow-hidden w-full h-full flex custom-scrollbar transition-colors duration-300"
       style={{ fontFamily: adminFontFamily || undefined }}
     >
-      {/* Dynamic CSS Scope Injection */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        .apple-admin {
-          /* Light mode defaults - Clean iOS aesthetics */
-          --apple-bg: #f8fafc;
-          --apple-card: rgba(255, 255, 255, 0.85);
-          --apple-border: rgba(15, 23, 42, 0.08);
-          --apple-text: #0f172a;
-          --apple-text-muted: #64748b;
-          --apple-input-bg: rgba(241, 245, 249, 0.8);
-          --apple-input-text: #0f172a;
-          --apple-hover-bg: rgba(15, 23, 42, 0.04);
-          --apple-table-header: rgba(241, 245, 249, 0.9);
-          --apple-table-border: rgba(15, 23, 42, 0.06);
-          --apple-switch-bg: #cbd5e1;
-          
-          --apple-blue: #3b82f6;
-          --apple-green: #10b981;
-          font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
-        }
-
-        .dark .apple-admin {
-          /* Dark mode overrides - Premium Glassmorphism */
-          --apple-bg: #0f172a; /* Slate 900 instead of pure black */
-          --apple-card: rgba(30, 41, 59, 0.65); /* Slate 800 translúcido */
-          --apple-border: rgba(255, 255, 255, 0.1);
-          --apple-text: #f8fafc; /* Slate 50 */
-          --apple-text-muted: #94a3b8; /* Slate 400 */
-          --apple-input-bg: rgba(15, 23, 42, 0.7); /* Slate 900 para inputs */
-          --apple-input-text: #f8fafc;
-          --apple-hover-bg: rgba(255, 255, 255, 0.05);
-          --apple-table-header: rgba(15, 23, 42, 0.6);
-          --apple-table-border: rgba(255, 255, 255, 0.08);
-          --apple-switch-bg: #334155;
-        }
-
-        /* custom modern scrollbar */
-        .apple-admin ::-webkit-scrollbar { width: 6px; height: 6px; }
-        .apple-admin ::-webkit-scrollbar-track { background: transparent; }
-        .apple-admin ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 99px; }
-        .apple-admin ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
-
-        /* Beautiful iOS inputs, selects and textareas override */
-        .apple-admin input[type="text"],
-        .apple-admin input[type="email"],
-        .apple-admin input[type="password"],
-        .apple-admin input[type="number"],
-        .apple-admin select,
-        .apple-admin textarea {
-          background: var(--apple-input-bg) !important;
-          border: 1px solid var(--apple-border) !important;
-          border-radius: 10px !important;
-          color: var(--apple-input-text) !important;
-          padding: 8px 12px !important;
-          font-size: 14px !important;
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-          outline: none !important;
-        }
-        .apple-admin input[type="text"]:focus,
-        .apple-admin input[type="email"]:focus,
-        .apple-admin input[type="password"]:focus,
-        .apple-admin input[type="number"]:focus,
-        .apple-admin select:focus,
-        .apple-admin textarea:focus {
-          border-color: var(--apple-blue) !important;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
-          background: transparent !important;
-        }
-
-        /* Sleek Apple-style Table headers and rows */
-        .apple-admin table { border-collapse: separate !important; border-spacing: 0 !important; width: 100% !important; }
-        .apple-admin th {
-          background: var(--apple-table-header) !important;
-          border-bottom: 1px solid var(--apple-table-border) !important;
-          color: var(--apple-text-muted) !important;
-          font-weight: 600 !important;
-          text-transform: none !important;
-          font-size: 13px !important;
-          padding: 10px 14px !important;
-          text-align: left !important;
-        }
-        .apple-admin td {
-          border-bottom: 1px solid var(--apple-table-border) !important;
-          padding: 12px 14px !important;
-          font-size: 14px !important;
-          color: var(--apple-text) !important;
-        }
-        .apple-admin tr:hover td { background: var(--apple-hover-bg) !important; }
-
-        /* Apple cards overrides */
-        .apple-admin .glass-card,
-        .apple-admin .bg-slate-900,
-        .apple-admin .bg-\\[\\#162033\\],
-        .apple-admin .dark\\:bg-\\[\\#162033\\] {
-          background: var(--apple-card) !important;
-          backdrop-filter: blur(20px) saturate(180%) !important;
-          -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-          border: 1px solid var(--apple-border) !important;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
-          border-radius: 16px !important;
-        }
-        
-        /* Removing the harsh inherit color so Tailwind can handle specific grays/blues */
-
-        /* iOS Toggle Switch Styles */
-        .apple-admin .ios-switch-container { display: inline-flex; align-items: center; cursor: pointer; }
-        .apple-admin .ios-switch {
-          position: relative; display: inline-block; width: 44px; height: 24px;
-          background-color: var(--apple-switch-bg);
-          border-radius: 99px; transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .apple-admin .ios-switch-active { background-color: var(--apple-green) !important; }
-        .apple-admin .ios-switch-knob {
-          position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
-          background-color: #ffffff; border-radius: 99px;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .apple-admin .ios-switch-active .ios-switch-knob { transform: translateX(20px); }
-      ` }} />
-
       {/* Subtle Ambient Vignette */}
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,_transparent_40%,_rgba(0,0,0,0.3))] pointer-events-none z-0"></div>
 
@@ -274,95 +164,42 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                 }`}
               >
                 <tab.icon size={17} className="relative z-10" />
-                <span className="relative z-10">{tab.label}</span>
+                <span className="relative z-10 flex-1 text-left">{tab.label}</span>
+                {tabBadges[tab.id as TabType] && (
+                  <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center font-bold">
+                    {tabBadges[tab.id as TabType]}
+                  </span>
+                )}
               </button>
             );
           })}
         </nav>
 
-        {/* Controles de Ajuste UI (macOS System Preferences style) */}
-        <div className="px-5 py-4 border-t border-slate-200 dark:border-white/5 bg-black/10">
-          <p className="text-[10px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Ajustes Visuales</p>
-          
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-[11.5px] text-slate-500 dark:text-slate-400">Escala</label>
-                <span className="text-[11.5px] text-[#007AFF] font-medium">{adminScale}%</span>
-              </div>
-              <input 
-                type="range" 
-                min="85" 
-                max="135" 
-                step="5" 
-                value={adminScale} 
-                onChange={(e) => setAdminScale(Number(e.target.value))}
-                className="w-full h-1 bg-white/80 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#007AFF]"
-              />
-            </div>
-            
-            <div>
-              <label className="text-[11.5px] text-slate-500 dark:text-slate-400 mb-1 block">Familia Tipográfica</label>
-              <select 
-                value={adminFontFamily} 
-                onChange={(e) => setAdminFontFamily(e.target.value)}
-                className="w-full bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#007AFF] transition-colors"
-                style={{ fontFamily: adminFontFamily || undefined }}
-              >
-                <option value="">SF Pro Text (Predeterminada)</option>
-                <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans</option>
-                <option value="'OpenDyslexic', 'Comic Sans MS', sans-serif">Dyslexic-friendly</option>
-                <option value="monospace">Monospace (Terminal)</option>
-                <option value="Arial, Helvetica, sans-serif">Arial</option>
-              </select>
-            </div>
-            
-            <div className="pt-2 border-t border-slate-200 dark:border-white/5">
-              <div className="flex justify-between items-center">
-                <div>
-                  <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">Modo Evaluador</label>
-                  <p className="text-[9px] text-slate-500 dark:text-slate-500 mt-0.5">Permite saltar preguntas sin evaluar para probar el flujo.</p>
-                </div>
-                <label className="ios-switch-container">
-                  <input 
-                    type="checkbox" 
-                    className="hidden" 
-                    checked={localStorage.getItem('evaluatorMode') === 'true'}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        localStorage.setItem('evaluatorMode', 'true');
-                        showAlert('Modo Evaluador Activado', 'Ahora podrás usar el botón "Saltar" en los juegos para probar el flujo.', 'success');
-                      } else {
-                        localStorage.removeItem('evaluatorMode');
-                        showAlert('Modo Evaluador Desactivado', 'El flujo de juego ha vuelto a la normalidad.', 'info');
-                      }
-                      // Force re-render to update the switch UI locally
-                      setAdminScale(adminScale + 0.001); 
-                      setTimeout(() => setAdminScale(Math.floor(adminScale)), 10);
-                    }}
-                  />
-                  <div className={`ios-switch ${localStorage.getItem('evaluatorMode') === 'true' ? 'ios-switch-active' : ''}`}>
-                    <div className="ios-switch-knob"></div>
-                  </div>
-                </label>
-              </div>
-            </div>
-          </div>
+        {/* Settings button (replaces inline Ajustes Visuales) */}
+        <div className="px-3.5 py-3 border-t border-slate-200 dark:border-white/5">
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 text-[13.5px] font-medium transition-colors"
+          >
+            <Settings2 size={16} />
+            Ajustes de pantalla
+          </button>
         </div>
 
-        {/* Footer Actions (Sleek Apple layout) */}
+        {/* Footer Actions — clear visual hierarchy (MEJORA-2) */}
         <div className="p-4 space-y-2">
           <button
             onClick={onBack}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-white/15 text-slate-900 dark:text-white text-[13.5px] font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-900 dark:text-white text-[13.5px] font-semibold transition-colors"
           >
+            <ArrowLeft size={15} />
             Volver al Viaje
           </button>
           <button
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-transparent hover:bg-red-500/10 text-slate-500 dark:text-slate-400 hover:text-red-400 text-[13.5px] font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/5 text-[12px] font-medium transition-colors"
           >
-            <LogOut size={14} />
+            <LogOut size={13} />
             Cerrar Sesión
           </button>
         </div>
@@ -455,6 +292,108 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
                 >
                   Aceptar
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Settings Modal (UX-2) */}
+      <AnimatePresence>
+        {showSettingsModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowSettingsModal(false)}
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-panel border border-slate-200 dark:border-white/10 w-full max-w-sm rounded-[1.5rem] p-6 shadow-2xl text-slate-900 dark:text-white"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-base font-bold flex items-center gap-2">
+                  <Settings2 size={18} className="text-blue-400" />
+                  Ajustes de Pantalla
+                </h3>
+                <button
+                  onClick={() => setShowSettingsModal(false)}
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-5">
+                {/* Scale */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-[12px] text-slate-500 dark:text-slate-400">Escala de Interfaz</label>
+                    <span className="text-[12px] text-[#007AFF] font-medium">{adminScale}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="85"
+                    max="135"
+                    step="5"
+                    value={adminScale}
+                    onChange={(e) => setAdminScale(Number(e.target.value))}
+                    className="w-full h-1 bg-white/80 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#007AFF]"
+                  />
+                </div>
+
+                {/* Font Family */}
+                <div>
+                  <label className="text-[12px] text-slate-500 dark:text-slate-400 mb-1.5 block">Familia Tipográfica</label>
+                  <select
+                    value={adminFontFamily}
+                    onChange={(e) => setAdminFontFamily(e.target.value)}
+                    className="w-full bg-white/80 dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-lg p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#007AFF] transition-colors"
+                    style={{ fontFamily: adminFontFamily || undefined }}
+                  >
+                    <option value="">SF Pro Text (Predeterminada)</option>
+                    <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans</option>
+                    <option value="'OpenDyslexic', 'Comic Sans MS', sans-serif">Dyslexic-friendly</option>
+                    <option value="monospace">Monospace (Terminal)</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                  </select>
+                </div>
+
+                {/* Evaluator Mode */}
+                <div className="pt-3 border-t border-slate-200 dark:border-white/5">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <label className="text-[12px] font-semibold text-slate-700 dark:text-slate-300">Modo Evaluador</label>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Permite saltar preguntas sin evaluar para probar el flujo.</p>
+                    </div>
+                    <label className="ios-switch-container">
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={evaluatorMode}
+                        onChange={(e) => {
+                          const newValue = e.target.checked;
+                          setEvaluatorMode(newValue);
+                          if (newValue) {
+                            localStorage.setItem('evaluatorMode', 'true');
+                            showAlert('Modo Evaluador Activado', 'Ahora podrás usar el botón "Saltar" en los juegos para probar el flujo.', 'success');
+                          } else {
+                            localStorage.removeItem('evaluatorMode');
+                            showAlert('Modo Evaluador Desactivado', 'El flujo de juego ha vuelto a la normalidad.', 'info');
+                          }
+                        }}
+                      />
+                      <div className={`ios-switch ${evaluatorMode ? 'ios-switch-active' : ''}`}>
+                        <div className="ios-switch-knob"></div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </motion.div>

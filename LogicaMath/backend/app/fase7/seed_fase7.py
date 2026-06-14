@@ -39,13 +39,9 @@ async def clear_fase7_data(session: AsyncSession):
 
 async def seed_teoria_niveles_fase7(session: AsyncSession):
     print("Sembrando guión de textos para Fase 7...")
-    # Se agregarían aquí los textos largos definidos en fase7.md.
-    # Por brevedad en la inicialización, insertamos placeholders que serán expandidos.
-    niveles_teoria = [
-        {"modulo_id": 1, "nivel_id": 1, "titulo": "La Brújula del Navegante", "texto_descubrimiento": "Orientación espacial...", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        # ... otros niveles
-    ]
-    for data in niveles_teoria:
+    from app.fase7.content_fase7 import niveles_teoria_fase7
+    
+    for data in niveles_teoria_fase7:
         nt = NivelTeoria(fase_id=FASE7_ID, **data)
         session.add(nt)
     await session.commit()
@@ -153,8 +149,8 @@ async def seed_configuracion_progreso_fase7(session: AsyncSession):
 
 async def seed_practica_pool_fase7(session: AsyncSession):
     print("Sembrando pool de práctica Fase 7...")
-    # 3 modulos x (3 practica + 3 desafios)
-    sections = [(m, l) for m in range(1, 4) for l in [1, 2, 3, 11, 12, 13]]
+    # 4 modulos x (3 practica + 3 desafios)
+    sections = [(m, l) for m in range(1, 5) for l in [1, 2, 3, 11, 12, 13]]
     
     for mod_id, lvl_id in sections:
         if lvl_id > 10:

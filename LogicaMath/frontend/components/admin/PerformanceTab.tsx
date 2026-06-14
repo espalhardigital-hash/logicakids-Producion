@@ -87,27 +87,27 @@ const BulkActionButtons: React.FC<BulkActionButtonsProps> = ({
         <button
           onClick={onUnlock}
           title="Liberar todo"
-          className="px-2 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[10px] font-black text-blue-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
+          className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[13px] font-medium text-blue-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer min-h-[32px]"
         >
-          <Unlock size={9} /> Liberar
+          <Unlock size={13} /> Liberar
         </button>
       )}
       {aggregateStatus !== 'APROBADO' && (
         <button
           onClick={onApprove}
           title="Aprobar todo"
-          className="px-2 py-1 rounded-lg bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[10px] font-black text-green-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
+          className="px-3 py-1.5 rounded-lg bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[13px] font-medium text-green-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer min-h-[32px]"
         >
-          <Check size={9} /> Aprobar
+          <Check size={13} /> Aprobar
         </button>
       )}
       {aggregateStatus !== 'BLOQUEADO' && (
         <button
           onClick={onLock}
           title="Restablecer todo"
-          className="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-[10px] font-black text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
+          className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-[13px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer min-h-[32px]"
         >
-          <RotateCcw size={9} /> Restablecer
+          <RotateCcw size={13} /> Restablecer
         </button>
       )}
     </div>
@@ -137,8 +137,25 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
   // Action tracking: "level-{faseId}-{seccion}-{op}" | "module-{faseId}-{modId}" | "fase-{faseId}"
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
+  // Load all students on mount (UX-4)
+  useEffect(() => {
+    const loadAllAlumnos = async () => {
+      setLoadingSearch(true);
+      try {
+        const res = await searchAlumnos('');
+        setAlumnos(res);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingSearch(false);
+      }
+    };
+    loadAllAlumnos();
+  }, []);
+
   // Search trigger on input change
   useEffect(() => {
+    if (searchQuery.trim() === '') return; // Skip on empty, we already loaded all
     const delayDebounceFn = setTimeout(() => {
       handleSearch();
     }, 400);
@@ -146,10 +163,6 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
   }, [searchQuery]);
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      setAlumnos([]);
-      return;
-    }
     setLoadingSearch(true);
     try {
       const res = await searchAlumnos(searchQuery);
@@ -310,7 +323,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
               <p className="text-sm text-slate-500 text-center py-10">No se encontraron alumnos.</p>
             )}
             {!loadingSearch && alumnos.length === 0 && searchQuery.trim() === '' && (
-              <p className="text-sm text-slate-500 text-center py-10">Escribe en el buscador para encontrar un alumno.</p>
+              <p className="text-sm text-slate-500 text-center py-10">No hay alumnos registrados aún.</p>
             )}
             {alumnos.map((a) => {
               const isSelected = selectedAlumno?.id === a.id;
@@ -510,7 +523,21 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                                               <div className="flex items-center gap-2 mt-1">
                                                 <StatusBadge status={state} />
                                                 {state !== 'BLOQUEADO' && (
-                                                  <span className="text-xs text-slate-500 font-bold">{pct}% Aciertos</span>
+                                                  <>
+                                                    <span className="text-xs text-slate-500 font-bold">{pct}% Aciertos</span>
+                                                    {/* Progress bar (UX-5) */}
+                                                    <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                      <div
+                                                        className={`h-full rounded-full transition-all ${
+                                                          pct >= 80 ? 'bg-green-500' :
+                                                          pct >= 60 ? 'bg-blue-500' :
+                                                          pct >= 40 ? 'bg-amber-500' :
+                                                          'bg-red-500'
+                                                        }`}
+                                                        style={{ width: `${Math.min(pct, 100)}%` }}
+                                                      />
+                                                    </div>
+                                                  </>
                                                 )}
                                                 {prog && prog.ultimos_errores && prog.ultimos_errores.length > 0 && (
                                                   <div className="flex gap-1 ml-2">
@@ -533,25 +560,25 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                                                   {state === 'BLOQUEADO' && (
                                                     <button
                                                       onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'unlock')}
-                                                      className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[10px] font-black text-blue-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                      className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[13px] font-medium text-blue-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer min-h-[32px]"
                                                     >
-                                                      <Unlock size={10} /> Liberar
+                                                      <Unlock size={13} /> Liberar
                                                     </button>
                                                   )}
                                                   {state !== 'APROBADO' && (
                                                     <button
                                                       onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'approve')}
-                                                      className="px-3 py-1.5 rounded-lg bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[10px] font-black text-green-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                      className="px-3 py-1.5 rounded-lg bg-green-600/20 hover:bg-green-600 border border-green-500/30 text-[13px] font-medium text-green-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer min-h-[32px]"
                                                     >
-                                                      <Check size={10} /> Aprobar (90%)
+                                                      <Check size={13} /> Aprobar (90%)
                                                     </button>
                                                   )}
                                                   {state !== 'BLOQUEADO' && (
                                                     <button
                                                       onClick={() => handleApplyOverride(phase.id, lvl.seccion, lvl.operacion, 'lock')}
-                                                      className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-[10px] font-black text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer"
+                                                      className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-[13px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-1 cursor-pointer min-h-[32px]"
                                                     >
-                                                      <RotateCcw size={10} /> Restablecer
+                                                      <RotateCcw size={13} /> Restablecer
                                                     </button>
                                                   )}
                                                 </>

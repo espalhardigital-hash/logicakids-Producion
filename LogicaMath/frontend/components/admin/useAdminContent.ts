@@ -7,8 +7,12 @@ import { usePhaseMapContext } from './PhaseMapContext';
 
 export function useAdminContent() {
   const { phaseMaps } = usePhaseMapContext();
-  const [mgrFaseId, setMgrFaseId] = useState<number>(2);
-  const [mgrModuloId, setMgrModuloId] = useState<number>(1);
+  const [mgrFaseId, setMgrFaseId] = useState<number>(
+    () => parseInt(localStorage.getItem('admin_content_fase') || '2', 10)
+  );
+  const [mgrModuloId, setMgrModuloId] = useState<number>(
+    () => parseInt(localStorage.getItem('admin_content_modulo') || '1', 10)
+  );
   const [mgrLevelId, setMgrLevelId] = useState<number>(1);
   const [questions, setQuestions] = useState<any[]>([]);
   const [theory, setTheory] = useState<any | null>(null);

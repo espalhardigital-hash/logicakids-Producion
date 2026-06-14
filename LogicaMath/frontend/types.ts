@@ -106,6 +106,10 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  /**
+   * @internal
+   * WARNING: Never expose this field in the frontend UI. It is only needed for the backend/authentication layer.
+   */
   password: string; // Password hash stored in backend
   role: UserRole;
   status: UserStatus;

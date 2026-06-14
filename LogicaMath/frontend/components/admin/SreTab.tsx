@@ -18,6 +18,8 @@ interface SreProgress {
   [stageName: string]: StageData;
 }
 
+const SRE_ENDPOINT = import.meta.env.VITE_SRE_ENDPOINT ?? 'http://localhost:9323/progreso_sre.json';
+
 const SreTab: React.FC = () => {
   const [data, setData] = useState<SreProgress | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -27,9 +29,13 @@ const SreTab: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:9323/progreso_sre.json');
+      const response = await fetch(SRE_ENDPOINT);
       if (!response.ok) {
-        throw new Error('No se pudo conectar al servidor de reportes (puerto 9323).');
+        throw new Error(
+          `No se pudo conectar al servidor de reportes.\n` +
+          `URL: ${SRE_ENDPOINT}\n` +
+          `Configura VITE_SRE_ENDPOINT en tu .env si estás en producción.`
+        );
       }
       const jsonData = await response.json();
       setData(jsonData);

@@ -39,32 +39,9 @@ async def clear_fase8_data(session: AsyncSession):
 
 async def seed_teoria_niveles_fase8(session: AsyncSession):
     print("Sembrando guión de textos para Fase 8...")
-    niveles_teoria = [
-        # Módulo 1: Secuencias Lógicas
-        {"modulo_id": 1, "nivel_id": 1, "titulo": "Progresiones aritméticas", "texto_descubrimiento": "Hallar patrón de suma/resta", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 2, "titulo": "Progresiones compuestas", "texto_descubrimiento": "Multiplicación e intercaladas", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 3, "titulo": "Interpolación", "texto_descubrimiento": "Deducir término faltante", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 11, "titulo": "Desafío 1: Extensión directa", "texto_descubrimiento": "El Filtro", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 12, "titulo": "Desafío 2: Dos reglas simultáneas", "texto_descubrimiento": "La Trampa", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 13, "titulo": "Desafío Final: Exponencial", "texto_descubrimiento": "El Candado", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        
-        # Módulo 2: Combinatoria Visual
-        {"modulo_id": 2, "nivel_id": 1, "titulo": "Diagramas de árbol", "texto_descubrimiento": "Combinaciones filas × columnas", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 2, "titulo": "Principio multiplicativo", "texto_descubrimiento": "Opciones sin repetición", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 3, "titulo": "Divisores comunes", "texto_descubrimiento": "Empacar grupos exactos", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 11, "titulo": "Desafío 1: Multiplicación de uniformes", "texto_descubrimiento": "El Filtro", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 12, "titulo": "Desafío 2: Restricciones combinatorias", "texto_descubrimiento": "La Trampa", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 13, "titulo": "Desafío Final: Empaquetado tech", "texto_descubrimiento": "El Candado", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        
-        # Módulo 3: Probabilidad
-        {"modulo_id": 3, "nivel_id": 1, "titulo": "Clasificación determinística", "texto_descubrimiento": "Evento seguro, posible, imposible", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 2, "titulo": "Definición de Laplace", "texto_descubrimiento": "Casos Favorables / Posibles", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 3, "titulo": "Análisis probabilístico", "texto_descubrimiento": "Fracciones comparativas", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 11, "titulo": "Desafío 1: Fracción de probabilidad", "texto_descubrimiento": "El Filtro", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 12, "titulo": "Desafío 2: Cambio de espacio muestral", "texto_descubrimiento": "La Trampa", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 13, "titulo": "Desafío Final: Sólidos en cajas", "texto_descubrimiento": "El Candado", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-    ]
-    for data in niveles_teoria:
+    from app.fase8.content_fase8 import niveles_teoria_fase8
+    
+    for data in niveles_teoria_fase8:
         nt = NivelTeoria(fase_id=FASE8_ID, **data)
         session.add(nt)
     await session.commit()

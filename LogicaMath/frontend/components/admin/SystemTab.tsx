@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSystemConfig, updateSystemConfig } from '../../services/storageService';
-import { Server, Save, Loader2 } from 'lucide-react';
+import { Server, Save, Loader2, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Props {
@@ -19,6 +19,7 @@ const itemVariants = {
 
 const SystemTab: React.FC<Props> = ({ showAlert }) => {
   const [systemConfig, setSystemConfig] = useState({ vps_host: '', ssh_user: '', database_url: '' });
+  const [showDbUrl, setShowDbUrl] = useState(false);
   const [savingSystemConfig, setSavingSystemConfig] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -78,14 +79,23 @@ const SystemTab: React.FC<Props> = ({ showAlert }) => {
           <form onSubmit={handleSaveSystemConfig} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 md:col-span-2">
               <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">DATABASE_URL (PostgreSQL)</label>
-              <input 
-                required 
-                type="text"
-                value={systemConfig.database_url} 
-                onChange={e => setSystemConfig({...systemConfig, database_url: e.target.value})}
-                className="w-full" 
-                placeholder="postgresql+asyncpg://user:pass@host:5432/db" 
-              />
+              <div className="relative">
+                <input 
+                  required 
+                  type={showDbUrl ? "text" : "password"}
+                  value={systemConfig.database_url} 
+                  onChange={e => setSystemConfig({...systemConfig, database_url: e.target.value})}
+                  className="w-full pr-12" 
+                  placeholder="postgresql+asyncpg://user:pass@host:5432/db" 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowDbUrl(!showDbUrl)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                >
+                  {showDbUrl ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">VPS Host IP</label>
