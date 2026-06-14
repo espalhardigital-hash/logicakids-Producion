@@ -448,9 +448,15 @@ async def get_lectura_fase8(
     theory = result.scalar_one_or_none()
     
     if not theory:
-        raise HTTPException(
-            status_code=404, 
-            detail=f"No se encontró contenido teórico para el módulo {modulo_id}, nivel {nivel_id}."
+        return fase8ContenidoLectura(
+            modulo_id=modulo_id,
+            nivel_id=nivel_id,
+            titulo="Teoría Próximamente",
+            parrafos=["El contenido teórico de este nivel está en desarrollo."],
+            ejemplos=[],
+            tip_pedagogico="Observa cuidadosamente.",
+            diccionario=None,
+            interactivos=[],
         )
     
     parrafos = [p.strip() for p in theory.texto_descubrimiento.split("\n") if p.strip()]
