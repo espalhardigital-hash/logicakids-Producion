@@ -9,6 +9,7 @@ import {
   getAdminSettings, saveAdminSettings, 
   getModularConfigs, saveModularConfig, createModularConfig 
 } from '../../services/storageService';
+import { useAutoSave } from './useAutoSave';
 import { PedagogyConfig, ConfiguracionProgreso } from '../../types';
 
 // ==========================================
@@ -480,6 +481,20 @@ const PedagogyTab: React.FC = () => {
   const [selectedSubLevelId, setSelectedSubLevelId] = useState<number | null>(null);
   const [isSelectedChallenge, setIsSelectedChallenge] = useState<boolean>(false);
 
+  // Accordion state for operation categories
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('pedagogyExpandedCategories');
+    return saved ? JSON.parse(saved) : { basicas: true, avanzadas: true, desafios: true };
+  });
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCategories(prev => {
+      const next = { ...prev, [cat]: !prev[cat] };
+      localStorage.setItem('pedagogyExpandedCategories', JSON.stringify(next));
+      return next;
+    });
+  };
+
   // Collapse/Expand all config sections (MEJORA-5)
   const [sectionsCollapsed, setSectionsCollapsed] = useState(false);
 
@@ -856,6 +871,8 @@ const PedagogyTab: React.FC = () => {
       setSaving(false);
     }
   };
+  const changesExist = hasChanges();
+  const { status: autoSaveStatus } = useAutoSave(changesExist, handleSaveAll, 1500);
 
   if (loading) {
     return (
@@ -868,11 +885,39 @@ const PedagogyTab: React.FC = () => {
     );
   }
 
-  const changesExist = hasChanges();
-
   return (
     <motion.div variants={itemVariants} className="w-full flex flex-col gap-6 lg:gap-10 select-none">
       
+      {/* Auto-Save Status Bar */}
+      <div className="flex items-center justify-between px-6 py-3 bg-white/5 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
+        <div className="flex items-center gap-3">
+          {autoSaveStatus === 'saving' && (
+            <>
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Guardando...</span>
+            </>
+          )}
+          {autoSaveStatus === 'success' && (
+            <>
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Sincronizado</span>
+            </>
+          )}
+          {autoSaveStatus === 'error' && (
+            <>
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+              <span className="text-sm font-bold text-red-500">Error al guardar</span>
+            </>
+          )}
+          {autoSaveStatus === 'idle' && (
+            <>
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Sincronizado</span>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Top Header Card */}
       <div className="flex items-center justify-between bg-white dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-6 lg:p-10 rounded-[2.2rem] lg:rounded-[3rem] shadow-2xl">
         <div>
@@ -886,28 +931,6 @@ const PedagogyTab: React.FC = () => {
         </div>
 
         <button
-          onClick={handleSaveAll}
-          disabled={saving || !changesExist}
-          className={`px-6 py-3.5 lg:px-8 lg:py-4 lg:text-lg rounded-2xl flex items-center gap-2 lg:gap-3 font-black shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100 ${
-            saveStatus === 'success'
-              ? 'bg-green-600 hover:bg-green-500'
-              : saveStatus === 'error'
-                ? 'bg-red-600 hover:bg-red-500'
-                : 'bg-blue-600 hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.2)]'
-          } text-slate-900 dark:text-white`}
-        >
-          {saving ? <Loader2 size={18} className="animate-spin" /> :
-           saveStatus === 'success' ? <CheckCircle size={18} /> :
-           saveStatus === 'error' ? <AlertCircle size={18} /> :
-           <Save size={18} />}
-          {saving ? 'Guardando en BD...' :
-           saveStatus === 'success' ? '¡Todo Guardado!' :
-           saveStatus === 'error' ? 'Error al guardar' :
-           changesExist ? 'Guardar Cambios' : 'Sin Cambios'}
-        </button>
-
-        {/* Collapse/Expand All (MEJORA-5) */}
-        <button
           onClick={() => setSectionsCollapsed(!sectionsCollapsed)}
           className="px-4 py-3.5 lg:px-5 lg:py-4 rounded-2xl flex items-center gap-2 font-bold text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white/80 dark:hover:bg-white/10 transition-all"
           title={sectionsCollapsed ? 'Expandir todas las secciones' : 'Colapsar todas las secciones'}
@@ -916,20 +939,6 @@ const PedagogyTab: React.FC = () => {
           {sectionsCollapsed ? 'Expandir todo' : 'Colapsar todo'}
         </button>
       </div>
-
-      {/* Floating changes alert */}
-      {changesExist && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-6 py-3.5 flex items-center gap-3"
-        >
-          <AlertCircle size={18} className="text-amber-400" />
-          <span className="text-amber-300 text-sm font-black">
-            Tienes modificaciones pendientes sin sincronizar. Presiona "Guardar Cambios" para aplicar a la base de datos.
-          </span>
-        </motion.div>
-      )}
 
       {/* ========================================================= */}
       {/* NEW TABS LAYOUT: Level 1 (Global vs Fases) */}
@@ -992,11 +1001,11 @@ const PedagogyTab: React.FC = () => {
 
             <div className="w-full h-px bg-slate-200 dark:bg-white/10" />
 
-            {/* Level 3: Modules */}
-            <div className="flex gap-3 flex-wrap px-1">
+            {/* Level 3: Modules (Categorized Accordions) */}
+            <div className="flex flex-col gap-4 px-1">
               <button 
                 onClick={() => setSelectedModule(null)}
-                className={`px-5 py-2.5 rounded-xl font-black text-xs border transition-all flex items-center gap-2 ${
+                className={`w-fit px-5 py-2.5 rounded-xl font-black text-xs border transition-all flex items-center gap-2 ${
                   !selectedModule
                     ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20' 
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80'
@@ -1005,56 +1014,109 @@ const PedagogyTab: React.FC = () => {
                 <Settings size={14} /> General (Fase {selectedPhaseId})
               </button>
 
-              {activePhase?.modules.map(mod => {
-                const checkModuleIsModified = () => {
-                  const modId = mod.modulo_id || 1;
-                  const levelIds = mod.levels?.map(l => l.id) || [];
-                  const challengeIds = mod.challenges?.map(c => c.id) || [];
-                  for (const lid of levelIds) {
-                    if (isModuleModified(selectedPhaseId, modId * 100 + lid, mod.operacion)) return true;
-                  }
-                  for (const cid of challengeIds) {
-                    if (isModuleModified(selectedPhaseId, modId * 1000 + cid, 'mixta')) return true;
-                  }
-                  return false;
-                };
-                const isModModified = checkModuleIsModified();
+              {(() => {
+                const basicas = activePhase?.modules.filter(m => ['suma', 'resta'].includes(m.operacion)) || [];
+                const avanzadas = activePhase?.modules.filter(m => ['multiplicacion', 'division'].includes(m.operacion)) || [];
+                const desafios = activePhase?.modules.filter(m => !['suma', 'resta', 'multiplicacion', 'division'].includes(m.operacion)) || [];
 
-                const checkModuleHasActiveOverride = () => {
-                  const modId = mod.modulo_id || 1;
-                  return draftModularConfigs.some(
-                    c => c.fase_id === selectedPhaseId && 
-                         (Math.floor(c.seccion / 100) === modId || Math.floor(c.seccion / 1000) === modId) &&
-                         c.activo !== false
+                const renderCategory = (id: string, title: string, iconColor: string, mods: StaticModule[]) => {
+                  if (mods.length === 0) return null;
+                  const isExpanded = expandedCategories[id];
+                  
+                  return (
+                    <div key={id} className="bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
+                      <button 
+                        onClick={() => toggleCategory(id)}
+                        className="w-full flex justify-between items-center px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${iconColor}`}>
+                            <Layers size={18} />
+                          </div>
+                          <div className="text-left">
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">{title}</h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{mods.length} operaciones disponibles</p>
+                          </div>
+                        </div>
+                        {isExpanded ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="border-t border-slate-200 dark:border-white/5"
+                          >
+                            <div className="p-4 flex gap-3 flex-wrap">
+                              {mods.map(mod => {
+                                const checkModuleIsModified = () => {
+                                  const modId = mod.modulo_id || 1;
+                                  const levelIds = mod.levels?.map(l => l.id) || [];
+                                  const challengeIds = mod.challenges?.map(c => c.id) || [];
+                                  for (const lid of levelIds) {
+                                    if (isModuleModified(selectedPhaseId, modId * 100 + lid, mod.operacion)) return true;
+                                  }
+                                  for (const cid of challengeIds) {
+                                    if (isModuleModified(selectedPhaseId, modId * 1000 + cid, 'mixta')) return true;
+                                  }
+                                  return false;
+                                };
+                                const isModModified = checkModuleIsModified();
+
+                                const checkModuleHasActiveOverride = () => {
+                                  const modId = mod.modulo_id || 1;
+                                  return draftModularConfigs.some(
+                                    c => c.fase_id === selectedPhaseId && 
+                                         (Math.floor(c.seccion / 100) === modId || Math.floor(c.seccion / 1000) === modId) &&
+                                         c.activo !== false
+                                  );
+                                };
+                                const hasOverride = checkModuleHasActiveOverride();
+
+                                return (
+                                  <button 
+                                    key={mod.name}
+                                    onClick={() => setSelectedModule(mod)}
+                                    className={`px-5 py-2.5 rounded-xl font-black text-xs border transition-all flex items-center gap-2 ${
+                                      selectedModule?.name === mod.name
+                                        ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20' 
+                                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80'
+                                    }`}
+                                  >
+                                    <Layers size={14} /> {mod.name.split(':')[0]}
+                                    {isModModified && <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse ml-1" />}
+                                    {hasOverride && (
+                                      <span
+                                        className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 cursor-help flex items-center justify-center ${
+                                          selectedModule?.name === mod.name ? 'bg-white/20' : 'bg-amber-500/20 text-amber-500 border border-amber-500/20'
+                                        }`}
+                                        title="Módulo con configuración propia"
+                                      >
+                                        ⭐
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   );
                 };
-                const hasOverride = checkModuleHasActiveOverride();
 
                 return (
-                  <button 
-                    key={mod.name}
-                    onClick={() => setSelectedModule(mod)}
-                    className={`px-5 py-2.5 rounded-xl font-black text-xs border transition-all flex items-center gap-2 ${
-                      selectedModule?.name === mod.name
-                        ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20' 
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80'
-                    }`}
-                  >
-                    <Layers size={14} /> {mod.name.split(':')[0]}
-                    {isModModified && <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse ml-1" />}
-                    {hasOverride && (
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full ml-1 cursor-help ${
-                          selectedModule?.name === mod.name ? 'bg-white/20' : 'bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/20'
-                        }`}
-                        title="Este módulo tiene configuración propia que sobreescribe la configuración global de la plataforma"
-                      >
-                        ⬆ Config propia
-                      </span>
-                    )}
-                  </button>
+                  <>
+                    {renderCategory('basicas', 'Operaciones Básicas', 'bg-blue-500/10 text-blue-500', basicas)}
+                    {renderCategory('avanzadas', 'Operaciones Avanzadas', 'bg-purple-500/10 text-purple-500', avanzadas)}
+                    {renderCategory('desafios', 'Desafíos', 'bg-amber-500/10 text-amber-500', desafios)}
+                  </>
                 );
-              })}
+              })()}
             </div>
           </div>
         )}
