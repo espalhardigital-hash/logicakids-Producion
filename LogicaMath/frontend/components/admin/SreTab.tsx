@@ -66,9 +66,9 @@ const SreTab: React.FC = () => {
   let completedTasks = 0;
   if (data) {
     Object.keys(data).forEach(stage => {
-      const stageTasks = data[stage].tareas || [];
+      const stageTasks = Array.isArray(data[stage]?.tareas) ? data[stage].tareas : [];
       totalTasks += stageTasks.length;
-      completedTasks += stageTasks.filter(t => t.completado).length;
+      completedTasks += stageTasks.filter((t: any) => t.completado).length;
     });
   }
   const overallPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -144,8 +144,8 @@ const SreTab: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {Object.keys(data).map((stage) => {
               const stageData = data[stage];
-              const stageTasks = stageData.tareas || [];
-              const completedStage = stageTasks.filter(t => t.completado).length;
+              const stageTasks = Array.isArray(data[stage]?.tareas) ? data[stage].tareas : [];
+              const completedStage = stageTasks.filter((t: any) => t.completado).length;
               const stagePercent = stageTasks.length > 0 ? Math.round((completedStage / stageTasks.length) * 100) : 0;
 
               return (

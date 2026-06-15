@@ -114,7 +114,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
     setTotalPages(Math.ceil(paginatedUsers.total / limit) || 1);
     setAllScores(scores);
     
-    const userList = paginatedUsers.data || [];
+    const userList = Array.isArray(paginatedUsers.data) ? paginatedUsers.data : [];
     setStats({
       totalUsers: paginatedUsers.total,
       activeUsers: userList.filter(u => u.status === 'ACTIVE').length,

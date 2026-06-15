@@ -10,6 +10,7 @@ import SystemTab from './SystemTab';
 import SreTab from './SreTab';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { PhaseMapProvider } from './PhaseMapContext';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 interface Props {
   onBack: () => void;
@@ -212,32 +213,44 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
           <AnimatePresence mode="wait">
             {activeTab === 'general' && (
               <motion.div key="general" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
-                <GeneralTab onBack={onBack} showConfirm={showConfirm} showAlert={showAlert} />
+                <ErrorBoundary>
+                  <GeneralTab onBack={onBack} showConfirm={showConfirm} showAlert={showAlert} />
+                </ErrorBoundary>
               </motion.div>
             )}
             {activeTab === 'pedagogy' && (
               <motion.div key="pedagogy" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
-                <PedagogyTab showConfirm={showConfirm} showAlert={showAlert} />
+                <ErrorBoundary>
+                  <PedagogyTab showConfirm={showConfirm} showAlert={showAlert} />
+                </ErrorBoundary>
               </motion.div>
             )}
             {activeTab === 'performance' && (
               <motion.div key="performance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
-                <PerformanceTab showConfirm={showConfirm} showAlert={showAlert} />
+                <ErrorBoundary>
+                  <PerformanceTab showConfirm={showConfirm} showAlert={showAlert} />
+                </ErrorBoundary>
               </motion.div>
             )}
             {activeTab === 'content' && (
               <motion.div key="content" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
-                <ContentTab showConfirm={showConfirm} showAlert={showAlert} />
+                <ErrorBoundary>
+                  <ContentTab showConfirm={showConfirm} showAlert={showAlert} />
+                </ErrorBoundary>
               </motion.div>
             )}
             {activeTab === 'system' && (
               <motion.div key="system" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
-                <SystemTab showAlert={showAlert} />
+                <ErrorBoundary>
+                  <SystemTab showAlert={showAlert} />
+                </ErrorBoundary>
               </motion.div>
             )}
             {activeTab === 'sre' && (
               <motion.div key="sre" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
-                <SreTab />
+                <ErrorBoundary>
+                  <SreTab />
+                </ErrorBoundary>
               </motion.div>
             )}
           </AnimatePresence>
