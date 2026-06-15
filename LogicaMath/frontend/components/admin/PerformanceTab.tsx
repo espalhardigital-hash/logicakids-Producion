@@ -143,7 +143,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
       setLoadingSearch(true);
       try {
         const res = await searchAlumnos('');
-        setAlumnos(res);
+        setAlumnos(res.data);
       } catch (e) {
         console.error(e);
       } finally {
@@ -166,7 +166,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
     setLoadingSearch(true);
     try {
       const res = await searchAlumnos(searchQuery);
-      setAlumnos(res);
+      setAlumnos(res.data);
     } catch (e) {
       console.error(e);
     } finally {

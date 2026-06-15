@@ -651,7 +651,7 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
 
   // Manual Theory Opener
   const handleOpenReading = useCallback(async () => {
-    if (isChallenge) return;
+    if (isChallenge && !isEvaluatorMode) return;
     setIsInitialReading(false);
     try {
       const data = await getFase3Reading(moduloId, nivelId);
@@ -751,6 +751,7 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
       if (pregunta?.tiene_cronometro && pregunta?.tiempo_limite_segundos) {
         setTimer(pregunta.tiempo_limite_segundos);
       }
+      loadNextQuestion(); // Move to next question automatically
     }, 500);
   }, [feedback.visible, maxAciertos, progreso, pregunta]);
 
@@ -1015,7 +1016,7 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
               <span>⏭️ Saltar</span>
             </button>
           )}
-          {!isChallenge && (
+          {(!isChallenge || isEvaluatorMode) && (
             <button 
               className="flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 border border-blue-500/20 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm text-blue-400 font-sans text-xs font-black mr-2 animate-pulse" 
               onClick={handleOpenReading} 

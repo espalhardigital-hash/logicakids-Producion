@@ -180,12 +180,26 @@ export const getUserDetailedAnalytics = async (username: string) => {
 
 // --- USER MANAGEMENT ---
 
-export const getAllUsers = async (): Promise<User[]> => {
+export interface PaginatedUsers {
+  data: User[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export const getAllUsers = async (skip: number = 0, limit: number = 20, search: string = "", sort_by: string = "created_at", sort_dir: string = "desc"): Promise<PaginatedUsers> => {
   try {
-    return await apiRequest<User[]>('/users');
+    const params = new URLSearchParams({
+      skip: skip.toString(),
+      limit: limit.toString(),
+      search,
+      sort_by,
+      sort_dir
+    });
+    return await apiRequest<PaginatedUsers>(`/users?${params.toString()}`);
   } catch (e) {
     console.error(e);
-    return [];
+    return { data: [], total: 0, page: 1, limit: 20 };
   }
 };
 
@@ -200,6 +214,10 @@ export const saveUser = async (userToSave: User): Promise<void> => {
 
 export const deleteUser = async (userId: string): Promise<void> => {
   await apiRequest(`/users/${userId}`, 'DELETE');
+};
+
+export const anonymizeUser = async (userId: string): Promise<void> => {
+  await apiRequest(`/admin/users/${userId}/forget`, 'POST');
 };
 
 // --- ADMIN USER MANAGEMENT ---
@@ -426,6 +444,34 @@ export const createModularConfig = async (data: Omit<import('../types').Configur
 
 // --- AI ANALYSIS ---
 
+// --- ANALYTICS (DAU/MAU/CHURN) ---
+
+export interface EngagementData {
+  dau: number;
+  mau: number;
+  total_users: number;
+  churn_rate: number;
+  churn_users: number;
+}
+
+export const getEngagementAnalytics = async (): Promise<EngagementData | null> => {
+  try {
+    return await apiRequest<EngagementData>('/admin/analytics/engagement');
+  } catch (error) {
+    console.error("Error fetching engagement analytics:", error);
+    return null;
+  }
+};
+
+export const getChurnAnalytics = async (): Promise<any[]> => {
+  try {
+    return await apiRequest<any[]>('/admin/analytics/churn-by-level');
+  } catch (error) {
+    console.error("Error fetching churn analytics:", error);
+    return [];
+  }
+};
+
 export const getAIAnalysis = async (category: string): Promise<string> => {
   try {
     const result = await apiRequest<{ analysis: string }>(`/ai/analyze/${category}`);
@@ -453,8 +499,15 @@ export interface ProgresoOverrideResponse {
   message: string;
 }
 
-export const searchAlumnos = async (query: string = ""): Promise<AlumnoSearchInfo[]> => {
-  return await apiRequest<AlumnoSearchInfo[]>(`/admin/alumnos/search?query=${encodeURIComponent(query)}`);
+export interface PaginatedAlumnos {
+  data: AlumnoSearchInfo[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export const searchAlumnos = async (query: string = "", skip: number = 0, limit: number = 50): Promise<PaginatedAlumnos> => {
+  return await apiRequest<PaginatedAlumnos>(`/admin/alumnos/search?query=${encodeURIComponent(query)}&skip=${skip}&limit=${limit}`);
 };
 
 export const getAlumnoProgress = async (alumnoId: number): Promise<any[]> => {

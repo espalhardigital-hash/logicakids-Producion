@@ -1,114 +1,70 @@
 .apple-admin {
-  /* Light mode defaults - Clean iOS aesthetics */
-  --apple-bg: #f8fafc;
-  --apple-card: rgba(255, 255, 255, 0.85);
-  --apple-border: rgba(15, 23, 42, 0.08);
-  --apple-text: #0f172a;
-  --apple-text-muted: #64748b;
-  --apple-input-bg: rgba(241, 245, 249, 0.8);
-  --apple-input-text: #0f172a;
-  --apple-hover-bg: rgba(15, 23, 42, 0.04);
-  --apple-table-header: rgba(241, 245, 249, 0.9);
-  --apple-table-border: rgba(15, 23, 42, 0.06);
-  --apple-switch-bg: #cbd5e1;
-  
-  --apple-blue: #3b82f6;
-  --apple-green: #10b981;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  --apple-bg: #f5f5f7;
+  --apple-bg-secondary: #ffffff;
+  --apple-text: #1d1d1f;
+  --apple-text-muted: #86868b;
+  --apple-border: rgba(0, 0, 0, 0.05);
+  --apple-card: rgba(255, 255, 255, 0.7);
+  --apple-accent: #0071e3;
+  --apple-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 }
-
 .dark .apple-admin {
-  /* Dark mode overrides - Premium Glassmorphism */
-  --apple-bg: #0f172a; /* Slate 900 instead of pure black */
-  --apple-card: rgba(30, 41, 59, 0.65); /* Slate 800 translúcido */
+  --apple-bg: #000000;
+  --apple-bg-secondary: #1c1c1e;
+  --apple-text: #f5f5f7;
+  --apple-text-muted: #86868b;
   --apple-border: rgba(255, 255, 255, 0.1);
-  --apple-text: #f8fafc; /* Slate 50 */
-  --apple-text-muted: #94a3b8; /* Slate 400 */
-  --apple-input-bg: rgba(15, 23, 42, 0.7); /* Slate 900 para inputs */
-  --apple-input-text: #f8fafc;
-  --apple-hover-bg: rgba(255, 255, 255, 0.05);
-  --apple-table-header: rgba(15, 23, 42, 0.6);
-  --apple-table-border: rgba(255, 255, 255, 0.08);
-  --apple-switch-bg: #334155;
+  --apple-card: rgba(28, 28, 30, 0.5);
+  --apple-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
-
-/* custom modern scrollbar */
-.apple-admin ::-webkit-scrollbar { width: 6px; height: 6px; }
-.apple-admin ::-webkit-scrollbar-track { background: transparent; }
-.apple-admin ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 99px; }
-.apple-admin ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
-
-/* Beautiful iOS inputs, selects and textareas override */
-.apple-admin input[type="text"],
-.apple-admin input[type="email"],
-.apple-admin input[type="password"],
-.apple-admin input[type="number"],
-.apple-admin select,
-.apple-admin textarea {
-  background: var(--apple-input-bg) !important;
-  border: 1px solid var(--apple-border) !important;
-  border-radius: 10px !important;
-  color: var(--apple-input-text) !important;
-  padding: 8px 12px !important;
-  font-size: 14px !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  outline: none !important;
+.glass-panel {
+  background: var(--apple-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
-.apple-admin input[type="text"]:focus,
-.apple-admin input[type="email"]:focus,
-.apple-admin input[type="password"]:focus,
-.apple-admin input[type="number"]:focus,
-.apple-admin select:focus,
-.apple-admin textarea:focus {
-  border-color: var(--apple-blue) !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
-  background: transparent !important;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-
-/* Sleek Apple-style Table headers and rows */
-.apple-admin table { border-collapse: separate !important; border-spacing: 0 !important; width: 100% !important; }
-.apple-admin th {
-  background: var(--apple-table-header) !important;
-  border-bottom: 1px solid var(--apple-table-border) !important;
-  color: var(--apple-text-muted) !important;
-  font-weight: 600 !important;
-  text-transform: none !important;
-  font-size: 13px !important;
-  padding: 10px 14px !important;
-  text-align: left !important;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
-.apple-admin td {
-  border-bottom: 1px solid var(--apple-table-border) !important;
-  padding: 12px 14px !important;
-  font-size: 14px !important;
-  color: var(--apple-text) !important;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--apple-text-muted);
+  border-radius: 20px;
+  opacity: 0.5;
 }
-.apple-admin tr:hover td { background: var(--apple-hover-bg) !important; }
-
-/* Apple cards overrides */
-.apple-admin .glass-card,
-.apple-admin .bg-slate-900,
-.apple-admin .bg-\\[\\#162033\\],
-.apple-admin .dark\\:bg-\\[\\#162033\\] {
-  background: var(--apple-card) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid var(--apple-border) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
-  border-radius: 16px !important;
+/* iOS Toggle Switch */
+.ios-switch-container {
+  display: inline-block;
+  width: 44px;
+  height: 24px;
 }
-
-/* iOS Toggle Switch Styles */
-.apple-admin .ios-switch-container { display: inline-flex; align-items: center; cursor: pointer; }
-.apple-admin .ios-switch {
-  position: relative; display: inline-block; width: 44px; height: 24px;
-  background-color: var(--apple-switch-bg);
-  border-radius: 99px; transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.ios-switch {
+  width: 100%;
+  height: 100%;
+  background-color: #e5e5ea;
+  border-radius: 24px;
+  position: relative;
+  transition: background-color 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
-.apple-admin .ios-switch-active { background-color: var(--apple-green) !important; }
-.apple-admin .ios-switch-knob {
-  position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
-  background-color: #ffffff; border-radius: 99px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.dark .ios-switch {
+  background-color: #39393d;
 }
-.apple-admin .ios-switch-active .ios-switch-knob { transform: translateX(20px); }
+.ios-switch-knob {
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+.ios-switch-active {
+  background-color: #34c759;
+}
+.ios-switch-active .ios-switch-knob {
+  transform: translateX(20px);
+}

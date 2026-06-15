@@ -812,9 +812,7 @@ const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
     setPaso1Valor(null);
     
     try {
-      if (isEvaluatorMode) {
-        throw new Error('Evaluator bypass');
-      }
+      // Removed explicit throw for Evaluator mode
       const data = await getFase5Question(moduloId, nivelId, resetProgress);
       
       setProgreso({
@@ -996,7 +994,7 @@ const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
 
   // 34: handleOpenReading
   const handleOpenReading = useCallback(async () => {
-    if (isChallenge) return;
+    if (isChallenge && !isEvaluatorMode) return;
     setIsInitialReading(false);
     try {
       setError(null);
@@ -1068,7 +1066,7 @@ const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
     });
     setTimeout(() => {
       setFeedback({ visible: false, esCorrecta: false });
-      loadPregunta(false, false);
+      loadPregunta(false, true); // <--- Forzar recarga en backend
     }, 500);
   }, [feedback.visible, maxAciertos, loadPregunta, progreso]);
 
@@ -1260,7 +1258,7 @@ const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                   <span>⏭️ Saltar</span>
                 </button>
               )}
-              {!isChallenge && (
+              {(!isChallenge || isEvaluatorMode) && (
                 <button className="f5-view-theory-btn-modern" onClick={handleOpenReading} title="Ver teoría">
                   <BookOpen size={14} style={{ marginRight: '4px' }} /><span>Teoría</span>
                 </button>

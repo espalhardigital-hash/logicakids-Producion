@@ -64,24 +64,62 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     return Token(access_token=access_token)
 
 @router.get("/users")
-async def get_all_users(db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
-    result = await db.execute(select(UserModel))
+async def get_all_users(
+    skip: int = 0,
+    limit: int = 20,
+    search: str = "",
+    sort_by: str = "created_at",
+    sort_dir: str = "desc",
+    db: AsyncSession = Depends(get_db), 
+    admin_user: dict = Depends(get_admin_user)
+):
+    from sqlalchemy import or_, func, desc, asc
+    query = select(UserModel)
+    
+    if search:
+        search_term = f"%{search}%"
+        query = query.where(or_(
+            UserModel.username.ilike(search_term),
+            UserModel.email.ilike(search_term)
+        ))
+    
+    # Sorting
+    sort_column = getattr(UserModel, sort_by, UserModel.created_at)
+    if sort_dir.lower() == "asc":
+        query = query.order_by(asc(sort_column))
+    else:
+        query = query.order_by(desc(sort_column))
+
+    # Total count
+    count_query = select(func.count()).select_from(query.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar_one_or_none() or 0
+
+    # Pagination
+    query = query.offset(skip).limit(limit)
+    result = await db.execute(query)
     users = result.scalars().all()
-    return [
-        {
-            "id": u.id,
-            "username": u.username,
-            "email": u.email,
-            "role": u.role,
-            "status": u.status,
-            "avatar": u.avatar,
-            "unlocked_level": u.unlocked_level,
-            "unlockedLevel": u.unlocked_level,
-            "createdAt": u.created_at.isoformat() if u.created_at else None,
-            "lastLogin": u.last_login.isoformat() if u.last_login else None,
-        }
-        for u in users
-    ]
+    
+    return {
+        "data": [
+            {
+                "id": u.id,
+                "username": u.username,
+                "email": u.email,
+                "role": u.role,
+                "status": u.status,
+                "avatar": u.avatar,
+                "unlocked_level": u.unlocked_level,
+                "unlockedLevel": u.unlocked_level,
+                "createdAt": u.created_at.isoformat() if u.created_at else None,
+                "lastLogin": u.last_login.isoformat() if u.last_login else None,
+            }
+            for u in users
+        ],
+        "total": total,
+        "page": (skip // limit) + 1 if limit > 0 else 1,
+        "limit": limit
+    }
 
 @router.get("/users/me")
 async def get_me(
@@ -221,6 +259,36 @@ async def delete_user(user_id: str, db: AsyncSession = Depends(get_db), admin_us
     await db.delete(user)
     await db.commit()
     return {"message": "Usuario eliminado correctamente", "id": user_id}
+
+@router.post("/admin/users/{user_id}/forget")
+async def anonymize_user(user_id: str, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    """
+    Derecho al Olvido (GDPR-K / COPPA): Anonymizes the user to remove PII
+    but keeps statistical data intact.
+    """
+    import uuid
+    result = await db.execute(select(UserModel).where(UserModel.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    anon_id = str(uuid.uuid4())[:8]
+    user.username = f"Anonimo_{anon_id}"
+    user.email = f"{anon_id}@deleted.com"
+    user.password_hash = None
+    user.avatar = None
+    user.status = "BANNED" # Optional, or just leave as is. Usually we prevent login.
+    
+    # Anonymize linked Alumno if exists
+    from ..models.sql_models import Alumno
+    alumno_result = await db.execute(select(Alumno).where(Alumno.user_id == user_id))
+    alumno = alumno_result.scalar_one_or_none()
+    if alumno:
+        alumno.nombre = f"Estudiante_{anon_id}"
+        alumno.avatar = None
+    
+    await db.commit()
+    return {"message": "Usuario anonimizado correctamente (Derecho al olvido)", "id": user_id}
 
 class AdminUserCreate(UserCreate):
     pass

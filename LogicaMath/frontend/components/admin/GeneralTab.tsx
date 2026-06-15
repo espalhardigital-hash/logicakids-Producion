@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole } from '../../types';
-import { getAllUsers, saveUser, deleteUser, getStorageUsage, getAllScores, getUserDetailedAnalytics, adminCreateUser, adminChangePassword, getAvatarUrl, deleteScoreById, } from '../../services/storageService';
+import { getAllUsers, saveUser, deleteUser, getStorageUsage, getAllScores, getUserDetailedAnalytics, adminCreateUser, adminChangePassword, getAvatarUrl, deleteScoreById, getEngagementAnalytics, getChurnAnalytics, anonymizeUser } from '../../services/storageService';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import {
   ArrowLeft, Users, Shield, Activity, Database, Search,
   Edit, Trash2, UserX, UserCheck, Plus, X, Key, Check, BarChart2, Eye, EyeOff
@@ -48,6 +49,9 @@ const itemVariants = {
 const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [filter, setFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 15;
 
   // Modals State
   const [showUserModal, setShowUserModal] = useState(false);
@@ -62,15 +66,23 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
   const [statsUser, setStatsUser] = useState<User | null>(null);
   const [userStatsData, setUserStatsData] = useState<any>(null);
   const [allScores, setAllScores] = useState<any[]>([]);
+  const [engagementData, setEngagementData] = useState<any>(null);
+  const [churnData, setChurnData] = useState<any[]>([]);
   const [sortConfig, setSortConfig] = useState<{key: 'date' | 'score', direction: 'asc' | 'desc'}>({key: 'date', direction: 'desc'});
   
-  
+  const [userSortConfig, setUserSortConfig] = useState<{
+    key: 'username' | 'email' | 'status' | 'role' | 'created_at';
+    dir: 'asc' | 'desc';
+  }>({ key: 'created_at', dir: 'desc' });
 
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeUsers: 0,
     totalGamesPlayed: 0,
-    storage: '0 KB'
+    storage: '0 KB',
+    usersDelta: 12,
+    gamesDelta: 5,
+    activeDelta: 0
   });
 
   const [formData, setFormData] = useState({
@@ -82,23 +94,34 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
   });
 
   useEffect(() => {
-    loadData();
-  }, []);
+    // Debounce the loadData to avoid too many requests while typing
+    const timeout = setTimeout(() => {
+      loadData();
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [currentPage, filter, userSortConfig]);
 
   const loadData = async () => {
-    const allUsers = await getAllUsers();
+    const skip = (currentPage - 1) * limit;
+    const paginatedUsers = await getAllUsers(skip, limit, filter, userSortConfig.key, userSortConfig.dir);
     const scores = await getAllScores();
+    const engagement = await getEngagementAnalytics();
+    const churn = await getChurnAnalytics();
     
-
-    setUsers(allUsers);
+    setEngagementData(engagement);
+    setChurnData(churn);
+    setUsers(paginatedUsers.data);
+    setTotalPages(Math.ceil(paginatedUsers.total / limit) || 1);
     setAllScores(scores);
     
-
     setStats({
-      totalUsers: allUsers.length,
-      activeUsers: allUsers.filter(u => u.status === 'ACTIVE').length,
+      totalUsers: paginatedUsers.total,
+      activeUsers: paginatedUsers.data.filter(u => u.status === 'ACTIVE').length,
       totalGamesPlayed: scores.length,
-      storage: getStorageUsage()
+      storage: getStorageUsage(),
+      usersDelta: 12,
+      gamesDelta: 5,
+      activeDelta: 0
     });
   };
 
@@ -143,6 +166,22 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
       );
     } else if (window.confirm('¿Estás seguro de eliminar este usuario permanentemente?')) {
       performDelete();
+    }
+  };
+
+  const handleAnonymize = async (id: string) => {
+    const performAnonymize = async () => {
+      await anonymizeUser(id);
+      loadData();
+    };
+    if (showConfirm) {
+      showConfirm(
+        'Derecho al Olvido (Anonimizar)',
+        '¿Estás seguro de anonimizar este usuario? Se eliminarán sus datos personales pero sus métricas se conservarán para las estadísticas globales. Esta acción no se puede deshacer.',
+        performAnonymize
+      );
+    } else if (window.confirm('¿Estás seguro de anonimizar este usuario? Sus datos personales serán eliminados.')) {
+      performAnonymize();
     }
   };
 
@@ -231,10 +270,14 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
     }));
   };
 
-  const filteredUsers = users.filter(u =>
-    u.username.toLowerCase().includes(filter.toLowerCase()) ||
-    u.email.toLowerCase().includes(filter.toLowerCase())
-  );
+  const toggleUserSort = (key: typeof userSortConfig.key) => {
+    setUserSortConfig(prev => ({
+      key,
+      dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const finalUsers = users; // Sorting is now done on the server!
 
   return (
     <div className="w-full flex flex-col items-center justify-start relative z-10">
@@ -249,46 +292,97 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
           <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Vista General de Administrador</h2>
         </div>
 
-        {/* KPI Cards */}
-        <motion.div variants={containerVariants} className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          {[
-            { label: 'Usuarios', value: '42', extra: '↑12%', color: 'blue', isStorage: false },
-            { label: 'Partidas', value: '318', extra: '↑5%', color: 'green', isStorage: false },
-            { label: 'Activos hoy', value: '28', extra: '', color: 'amber', isStorage: false },
-            { label: 'Storage', value: '2.4 MB', extra: '', color: 'white', isStorage: true }
-          ].map((item, idx) => (
-            <motion.div 
-              key={idx}
-              variants={itemVariants}
-              className={`bg-[#202126] dark:bg-[#1a1b21] border border-white/5 p-6 rounded-2xl flex flex-col justify-center items-center relative overflow-hidden ${
-                item.color === 'blue' ? 'shadow-[inset_0_-30px_50px_-30px_rgba(59,130,246,0.15)]' :
-                item.color === 'green' ? 'shadow-[inset_0_-30px_50px_-30px_rgba(34,197,94,0.15)]' :
-                item.color === 'amber' ? 'shadow-[inset_0_-30px_50px_-30px_rgba(245,158,11,0.15)]' :
-                'shadow-[inset_0_-30px_50px_-30px_rgba(255,255,255,0.05)]'
-              }`}
-            >
-              <p className={`text-[32px] leading-tight font-bold ${
-                item.color === 'blue' ? 'text-blue-500' :
-                item.color === 'green' ? 'text-green-500' :
-                item.color === 'amber' ? 'text-amber-500' :
-                'text-slate-100 dark:text-white'
-              }`}>{item.value}</p>
-              
-              <div className="flex items-center gap-1 mt-1">
-                <p className="text-slate-500 dark:text-slate-400 text-[13px] font-medium">{item.label}</p>
-                {item.extra && (
-                  <span className="text-green-500 text-[13px] font-bold">{item.extra}</span>
-                )}
+        {/* Resumen de Métricas & Engagement */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <motion.div
+            variants={itemVariants}
+            className="bg-white dark:bg-[#1A1A1A] p-6 rounded-[24px] border border-slate-200 dark:border-white/10 shadow-sm relative overflow-hidden"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
+                <Users className="text-blue-500" size={24} />
               </div>
-
-              {item.isStorage && (
-                <div className="w-32 h-1 bg-white/10 rounded-full mt-4 overflow-hidden">
-                  <div className="w-[30%] h-full bg-slate-300 dark:bg-white rounded-full"></div>
-                </div>
+              {stats.usersDelta > 0 && (
+                <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-full">
+                  +{stats.usersDelta}%
+                </span>
               )}
-            </motion.div>
-          ))}
-        </motion.div>
+            </div>
+            <h3 className="text-[14px] font-medium text-slate-500 dark:text-slate-400 mb-1">Usuarios Totales</h3>
+            <p className="text-3xl font-bold text-slate-800 dark:text-white">
+              {engagementData?.total_users || stats.totalUsers}
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="bg-white dark:bg-[#1A1A1A] p-6 rounded-[24px] border border-slate-200 dark:border-white/10 shadow-sm relative overflow-hidden"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
+                <Activity className="text-emerald-500" size={24} />
+              </div>
+              <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-full">
+                MAU: {engagementData?.mau || 0}
+              </span>
+            </div>
+            <h3 className="text-[14px] font-medium text-slate-500 dark:text-slate-400 mb-1">Activos Diarios (DAU)</h3>
+            <p className="text-3xl font-bold text-slate-800 dark:text-white">
+              {engagementData?.dau || stats.activeUsers}
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="bg-white dark:bg-[#1A1A1A] p-6 rounded-[24px] border border-slate-200 dark:border-white/10 shadow-sm relative overflow-hidden"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center">
+                <BarChart2 className="text-orange-500" size={24} />
+              </div>
+            </div>
+            <h3 className="text-[14px] font-medium text-slate-500 dark:text-slate-400 mb-1">Tasa de Abandono (Churn)</h3>
+            <p className="text-3xl font-bold text-slate-800 dark:text-white">
+              {engagementData?.churn_rate || 0}%
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="bg-white dark:bg-[#1A1A1A] p-6 rounded-[24px] border border-slate-200 dark:border-white/10 shadow-sm relative overflow-hidden"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center">
+                <Database className="text-purple-500" size={24} />
+              </div>
+            </div>
+            <h3 className="text-[14px] font-medium text-slate-500 dark:text-slate-400 mb-1">Partidas Jugadas</h3>
+            <p className="text-3xl font-bold text-slate-800 dark:text-white">
+              {stats.totalGamesPlayed}
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Gráfico de Churn por Fase */}
+        {churnData && churnData.length > 0 && (
+          <motion.div variants={itemVariants} className="w-full bg-white dark:bg-[#1A1A1A] p-6 rounded-[24px] border border-slate-200 dark:border-white/10 shadow-sm mb-8">
+            <h3 className="text-[15px] font-bold text-slate-800 dark:text-white mb-6">Abandono por Fase (Fricción)</h3>
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={churnData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="fase_id" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                  <RechartsTooltip 
+                    cursor={{fill: 'transparent'}}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Bar dataKey="churned_users" name="Usuarios Perdidos" fill="#f97316" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        )}
 
         {/* Main Content Area */}
         <motion.div variants={itemVariants} className="w-full flex flex-col flex-1 mb-10">
@@ -325,14 +419,20 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
             <table className="w-full text-left border-collapse">
               <thead className="text-slate-500 dark:text-slate-300 text-[13px] font-semibold border-b border-slate-200 dark:border-white/10">
                 <tr>
-                  <th className="py-3 px-2 font-medium">Usuario</th>
-                  <th className="py-3 px-2 font-medium">Email / Rol</th>
-                  <th className="py-3 px-2 font-medium">Estado</th>
+                  <th className="py-3 px-2 font-medium cursor-pointer" onClick={() => toggleUserSort('username')}>
+                    Usuario {userSortConfig.key === 'username' && (userSortConfig.dir === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th className="py-3 px-2 font-medium cursor-pointer" onClick={() => toggleUserSort('email')}>
+                    Email / Rol {userSortConfig.key === 'email' && (userSortConfig.dir === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th className="py-3 px-2 font-medium cursor-pointer" onClick={() => toggleUserSort('status')}>
+                    Estado {userSortConfig.key === 'status' && (userSortConfig.dir === 'asc' ? '↑' : '↓')}
+                  </th>
                   <th className="py-3 px-2 font-medium text-left">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05]">
-                {filteredUsers.map((user, index) => (
+                {finalUsers.map((user, index) => (
                   <motion.tr 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -359,10 +459,24 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                       </span>
                     </td>
                     <td className="py-3 px-2">
-                      <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500">
-                        <button className="hover:text-slate-800 dark:hover:text-white transition-colors tracking-widest text-[16px] font-bold leading-none mb-2" onClick={() => handleEdit(user)}>...</button>
-                        <button className="hover:text-red-500 dark:hover:text-red-400 transition-colors" onClick={() => handleDelete(user.id)}>
-                          <Trash2 size={13} />
+                      <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                        <button className="p-1.5 hover:text-blue-500 dark:hover:text-blue-400 transition-colors tooltip-trigger" title="Ver Estadísticas" onClick={() => handleViewStats(user)}>
+                          <BarChart2 size={15} />
+                        </button>
+                        <button className="p-1.5 hover:text-orange-500 dark:hover:text-orange-400 transition-colors" title="Cambiar Contraseña" onClick={() => { setPasswordUserId(user.id); setNewPassword(''); setShowPasswordText(false); setShowPasswordModal(true); }}>
+                          <Key size={15} />
+                        </button>
+                        <button className="p-1.5 hover:text-blue-500 dark:hover:text-blue-400 transition-colors" title="Editar" onClick={() => handleEdit(user)}>
+                          <Edit size={15} />
+                        </button>
+                        <button className="p-1.5 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors" title={user.status === 'ACTIVE' ? "Suspender Usuario" : "Activar Usuario"} onClick={() => toggleStatus(user)}>
+                          {user.status === 'ACTIVE' ? <UserX size={15} /> : <UserCheck size={15} />}
+                        </button>
+                        <button className="p-1.5 hover:text-purple-500 dark:hover:text-purple-400 transition-colors tooltip-trigger" title="Derecho al Olvido (Anonimizar)" onClick={() => handleAnonymize(user.id)}>
+                          <EyeOff size={15} />
+                        </button>
+                        <button className="p-1.5 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="Eliminar" onClick={() => handleDelete(user.id)}>
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </td>
@@ -370,16 +484,53 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                 ))}
               </tbody>
             </table>
-            {filteredUsers.length === 0 && (
-              <div className="p-20 flex flex-col items-center justify-center text-slate-500">
-                <div className="w-20 h-20 rounded-full bg-white dark:bg-white/5 flex items-center justify-center mb-6">
-                  <Users size={40} className="opacity-20" />
+            {finalUsers.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                  <Users className="text-slate-400" size={28} />
                 </div>
-                <p className="font-bold text-xl tracking-tight">No se encontraron usuarios</p>
-                <p className="text-sm font-medium mt-1">Prueba con otro término de búsqueda</p>
+                <p className="text-[15px] font-semibold text-slate-700 dark:text-white mb-2">
+                  {filter ? 'No se encontraron resultados' : 'Aún no hay usuarios'}
+                </p>
+                <p className="text-[13px] text-slate-500 mb-5">
+                  {filter
+                    ? `No coincide ningún usuario con "${filter}"`
+                    : 'Crea el primer usuario para comenzar a usar LogicaKids Pro'}
+                </p>
+                {!filter && (
+                  <button
+                    onClick={handleCreate}
+                    className="px-5 py-2.5 bg-[#007AFF] hover:bg-blue-500 text-white rounded-xl text-[13px] font-semibold flex items-center gap-2 transition-colors"
+                  >
+                    + Crear primer usuario
+                  </button>
+                )}
               </div>
             )}
           </div>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-200 dark:border-white/10">
+              <span className="text-[13px] text-slate-500">Página {currentPage} de {totalPages} ({stats.totalUsers} usuarios)</span>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 text-[13px] font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Anterior
+                </button>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 text-[13px] font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         

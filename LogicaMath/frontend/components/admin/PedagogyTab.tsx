@@ -569,6 +569,16 @@ const PedagogyTab: React.FC = () => {
     }
     const modId = selectedModule.modulo_id || 1;
     let oper = selectedModule.operacion;
+    
+    // CRITICAL FIX: Fase 5-9 use a different ID structure for their sections
+    if (selectedPhaseId >= 5) {
+      if (isSelectedChallenge) {
+        return { seccion: selectedPhaseId * 10000 + modId * 100 + selectedSubLevelId, operacion: 'mixta' };
+      } else {
+        return { seccion: selectedPhaseId * 1000 + modId * 10 + selectedSubLevelId, operacion: oper };
+      }
+    }
+
     if (isSelectedChallenge) {
       return { seccion: modId * 1000 + selectedSubLevelId, operacion: 'mixta' };
     } else {

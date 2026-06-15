@@ -354,12 +354,18 @@ async def save_teoria(payload: NivelTeoriaSave, db: AsyncSession = Depends(get_d
     return {"status": "ok", "message": "Teoría guardada exitosamente"}
 
 @router.get("/alumnos/search")
-async def search_alumnos(query: str = "", db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+async def search_alumnos(query: str = "", skip: int = 0, limit: int = 50, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):
+    from sqlalchemy import func
     q = select(User).options(selectinload(User.alumno)).where(User.role != "ADMIN")
     if query:
         filter_str = f"%{query}%"
         q = q.where(or_(User.username.ilike(filter_str), User.email.ilike(filter_str)))
     
+    count_query = select(func.count()).select_from(q.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar_one_or_none() or 0
+    
+    q = q.offset(skip).limit(limit)
     result = await db.execute(q)
     users = result.scalars().all()
     
@@ -375,7 +381,7 @@ async def search_alumnos(query: str = "", db: AsyncSession = Depends(get_db), ad
                 "fase_actual_id": u.alumno.fase_actual_id,
                 "estado": u.alumno.estado.value if hasattr(u.alumno.estado, "value") else u.alumno.estado,
             })
-    return out
+    return {"data": out, "total": total, "page": (skip // limit) + 1 if limit > 0 else 1, "limit": limit}
 
 @router.get("/alumnos/{alumno_id}/progress")
 async def get_alumno_progress(alumno_id: int, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):

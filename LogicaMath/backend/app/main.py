@@ -12,6 +12,7 @@ from fastapi_cache.backends.redis import RedisBackend
 
 from .routers import auth_users, ai
 from .admin.router import router as admin_router
+from .admin.analytics import router as analytics_router
 from .fase1.router import router as fase1_router
 from .fase2.router import router as fase2_router
 from .fase3.router import router as fase3_router
@@ -86,9 +87,12 @@ class StripAPIPrefixMiddleware:
                         
         await self.app(scope, receive, send)
 
+from .core.audit_middleware import AuditMiddleware
+
 app = FastAPI(title="LogicaKids Pro API", version="3.0.0", lifespan=lifespan)
 
 app.add_middleware(StripAPIPrefixMiddleware)
+app.add_middleware(AuditMiddleware)
 
 # Security Headers
 if settings.ENABLE_SECURITY_HEADERS:
@@ -122,6 +126,7 @@ def read_root():
 
 app.include_router(auth_users.router)
 app.include_router(admin_router)
+app.include_router(analytics_router)
 app.include_router(fase1_router)
 app.include_router(ai.router)
 app.include_router(fase2_router)
