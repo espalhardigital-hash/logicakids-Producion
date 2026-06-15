@@ -72,7 +72,7 @@ class StripAPIPrefixMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] == "http":
+        if scope["type"] in ("http", "websocket"):
             path = scope.get("path", "")
             if path.startswith("/api"):
                 new_path = path[4:]

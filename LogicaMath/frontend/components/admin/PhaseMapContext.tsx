@@ -17,6 +17,15 @@ export const PhaseMapProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const fetchPhaseMaps = async () => {
     try {
       const token = localStorage.getItem('token');
+      // Decode role from JWT payload to know if reseed is safe
+      let isAdmin = false;
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          isAdmin = payload?.role === 'admin';
+        } catch (_) { /* malformed token */ }
+      }
+
       const response = await fetch('/api/admin/phase-maps', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -28,14 +37,14 @@ export const PhaseMapProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           if (Array.isArray(data) && data.length > 0) {
             if (data.length !== STATIC_PHASE_MAPS.length) {
                console.log("Mismatched phase maps length. Reseeding with static maps...");
-               await savePhaseMaps(STATIC_PHASE_MAPS);
+               if (isAdmin) await savePhaseMaps(STATIC_PHASE_MAPS);
                setPhaseMaps(STATIC_PHASE_MAPS);
             } else {
                setPhaseMaps(data);
             }
           } else {
-            // Si está vacío o no es arreglo, auto-semilla con el estático
-            await savePhaseMaps(STATIC_PHASE_MAPS);
+            // Si está vacío o no es arreglo, auto-semilla con el estático (solo si es admin)
+            if (isAdmin) await savePhaseMaps(STATIC_PHASE_MAPS);
             setPhaseMaps(STATIC_PHASE_MAPS);
           }
         } catch (e) {
@@ -43,7 +52,7 @@ export const PhaseMapProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setPhaseMaps(STATIC_PHASE_MAPS);
         }
       } else {
-         console.warn("Phase maps request failed (e.g. 401). Falling back to static maps.");
+         // Non-admin or unauthenticated — silently fall back to static maps
          setPhaseMaps(STATIC_PHASE_MAPS);
       }
     } catch (error) {

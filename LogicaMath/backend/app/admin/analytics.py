@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, or_
 from datetime import datetime, timedelta
 
 from ..db.session import get_db
@@ -41,14 +41,6 @@ async def get_engagement(db: AsyncSession = Depends(get_db), admin_user: dict = 
             or_(User.last_login == None, User.last_login < thirty_days_ago)
         )
     )
-    # Note: 'or_' is needed.
-    from sqlalchemy import or_
-    churn_query = select(func.count(User.id)).where(
-        and_(
-            User.created_at <= thirty_days_ago,
-            or_(User.last_login == None, User.last_login < thirty_days_ago)
-        )
-    )
     churn_result = await db.execute(churn_query)
     churn_users = churn_result.scalar_one_or_none() or 0
     
@@ -70,7 +62,7 @@ async def get_churn_by_level(db: AsyncSession = Depends(get_db), admin_user: dic
     now = datetime.utcnow()
     thirty_days_ago = now - timedelta(days=30)
     
-    from sqlalchemy import or_
+    # or_ imported at module level
     
     # Get all churned students and their current phase
     query = select(Alumno.fase_actual_id, func.count(Alumno.id)).join(User, User.id == Alumno.user_id).where(
