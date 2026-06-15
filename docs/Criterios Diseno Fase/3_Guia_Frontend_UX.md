@@ -1103,7 +1103,22 @@ Cuando el progreso proviene de intervención manual, el Tutor IA debe evitar dec
 * `intentos` es la fuente de verdad del histórico de respuestas global.
 * **Coherencia Relacional de Segmentación:** Aunque los pools de preguntas se encuentran físicamente segmentados en tablas por fase (`fase{X}_...`), las tablas de progreso (`progreso_maestria`) e histórico de intentos (`intentos`) se conservan globales a nivel de base de datos para garantizar agregación veloz de KPIs y analíticas del Tutor IA mediante claves foráneas sencillas.
 * **Segmentación de Claves Legacy:** El objeto de compatibilidad `user.settings["unlockedLevels"]` debe consumirse y guardarse de forma segmentada por Phase ID (`"fase1"`, `"fase2"`, etc.) para evitar cruces o colisiones visuales entre diferentes fases en pantallas compartidas del cliente.
-* Las intervenciones manuales del administrador deben mostrarse con origen, motivo y fecha.
+* Las intervenciones manuales del administrador se registran con sellos de auditoría de alta visibilidad, previniendo falsos positivos de gamificación en el historial de intentos.
+
+---
+
+## 10. Actualización UX/UI - Fase Analítica y Panel de Administrador (V3.1)
+
+Como parte de la actualización de seguridad y estabilización UI del panel de administración, se añaden las siguientes directrices estructurales:
+
+### 10.1. Manejo Defensivo de Estado (Fallback de Renderizado)
+El Dashboard Administrativo y los subcomponentes críticos (como `GeneralTab` y `PerformanceTab`) deben implementar técnicas de renderizado defensivo para prevenir rupturas del Virtual DOM cuando las llamadas al backend fallan o la sesión expira (Status 401). Todo mapeo o filtrado de arrays asíncronos debe contener fallback: `(data || []).filter(...)`.
+
+### 10.2. Aislamiento CSS en Panel Administrativo
+Las reglas de diseño del panel de control se deben abstraer en un archivo dedicado `admin.css` para evitar contaminar la hoja de estilos global `index.css`. Esto garantiza que los estilos de grillas y dashboards avanzados no interfieran con la ligereza del cliente para alumnos.
+
+### 10.3. Diseño del Simulacro Pedro II (Fase 9)
+La Fase 9 de la aplicación (Simulacros Oficiales) incorpora visualización basada en imágenes para preservar el contenido exacto de los exámenes físicos reales (SVG o recortes en PNG de alta resolución). Adicionalmente, incluye un cronómetro de estrés configurable por el administrador (UI de límite temporal) visible durante la ejecución.
 * Los botones de continuidad solo navegan hacia rutas o bloques indicados por el backend.
 * Las métricas visuales pueden calcularse localmente solo para animaciones, pero no para modificar progreso real.
 

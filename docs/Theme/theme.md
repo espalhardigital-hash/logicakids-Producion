@@ -162,3 +162,16 @@ Para evitar repetir largas cadenas de clases responsivas (`bg-white dark:bg-[#16
 - **`.text-body`**: Para párrafos normales (`text-slate-600` → `dark:text-slate-300`).
 - **`.text-muted`**: Para texto secundario (`text-slate-500` → `dark:text-slate-400`).
 - **`.text-faint`**: Para etiquetas diminutas o texto muy sutil (`text-slate-400` → `dark:text-slate-600`).
+
+---
+
+## 📊 7. Tema del Panel de Administrador y Analytics
+
+Durante el rediseño UI/UX, las reglas específicas para el panel de administración se aislaron en `frontend/components/admin/admin.css` para mantener limpio el entorno y mejorar el rendimiento de renderizado en React.
+
+### 7.1 Métricas (KPI Cards) y Gráficos (Recharts)
+- **Superficies de Tarjetas KPI:** Utilizan fondos translúcidos en modo oscuro (`bg-[#1A1A1A]`) o blanco sólido (`bg-white`) con bordes sutiles `border-white/10` para crear separación visual sin recargar la vista.
+- **Micro-animaciones:** Los elementos del panel administrativo incorporan transiciones de Framer Motion (`initial="hidden" animate="show"`) con resortes suaves (`type: "spring"`).
+- **Tooltips y Tablas:** 
+  - La paginación Server-Side y la optimización lazy se integran de manera invisible.
+  - Los botones de acciones de usuario utilizan íconos (Lucide React) que se iluminan con hover (ej: `hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10` para el botón de eliminar o el de *Derecho al Olvido*).
