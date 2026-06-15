@@ -100,10 +100,10 @@ export default function WelcomeScreenPhase9({
     if (userRole === 'ADMIN') return true;
     if (modulo.moduloId === 1) return true;
 
-    // Check if the previous module's last level (Level 3) is completed
+    // Check if the previous module's last level is completed
     const prevModule = metadata.modulos.find(m => m.moduloId === modulo.moduloId - 1);
     if (!prevModule) return true;
-    const prevLastLevelKey = `${prevModule.moduloId}_3`;
+    const prevLastLevelKey = `${prevModule.moduloId}_${prevModule.niveles.length}`;
     return !!completedLevels[prevLastLevelKey];
   };
 
@@ -269,8 +269,8 @@ export default function WelcomeScreenPhase9({
                 </button>
               </div>
             ) : (() => {
-              const totalLevelsPassed = metadata.modulos.reduce((sum, m) => sum + m.niveles.filter(n => completedLevels[`${m.moduloId}_${n.nivelId}`]).length + [11, 12, 13].filter(id => completedLevels[`${m.moduloId}_${id}`]).length, 0);
-              const maxTotalLevels = metadata.modulos.reduce((sum, m) => sum + m.niveles.length + 3, 0);
+              const totalLevelsPassed = metadata.modulos.reduce((sum, m) => sum + m.niveles.filter(n => completedLevels[`${m.moduloId}_${n.nivelId}`]).length, 0);
+              const maxTotalLevels = metadata.modulos.reduce((sum, m) => sum + m.niveles.length, 0);
               const globalProgressPercent = maxTotalLevels > 0 ? Math.round((totalLevelsPassed / maxTotalLevels) * 100) : 0;
 
               return (
@@ -313,8 +313,8 @@ export default function WelcomeScreenPhase9({
                     {/* Per-category mini indicators */}
                     <div className="flex justify-between mt-4">
                       {metadata.modulos.map((m) => {
-                        const completedCount = m.niveles.filter(n => completedLevels[`${m.moduloId}_${n.nivelId}`]).length + [11, 12, 13].filter(id => completedLevels[`${m.moduloId}_${id}`]).length;
-                        const totalCount = m.niveles.length + 3;
+                        const completedCount = m.niveles.filter(n => completedLevels[`${m.moduloId}_${n.nivelId}`]).length;
+                        const totalCount = m.niveles.length;
                         const pct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
                         return (
                           <div key={m.moduloId} className="flex flex-col items-center gap-1.5 flex-1 px-2">

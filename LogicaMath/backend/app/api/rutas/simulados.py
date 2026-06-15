@@ -8,7 +8,7 @@ import random
 
 from app.db.session import get_db
 from app.auth import get_current_user
-from app.models.sql_models import User, Alumno, Pregunta, Alternativa
+from app.models.sql_models import User, Alumno, Pregunta, Alternativa, ConfiguracionProgreso
 from app.models.simulado import SimuladoSession
 
 router = APIRouter(prefix="/api/fases/9/simulados", tags=["simulados"])
@@ -88,8 +88,23 @@ async def iniciar_simulado(
             "alternativas": alt_payload
         })
         
-    # 2. Create session
-    tiempo = 25 * 60 if request.nivel_id == 1 else 35 * 60
+    # 2. Consultar configuracion del cronometro
+    config_result = await db.execute(
+        select(ConfiguracionProgreso).where(
+            and_(
+                ConfiguracionProgreso.fase_id == 9,
+                ConfiguracionProgreso.seccion == 0, # Configuracion general de la fase
+                ConfiguracionProgreso.operacion == "mixta"
+            )
+        )
+    )
+    config = config_result.scalars().first()
+    
+    if config and config.usa_cronometro and config.tiempo_default_segundos:
+        tiempo = config.tiempo_default_segundos * len(selected) # tiempo por test (tiempo_default = tiempo por pregunta)
+    else:
+        # Fallback a 2 minutos por pregunta si no hay config
+        tiempo = 120 * len(selected)
     
     nueva_sesion = SimuladoSession(
         alumno_id=alumno_id,

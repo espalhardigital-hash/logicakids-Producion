@@ -2024,116 +2024,53 @@ const FASE_8: FaseMetadata = {
 
 const FASE_9: FaseMetadata = {
   faseId: 9,
-  nombre: 'Simulados Colegio Pedro II',
+  nombre: 'Simulados Oficiales',
   emoji: '🎓',
-  descripcion: 'Exámenes de ingreso pasados para practicar el pensamiento analítico integral.',
+  descripcion: 'Exámenes de ingreso oficiales pasados para certificar el dominio analítico e integral.',
   colorPrimario: '#3B82F6',
   colorSecundario: '#1D4ED8',
   modulos: [
     {
-      moduloId: 1, nombre: 'Simulados Cortos', descripcion: 'Gestión estratégica del tiempo y repaso especializado por área.', icono: 'clock', color: '#3B82F6',
-      niveles: [
-        {
-          nivelId: 1, nombre: 'Descubrimiento', descripcion: 'Simulacro Temático: Bloques de 10 preguntas fijas por área específica.',
-          teoria: { titulo: 'Simulacro Temático', parrafos: ['Cronómetro de Arena Ámbar parpadeante. Sin opciones de visualización inmediata de acierto.'], tip_pedagogico: 'Concéntrate en el área asignada.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta temática simulada 1', tipo: 'numerico', respuesta_correcta: '10' } ]
-        },
-        {
-          nivelId: 2, nombre: 'Consolidación', descripcion: 'Simulacro Focalizado con Distractores: Bloques de 10 preguntas que combinan áreas.',
-          teoria: { titulo: 'Simulacro Focalizado', parrafos: ['Panel superior interactivo. Botón de bandera amarilla Marcar para Revisar Después.'], tip_pedagogico: 'Cuidado con los distractores.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta focalizada simulada 2', tipo: 'numerico', respuesta_correcta: '15' } ]
-        },
-        {
-          nivelId: 3, nombre: 'Fluidez', descripcion: 'Maratón de Velocidad Temática: 10 preguntas con reducción de tiempo.',
-          teoria: { titulo: 'Maratón de Velocidad', parrafos: ['Navegación libre por saltos en mapa circular. Input puro en caliente.'], tip_pedagogico: 'Velocidad y precisión.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta de velocidad 3', tipo: 'numerico', respuesta_correcta: '20' } ]
-        },
-        {
-          nivelId: 4, nombre: 'Desafío 1: Filtro de Tiempo', descripcion: 'Responder 8 de 10 correctas en un rango de tiempo.',
-          teoria: { titulo: 'Filtro de Tiempo', parrafos: ['Mecánica: El Filtro, >80% de precisión requerido.'], tip_pedagogico: 'Administra tus minutos.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta de filtro 4', tipo: 'numerico', respuesta_correcta: '25' } ]
-        },
-        {
-          nivelId: 5, nombre: 'Desafío 2: Enunciados Largos', descripcion: 'Problemas breves pero con alta carga narrativa distractora.',
-          teoria: { titulo: 'La Trampa de Enunciados', parrafos: ['Mecánica: La Trampa, penalización oculta de tiempo.'], tip_pedagogico: 'Lee y descarta la información inútil.' },
-          preguntas: [ { id: qid(), enunciado: 'Había una vez en un pueblo muy lejano, donde el sol brilla 12 horas, un niño que tenía 5 manzanas y se comió 2. ¿Cuántas manzanas le quedan?', tipo: 'numerico', respuesta_correcta: '3' } ]
-        },
-        {
-          nivelId: 6, nombre: 'Desafío Final: Candado Corto', descripcion: 'Consolidación total de simulacro sin alternativas numéricas.',
-          teoria: { titulo: 'Candado de Bloque Corto', parrafos: ['Mecánica: El Candado, requiere ≥90%.'], tip_pedagogico: 'Confía en tu cálculo puro.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta de candado corto 5', tipo: 'numerico', respuesta_correcta: '30' } ]
-        }
-      ]
+      moduloId: 1, 
+      nombre: 'Nivel Fácil', 
+      descripcion: '5 Simulacros introductorios para adaptación a la dinámica del examen.', 
+      icono: 'target', 
+      color: '#10B981',
+      niveles: Array.from({ length: 5 }, (_, i) => ({
+        nivelId: i + 1,
+        nombre: `Simulacro ${i + 1}`,
+        descripcion: 'Simulacro de adaptación y nivel básico.',
+        teoria: { titulo: `Simulacro ${i + 1}`, parrafos: ['Este es un simulacro oficial de nivel adaptativo.'], tip_pedagogico: 'Mantén la calma y administra tu tiempo.' },
+        preguntas: []
+      }))
     },
     {
-      moduloId: 2, nombre: 'Simulados Completos', descripcion: 'Resistencia matemática avanzada y adaptación al entorno de examen real.', icono: 'file-text', color: '#1D4ED8',
-      niveles: [
-        {
-          nivelId: 1, nombre: 'Descubrimiento', descripcion: 'Examen Tipo Completo Estándar: Reproducción idéntica al Pedro II.',
-          teoria: { titulo: 'Examen Tipo Estándar', parrafos: ['UI sobria y formal de vidrio templado. Alternativas apiladas verticalmente.'], tip_pedagogico: 'Mantén la resistencia.' },
-          preguntas: [ { id: qid(), enunciado: 'Após uma aula passeio ao Museu Nacional...', tipo: 'numerico', respuesta_correcta: '64' } ]
-        },
-        {
-          nivelId: 2, nombre: 'Consolidación', descripcion: 'Simulacro Oficial Histórico: Prueba completa de un año específico.',
-          teoria: { titulo: 'Simulacro Histórico', parrafos: ['Control estricto de tiempo por servidor. Ocultación absoluta de retroalimentación parcial.'], tip_pedagogico: 'Revisa tus respuestas antes del envío final.' },
-          preguntas: [ { id: qid(), enunciado: 'Joana gasta el 25% de su mesada en pasajes...', tipo: 'opcion_multiple', opciones: ['R$ 30', 'R$ 25'], respuesta_correcta: 'R$ 30' } ]
-        },
-        {
-          nivelId: 3, nombre: 'Fluidez', descripcion: 'Simulacro Transversal de Máxima Resistencia: 100% de los temas Fases 1-8.',
-          teoria: { titulo: 'Máxima Resistencia', parrafos: ['Combinación parametrizada aleatoria. Guardado de estados en tiempo real.'], tip_pedagogico: 'Es como el examen final.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta aleatoria transversal', tipo: 'numerico', respuesta_correcta: '40' } ]
-        },
-        {
-          nivelId: 4, nombre: 'Desafío 1: Corte Resistencia', descripcion: 'Finalizar simulacro superando el 80% global.',
-          teoria: { titulo: 'Corte de Resistencia Base', parrafos: ['Mecánica: El Filtro, doble confirmación modal antes del envío.'], tip_pedagogico: 'Verifica tu puntaje global.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta de corte', tipo: 'numerico', respuesta_correcta: '50' } ]
-        },
-        {
-          nivelId: 5, nombre: 'Desafío 2: Banco Error', descripcion: 'Examen solo con las preguntas de mayor índice de fallo histórico.',
-          teoria: { titulo: 'El Banco del Error Histórico', parrafos: ['Mecánica: La Trampa.'], tip_pedagogico: 'Cuidado con las preguntas más engañosas.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta trampa histórica', tipo: 'numerico', respuesta_correcta: '60' } ]
-        },
-        {
-          nivelId: 6, nombre: 'Desafío Final: Maestro', descripcion: 'EXAMEN OFICIAL MAESTRO PEDRO II: Evaluación cúspide blindada.',
-          teoria: { titulo: 'Evaluación Cúspide', parrafos: ['Mecánica: El Candado, requiere ≥90% de aciertos.'], tip_pedagogico: 'Demuestra que estás listo para la graduación.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta de evaluación cúspide', tipo: 'numerico', respuesta_correcta: '100' } ]
-        }
-      ]
+      moduloId: 2, 
+      nombre: 'Nivel Intermedio', 
+      descripcion: '10 Simulacros estándar con nivel de dificultad real.', 
+      icono: 'bar-chart', 
+      color: '#F59E0B',
+      niveles: Array.from({ length: 10 }, (_, i) => ({
+        nivelId: i + 1,
+        nombre: `Simulacro ${i + 6}`,
+        descripcion: 'Simulacro de exigencia real.',
+        teoria: { titulo: `Simulacro ${i + 6}`, parrafos: ['Estás en el nivel de exigencia real del examen.'], tip_pedagogico: 'No te detengas demasiado tiempo en una sola pregunta.' },
+        preguntas: []
+      }))
     },
     {
-      moduloId: 3, nombre: 'Revisión Dirigida y Tutoría IA', descripcion: 'Autodiagnóstico, análisis reflexivo del error y nivelación dinámica.', icono: 'cpu', color: '#8B5CF6',
-      niveles: [
-        {
-          nivelId: 1, nombre: 'Descubrimiento', descripcion: 'Exploración de Resultados: Desglose analítico de puntuación mediante filtros.',
-          teoria: { titulo: 'Exploración de Resultados', parrafos: ['Activación de barra de filtrado: Todas las preguntas / Solo Aciertos / Solo Errores.'], tip_pedagogico: 'Revisa en qué fallaste.' },
-          preguntas: [ { id: qid(), enunciado: 'Revisión interactiva base', tipo: 'numerico', respuesta_correcta: '1' } ]
-        },
-        {
-          nivelId: 2, nombre: 'Consolidación', descripcion: 'Análisis de Respuestas: Contraste visual explícito del intento del alumno.',
-          teoria: { titulo: 'Análisis de Respuestas', parrafos: ['UI de revisión, resalte de la opción marcada en rojo y la correcta en verde.'], tip_pedagogico: 'Contrasta lo que hiciste con lo correcto.' },
-          preguntas: [ { id: qid(), enunciado: 'Contraste visual', tipo: 'numerico', respuesta_correcta: '2' } ]
-        },
-        {
-          nivelId: 3, nombre: 'Fluidez', descripcion: 'Tutoría Pedro II con IA: Despliegue de guías paso a paso pedagógicas.',
-          teoria: { titulo: 'Tutoría IA', parrafos: ['Ventana flotante interactiva con explicaciones analíticas dinámicas.'], tip_pedagogico: 'Aprende la lógica oficial.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta explicada por IA', tipo: 'numerico', respuesta_correcta: '3' } ]
-        },
-        {
-          nivelId: 4, nombre: 'Desafío 1: Filtro Corrección', descripcion: 'Resolver "ejercicios espejo" generados a partir de fallas.',
-          teoria: { titulo: 'Ejercicios Espejo', parrafos: ['Mecánica: El Filtro, >80%.'], tip_pedagogico: 'Supera tus fallas previas.' },
-          preguntas: [ { id: qid(), enunciado: 'Ejercicio espejo', tipo: 'numerico', respuesta_correcta: '4' } ]
-        },
-        {
-          nivelId: 5, nombre: 'Desafío 2: Trampa Recurrente', descripcion: 'Identificación y resolución de conceptos que fallaste más de dos veces.',
-          teoria: { titulo: 'La Trampa Recurrente', parrafos: ['Mecánica: La Trampa.'], tip_pedagogico: 'Enfrenta tus debilidades.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta recurrente', tipo: 'numerico', respuesta_correcta: '5' } ]
-        },
-        {
-          nivelId: 6, nombre: 'Desafío Final: Graduación', descripcion: 'Validación final de la erradicación del error pedagógico.',
-          teoria: { titulo: 'Candado de Graduación', parrafos: ['Mecánica: El Candado, requiere ≥90% para concluir la Fase 9.'], tip_pedagogico: 'El último paso hacia el éxito absoluto.' },
-          preguntas: [ { id: qid(), enunciado: 'Pregunta final de graduación', tipo: 'numerico', respuesta_correcta: '6' } ]
-        }
-      ]
+      moduloId: 3, 
+      nombre: 'Nivel Difícil', 
+      descripcion: '5 Simulacros de alta complejidad y resistencia bajo presión temporal.', 
+      icono: 'award', 
+      color: '#EF4444',
+      niveles: Array.from({ length: 5 }, (_, i) => ({
+        nivelId: i + 1,
+        nombre: `Simulacro Maestro ${i + 16}`,
+        descripcion: 'Simulacro de alta exigencia.',
+        teoria: { titulo: `Simulacro Maestro ${i + 16}`, parrafos: ['Estos simulacros son para asegurar la excelencia.'], tip_pedagogico: 'Resiste la presión, confía en tu preparación.' },
+        preguntas: []
+      }))
     }
   ]
 };
