@@ -23,20 +23,28 @@ export const PhaseMapProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       });
       if (response.ok) {
-        const data = await response.json();
-        if (data && data.length > 0) {
-          if (data.length !== STATIC_PHASE_MAPS.length) {
-             console.log("Mismatched phase maps length. Reseeding with static maps...");
-             await savePhaseMaps(STATIC_PHASE_MAPS);
-             setPhaseMaps(STATIC_PHASE_MAPS);
+        try {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            if (data.length !== STATIC_PHASE_MAPS.length) {
+               console.log("Mismatched phase maps length. Reseeding with static maps...");
+               await savePhaseMaps(STATIC_PHASE_MAPS);
+               setPhaseMaps(STATIC_PHASE_MAPS);
+            } else {
+               setPhaseMaps(data);
+            }
           } else {
-             setPhaseMaps(data);
+            // Si está vacío o no es arreglo, auto-semilla con el estático
+            await savePhaseMaps(STATIC_PHASE_MAPS);
+            setPhaseMaps(STATIC_PHASE_MAPS);
           }
-        } else {
-          // Si está vacío, auto-semilla con el estático
-          await savePhaseMaps(STATIC_PHASE_MAPS);
+        } catch (e) {
+          console.error("Error parsing phase maps JSON:", e);
           setPhaseMaps(STATIC_PHASE_MAPS);
         }
+      } else {
+         console.warn("Phase maps request failed (e.g. 401). Falling back to static maps.");
+         setPhaseMaps(STATIC_PHASE_MAPS);
       }
     } catch (error) {
       console.error("Error fetching phase maps:", error);

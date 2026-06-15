@@ -114,9 +114,10 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
     setTotalPages(Math.ceil(paginatedUsers.total / limit) || 1);
     setAllScores(scores);
     
+    const userList = paginatedUsers.data || [];
     setStats({
       totalUsers: paginatedUsers.total,
-      activeUsers: paginatedUsers.data.filter(u => u.status === 'ACTIVE').length,
+      activeUsers: userList.filter(u => u.status === 'ACTIVE').length,
       totalGamesPlayed: scores.length,
       storage: getStorageUsage(),
       usersDelta: 12,
@@ -432,7 +433,7 @@ const GeneralTab: React.FC<Props> = ({ onBack, showConfirm, showAlert }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05]">
-                {finalUsers.map((user, index) => (
+                {(finalUsers || []).map((user, index) => (
                   <motion.tr 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

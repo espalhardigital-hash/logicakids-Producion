@@ -143,7 +143,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
       setLoadingSearch(true);
       try {
         const res = await searchAlumnos('');
-        setAlumnos(res.data);
+        setAlumnos(res?.data || []);
       } catch (e) {
         console.error(e);
       } finally {
@@ -166,7 +166,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
     setLoadingSearch(true);
     try {
       const res = await searchAlumnos(searchQuery);
-      setAlumnos(res.data);
+      setAlumnos(res?.data || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -419,7 +419,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                     </div>
 
                     {/* Active Phase Content */}
-                    {PHASE_MAPS.filter(p => p.id === selectedFaseId).map((phase) => {
+                    {(PHASE_MAPS || []).filter(p => p.id === selectedFaseId).map((phase) => {
                       const allFaseLevels = phase.modules.flatMap((m) => m.levels);
                       const faseStatus = computeAggregateStatusForPhase(phase.id, allFaseLevels, alumnoProgress);
                       const faseBulkKey = `fase-${phase.id}`;
@@ -467,7 +467,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ showConfirm, showAlert 
                           </div>
 
                           <div className="p-4 flex flex-col gap-4">
-                            {phase.modules.filter(m => m.id === activeModuleId[phase.id]).map((mod) => {
+                            {(phase.modules || []).filter(m => m.id === activeModuleId[phase.id]).map((mod) => {
                               const modStatus = computeAggregateStatusForPhase(phase.id, mod.levels, alumnoProgress);
                               const moduleBulkKey = `module-${phase.id}-${mod.id}`;
                               const moduleBulkLoading = actionInProgress === moduleBulkKey;
