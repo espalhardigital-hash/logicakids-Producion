@@ -1,14 +1,13 @@
 """
-Schemas Pydantic — Fase 2: Desarrollo Numérico y Razonamiento
+Schemas Pydantic — Fase 9: Simulados Colegio Pedro II
 =============================================================
-Schemas exclusivos de los 4 módulos de Fase 2. No modifica ni reemplaza
+Schemas exclusivos de los 3 módulos de Fase 9. No modifica ni reemplaza
 los schemas globales de app.schemas; conviven sin conflicto.
 
 Módulos:
-  1. Gimnasio Numérico Mental (3 niveles)
-  2. Tablas en Acción (4 niveles)
-  3. Tienda Matemática (4 niveles)
-  4. Constructor de Soluciones (3 niveles)
+  1. Simulados Cortos (3 niveles + 3 desafíos)
+  2. Simulados Completos (3 niveles + 3 desafíos)
+  3. Revisión Dirigida y Tutoría IA (3 niveles + 3 desafíos)
 
 Cada módulo posee 3 desafíos virtuales (nivel_id 11, 12, 13).
 """

@@ -15,3 +15,9 @@ build/
 # Documentación específica y otros
 /docs/Theme/
 /docs/cambio_para_vps.md
+
+# Carpeta de exámenes Pedro II (archivos binarios, no van al repositorio)
+Pedro\ II/
+
+# Workspace files de editores
+*.code-workspace

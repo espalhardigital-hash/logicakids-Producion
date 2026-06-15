@@ -1,17 +1,17 @@
 """
-Router FastAPI — Fase 2: Desarrollo Numérico y Razonamiento (Refactorizado)
+Router FastAPI — Fase 9: Simulados Colegio Pedro II
 =============================================================================
 Prefijo: /fase9
 Tags:    fase9
 
 Responsabilidades:
-  - Dashboard con los 4 módulos (niveles de práctica y de desafíos).
-  - Contenido de teoría dinámico desde la tabla NivelTeoria.
+  - Dashboard con los 3 módulos de preparación para el Pedro II.
+  - Contenido de teoría y simulacros históricos/cortos.
   - Obtener preguntas (desde BD para práctica libre y desafíos).
   - Validar respuestas:
     - Bucle Espejo (Mirror Loop) en modo Práctica Libre.
     - Salida Temprana (Early Exit) en modo Desafío con reinicio de progreso.
-  - Graduación a Fase 3 (requiere 26 niveles dominados).
+  - Graduación de Fase 9.
 """
 
 import random
@@ -44,7 +44,7 @@ from .schemas import (
 
 router = APIRouter(prefix="/fase9", tags=["fase9"])
 
-fase9_ID = 6
+fase9_ID = 9
 MAX_ESPEJO = 3  # Intentos máximos en Bucle Espejo
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -80,25 +80,21 @@ async def _sync_unlocked_levels(db: AsyncSession, alumno_id: int, operacion: str
 # ─────────────────────────────────────────────────────────────────────────────
 
 MODULOS_META = {
-    1: {"nombre": "Reconocimiento 3D", "descripcion": "Identificación de poliedros y vistas 3D.", "icono": "box", "color": "#10B981"},
-    2: {"nombre": "Patrones de Crecimiento", "descripcion": "Análisis de sucesiones espaciales.", "icono": "bar-chart", "color": "#8B5CF6"},
-    3: {"nombre": "Cubos Unitarios", "descripcion": "Modelado del concepto de volumen (u³).", "icono": "database", "color": "#F59E0B"},
-    4: {"nombre": "Medidas Físicas", "descripcion": "Magnitudes de masa y temperatura.", "icono": "thermometer", "color": "#EC4899"},
+    1: {"nombre": "Simulados Cortos", "descripcion": "Bloques rápidos de preparación enfocada.", "icono": "clock", "color": "#10B981"},
+    2: {"nombre": "Simulados Completos", "descripcion": "Exámenes históricos oficiales completos.", "icono": "file-text", "color": "#8B5CF6"},
+    3: {"nombre": "Revisión Dirigida y Tutoría IA", "descripcion": "Revisión inteligente de errores frecuentes.", "icono": "cpu", "color": "#F59E0B"},
 }
 
 NIVELES_META = {
-    (1, 1): {"nombre": "Identificación de poliedros", "descripcion": "Vértices, aristas y caras ocultas en formas sólidas."},
-    (1, 2): {"nombre": "Detección de bloques", "descripcion": "Detección de bloques ocultos por perspectivas isométricas."},
-    (1, 3): {"nombre": "Moldes desplegados", "descripcion": "Asociación de moldes desplegados a figuras cerradas 3D."},
-    (2, 1): {"nombre": "Análisis de sucesiones", "descripcion": "Análisis de sucesiones espaciales (Patrones geométricos crecientes)."},
-    (2, 2): {"nombre": "Conteo volumétrico", "descripcion": "Conteo volumétrico estratificado (Capa por capa)."},
-    (2, 3): {"nombre": "Generalización", "descripcion": "Generalización algebraica de la capa N."},
-    (3, 1): {"nombre": "Concepto de volumen", "descripcion": "Modelado del concepto de volumen (u³)."},
-    (3, 2): {"nombre": "Prismas rectangulares", "descripcion": "Cálculo analítico formal de prismas rectangulares (Base x Altura)."},
-    (3, 3): {"nombre": "Volumen y líquidos", "descripcion": "Relación entre volumen cúbico y líquidos (1 dm³ = 1 L)."},
-    (4, 1): {"nombre": "Balanzas y termómetros", "descripcion": "Interpretación analítica de balanzas y termómetros."},
-    (4, 2): {"nombre": "Variaciones térmicas", "descripcion": "Variaciones térmicas y comprensión del signo negativo térmico."},
-    (4, 3): {"nombre": "La Máquina Kelvin", "descripcion": "La Máquina Kelvin: Sumar 273 grados (conversión sin negativos)."},
+    (1, 1): {"nombre": "Simulacro Temático", "descripcion": "Bloques de 10 preguntas enfocadas."},
+    (1, 2): {"nombre": "Simulacro Focalizado", "descripcion": "Distractores y mezcla de enunciados."},
+    (1, 3): {"nombre": "Maratón de Velocidad", "descripcion": "Simulación con reducción de tiempo por pregunta."},
+    (2, 1): {"nombre": "Examen Tipo Estándar", "descripcion": "Simulación idéntica al examen de admisión."},
+    (2, 2): {"nombre": "Simulacro Histórico", "descripcion": "Resolución de exámenes de años específicos del Pedro II."},
+    (2, 3): {"nombre": "Máxima Resistencia", "descripcion": "Simulación completa del 100% de los temas."},
+    (3, 1): {"nombre": "Exploración de Resultados", "descripcion": "Filtros selectivos sobre tus exámenes terminados."},
+    (3, 2): {"nombre": "Análisis de Respuestas", "descripcion": "Contraste visual de alternativas correctas e incorrectas."},
+    (3, 3): {"nombre": "Tutoría Pedro II", "descripcion": "Explicación interactiva por Inteligencia Artificial."},
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -114,7 +110,7 @@ def _seccion_operacion(modulo_id: int, nivel_id: int) -> tuple:
     else:
         # Práctica libre
         seccion = modulo_id * 100 + nivel_id
-        operacion_map = {1: "suma", 2: "multiplicacion", 3: "mixta", 4: "mixta"}
+        operacion_map = {1: "suma", 2: "multiplicacion", 3: "mixta"}
         return seccion, operacion_map.get(modulo_id, "mixta")
 
 
@@ -209,7 +205,8 @@ def _is_nivel_unlocked(progresos: dict, modulo_id: int, nivel_id: int) -> bool:
     
     if nivel_id == 1 and modulo_id > 1:
         prev_mod = modulo_id - 1
-        prev_mod_levels = {1: 3, 2: 4, 3: 4}[prev_mod]
+        # Todos los módulos de Fase 9 tienen 3 niveles de práctica libre
+        prev_mod_levels = {1: 3, 2: 3, 3: 3}.get(prev_mod, 3)
         
         # Check all practice levels of previous module
         for p_level in range(1, prev_mod_levels + 1):
@@ -827,7 +824,6 @@ async def responder_fase9(
 
     result_q = await db.execute(
         select(Pregunta).options(selectinload(Pregunta.alternativas))
-        .options(selectinload(Pregunta.alternativas))
         .where(Pregunta.id == payload.pregunta_id)
     )
     pregunta = result_q.scalar_one_or_none()
@@ -1199,7 +1195,7 @@ async def responder_fase9(
         bloque_completado = False
         fase_completada = False
 
-        if progreso.porcentaje_actual >= 100:
+        if progreso.porcentaje_actual >= porc_aprobacion:
             if progreso.estado != EstadoProgresoEnum.APROBADO:
                 progreso.estado = EstadoProgresoEnum.APROBADO
                 progreso.fecha_aprobacion = datetime.utcnow()

@@ -8,7 +8,7 @@ los routers, seeders, setups y validadores existentes de FastAPI sin romper
 ningún endpoint.
 """
 
-from .enums import StatusEnum, OperacionEnum, TipoPreguntaEnum, EstadoProgresoEnum, TipoErrorEnum
+from .enums import StatusEnum, OperacionEnum, TipoPreguntaEnum, EstadoProgresoEnum, TipoErrorEnum, EstadoSimuladoEnum
 from .user import User
 from .fase import Fase
 from .alumno import Alumno

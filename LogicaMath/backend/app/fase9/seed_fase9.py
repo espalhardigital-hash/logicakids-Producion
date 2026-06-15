@@ -36,48 +36,72 @@ async def clear_fase9_data(session: AsyncSession):
     await session.execute(delete(NivelTeoria).where(NivelTeoria.fase_id == FASE9_ID))
     await session.commit()
     print("Fase 9 data purged.")
-
 async def seed_teoria_niveles_fase9(session: AsyncSession):
     print("Sembrando guión de textos para Fase 9...")
-    niveles_teoria = [
-        # Módulo 1: Simulados Cortos
-        {"modulo_id": 1, "nivel_id": 1, "titulo": "Simulacro Temático", "texto_descubrimiento": "Bloques de 10 preguntas", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 2, "titulo": "Simulacro Focalizado", "texto_descubrimiento": "Distractores y mezcla", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 3, "titulo": "Maratón de Velocidad", "texto_descubrimiento": "Reducción de tiempo", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 4, "titulo": "Desafío 1: Filtro de Tiempo", "texto_descubrimiento": "El Filtro", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 5, "titulo": "Desafío 2: Enunciados Largos", "texto_descubrimiento": "La Trampa", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 1, "nivel_id": 6, "titulo": "Desafío Final: Sin alternativas", "texto_descubrimiento": "El Candado", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+    niveles_teoria = []
+    
+    # Módulo 1 (5 niveles)
+    for l in range(1, 6):
+        niveles_teoria.append({
+            "modulo_id": 1,
+            "nivel_id": l,
+            "titulo": f"Simulacro {l}",
+            "texto_descubrimiento": "Simulacro de adaptación y nivel básico.",
+            "diccionario": {},
+            "advertencia": "",
+            "ejemplos": [],
+            "interactivos": []
+        })
         
-        # Módulo 2: Simulados Completos
-        {"modulo_id": 2, "nivel_id": 1, "titulo": "Examen Tipo Estándar", "texto_descubrimiento": "Reproducción idéntica", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 2, "titulo": "Simulacro Histórico", "texto_descubrimiento": "Examen de un año específico", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 3, "titulo": "Máxima Resistencia", "texto_descubrimiento": "100% temas", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 4, "titulo": "Desafío 1: Corte de Resistencia", "texto_descubrimiento": "El Filtro", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 5, "titulo": "Desafío 2: Banco del Error Histórico", "texto_descubrimiento": "La Trampa", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 2, "nivel_id": 6, "titulo": "Desafío Final: Examen Maestro", "texto_descubrimiento": "El Candado", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
+    # Módulo 2 (10 niveles)
+    for l in range(1, 11):
+        niveles_teoria.append({
+            "modulo_id": 2,
+            "nivel_id": l,
+            "titulo": f"Simulacro {l+5}",
+            "texto_descubrimiento": "Simulacro de exigencia real.",
+            "diccionario": {},
+            "advertencia": "",
+            "ejemplos": [],
+            "interactivos": []
+        })
         
-        # Módulo 3: Revisión Dirigida y Tutoría IA
-        {"modulo_id": 3, "nivel_id": 1, "titulo": "Exploración de Resultados", "texto_descubrimiento": "Filtros selectivos", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 2, "titulo": "Análisis de Respuestas", "texto_descubrimiento": "Contraste visual", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 3, "titulo": "Tutoría Pedro II", "texto_descubrimiento": "Inteligencia Artificial", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 4, "titulo": "Desafío 1: Filtro de Corrección", "texto_descubrimiento": "El Filtro", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 5, "titulo": "Desafío 2: La Trampa Recurrente", "texto_descubrimiento": "La Trampa", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-        {"modulo_id": 3, "nivel_id": 6, "titulo": "Desafío Final: Candado de Graduación", "texto_descubrimiento": "El Candado", "diccionario": {}, "advertencia": "", "ejemplos": [], "interactivos": []},
-    ]
+    # Módulo 3 (5 niveles)
+    for l in range(1, 6):
+        niveles_teoria.append({
+            "modulo_id": 3,
+            "nivel_id": l,
+            "titulo": f"Simulacro Maestro {l+15}",
+            "texto_descubrimiento": "Simulacro de alta exigencia.",
+            "diccionario": {},
+            "advertencia": "",
+            "ejemplos": [],
+            "interactivos": []
+        })
+
     for data in niveles_teoria:
         nt = NivelTeoria(fase_id=FASE9_ID, **data)
         session.add(nt)
     await session.commit()
 
+
 async def inject_pedro_ii_history(session: AsyncSession):
     print("Inyectando Banco Histórico Pedro II y preguntas de simulación...")
     
-    # We inject sample questions directly across modules and levels.
-    sections = [(m, l) for m in range(1, 4) for l in range(1, 7)]
-    
+    sections = []
+    # Module 1: 5 levels
+    for l in range(1, 6):
+        sections.append((1, l))
+    # Module 2: 10 levels
+    for l in range(1, 11):
+        sections.append((2, l))
+    # Module 3: 5 levels
+    for l in range(1, 6):
+        sections.append((3, l))
+        
     for mod_id, lvl_id in sections:
         seccion_id = mod_id * 100 + lvl_id
-        for i in range(5):
+        for i in range(10): # 10 questions per exam!
             rng = random.Random(FASE9_ID * 100000 + seccion_id * 1000 + i)
             tipo_q = rng.choice(["hist", "calc", "log"])
             

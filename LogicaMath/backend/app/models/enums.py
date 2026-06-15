@@ -46,3 +46,9 @@ class TipoErrorEnum(str, enum.Enum):
     VALOR_POSICIONAL = "valor_posicional"
     TROCO = "troco"
     INFERENCIA = "inferencia"
+
+
+class EstadoSimuladoEnum(str, enum.Enum):
+    EN_CURSO = "EN_CURSO"
+    FINALIZADO = "FINALIZADO"
+
