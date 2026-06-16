@@ -14,19 +14,26 @@ class SimuladoSession(Base):
     fase_id = Column(Integer, ForeignKey('fases.id'), nullable=False, index=True)
     modulo_id = Column(Integer, nullable=False)
     nivel_id = Column(Integer, nullable=False)
-    
+
+    # Número de simulacro (1–20) — identifica cuál de los 20 simulacros es esta sesión
+    simulacro_numero = Column(Integer, nullable=True, index=True)
+
     estado = Column(
         Enum(EstadoSimuladoEnum, name="estado_simulado_enum", native_enum=False),
         default=EstadoSimuladoEnum.EN_CURSO,
         nullable=False,
         index=True
     )
-    
+
     respuestas_json = Column(JSON, default=dict)
     marcadores_revision = Column(JSON, default=list)
     tiempo_restante_segundos = Column(Integer, nullable=False)
-    
+
+    # Snapshot de pregunta_ids usadas en esta sesión (para poder mostrar gabarito al entregar)
+    pregunta_ids_json = Column(JSON, default=list)
+
     fecha_inicio = Column(DateTime, default=datetime.utcnow)
     fecha_fin = Column(DateTime, nullable=True)
 
     alumno = relationship("Alumno", back_populates="simulados")
+

@@ -42,13 +42,14 @@ export const useSimuladoStore = create<SimuladoState>((set, get) => ({
   iniciarSimulado: async (moduloId: number, nivelId: number) => {
     set({ estado: 'CARGANDO', error: null });
     try {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || '';
       const response = await fetch('/api/fases/9/simulados/iniciar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ modulo_id: moduloId, nivel_id: nivelId })
+        body: JSON.stringify({ simulacro_numero: moduloId })
       });
       
       if (!response.ok) {
@@ -113,11 +114,12 @@ export const useSimuladoStore = create<SimuladoState>((set, get) => ({
     if (!state.sessionId || state.estado !== 'EN_CURSO') return;
     
     try {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || '';
       await fetch(`/api/fases/9/simulados/${state.sessionId}/save_progress`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           respuestas: state.respuestas,
@@ -136,11 +138,12 @@ export const useSimuladoStore = create<SimuladoState>((set, get) => ({
     
     set({ estado: 'FINALIZANDO' });
     try {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || '';
       const response = await fetch(`/api/fases/9/simulados/${state.sessionId}/entregar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           respuestas: state.respuestas,

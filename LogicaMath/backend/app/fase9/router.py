@@ -194,7 +194,7 @@ async def _get_or_create_progreso(
 
 
 def _is_nivel_unlocked(progresos: dict, modulo_id: int, nivel_id: int) -> bool:
-    """Verifica si un nivel de práctica libre está desbloqueado secuencialmente."""
+    """Verifica si un nivel de examen está desbloqueado secuencialmente."""
     if modulo_id == 1 and nivel_id == 1:
         return True
     
@@ -205,21 +205,14 @@ def _is_nivel_unlocked(progresos: dict, modulo_id: int, nivel_id: int) -> bool:
     
     if nivel_id == 1 and modulo_id > 1:
         prev_mod = modulo_id - 1
-        # Todos los módulos de Fase 9 tienen 3 niveles de práctica libre
-        prev_mod_levels = {1: 3, 2: 3, 3: 3}.get(prev_mod, 3)
+        # Módulo 1 tiene 5 niveles, Módulo 2 tiene 10 niveles, Módulo 3 tiene 5
+        prev_mod_levels = {1: 5, 2: 10, 3: 5}.get(prev_mod, 5)
         
-        # Check all practice levels of previous module
+        # Check all levels of previous module
         for p_level in range(1, prev_mod_levels + 1):
             p_sec, p_op = _seccion_operacion(prev_mod, p_level)
             p_prog = progresos.get(p_sec)
             if not p_prog or p_prog.estado != EstadoProgresoEnum.APROBADO:
-                return False
-                
-        # Check all challenges of previous module
-        for des_id in (11, 12, 13):
-            c_sec, c_op = _seccion_operacion(prev_mod, des_id)
-            c_prog = progresos.get(c_sec)
-            if not c_prog or c_prog.estado != EstadoProgresoEnum.APROBADO:
                 return False
                 
         return True
@@ -227,25 +220,8 @@ def _is_nivel_unlocked(progresos: dict, modulo_id: int, nivel_id: int) -> bool:
     return False
 
 
-def _is_desafio_unlocked(progresos: dict, modulo_id: int, desafio_id: int, all_practice_approved: bool) -> bool:
-    """Verifica si un desafío está desbloqueado basado en la maestría de práctica."""
-    if not all_practice_approved:
-        return False
-    if desafio_id == 11:
-        return True
-    if desafio_id == 12:
-        sec_d1, op_d1 = _seccion_operacion(modulo_id, 11)
-        prog_d1 = progresos.get(sec_d1)
-        return prog_d1 is not None and prog_d1.estado == EstadoProgresoEnum.APROBADO
-    if desafio_id == 13:
-        sec_d2, op_d2 = _seccion_operacion(modulo_id, 12)
-        prog_d2 = progresos.get(sec_d2)
-        return prog_d2 is not None and prog_d2.estado == EstadoProgresoEnum.APROBADO
-    return False
-
-
 # ─────────────────────────────────────────────────────────────────────────────
-# ENDPOINT 1 — Dashboard de la Fase 2 (26 niveles)
+# ENDPOINT 1 — Dashboard de la Fase 9 (20 simulacros)
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.get("/dashboard", response_model=fase9Dashboard)
@@ -254,11 +230,11 @@ async def get_fase9_dashboard(
     alumno: Alumno = Depends(get_current_student),
 ):
     """
-    Devuelve el estado completo de los 4 módulos de Fase 2 para el alumno,
-    incluyendo niveles de práctica libre y desafíos.
+    Devuelve el estado completo de los 3 módulos de Fase 9 para el alumno,
+    incluyendo niveles de simulacros.
     """
 
-    # Cargar progresos en Fase 2
+    # Cargar progresos en Fase 9
     result = await db.execute(
         select(ProgresoMaestria).where(and_(
             ProgresoMaestria.alumno_id == alumno.id,
@@ -273,24 +249,19 @@ async def get_fase9_dashboard(
     )
     configs = {c.seccion: c for c in result.scalars().all()}
 
-    global_cfg = await _get_global_config(db)
-    pl_cfg = global_cfg.get("practica_libre", {})
-    des_cfg = global_cfg.get("desafios", {})
-
     modulos = []
-    modulo_niveles_map = {1: 3, 2: 3, 3: 3, 4: 3}
+    modulo_niveles_map = {1: 5, 2: 10, 3: 5}
     
-    for mod_id in range(1, 5):
+    for mod_id in range(1, 4):
         meta = MODULOS_META[mod_id]
         niveles = []
-        desafios = []
         mod_porcentaje_total = 0
         num_niveles = modulo_niveles_map[mod_id]
 
-        # 1. Cargar niveles de práctica libre
+        # Cargar exámenes del módulo
         for niv_id in range(1, num_niveles + 1):
             seccion, operacion = _seccion_operacion(mod_id, niv_id)
-            niv_meta = NIVELES_META.get((mod_id, niv_id), {"nombre": f"Nivel {niv_id}", "descripcion": ""})
+            niv_meta = NIVELES_META.get((mod_id, niv_id), {"nombre": f"Simulacro {niv_id}", "descripcion": "Simulacro de examen."})
             config = configs.get(seccion)
             progreso = progresos.get(seccion)
 
@@ -298,7 +269,7 @@ async def get_fase9_dashboard(
                 estado = "bloqueado"
                 porcentaje = 0
                 aciertos = 0
-                requeridos = pl_cfg.get("cantidad_requerida", 15)
+                requeridos = 10  # 10 preguntas por examen
             elif progreso is None:
                 estado = "en_progreso" if _is_nivel_unlocked(progresos, mod_id, niv_id) else "bloqueado"
                 porcentaje = 0
@@ -323,75 +294,12 @@ async def get_fase9_dashboard(
                 porcentaje=porcentaje,
                 aciertos=aciertos,
                 requeridos=requeridos,
-                usa_cronometro=config.usa_cronometro if config else pl_cfg.get("usa_cronometro", False),
+                usa_cronometro=True,
             ))
 
-        all_practice_approved = all(n.estado == "dominado" for n in niveles)
-
-        # 2. Cargar desafíos (11, 12, 13)
-        desafio_configs = {
-            11: {"nombre": "Desafío 1", "dificultad": "estandar", "tiempo_limite": 30, "max_errores": 3},
-            12: {"nombre": "Desafío 2", "dificultad": "avanzada", "tiempo_limite": 45, "max_errores": 3},
-            13: {"nombre": "Desafío Final", "dificultad": "maestria", "tiempo_limite": 60, "max_errores": 2},
-        }
-
-        for des_id in [11, 12, 13]:
-            seccion, operacion = _seccion_operacion(mod_id, des_id)
-            d_conf = desafio_configs[des_id]
-            config = configs.get(seccion)
-            progreso = progresos.get(seccion)
-
-            if config is None:
-                estado = "bloqueado"
-                porcentaje = 0
-                aciertos = 0
-                requeridos = des_cfg.get("cantidad_requerida", 25 if des_id != 13 else 10)
-            elif progreso is None:
-                estado = "en_progreso" if _is_desafio_unlocked(progresos, mod_id, des_id, all_practice_approved) else "bloqueado"
-                porcentaje = 0
-                aciertos = 0
-                requeridos = config.cantidad_requerida
-            else:
-                requeridos = config.cantidad_requerida
-                aciertos = progreso.aciertos_acumulados
-                porcentaje = min(100, progreso.porcentaje_actual)
-                if progreso.estado == EstadoProgresoEnum.APROBADO:
-                    estado = "dominado"
-                    porcentaje = 100
-                else:
-                    estado = "en_progreso" if _is_desafio_unlocked(progresos, mod_id, des_id, all_practice_approved) else "bloqueado"
-            if config:
-                usa_crono = config.usa_cronometro
-                tiempo_limite = config.tiempo_default_segundos if (config.tiempo_default_segundos is not None and config.tiempo_default_segundos > 0) else d_conf["tiempo_limite"]
-                cantidad_req = config.cantidad_requerida
-                porc_aprobacion = config.porcentaje_aprobacion
-            else:
-                usa_crono = des_cfg.get("usa_cronometro", True)
-                tiempo_key = f"tiempo_default_segundos_{des_id}"
-                tiempo_limite = des_cfg.get(tiempo_key, d_conf["tiempo_limite"])
-                cantidad_req = des_cfg.get("cantidad_requerida", 25 if des_id != 13 else 10)
-                porc_aprobacion = des_cfg.get("porcentaje_aprobacion", 90)
-
-            if not usa_crono:
-                tiempo_limite = 0
-
-            max_errores_dinamico = calcular_max_errores(cantidad_req, porc_aprobacion)
-
-            mod_porcentaje_total += porcentaje
-            desafios.append(fase9DesafioInfo(
-                desafio_id=des_id,
-                nombre=d_conf["nombre"],
-                dificultad=d_conf["dificultad"],
-                estado=estado,
-                porcentaje=porcentaje,
-                aciertos=aciertos,
-                requeridos=requeridos,
-                tiempo_limite=tiempo_limite,
-                max_errores=max_errores_dinamico,
-            ))
-        mod_porcentaje = mod_porcentaje_total // (num_niveles + 3)
+        mod_porcentaje = mod_porcentaje_total // num_niveles if num_niveles > 0 else 0
         
-        if all(n.estado == "dominado" for n in niveles) and all(d.estado == "dominado" for d in desafios):
+        if all(n.estado == "dominado" for n in niveles):
             estado_modulo = "dominado"
         elif all(n.estado == "bloqueado" for n in niveles):
             estado_modulo = "bloqueado"
@@ -1368,17 +1276,13 @@ async def cerrar_rescate_fase9(
 
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# ENDPOINT 5 — Graduación a Fase 3 (Exige 26 niveles aprobados)
-# ─────────────────────────────────────────────────────────────────────────────
-
 @router.post("/graduate")
 async def graduate_fase9(
     db: AsyncSession = Depends(get_db),
     alumno: Alumno = Depends(get_current_student),
 ):
     """
-    Gradúa al alumno de Fase 2 a Fase 3 si todos los 26 niveles (14 práctica + 12 desafíos) están dominados.
+    Gradúa al alumno de Fase 9 si todos los 20 simulacros están dominados.
     """
 
     result = await db.execute(
@@ -1389,24 +1293,16 @@ async def graduate_fase9(
         ))
     )
     aprobados = result.scalar()
-    if aprobados < 26:
+    if aprobados < 20:
         raise HTTPException(
             status_code=400,
-            detail=f"Debes dominar los 26 niveles de Fase 2 (14 de práctica y 12 desafíos). Llevas {aprobados}/26.",
+            detail=f"Debes dominar los 20 simulacros de Fase 9. Llevas {aprobados}/20.",
         )
 
-    result = await db.execute(select(Fase).where(Fase.orden == 3))
-    fase3 = result.scalar_one_or_none()
-    if not fase3:
-        raise HTTPException(status_code=500, detail="La Fase 3 aún no ha sido configurada.")
-
-    alumno.fase_actual_id = fase3.id
-    await db.commit()
-
     return {
-        "message": "¡Felicitaciones! ¡Has dominado la Fase 2 y avanzas a la Fase 3!",
-        "nueva_fase_id": fase3.id,
-        "nueva_fase_nombre": fase3.nombre,
+        "message": "¡Felicitaciones! ¡Has completado con éxito todos los simulacros de la Fase 9!",
+        "nueva_fase_id": None,
+        "nueva_fase_nombre": None,
     }
 
 

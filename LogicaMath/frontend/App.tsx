@@ -584,8 +584,10 @@ const AppContent: React.FC = () => {
                 studentName={currentUser.username}
                 userAvatar={currentUser.avatar}
                 userRole={currentUser.role}
-                onModuleSelect={(moduloId, nivelId) => {
-                  navigate(`/fase9/play`, { state: { moduloId, nivelId: nivelId || 1, faseId: 9 } });
+                onModuleSelect={(simulacroNumero, _nivelId) => {
+                  // simulacroNumero (1-20) goes as :moduloId in the URL
+                  // The store extracts it and sends { simulacro_numero } to the backend
+                  navigate(`/fase/9/game/${simulacroNumero}/0`);
                 }}
                 onBack={() => navigate('/map')}
               />
@@ -593,6 +595,7 @@ const AppContent: React.FC = () => {
               <Navigate to="/login" replace />
             )
           } />
+
 
           <Route path="/welcome-fase" element={
             currentUser ? (

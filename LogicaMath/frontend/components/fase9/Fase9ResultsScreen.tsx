@@ -1,169 +1,438 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useSimuladoStore } from '../../store/simuladoStore';
-import { ArrowLeft, Target, AlertCircle, PlayCircle, Trophy, BookOpen } from 'lucide-react';
+import {
+  ArrowLeft, Trophy, CheckCircle2, XCircle,
+  ChevronDown, ChevronUp, Play, RotateCcw,
+  AlertCircle, BookOpen, Target,
+} from 'lucide-react';
+
+// ─── Types ─────────────────────────────────────────────────────────────────
+
+interface ResolucaoPaso {
+  paso: number;
+  texto: string;
+}
+
+interface DetalleQuestao {
+  pregunta_id: string;
+  orden: number;
+  enunciado: string;
+  alternativas: Record<string, string>;  // { A: "...", B: "...", C: "...", D: "..." }
+  resposta_alumno: string | null;        // "A" | "B" | "C" | "D" | null (não respondeu)
+  resposta_correta: string;              // "A" | "B" | "C" | "D"
+  es_correcta: boolean;
+  tema: string;
+  resolucao: ResolucaoPaso[];
+}
+
+interface ResultadosData {
+  puntaje: number;
+  total: number;
+  porcentaje: number;
+  aprobado: boolean;
+  simulacro_numero: number;
+  proximo_simulacro: number | null;
+  detalles: DetalleQuestao[];
+  errores: { pregunta_id: string }[];
+}
+
+// ─── Componente de una pregunta expandible ─────────────────────────────────
+
+function QuestaoCard({ detalhe, index }: { detalhe: DetalleQuestao; index: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const { es_correcta, resposta_alumno, resposta_correta, alternativas, resolucao } = detalhe;
+
+  const LETRAS = ['A', 'B', 'C', 'D'];
+
+  return (
+    <div
+      className={`rounded-2xl border transition-all duration-200 overflow-hidden
+        ${es_correcta
+          ? 'border-emerald-500/25 bg-emerald-500/5'
+          : 'border-rose-500/25 bg-rose-500/5'
+        }
+      `}
+    >
+      {/* Cabecera de la pregunta */}
+      <div className="p-4 sm:p-5">
+        <div className="flex items-start gap-4">
+          {/* Indicador correcto/incorrecto */}
+          <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5
+            ${es_correcta ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}
+          >
+            {es_correcta
+              ? <CheckCircle2 className="w-5 h-5" />
+              : <XCircle className="w-5 h-5" />
+            }
+          </div>
+
+          <div className="flex-1 min-w-0">
+            {/* Número y tema */}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className="text-xs font-black text-slate-400 tracking-wider">Q{index + 1}</span>
+              <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">
+                {detalhe.tema}
+              </span>
+            </div>
+
+            {/* Enunciado (truncado) */}
+            <p className="text-sm text-slate-200 leading-relaxed line-clamp-3 font-serif">
+              {detalhe.enunciado}
+            </p>
+
+            {/* Respuestas inline */}
+            <div className="flex items-center gap-3 mt-3 flex-wrap">
+              {/* Respuesta del alumno */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-slate-500">Tu respuesta:</span>
+                {resposta_alumno ? (
+                  <span className={`text-xs font-black px-2 py-0.5 rounded-lg border
+                    ${es_correcta
+                      ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+                      : 'text-rose-300 bg-rose-500/15 border-rose-500/30'
+                    }`}
+                  >
+                    {resposta_alumno}) {alternativas[resposta_alumno]}
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-500 italic">Não respondida</span>
+                )}
+              </div>
+
+              {!es_correcta && (
+                <>
+                  <span className="text-slate-600">→</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-slate-500">Correta:</span>
+                    <span className="text-xs font-black px-2 py-0.5 rounded-lg border text-emerald-300 bg-emerald-500/15 border-emerald-500/30">
+                      {resposta_correta}) {alternativas[resposta_correta]}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Toggle resolução */}
+          {resolucao && resolucao.length > 0 && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span className="hidden sm:block">Resolução</span>
+              {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Panel de resolução expandible */}
+      {expanded && resolucao && resolucao.length > 0 && (
+        <div className="border-t border-slate-800/80 bg-slate-900/60 p-4 sm:p-5">
+          {/* Todas las alternativas */}
+          <div className="mb-5">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Alternativas</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {LETRAS.map((letra) => {
+                const isCorreta = letra === resposta_correta;
+                const isElegida = letra === resposta_alumno;
+                const isErrada = isElegida && !isCorreta;
+
+                return (
+                  <div
+                    key={letra}
+                    className={`flex items-start gap-3 p-3 rounded-xl border text-sm
+                      ${isCorreta
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                        : isErrada
+                          ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                          : 'bg-slate-800/50 border-slate-700/50 text-slate-400'
+                      }
+                    `}
+                  >
+                    <span className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black
+                      ${isCorreta ? 'bg-emerald-500 text-white'
+                        : isErrada ? 'bg-rose-500 text-white'
+                        : 'bg-slate-700 text-slate-400'}
+                    `}>
+                      {letra}
+                    </span>
+                    <span className="leading-relaxed">{alternativas[letra]}</span>
+                    {isCorreta && <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 ml-auto mt-0.5" />}
+                    {isErrada && <XCircle className="w-4 h-4 text-rose-400 flex-shrink-0 ml-auto mt-0.5" />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Pasos de resolución */}
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Resolução Passo a Passo</p>
+            <div className="space-y-3">
+              {resolucao.map((paso) => (
+                <div key={paso.paso} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-[10px] font-black text-indigo-400">{paso.paso}</span>
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed">{paso.texto}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Componente principal ──────────────────────────────────────────────────
 
 export const Fase9ResultsScreen: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as any;
-  const { preguntas, sessionId } = useSimuladoStore();
 
   if (!state || !state.resultados) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
         <div className="text-center">
           <AlertCircle className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-300">No hay resultados disponibles</h2>
-          <button 
-            onClick={() => navigate('/fase/9/dashboard')} 
-            className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          <h2 className="text-2xl font-bold text-slate-300 mb-2">Sem resultados</h2>
+          <p className="text-slate-500 mb-6">Não há dados para exibir. Complete um simulacro primeiro.</p>
+          <button
+            onClick={() => navigate('/welcome-fase9')}
+            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors"
           >
-            Volver al Dashboard
+            Ir ao Dashboard
           </button>
         </div>
       </div>
     );
   }
 
-  const { resultados, moduloId, nivelId } = state;
-  const { puntaje, total, porcentaje, errores } = resultados;
+  const resultados: ResultadosData = state.resultados;
+  const { puntaje, total, porcentaje, aprobado, simulacro_numero, proximo_simulacro, detalles } = resultados;
 
-  // Determine performance color and message
-  let perfColor = "text-emerald-500";
-  let bgPerfColor = "bg-emerald-500/10 border-emerald-500/20";
-  let message = "¡Excelente Trabajo!";
-  let subMessage = "Estás listo para el examen real.";
+  // Mensagem de performance
+  let mensagem = '¡Excelente!';
+  let subMensagem = 'Você está pronto para o próximo desafio.';
+  let perfColor = 'text-emerald-400';
+  let ringColor = 'stroke-emerald-500';
+  let bgCard = 'bg-emerald-500/10 border-emerald-500/20';
 
-  if (porcentaje < 50) {
-    perfColor = "text-red-500";
-    bgPerfColor = "bg-red-500/10 border-red-500/20";
-    message = "Necesitamos Repasar";
-    subMessage = "Revisa tus errores con el Tutor IA.";
+  if (porcentaje < 60) {
+    mensagem = 'Precisa Melhorar';
+    subMensagem = 'Estude a resolução de cada questão e tente novamente.';
+    perfColor = 'text-rose-400';
+    ringColor = 'stroke-rose-500';
+    bgCard = 'bg-rose-500/10 border-rose-500/20';
   } else if (porcentaje < 80) {
-    perfColor = "text-yellow-500";
-    bgPerfColor = "bg-yellow-500/10 border-yellow-500/20";
-    message = "Buen Progreso";
-    subMessage = "Sigue practicando para alcanzar la maestría.";
+    mensagem = 'Bom Progresso!';
+    subMensagem = 'Continue praticando para alcançar a excelência.';
+    perfColor = 'text-yellow-400';
+    ringColor = 'stroke-yellow-500';
+    bgCard = 'bg-yellow-500/10 border-yellow-500/20';
   }
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans p-4 sm:p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
-        
-        {/* Header simple */}
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => navigate('/fase/9/dashboard')}
-            className="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-2xl font-bold text-white">Clínica de Errores</h1>
-        </div>
+  const circunferencia = 2 * Math.PI * 54;
+  const dashOffset = circunferencia - (circunferencia * porcentaje) / 100;
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Tarjeta de Score General */}
-          <div className="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-lg relative overflow-hidden">
-            <div className={`absolute top-0 w-full h-2 ${bgPerfColor.split(' ')[0].replace('/10', '')}`}></div>
-            
-            <div className="relative w-40 h-40 flex items-center justify-center mb-6 mt-4">
-              <svg className="absolute w-full h-full transform -rotate-90">
-                <circle cx="80" cy="80" r="70" className="stroke-slate-800" strokeWidth="12" fill="none" />
-                <circle 
-                  cx="80" cy="80" r="70" 
-                  className={`stroke-current ${perfColor} transition-all duration-1000 ease-out`} 
-                  strokeWidth="12" 
-                  strokeDasharray="439.8" 
-                  strokeDashoffset={439.8 - (439.8 * porcentaje) / 100}
-                  strokeLinecap="round" 
-                  fill="none" 
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans">
+
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-4 flex items-center gap-4">
+        <button
+          onClick={() => navigate('/welcome-fase9')}
+          className="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div>
+          <h1 className="font-bold text-white text-base">Resultado do Simulacro</h1>
+          <p className="text-xs text-slate-400">Simulacro {simulacro_numero} · Pedro II</p>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
+
+        {/* Score card */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          {/* Círculo de puntuación */}
+          <div className={`lg:col-span-1 rounded-2xl border p-6 flex flex-col items-center text-center ${bgCard}`}>
+            {/* SVG circular */}
+            <div className="relative w-36 h-36 mb-4">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="54" className="stroke-slate-800" strokeWidth="10" fill="none" />
+                <circle
+                  cx="60" cy="60" r="54"
+                  className={`${ringColor} transition-all duration-1000 ease-out`}
+                  strokeWidth="10"
+                  strokeDasharray={circunferencia}
+                  strokeDashoffset={dashOffset}
+                  strokeLinecap="round"
+                  fill="none"
                 />
               </svg>
-              <div className="text-4xl font-black text-white">{Math.round(porcentaje)}<span className="text-xl text-slate-500">%</span></div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className={`text-3xl font-black ${perfColor}`}>{Math.round(porcentaje)}%</span>
+              </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-white mb-1">{message}</h2>
-            <p className="text-slate-400 mb-6">{subMessage}</p>
+            <h2 className={`text-xl font-black mb-1 ${perfColor}`}>{mensagem}</h2>
+            <p className="text-slate-400 text-sm mb-5">{subMensagem}</p>
 
-            <div className={`w-full p-4 rounded-xl border flex justify-around items-center ${bgPerfColor}`}>
+            {/* Aciertos / Total */}
+            <div className={`w-full flex justify-around items-center py-3 px-4 rounded-xl border ${bgCard}`}>
               <div className="text-center">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Aciertos</p>
-                <p className={`text-2xl font-bold ${perfColor}`}>{puntaje}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Acertos</p>
+                <p className={`text-2xl font-black ${perfColor}`}>{puntaje}</p>
               </div>
-              <div className="w-px h-10 bg-slate-700/50"></div>
+              <div className="w-px h-10 bg-slate-700" />
               <div className="text-center">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total</p>
-                <p className="text-2xl font-bold text-slate-300">{total}</p>
+                <p className="text-2xl font-black text-slate-300">{total}</p>
               </div>
+              <div className="w-px h-10 bg-slate-700" />
+              <div className="text-center">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
+                <p className={`text-sm font-black ${aprobado ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {aprobado ? '✓ Aprovado' : '✗ Reprovado'}
+                </p>
+              </div>
+            </div>
+
+            {/* Botões de ação */}
+            <div className="w-full space-y-2 mt-5">
+              {aprobado && proximo_simulacro && (
+                <button
+                  onClick={() => navigate(`/fase/9/game/${proximo_simulacro}/0`)}
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/30"
+                >
+                  <Play className="w-4 h-4" />
+                  Próximo Simulacro ({proximo_simulacro})
+                </button>
+              )}
+              {!aprobado && (
+                <button
+                  onClick={() => navigate(`/fase/9/game/${simulacro_numero}/0`)}
+                  className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Tentar Novamente
+                </button>
+              )}
+              <button
+                onClick={() => navigate('/welcome-fase9')}
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors border border-slate-700 text-sm"
+              >
+                Voltar ao Dashboard
+              </button>
             </div>
           </div>
 
-          {/* Lista de Errores */}
-          <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg flex flex-col">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-rose-500/10 rounded-lg border border-rose-500/20">
-                <Target className="w-6 h-6 text-rose-500" />
+          {/* Resumen rápido de las 10 preguntas */}
+          <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
+                <Target className="w-5 h-5 text-indigo-400" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">Preguntas a Reforzar</h3>
-                <p className="text-sm text-slate-400">{errores.length} conceptos requieren revisión</p>
+                <h3 className="font-bold text-white">Resumo das Questões</h3>
+                <p className="text-xs text-slate-400">
+                  {puntaje} acertos · {total - puntaje} erros
+                </p>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-2 space-y-4">
-              {errores.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-slate-800/30 rounded-xl border border-slate-800 border-dashed">
-                  <Trophy className="w-16 h-16 text-yellow-500/50 mb-4" />
-                  <h4 className="text-lg font-bold text-slate-300">¡Examen Perfecto!</h4>
-                  <p className="text-slate-500 mt-2 max-w-sm">No cometiste ningún error en este simulacro. Tienes dominio total sobre estos conceptos.</p>
+            {/* Grid visual 10 preguntas */}
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 mb-5">
+              {(detalles ?? []).map((d, i) => (
+                <div
+                  key={d.pregunta_id}
+                  className={`aspect-square rounded-xl flex items-center justify-center text-xs font-black
+                    ${d.es_correcta
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                    }
+                  `}
+                >
+                  {i + 1}
+                </div>
+              ))}
+            </div>
+
+            {/* Leyenda */}
+            <div className="flex items-center gap-4 text-xs text-slate-400 border-t border-slate-800 pt-4">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500/30" />
+                <span>Acertou</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded bg-rose-500/20 border border-rose-500/30" />
+                <span>Errou</span>
+              </div>
+              {aprobado ? (
+                <div className="ml-auto flex items-center gap-1.5">
+                  <Trophy className="w-4 h-4 text-yellow-500" />
+                  <span className="text-yellow-400 font-bold">Simulacro aprovado!</span>
                 </div>
               ) : (
-                errores.map((err: any, idx: number) => {
-                  const q = preguntas.find((p) => String(p.id) === String(err.pregunta_id));
-                  if (!q) return null;
-                  
-                  return (
-                    <div key={idx} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 hover:border-slate-600 transition-colors">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-950 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-800">
-                          Q
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-slate-200 line-clamp-2 text-sm leading-relaxed mb-3">
-                            {q.enunciado}
-                          </p>
-                          <div className="flex flex-wrap gap-3">
-                            <button className="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20 rounded-md border border-indigo-500/20 text-xs font-bold transition-colors">
-                              <PlayCircle className="w-3.5 h-3.5" />
-                              <span>Tutor IA</span>
-                            </button>
-                            <button className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 text-slate-400 hover:text-slate-300 hover:bg-slate-700 rounded-md border border-slate-700 text-xs font-bold transition-colors">
-                              <BookOpen className="w-3.5 h-3.5" />
-                              <span>Ver Teoría</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
+                <div className="ml-auto text-rose-400 font-bold">
+                  Mínimo 6/10 para aprovar
+                </div>
               )}
             </div>
-            
-            {errores.length > 0 && (
-              <div className="mt-6 pt-5 border-t border-slate-800">
-                <button className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98] flex items-center justify-center space-x-2">
-                  <PlayCircle className="w-5 h-5" />
-                  <span>Iniciar Camino del Maestro (Corregir Todos)</span>
-                </button>
-              </div>
-            )}
-            
           </div>
         </div>
-      </div>
+
+        {/* Lista expandible de cada questão */}
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-lg font-black text-white">Gabarito Completo</h2>
+            <span className="text-xs text-slate-500 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full">
+              Clique em "Resolução" para ver o passo a passo
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {(detalles ?? []).map((detalhe, i) => (
+              <QuestaoCard key={detalhe.pregunta_id} detalhe={detalhe} index={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* Footer de ação */}
+        <div className="border-t border-slate-800 pt-6 pb-8 flex flex-col sm:flex-row gap-3 justify-center">
+          {aprobado && proximo_simulacro && (
+            <button
+              onClick={() => navigate(`/fase/9/game/${proximo_simulacro}/0`)}
+              className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/30"
+            >
+              <Play className="w-5 h-5" />
+              Próximo Simulacro ({proximo_simulacro})
+            </button>
+          )}
+          {!aprobado && (
+            <button
+              onClick={() => navigate(`/fase/9/game/${simulacro_numero}/0`)}
+              className="px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-5 h-5" />
+              Tentar Novamente
+            </button>
+          )}
+          <button
+            onClick={() => navigate('/welcome-fase9')}
+            className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors border border-slate-700"
+          >
+            Voltar ao Dashboard
+          </button>
+        </div>
+      </main>
     </div>
   );
 };

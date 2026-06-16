@@ -68,7 +68,7 @@ export const Fase9GameScreen: React.FC = () => {
         <AlertTriangle className="w-16 h-16 text-yellow-500 mb-4" />
         <h2 className="text-2xl font-bold text-slate-100">Simulacro no disponible</h2>
         <p className="text-slate-400 mt-2">Ocurrió un error al cargar las preguntas.</p>
-        <button onClick={() => navigate('/fase/9/dashboard')} className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
+        <button onClick={() => navigate('/welcome-fase9')} className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
           Volver al Dashboard
         </button>
       </div>

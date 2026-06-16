@@ -17,4 +17,6 @@ from .progreso import ConfiguracionProgreso, PoolAsignadoAlumno, ProgresoMaestri
 from .settings import PlatformSettings
 from app.fase2.models import IntentoPregunta, IntentoPaso, NivelTeoria
 from .simulado import SimuladoSession
+from .simulado_questao import SimuladoQuestao
 from .audit import AuditLog
+
