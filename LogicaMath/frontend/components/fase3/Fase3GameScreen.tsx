@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DetectiveNotebook } from './DetectiveNotebook';
 import { OperationBuilder } from './OperationBuilder';
-import { getFase3Question, submitFase3Answer, getFase3Reading } from './Fase3Service';
+import { getFase3Question, submitFase3Answer, getFase3Reading, graduateFase3 } from './Fase3Service';
 import { Fase3Pregunta, Fase3AnswerResult, Fase3Lectura } from './Fase3Types';
 import { CustomKeyboard } from '../common/CustomKeyboard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1195,7 +1195,18 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
           />
         )}
         {showGraduation && (
-          <Fase3PhaseGraduationModal studentName={studentName} onClose={() => navigate('/map')} />
+          <Fase3PhaseGraduationModal
+            studentName={studentName}
+            onClose={async () => {
+              try {
+                await graduateFase3();
+              } catch (e) {
+                console.error(e);
+              }
+              setShowGraduation(false);
+              navigate('/map');
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -9,7 +9,7 @@
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import './Fase6Styles.css';
-import { getFase6Question, submitFase6Answer, getFase6Reading, closeFase6Rescate } from './Fase6Service';
+import { getFase6Question, submitFase6Answer, getFase6Reading, closeFase6Rescate, graduateFase6 } from './Fase6Service';
 import { Fase6TheoryModal } from './Fase6TheoryModal';
 import { Fase6MirrorModal } from './Fase6MirrorModal';
 import type {
@@ -1690,7 +1690,18 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
           />
         )}
         {showGraduation && (
-          <Fase6PhaseGraduationModal studentName={studentName} onClose={() => { setShowGraduation(false); navigate('/map'); }} />
+          <Fase6PhaseGraduationModal
+            studentName={studentName}
+            onClose={async () => {
+              try {
+                await graduateFase6();
+              } catch (e) {
+                console.error(e);
+              }
+              setShowGraduation(false);
+              navigate('/map');
+            }}
+          />
         )}
         {showCompletion && (
           <Fase6CompletionModal 
