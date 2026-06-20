@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  admin-frontend:
+    build: 
+      context: ./logicakids-admin
+      dockerfile: Dockerfile
+    container_name: logicakids-admin-ui
+    restart: always
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.logicakids-admin.rule=Host(`db.espalhar.shop`)"
+      - "traefik.http.routers.logicakids-admin.entrypoints=websecure"
+      - "traefik.http.routers.logicakids-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.services.logicakids-admin.loadbalancer.server.port=80"
+
+networks:
+  traefik_proxy:
+    external: true

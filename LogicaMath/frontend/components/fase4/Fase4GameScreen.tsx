@@ -6,6 +6,7 @@ import { PizzaFractionVisualizer } from './PizzaFractionVisualizer';
 import { BeakerVisualizer } from './BeakerVisualizer';
 import { PieChartVisualizer } from './PieChartVisualizer';
 import { PercentageBeaker } from './PercentageBeaker';
+import { Fase4FabricVisualizer } from './Fase4FabricVisualizer';
 import { Fase4TheoryModal } from './Fase4TheoryModal';
 import { CustomKeyboard } from '../common/CustomKeyboard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -62,6 +63,33 @@ const getFractionForPercentage = (pct: number) => {
   const num = Math.round((pct * den) / 100);
   return { slices: den, sombreados: Array.from({ length: num }, (_, i) => i) };
 };
+
+const checkPositionsMatch = (current: any, target: any, tolerance: number): boolean => {
+  if (!Array.isArray(current) || !Array.isArray(target)) return false;
+  if (current.length !== target.length) return false;
+  
+  const matchedIndices = new Set<number>();
+  
+  for (const tgt of target) {
+    let found = false;
+    for (let i = 0; i < current.length; i++) {
+      if (matchedIndices.has(i)) continue;
+      const curr = current[i];
+      if (curr.type === tgt.type) {
+        const dx = Math.abs((curr.left ?? 0) - (tgt.left ?? 0));
+        const dy = Math.abs((curr.top ?? 0) - (tgt.top ?? 0));
+        if (dx <= tolerance && dy <= tolerance) {
+          matchedIndices.add(i);
+          found = true;
+          break;
+        }
+      }
+    }
+    if (!found) return false;
+  }
+  return true;
+};
+
 
 // ─── Componente: Modal de Salida Temprana (Early Exit) ─────────────────────
 const Fase4EarlyExitModal: React.FC<{
@@ -556,6 +584,7 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
   const [respuestaDen, setRespuestaDen] = useState('');
   const [activeInputField, setActiveInputField] = useState<'num' | 'den'>('num');
   const [interactiveSelectedCount, setInteractiveSelectedCount] = useState<number>(0);
+  const [visualState, setVisualState] = useState<any>(null);
 
   const [timer, setTimer] = useState<number | null>(null);
   const [maxTimer, setMaxTimer] = useState<number>(1);
@@ -834,7 +863,20 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
     let finalAnswer = '';
     
     const isInteractivePizza = pregunta.datos_numericos?.tipo_visual === 'pizza' && !!pregunta.datos_numericos?.es_interactivo;
-    if (isInteractivePizza && customAnswer === undefined) {
+    const isInteractiveShapes = pregunta.datos_numericos?.tipo_visual === 'shapes';
+
+    if (isInteractiveShapes && customAnswer === undefined) {
+      try {
+        const targetState = JSON.parse(pregunta.respuesta_correcta);
+        const tolerance = 15;
+        console.log("DEBUG F4: visualState =", JSON.stringify(visualState));
+        console.log("DEBUG F4: targetState =", JSON.stringify(targetState));
+        const isMatch = checkPositionsMatch(visualState, targetState, tolerance);
+        finalAnswer = isMatch ? pregunta.respuesta_correcta : JSON.stringify(visualState);
+      } catch (e) {
+        finalAnswer = JSON.stringify(visualState || '');
+      }
+    } else if (isInteractivePizza && customAnswer === undefined) {
       const numVal = respuestaNum.trim();
       const denVal = respuestaDen.trim();
       if (numVal && denVal) {
@@ -851,6 +893,7 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
         finalAnswer = numVal;
       }
     }
+
 
     if (customAnswer !== undefined) {
       finalAnswer = customAnswer;
@@ -910,7 +953,7 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
         errorMessage: error instanceof Error ? error.message : 'No se pudo comunicar con el servidor.',
       });
     }
-  }, [pregunta, moduloId, nivelId, respuestaNum, respuestaDen, interactiveSelectedCount, timer, feedback, handleFeedbackClose]);
+  }, [pregunta, moduloId, nivelId, respuestaNum, respuestaDen, interactiveSelectedCount, timer, feedback, handleFeedbackClose, visualState]);
 
   const handleBypassRescue = async () => {
     try {
@@ -1286,17 +1329,26 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
             <div className="flex flex-col items-center justify-center">
               <button
                 onClick={() => handleSubmit()}
-                disabled={feedback.visible}
-                className="group relative flex items-center justify-center gap-4 w-full max-w-md py-8 px-10 bg-purple-600 hover:bg-purple-500 text-white font-sans font-black text-4xl rounded-[2.5rem] shadow-[0_12px_30px_rgba(168,85,247,0.4)] hover:shadow-[0_15px_35px_rgba(168,85,247,0.6)] border-4 border-purple-400/20 hover:border-purple-300/30 transform active:scale-[0.95] transition-all duration-150 cursor-pointer overflow-hidden"
+                className="group relative flex items-center justify-center gap-4 w-full max-w-md py-8 px-10 text-white font-sans font-black text-4xl rounded-[2.5rem] transform active:scale-[0.95] transition-all duration-150 cursor-pointer overflow-hidden border-4 border-white/10"
+                style={{
+                  background: feedback.visible 
+                    ? (feedback.esCorrecta ? '#10B981' : '#EF4444') 
+                    : `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`,
+                  boxShadow: feedback.visible 
+                    ? (feedback.esCorrecta ? '0 12px 30px rgba(16, 185, 129, 0.4)' : '0 12px 30px rgba(239, 68, 68, 0.4)') 
+                    : `0 12px 30px rgba(168, 85, 247, 0.4)`
+                }}
               >
                 {/* Micro-sparkle ambient hover effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
                 
-                <span>CONFIRMAR</span>
+                <span>{feedback.visible ? (feedback.esCorrecta ? 'Continuar →' : 'Intentar de nuevo ↺') : 'CONFIRMAR'}</span>
                 
                 {/* Integrated checkmark circle */}
                 <div className="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white bg-transparent flex-shrink-0">
-                  <span className="text-white text-2xl font-black">✓</span>
+                  <span className="text-white text-2xl font-black">
+                    {feedback.visible ? (feedback.esCorrecta ? '→' : '↺') : '✓'}
+                  </span>
                 </div>
               </button>
 
@@ -1420,6 +1472,11 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
                   color={moduleColor}
                   type={pregunta.datos_numericos?.tipo_visual === 'percentage_thermometer' ? 'thermometer' : 'beaker'}
                 />
+              ) : pregunta.datos_numericos?.tipo_visual === 'shapes' ? (
+                <Fase4FabricVisualizer
+                  datos_numericos={pregunta.datos_numericos}
+                  onStateChange={setVisualState}
+                />
               ) : (
                 <div className="text-center font-display text-4xl font-black text-white p-4">
                   🍕 🧪
@@ -1431,7 +1488,32 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
 
             {/* Interactive input area */}
             <div className="flex flex-col items-center justify-center">
-              {pregunta.tipo_pregunta === 'multiple_opcion' && pregunta.alternativas ? (
+              {pregunta.datos_numericos?.tipo_visual === 'shapes' ? (
+                <div className="w-full flex flex-col items-center gap-8">
+                  <button
+                    onClick={() => handleSubmit()}
+                    className="group relative flex items-center justify-center gap-4 w-full max-w-md py-6 px-8 text-white font-sans font-black text-3xl rounded-[2.5rem] border-4 border-white/10 transform active:scale-[0.95] transition-all duration-150 cursor-pointer overflow-hidden"
+                    style={{
+                      background: feedback.visible 
+                        ? (feedback.esCorrecta ? '#10B981' : '#EF4444') 
+                        : `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`,
+                      boxShadow: feedback.visible 
+                        ? (feedback.esCorrecta ? '0 12px 30px rgba(16, 185, 129, 0.4)' : '0 12px 30px rgba(239, 68, 68, 0.4)') 
+                        : `0 12px 30px rgba(168, 85, 247, 0.4)`
+                    }}
+                  >
+                    {/* Micro-sparkle ambient hover effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+                    
+                    <span>{feedback.visible ? (feedback.esCorrecta ? 'Continuar →' : 'Intentar de nuevo ↺') : 'CONFIRMAR'}</span>
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-transparent flex-shrink-0">
+                      <span className="text-white text-xl font-black">
+                        {feedback.visible ? (feedback.esCorrecta ? '→' : '↺') : '✓'}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              ) : pregunta.tipo_pregunta === 'multiple_opcion' && pregunta.alternativas ? (
                 <div className="w-full space-y-4">
                   {pregunta.alternativas.map(alt => (
                     <button
@@ -1508,46 +1590,7 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
         )}
       </main>
 
-      {/* Tutor Feedback Overlay */}
-      <AnimatePresence>
-        {feedback.visible && (
-          <motion.div 
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            className={`fixed bottom-0 left-0 w-full p-8 z-50 flex flex-col items-center text-center ${
-              feedback.esCorrecta 
-                ? 'bg-emerald-950/95 border-t border-emerald-500/30' 
-                : 'bg-red-950/95 border-t border-red-500/30'
-            }`}
-          >
-            <h4 className="text-3xl font-black mb-3">
-              {feedback.esCorrecta 
-                ? '¡Excelente trabajo! 🎉' 
-                : isChallenge 
-                  ? 'Respuesta incorrecta ➔' 
-                  : 'Vuelve a intentarlo ↺'}
-            </h4>
-            <p className="text-lg text-slate-300 max-w-xl mb-6">
-              {feedback.resultado?.feedback_tutor}
-            </p>
-            {feedback.resultado?.explicacion_profunda && (
-              <div 
-                className="mb-6 p-4 rounded-xl bg-white/5 text-sm text-left max-w-xl font-mono leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: feedback.resultado.explicacion_profunda }}
-              />
-            )}
-            <button
-              onClick={handleFeedbackClose}
-              className={`px-8 py-4 text-white font-black text-lg rounded-2xl transition-all shadow-lg active:scale-95 cursor-pointer ${
-                feedback.esCorrecta ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'
-              }`}
-            >
-              {feedback.resultado?.early_exit ? 'Volver al Menú' : 'Continuar →'}
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* Interactive Rich Theory Modal */}
       <AnimatePresence>

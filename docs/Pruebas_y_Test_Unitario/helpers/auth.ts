@@ -84,7 +84,7 @@ export async function registerDynamicTestUser(page: Page): Promise<string> {
   const password = 'Pruebas2026#';
 
   // Registrar via API (es más rápido y estable que la UI)
-  const response = await page.request.post('http://localhost:8000/api/auth/register', {
+  const response = await page.request.post('http://127.0.0.1:8000/api/auth/register', {
     data: {
       email,
       password,

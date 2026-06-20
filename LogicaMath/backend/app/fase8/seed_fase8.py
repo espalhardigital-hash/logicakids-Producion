@@ -13,6 +13,12 @@ from app.fase2.models import NivelTeoria, IntentoPregunta, IntentoPaso
 
 FASE8_ID = 8
 
+# --- DICCIONARIOS DE CONTEXTO FASE 8 ---
+NOMBRES = ["Samuel", "Camila", "Julieta", "Emilio", "Valentina", "Nicolás"]
+ROPA_1 = ["camisas", "poleras", "chaquetas", "pantalones"]
+ROPA_2 = ["pantalones", "faldas", "zapatos", "gorras"]
+CONTENEDORES = ["caja", "bolsa", "urna", "sombrero"]
+
 async def clear_fase8_data(session: AsyncSession):
     print("Purging existing Fase 8 data...")
     result = await session.execute(select(Pregunta.id).where(Pregunta.fase_id == FASE8_ID))
@@ -115,50 +121,66 @@ def _generate_svg_fase8(mod_id: int, rng: random.Random, params: dict) -> str:
         return _svg_to_base64(svg)
 
 async def _gen_fase8_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
+    nombre = rng.choice(NOMBRES)
+    errores_previstos = {}
+
     if mod_id == 1:
         start = rng.randint(2, 10)
         step = rng.randint(2, 5)
         ans = start + step * 4
         ans_str = str(ans)
-        enunciado = f"Observa la secuencia: {start}, {start+step}, {start+step*2}, {start+step*3}, ___. ¿Qué número sigue?"
+        enunciado = f"{nombre} está analizando la siguiente secuencia de números: {start}, {start+step}, {start+step*2}, {start+step*3}, ___. ¿Qué número sigue en la serie?"
         svg_data = _generate_svg_fase8(mod_id, rng, {'start': start, 'step': step})
+        
+        errores_previstos[str(ans+step)] = "Te saltaste un término. Calculaste el número que va después del espacio en blanco."
+        
         return {
             "enunciado": enunciado,
             "respuesta_correcta": ans_str,
             "expl": f"El patrón es sumar {step}.",
             "alts": [ans_str, str(ans+1), str(ans-1), str(ans+step)],
             "metadata_visual": {"requiere_imagen": True, "svg_base64": svg_data},
-            "errores_previstos": {}
+            "errores_previstos": errores_previstos
         }
     elif mod_id == 2:
         op1 = rng.randint(3, 6)
         op2 = rng.randint(2, 5)
         ans = op1 * op2
         ans_str = str(ans)
-        enunciado = f"Tienes {op1} opciones del primer tipo y {op2} del segundo. ¿Cuántas combinaciones diferentes puedes armar en total?"
+        ropa1 = rng.choice(ROPA_1)
+        ropa2 = rng.choice(ROPA_2)
+        enunciado = f"{nombre} tiene {op1} {ropa1} diferentes y {op2} {ropa2} distintos. ¿Cuántas combinaciones diferentes de atuendos puede armar usando uno de cada tipo?"
         svg_data = _generate_svg_fase8(mod_id, rng, {'op1': op1, 'op2': op2})
+        
+        errores_previstos[str(op1+op2)] = "Sumaste las opciones. Para hallar el total de combinaciones debes multiplicar las opciones de cada grupo."
+        
         return {
             "enunciado": enunciado,
             "respuesta_correcta": ans_str,
             "expl": f"Multiplicamos {op1} x {op2} = {ans}.",
             "alts": [ans_str, str(op1+op2), str(ans+1), str(ans-1)],
             "metadata_visual": {"requiere_imagen": True, "svg_base64": svg_data},
-            "errores_previstos": {}
+            "errores_previstos": errores_previstos
         }
     else:
         rojas = rng.randint(2, 5)
         azules = rng.randint(2, 5)
         total = rojas + azules
         ans_str = f"{rojas}/{total}"
-        enunciado = f"En una caja hay {rojas} esferas rojas y {azules} esferas azules. ¿Cuál es la probabilidad de sacar una roja?"
+        contenedor = rng.choice(CONTENEDORES)
+        enunciado = f"En un(a) {contenedor}, {nombre} guardó {rojas} esferas rojas y {azules} esferas azules. ¿Cuál es la probabilidad de sacar al azar una esfera que sea de color rojo?"
         svg_data = _generate_svg_fase8(mod_id, rng, {'rojas': rojas, 'azules': azules})
+        
+        errores_previstos[f"{azules}/{total}"] = "Calculaste la probabilidad de sacar una esfera azul, pero te piden una roja."
+        errores_previstos[f"{rojas}/{azules}"] = "Comparaste rojas con azules. La probabilidad es la cantidad de rojas dividida por el TOTAL de esferas."
+        
         return {
             "enunciado": enunciado,
             "respuesta_correcta": ans_str,
             "expl": f"Casos favorables = {rojas}. Total = {total}.",
             "alts": [ans_str, f"{azules}/{total}", f"{rojas}/{azules}", f"1/{total}"],
             "metadata_visual": {"requiere_imagen": True, "svg_base64": svg_data},
-            "errores_previstos": {}
+            "errores_previstos": errores_previstos
         }
 
 async def seed_configuracion_progreso_fase8(session: AsyncSession):
@@ -225,7 +247,8 @@ async def seed_practica_pool_fase8(session: AsyncSession):
             )
             for idx, alt in enumerate(q_data["alts"]):
                 is_correct = (alt == q_data["respuesta_correcta"])
-                p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx+1))
+                error_msg = q_data.get("errores_previstos", {}).get(alt, "Esa alternativa es incorrecta. Vuelve a intentarlo.") if not is_correct else None
+                p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx+1, tipo_error=TipoErrorEnum.CALCULO if not is_correct else None, feedback_error=error_msg))
             session.add(p)
     await session.commit()
 

@@ -221,7 +221,7 @@ export const Fase9GameScreen: React.FC = () => {
                   <button
                     key={alt.id}
                     onClick={() => seleccionarRespuesta(currentQ.id, alt.id)}
-                    className={`w-full text-left p-5 rounded-xl border-2 transition-all flex items-start space-x-4 group ${
+                    className={`fg-alternative-button w-full text-left p-5 rounded-xl border-2 transition-all flex items-start space-x-4 group ${
                       isSelected 
                         ? 'bg-indigo-600/10 border-indigo-500 text-indigo-100 shadow-inner' 
                         : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-600 hover:bg-slate-800/80'

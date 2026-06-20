@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Fecha inicio** | 2026-06-14T19:16:29.814Z |
-| **Fecha fin** | 2026-06-14T19:22:30.166Z |
+| **Fecha inicio** | 2026-06-20T18:01:10.906Z |
+| **Fecha fin** | 2026-06-20T18:01:49.059Z |
 | **Bugs encontrados** | 0 |
 
 > 🎉 Todas las pruebas pasaron sin errores. No hay bugs pendientes por corregir.

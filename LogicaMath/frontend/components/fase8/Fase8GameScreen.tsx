@@ -12,6 +12,7 @@ import './Fase8Styles.css';
 import { getFase8Question, submitFase8Answer, getFase8Reading, closeFase8Rescate } from './Fase8Service';
 import { Fase8TheoryModal } from './Fase8TheoryModal';
 import { Fase8MirrorModal } from './Fase8MirrorModal';
+import { Fase8FabricHistogram } from './Fase8FabricHistogram';
 import type {
   Fase8Pregunta,
   Fase8AnswerResult,
@@ -663,6 +664,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
   const [respuesta, setRespuesta] = useState('');
   const [tokensSeleccionados, setTokensSeleccionados] = useState<number[]>([]);
   const [selectedAltId, setSelectedAltId] = useState<number | null>(null);
+  const [histogramValues, setHistogramValues] = useState<number[]>([]);
   const [paso, setPaso]           = useState<1 | 2>(1);
   const [paso1Valor, setPaso1Valor] = useState<string | null>(null);
   const [feedback, setFeedback]   = useState<FeedbackState>({ visible: false, esCorrecta: false });
@@ -926,11 +928,20 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
 
     stopTimer();
 
+    let finalAnswer = pregunta.tipo_pregunta === 'respuesta_numerica' || pregunta.tipo_pregunta === 'constructor_soluciones_chained' ? respuesta.trim() : undefined;
+
+    const isInteractiveHistogram = !!pregunta.datos_numericos?.labels;
+    if (isInteractiveHistogram) {
+      console.log("DEBUG F8: histogramValues =", JSON.stringify(histogramValues));
+      console.log("DEBUG F8: respuesta_correcta =", pregunta.respuesta_correcta);
+      finalAnswer = JSON.stringify(histogramValues);
+    }
+
     const payload = {
       modulo_id:  moduloId,
       nivel_id:   nivelId,
       pregunta_id: pregunta.id,
-      respuesta_dada:          pregunta.tipo_pregunta === 'respuesta_numerica' || pregunta.tipo_pregunta === 'constructor_soluciones_chained' ? respuesta.trim() : undefined,
+      respuesta_dada:          finalAnswer,
       alternativa_id:          pregunta.tipo_pregunta === 'multiple_opcion' ? selectedAltId ?? undefined : undefined,
       tokens_seleccionados:    pregunta.tipo_pregunta === 'subrayado_tokens' ? tokensSeleccionados : undefined,
       paso_numero:             pregunta.tipo_pregunta === 'constructor_soluciones_chained' ? paso : undefined,
@@ -986,7 +997,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
         errorMessage: error.message || 'Error al enviar respuesta',
       });
     }
-  }, [pregunta, moduloId, nivelId, respuesta, tokensSeleccionados, paso, selectedAltId, loadPregunta, feedback.visible, handleFeedbackClose, stopTimer, isChallenge]);
+  }, [pregunta, moduloId, nivelId, respuesta, tokensSeleccionados, paso, selectedAltId, loadPregunta, feedback.visible, handleFeedbackClose, stopTimer, isChallenge, histogramValues]);
 
   // 33: Initial Load Effect
   useEffect(() => { loadPregunta(true, false); }, [loadPregunta]);
@@ -1306,6 +1317,14 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
 
           <main className="f8-game-body">
             <div className="f8-game-layout-wrap">
+              {pregunta.datos_numericos?.labels && (
+                <div className="flex-1 min-w-[300px]">
+                  <Fase8FabricHistogram
+                    datos_numericos={pregunta.datos_numericos}
+                    onStateChange={setHistogramValues}
+                  />
+                </div>
+              )}
               <motion.div animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}} transition={{ duration: 0.4 }}
                 className={`f8-question-card ${shaking ? 'shake-error' : ''}`}
                 style={{ boxShadow: feedback.visible ? (feedback.esCorrecta ? '0 0 0 4px rgba(16, 185, 129, 0.5)' : '0 0 0 4px rgba(239, 68, 68, 0.5)') : 'none' }}
@@ -1332,7 +1351,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                     <button 
                       className="f8-submit-btn mt-6 w-full" 
                       onClick={handleSubmit} 
-                      disabled={!feedback.visible && !respuesta.trim()} 
+                      disabled={!feedback.visible && !pregunta.datos_numericos?.initialValues && !respuesta.trim()} 
                       style={{ 
                         background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`, 
                         padding: '16px', 
@@ -1515,7 +1534,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                     <button 
                       className="f8-submit-btn mt-6 w-full" 
                       onClick={handleSubmit} 
-                      disabled={!feedback.visible && !respuesta.trim()} 
+                      disabled={!feedback.visible && !pregunta.datos_numericos?.initialValues && !respuesta.trim()} 
                       style={{ 
                         background: `linear-gradient(135deg, ${moduleColor}cc, ${moduleColor})`, 
                         padding: '16px', 
@@ -1556,7 +1575,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                        <button onClick={() => handleKeypadInput('0')} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-white/5 border border-white/10 text-4xl font-black text-white">0</button>
                        <button onClick={handleBackspace} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-red-500/10 text-red-400 flex items-center justify-center"><Delete size={28} /></button>
                      </div>
-                     <button onClick={handleSubmit} disabled={!feedback.visible && !respuesta.trim()} className="w-full mt-4 py-4 rounded-[1.5rem] bg-blue-600 text-white flex items-center justify-center font-bold text-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
+                     <button onClick={handleSubmit} disabled={!feedback.visible && !pregunta.datos_numericos?.initialValues && !respuesta.trim()} className="w-full mt-4 py-4 rounded-[1.5rem] bg-blue-600 text-white flex items-center justify-center font-bold text-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
                        {feedback.visible ? 'Continuar' : 'Confirmar'} <ArrowRight size={24} className="ml-2"/>
                      </button>
                   </div>

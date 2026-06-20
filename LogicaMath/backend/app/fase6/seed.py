@@ -25,6 +25,13 @@ from app.core.storage import storage_service
 
 FASE6_ID = 6
 
+# --- DICCIONARIOS DE CONTEXTO FASE 6 ---
+NOMBRES = ["Lucas", "Sofía", "Mateo", "Valeria", "Diego", "Camila"]
+CONTENEDORES = ["caja de juguetes", "caja de cartón", "cofre del tesoro", "baúl"]
+LIQUIDOS = ["piscina inflable", "tanque de reserva", "recipiente de cristal"]
+MASAS = ["bolsa de manzanas", "saco de papas", "paquete de arroz", "caja de herramientas"]
+TEMPERATURAS = ["laboratorio", "clima de la ciudad", "experimento de química", "refrigerador"]
+
 # Cache en memoria para reutilizar URLs de gráficos generados
 _graphic_url_cache: Dict[str, str] = {}
 
@@ -223,6 +230,9 @@ async def seed_teoria_niveles(session: AsyncSession):
         session.add(nt)
 
 async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
+    nombre = rng.choice(NOMBRES)
+    errores_previstos = {}
+    
     if mod_id == 1:
         if lvl_id == 1:
             # Poliedros: caras, vértices, aristas
@@ -231,10 +241,16 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 param = rng.choice(["caras", "vértices", "aristas"])
                 if param == "caras":
                     ans, expl = 6, "Un cubo tiene 6 caras cuadradas idénticas (tapa, base y 4 caras laterales)."
+                    errores_previstos["8"] = "Contaste los vértices (esquinas) en lugar de las caras (paredes planas)."
+                    errores_previstos["12"] = "Contaste las aristas (bordes) en lugar de las caras (paredes planas)."
                 elif param == "vértices":
                     ans, expl = 8, "Un cubo tiene 8 vértices (4 esquinas arriba y 4 abajo)."
+                    errores_previstos["6"] = "Contaste las caras en lugar de los vértices (esquinas)."
+                    errores_previstos["12"] = "Contaste las aristas (bordes) en lugar de los vértices."
                 else:
                     ans, expl = 12, "Un cubo tiene 12 aristas (4 bordes arriba, 4 abajo y 4 bordes verticales)."
+                    errores_previstos["6"] = "Contaste las caras en lugar de las aristas (líneas)."
+                    errores_previstos["8"] = "Contaste los vértices (esquinas) en lugar de las aristas (líneas)."
                 enunciado = (
                     f"¿Cuántas {param} tiene un cubo regular?<br/>"
                     "<svg width='160' height='160' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
@@ -303,6 +319,7 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "alts": [ans_str, str(ans+2), str(max(1, ans-3)), str(ans+4)]
             }
@@ -345,19 +362,22 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             if q_type == "total":
                 ans = total_cubes
                 ans_str = str(ans)
-                enunciado = "Observa la estructura tridimensional de bloques. Sabiendo que todos los bloques son cubos iguales de 1 cm³, ¿cuál es el volumen total (cantidad de cubos) de la figura?"
+                enunciado = f"{nombre} construyó esta estructura tridimensional. Sabiendo que todos los bloques son cubos iguales de 1 cm³, ¿cuál es el volumen total (cantidad de cubos) de la figura?"
                 datos_numericos = {"cubes": cubes, "tipo_visual": "imagen", "url": url}
                 expl = f"Contamos los cubos piso por piso. Hay {total_cubes} cubos en total constituyendo el volumen de {total_cubes} cm³."
+                errores_previstos[str(total_cubes - ocultos)] = "Solo contaste los bloques visibles. Recuerda que los que están arriba necesitan estar apoyados sobre otros ocultos abajo."
             else:
                 ans = ocultos
                 ans_str = str(ans)
-                enunciado = "Observa la estructura de bloques. Algunos cubos están ocultos sirviendo de base para sostener los bloques que se ven arriba. ¿Cuántos cubos están completamente ocultos a la vista?"
+                enunciado = f"Observa la estructura de bloques de {nombre}. Algunos cubos están ocultos sirviendo de base para sostener los bloques que se ven arriba. ¿Cuántos cubos están completamente ocultos a la vista?"
                 datos_numericos = {"cubes": cubes, "tipo_visual": "imagen", "url": url}
                 expl = f"Los cubos en pisos superiores deben sostenerse sobre cubos de abajo. Hay exactamente {ocultos} cubo(s) oculto(s) en la base."
+                errores_previstos[str(total_cubes - ocultos)] = "Ese es el número de bloques que SÍ se ven. La pregunta pide cuántos NO se ven."
 
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "datos_numericos": datos_numericos,
                 "alts": [ans_str, str(ans+1), str(max(0, ans-1)), str(ans+2)]
@@ -367,22 +387,23 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             faces = rng.choice([6, 5, 4])
             if faces == 6:
                 ans_str = "cubo"
-                enunciado = "Si tienes un molde desplegado que consiste en 6 cuadrados iguales conectados en forma de cruz, ¿qué cuerpo tridimensional se forma al doblarlo?"
+                enunciado = f"Si {nombre} tiene un molde desplegado que consiste en 6 cuadrados iguales conectados en forma de cruz, ¿qué cuerpo tridimensional se forma al doblarlo?"
                 expl = "Un cubo regular tiene exactamente 6 caras cuadradas idénticas."
                 alts = ["cubo", "pirámide", "cilindro", "prisma triangular"]
             elif faces == 5:
                 ans_str = "pirámide cuadrangular"
-                enunciado = "Un molde desplegado tiene 1 cuadrado en el centro y 4 triángulos iguales pegados a sus lados. ¿Qué cuerpo 3D se forma al plegarlo?"
+                enunciado = f"Un molde desplegado de {nombre} tiene 1 cuadrado en el centro y 4 triángulos iguales pegados a sus lados. ¿Qué cuerpo 3D se forma al plegarlo?"
                 expl = "El cuadrado forma la base y los 4 triángulos se unen en la punta, formando una pirámide cuadrangular."
                 alts = ["pirámide cuadrangular", "cubo", "prisma rectangular", "cono"]
             else:
                 ans_str = "tetraedro"
-                enunciado = "Un molde desplegado está formado por 4 triángulos equiláteros iguales. ¿Qué poliedro regular de 4 caras se forma al armarlo?"
+                enunciado = f"Un molde desplegado de {nombre} está formado por 4 triángulos equiláteros iguales. ¿Qué poliedro regular de 4 caras se forma al armarlo?"
                 expl = "Un tetraedro regular (pirámide triangular) tiene 4 caras que son triángulos equiláteros."
                 alts = ["tetraedro", "cubo", "prisma triangular", "octaedro"]
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "alts": alts
             }
@@ -398,12 +419,13 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             s2 = base + growth
             s3 = base + 2*growth
             
-            enunciado = f"Una sucesión de figuras con bloques crece etapa por etapa de forma constante. La Etapa 1 tiene {s1} bloque(s), la Etapa 2 tiene {s2} bloques, y la Etapa 3 tiene {s3} bloques. Si el patrón continúa igual, ¿cuántos bloques tendrá la Etapa {etapa_target}?"
+            enunciado = f"Una sucesión de figuras que construye {nombre} crece etapa por etapa de forma constante. La Etapa 1 tiene {s1} bloque(s), la Etapa 2 tiene {s2} bloques, y la Etapa 3 tiene {s3} bloques. Si el patrón continúa igual, ¿cuántos bloques tendrá la Etapa {etapa_target}?"
             expl = f"El crecimiento es de +{growth} bloques por etapa ({s2} - {s1} = {growth}). Sumamos sucesivamente para llegar a la Etapa {etapa_target}: {ans} bloques."
             
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "alts": [ans_str, str(ans + growth), str(ans - growth), str(ans + 1)]
             }
@@ -442,12 +464,16 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 url = await storage_service.upload_question_graphic(img_bytes, f"iso_strat_{p1}_{p2}_{p3}.png")
                 _graphic_url_cache[cache_key] = url
 
-            enunciado = "Para calcular el volumen de esta estructura de cubos, contamos capa por capa (estratos). El piso inferior tiene {p1} bloques, el piso medio tiene {p2} bloques, y el superior {p3} bloque(s). ¿Cuál es el volumen total de la estructura en u³?"
+            enunciado = f"Para calcular el volumen de la estructura de {nombre}, contamos capa por capa (estratos). El piso inferior tiene {p1} bloques, el piso medio tiene {p2} bloques, y el superior {p3} bloque(s). ¿Cuál es el volumen total de la estructura en u³?"
             datos_numericos = {"cubes": cubes, "tipo_visual": "imagen", "url": url}
             expl = f"Sumamos las capas ordenadamente de abajo hacia arriba: {p1} (base) + {p2} (medio) + {p3} (superior) = {ans} unidades cúbicas (u³)."
+            
+            errores_previstos[str(p1*p2)] = "Multiplicaste las capas. Debes sumar los bloques de todas las capas para el volumen total."
+            
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "datos_numericos": datos_numericos,
                 "alts": [ans_str, str(ans+2), str(ans-2), str(p1*p2)]
@@ -459,11 +485,15 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             ans = n_val * mult + add
             ans_str = str(ans)
             
-            enunciado = f"La regla general para calcular el número de bloques de una estructura en la etapa N es: <b>{mult}N + {add}</b>. ¿Cuántos bloques se necesitarán para construir la etapa N = {n_val}?"
+            enunciado = f"La regla general que descubrió {nombre} para calcular el número de bloques de una estructura en la etapa N es: <b>{mult}N + {add}</b>. ¿Cuántos bloques se necesitarán para construir la etapa N = {n_val}?"
             expl = f"Reemplazamos N por {n_val} en la fórmula: {mult} × ({n_val}) + {add} = {mult * n_val} + {add} = {ans} bloques."
+            
+            errores_previstos[str(n_val * mult)] = f"Olvidaste sumar el '+ {add}' al final de la fórmula."
+            
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "alts": [ans_str, str(ans + mult), str(ans - add), str(n_val * mult)]
             }
@@ -485,15 +515,19 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 url = await storage_service.upload_question_graphic(img_bytes, f"iso_vol_{largo}_{ancho}_{alto}.png")
                 _graphic_url_cache[cache_key] = url
                 
-            enunciado = "¿Cuántos cubitos de 1 u³ componen el prisma rectangular que se muestra en la imagen? (Volumen en u³)"
+            enunciado = f"¿Cuántos cubitos de 1 u³ componen el prisma que construyó {nombre} y se muestra en la imagen? (Volumen en u³)"
             datos_numericos = {"cubes": cubes, "tipo_visual": "imagen", "url": url}
             expl = f"Multiplicamos las dimensiones: {largo} de largo × {ancho} de ancho × {alto} de alto = {ans} cubos en total."
+            
+            errores_previstos[str(largo+ancho+alto)] = "Sumaste las dimensiones (L+A+H) en lugar de multiplicarlas (L×A×H) para hallar el volumen."
+            
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "datos_numericos": datos_numericos,
-                "alts": [ans_str, str(ans+2), str(ans-2), str(largo+ancho+alto)]
+                "alts": [ans_str, str(largo+ancho+alto), str(ans-2), str(ans+2)]
             }
         elif lvl_id == 2:
             largo = rng.randint(3, 8)
@@ -501,38 +535,48 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             alto = rng.randint(2, 6)
             ans = largo * ancho * alto
             ans_str = str(ans)
+            contenedor = rng.choice(CONTENEDORES)
             
-            enunciado = f"Calcula el volumen de una caja de cartón en forma de prisma rectangular que mide {largo} cm de largo, {ancho} cm de ancho y {alto} cm de alto."
+            enunciado = f"Calcula el volumen de un(a) {contenedor} en forma de prisma rectangular que mide {largo} cm de largo, {ancho} cm de ancho y {alto} cm de alto."
             expl = f"Aplicamos la fórmula del volumen de un prisma: Largo × Ancho × Alto. Multiplicamos {largo} × {ancho} × {alto} = {ans} cm³."
+            
+            errores_previstos[str(largo+ancho+alto)] = "Sumaste las dimensiones (L+A+H) en lugar de multiplicarlas (L×A×H)."
+            
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "alts": [ans_str, str(ans + 10), str(ans - 10), str(largo + ancho + alto)]
             }
         else:
             unit = rng.choice(["dm3_to_l", "cm3_to_ml", "m3_to_l"])
+            liquido = rng.choice(LIQUIDOS)
             if unit == "dm3_to_l":
                 val = rng.randint(2, 20)
                 ans = val
                 ans_str = str(ans)
-                enunciado = f"Un recipiente tiene una capacidad interior de {val} dm³. ¿Cuántos litros (L) de agua caben en él?"
+                enunciado = f"El {liquido} de {nombre} tiene una capacidad interior de {val} dm³. ¿Cuántos litros (L) de agua caben en él?"
                 expl = "Como 1 decímetro cúbico (dm³) equivale exactamente a 1 litro (L), la cantidad es la misma."
+                errores_previstos[str(val*10)] = "1 dm³ equivale a 1 Litro exactamente. Multiplicaste por 10."
             elif unit == "cm3_to_ml":
                 val = rng.choice([250, 500, 750, 1000])
                 ans = val
                 ans_str = str(ans)
-                enunciado = f"Un frasco contiene {val} cm³ de jarabe. ¿A cuántos mililitros (mL) equivale esta cantidad?"
+                enunciado = f"Un {liquido} contiene {val} cm³ de jarabe. ¿A cuántos mililitros (mL) equivale esta cantidad?"
                 expl = "Como 1 centímetro cúbico (cm³) equivale exactamente a 1 mililitro (mL), la cantidad es la misma."
+                errores_previstos[str(val//10)] = "1 cm³ equivale a 1 mL exactamente."
             else:
                 val = rng.randint(1, 5)
                 ans = val * 1000
                 ans_str = str(ans)
-                enunciado = f"Una piscina pequeña de agua inflable tiene un volumen de {val} m³. ¿Cuántos litros (L) de agua se necesitan para llenarla?"
+                enunciado = f"Un(a) {liquido} grande tiene un volumen de {val} m³. ¿Cuántos litros (L) de agua se necesitan para llenarla(o) por completo?"
                 expl = "Como 1 metro cúbico (m³) equivale exactamente a 1000 litros (L), multiplicamos por 1000."
+                errores_previstos[str(val*100)] = "1 m³ contiene MIL (1000) Litros. Multiplicaste solo por 100."
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "alts": [ans_str, str(ans//10 if ans > 10 else ans+1), str(ans*10 if ans < 1000 else ans-100), str(ans+10)]
             }
@@ -543,8 +587,10 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 kg = rng.choice([1.5, 2.0, 3.5, 5.0])
                 ans = int(kg * 1000)
                 ans_str = str(ans)
-                enunciado = f"En una balanza electrónica, una bolsa de manzanas pesa {kg} kg. ¿Cuál es su masa equivalente en gramos (g)?"
+                masa = rng.choice(MASAS)
+                enunciado = f"En una balanza electrónica, un(a) {masa} pesa {kg} kg. ¿Cuál es su masa equivalente en gramos (g)?"
                 expl = f"Como 1 kilogramo (kg) equivale a 1000 gramos (g), multiplicamos {kg} × 1000 = {ans} g."
+                errores_previstos[str(int(kg*100))] = "Multiplicaste por 100. Recuerda que kilo significa MIL (1000 gramos)."
                 alts = [ans_str, str(ans+500), str(int(kg*100)), str(int(kg*10))]
             else:
                 temp = rng.randint(15, 38)
@@ -556,7 +602,8 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                     img_bytes = generate_thermometer_image(float(temp))
                     url = await storage_service.upload_question_graphic(img_bytes, f"therm_{temp}.png")
                     _graphic_url_cache[cache_key] = url
-                enunciado = f"Observa la escala del termómetro médico en la imagen. ¿Qué temperatura marca en grados Celsius (°C)?"
+                escenario_t = rng.choice(TEMPERATURAS)
+                enunciado = f"Observa la escala del termómetro del {escenario_t} en la imagen. ¿Qué temperatura marca en grados Celsius (°C)?"
                 datos_numericos = {
                     "url": url,
                     "tipo_visual": "termometro",
@@ -570,6 +617,7 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "datos_numericos": datos_numericos if q_type == "temp_read" else {},
                 "alts": alts
@@ -588,7 +636,8 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 url = await storage_service.upload_question_graphic(img_bytes, f"therm_{ans}.png")
                 _graphic_url_cache[cache_key] = url
 
-            enunciado = f"En la mañana la temperatura era de {init_temp}°C. Por la tarde, la temperatura bajó {drop}°C, llegando al nivel bajo cero mostrado en la imagen. ¿Cuál es la nueva temperatura en grados Celsius (°C)?"
+            escenario_t = rng.choice(TEMPERATURAS)
+            enunciado = f"En la mañana la temperatura en el {escenario_t} era de {init_temp}°C. Por la tarde, la temperatura bajó {drop}°C, llegando al nivel bajo cero mostrado en la imagen. ¿Cuál es la nueva temperatura en grados Celsius (°C)?"
             datos_numericos = {
                 "url": url,
                 "init": init_temp, "drop": drop, "final": ans,
@@ -599,9 +648,13 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 "unidad": "°C"
             }
             expl = f"Restamos la variación a la temperatura inicial: {init_temp} - {drop} = {ans}°C. Al bajar del cero, el resultado es negativo."
+            
+            errores_previstos[str(init_temp + drop)] = "Sumaste la temperatura en lugar de restarla (bajó = restar)."
+            
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "datos_numericos": datos_numericos,
                 "alts": [ans_str, str(ans - 2), str(-ans), str(init_temp + drop)]
@@ -610,12 +663,17 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             celsius = rng.randint(-15, 45)
             ans = celsius + 273
             ans_str = str(ans)
+            escenario_t = rng.choice(TEMPERATURAS)
             
-            enunciado = f"En el laboratorio de física espacial, un sensor de gas registra una temperatura de {celsius}°C. ¿Cuál es esta temperatura expresada en la escala absoluta de Kelvin (K)?"
+            enunciado = f"En el {escenario_t} espacial, un sensor registra una temperatura de {celsius}°C. ¿Cuál es esta temperatura expresada en la escala absoluta de Kelvin (K)?"
             expl = f"Para convertir grados Celsius a Kelvin, sumamos 273 a la temperatura en Celsius: {celsius} + 273 = {ans} K."
+            
+            errores_previstos[str(celsius - 273)] = "Restaste 273. Para convertir de Celsius a Kelvin debes SUMAR 273."
+            
             return {
                 "enunciado": enunciado,
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": expl,
                 "alts": [ans_str, str(ans + 100), str(celsius - 273), str(celsius)]
             }
@@ -639,12 +697,14 @@ async def seed_practica_pool(session: AsyncSession):
                 fase_id=FASE6_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
                 tipo_pregunta=TipoPreguntaEnum.MULTIPLE_OPCION, enunciado=q_data["enunciado"],
                 respuesta_correcta=q_data["respuesta_correcta"], datos_numericos={"fase6": True},
+                errores_previstos=q_data.get("errores_previstos", {}),
                 explicacion_paso_a_paso={"titulo": "Resolución", "pasos": [{"orden": 1, "texto": q_data["expl"]}]},
                 estado=StatusEnum.ACTIVO
             )
             for idx, alt in enumerate(q_data["alts"]):
                 is_correct = (alt == q_data["respuesta_correcta"])
-                p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx+1))
+                error_msg = q_data.get("errores_previstos", {}).get(alt, "Esa alternativa es incorrecta.") if not is_correct else None
+                p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx+1, tipo_error=TipoErrorEnum.CALCULO if not is_correct else None, feedback_error=error_msg))
             session.add(p)
     await session.commit()
 
@@ -667,6 +727,7 @@ async def seed_preguntas_desafios(session: AsyncSession):
                     fase_id=FASE6_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
                     tipo_pregunta=tipo_pregunta, enunciado=q_data["enunciado"],
                     respuesta_correcta=q_data["respuesta_correcta"], datos_numericos={"es_desafio": True},
+                    errores_previstos=q_data.get("errores_previstos", {}),
                     explicacion_paso_a_paso={"titulo": "Desafío", "pasos": [{"orden": 1, "texto": q_data["expl"]}]},
                     estado=StatusEnum.ACTIVO
                 )
@@ -674,7 +735,8 @@ async def seed_preguntas_desafios(session: AsyncSession):
                 if tipo_pregunta == TipoPreguntaEnum.MULTIPLE_OPCION:
                     for idx_alt, alt in enumerate(q_data["alts"]):
                         is_correct = (alt == q_data["respuesta_correcta"])
-                        p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx_alt+1))
+                        error_msg = q_data.get("errores_previstos", {}).get(alt, "Esa alternativa es incorrecta.") if not is_correct else None
+                        p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx_alt+1, tipo_error=TipoErrorEnum.CALCULO if not is_correct else None, feedback_error=error_msg))
                 session.add(p)
     await session.commit()
 

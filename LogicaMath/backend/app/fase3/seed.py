@@ -833,7 +833,7 @@ async def seed_configuracion_progreso(session: AsyncSession):
         "orden_desbloqueo": 4,
         "usa_cronometro": True,
         "tiempo_default_segundos": 90,
-        "tipo_feedback": "simple"
+            "tipo_feedback": "simple"
     })
 
     for c in configs:
@@ -854,6 +854,132 @@ async def seed_configuracion_progreso(session: AsyncSession):
     print("ConfiguracionProgreso Fase 3 insertados exitosamente.")
 
 
+# --- DICCIONARIOS DE CONTEXTOS PARA PRÁCTICA LIBRE ---
+
+CONTEXTOS_M1_L1 = [
+    {"sujeto": "Lucas", "util": "manzanas rojas", "short_util": "manzanas", "basura": "bicicletas azules", "short_basura": "bicicletas", "ubicacion": "garaje", "accion": "Regala", "pregunta": "¿Cuántas manzanas le quedan?"},
+    {"sujeto": "Sofía", "util": "lápices de colores", "short_util": "lápices", "basura": "globos amarillos", "short_basura": "globos", "ubicacion": "mochila", "accion": "Pierde", "pregunta": "¿Cuántos lápices le quedan?"},
+    {"sujeto": "Enzo", "util": "naranjas dulces", "short_util": "naranjas", "basura": "camisetas verdes", "short_basura": "camisetas", "ubicacion": "cesta", "accion": "Comparte", "pregunta": "¿Cuántas naranjas le quedan?"},
+    {"sujeto": "Clara", "util": "libros de aventuras", "short_util": "libros", "basura": "muñecas de trapo", "short_basura": "muñecas", "ubicacion": "estante", "accion": "Regala", "pregunta": "¿Cuántos libros le quedan?"}
+]
+
+CONTEXTOS_M1_L2 = [
+    {"sujeto": "María", "util": "chocolates", "basura": "paletas", "accion": "regaló", "pregunta": "¿Cuántos chocolates le quedan?"},
+    {"sujeto": "Diego", "util": "tazos de superhéroes", "basura": "canicas de vidrio", "accion": "perdió", "pregunta": "¿Cuántos tazos le quedan?"},
+    {"sujeto": "Camila", "util": "galletas con chispas", "basura": "caramelos masticables", "accion": "regaló", "pregunta": "¿Cuántas galletas le quedan?"},
+    {"sujeto": "Mateo", "util": "figuritas de fútbol", "basura": "llaveros pequeños", "accion": "perdió", "pregunta": "¿Cuántas figuritas le quedan?"}
+]
+
+CONTEXTOS_M1_L3 = [
+    {"util_1": "libros de aventuras", "short_util_1": "libros", "basura": "litros de jugo de naranja", "short_basura": "litros", "util_2": "cuadernos escolares", "short_util_2": "cuadernos", "ubicacion": "un estante", "pregunta": "¿Cuántas unidades de papelería/lectura hay en total?"},
+    {"util_1": "juguetes de madera", "short_util_1": "juguetes", "basura": "kilogramos de harina", "short_basura": "kilogramos", "util_2": "rompecabezas de cartón", "short_util_2": "rompecabezas", "ubicacion": "una caja", "pregunta": "¿Cuántos juguetes/juegos hay en total?"},
+    {"util_1": "pelotas de tenis", "short_util_1": "pelotas", "basura": "litros de agua mineral", "short_basura": "litros", "util_2": "raquetas de metal", "short_util_2": "raquetas", "ubicacion": "un armario", "pregunta": "¿Cuántos artículos deportivos hay en total?"},
+    {"util_1": "plantas en maceta", "short_util_1": "plantas", "basura": "sacos de abono orgánico", "short_basura": "sacos", "util_2": "flores en florero", "short_util_2": "flores", "ubicacion": "un jardín", "pregunta": "¿Cuántas plantas y flores decorativas hay en total?"}
+]
+
+CONTEXTOS_M2_L1 = [
+    {"vehiculo": "tren", "inicial": "pasajeros", "bajan": "pasajeros", "suben": "nuevos pasajeros", "pregunta": "¿Cuántos pasajeros van en el tren?"},
+    {"vehiculo": "autobús", "inicial": "pasajeros", "bajan": "pasajeros", "suben": "nuevos pasajeros", "pregunta": "¿Cuántos pasajeros van en el autobús?"},
+    {"vehiculo": "ascensor", "inicial": "personas", "bajan": "personas", "suben": "nuevas personas", "pregunta": "¿Cuántas personas van en el ascensor?"},
+    {"vehiculo": "barco", "inicial": "turistas", "bajan": "turistas", "suben": "nuevos turistas", "pregunta": "¿Cuántos turistas van en el barco?"}
+]
+
+CONTEXTOS_M2_L2 = [
+    {"sujeto": "Lucas", "accion": "gastó", "objeto": "monedas de oro", "ubicacion": "la armería", "pregunta": "¿Cuántas monedas tenía Lucas al inicio?"},
+    {"sujeto": "Sofía", "accion": "regaló", "objeto": "figuritas brillantes", "ubicacion": "el colegio", "pregunta": "¿Cuántas figuritas tenía Sofía al inicio?"},
+    {"sujeto": "Pedro", "accion": "perdió", "objeto": "globos inflados", "ubicacion": "el parque", "pregunta": "¿Cuántos globos tenía Pedro al inicio?"},
+    {"sujeto": "Julia", "accion": "repartió", "objeto": "dulces de fresa", "ubicacion": "la fiesta", "pregunta": "¿Cuántos dulces tenía Julia al inicio?"}
+]
+
+CONTEXTOS_M2_L3 = [
+    {"objeto": "un tanque", "unidad": "litros de agua", "accion_resta": "se consumen", "accion_evaporacion": "se evaporan", "pregunta": "¿Cuántos litros de agua quedan?"},
+    {"objeto": "un almacén", "unidad": "cajas de galletas", "accion_resta": "se venden", "accion_evaporacion": "se dañan", "pregunta": "¿Cuántas cajas de galletas quedan?"},
+    {"objeto": "una alcancía", "unidad": "monedas de plata", "accion_resta": "se retiran", "accion_evaporacion": "se pierden", "pregunta": "¿Cuántas monedas de plata quedan?"},
+    {"objeto": "un huerto", "unidad": "zanahorias frescas", "accion_resta": "se cosechan", "accion_evaporacion": "se comen los conejos", "pregunta": "¿Cuántas zanahorias frescas quedan?"}
+]
+
+CONTEXTOS_M3_L1 = [
+    {"nombre_a": "Carrito A", "nombre_b": "Carrito B", "util": "lápices", "basura": "gomas", "singular_basura": "goma", "unidad_moneda": "R$"},
+    {"nombre_a": "Combo A", "nombre_b": "Combo B", "util": "pizzas", "basura": "refrescos", "singular_basura": "refresco", "unidad_moneda": "R$"},
+    {"nombre_a": "Paquete A", "nombre_b": "Paquete B", "util": "libros", "basura": "cuadernos", "singular_basura": "cuaderno", "unidad_moneda": "R$"},
+    {"nombre_a": "Caja A", "nombre_b": "Caja B", "util": "manzanas", "basura": "peras", "singular_basura": "pera", "unidad_moneda": "R$"}
+]
+
+CONTEXTOS_M3_L2 = [
+    {"util": "cuadernos", "basura": "reglas", "singular_basura": "regla", "unidad_moneda": "R$"},
+    {"util": "hamburguesas", "basura": "refrescos", "singular_basura": "refresco", "unidad_moneda": "R$"},
+    {"util": "plátanos", "basura": "manzanas", "singular_basura": "manzana", "unidad_moneda": "R$"},
+    {"util": "libros", "basura": "marcadores", "singular_basura": "marcador", "unidad_moneda": "R$"}
+]
+
+CONTEXTOS_M3_L3 = [
+    {"menor": "estuche", "mayor": "mochila", "unidad_moneda": "R$"},
+    {"menor": "pelota", "mayor": "bate", "unidad_moneda": "R$"},
+    {"menor": "camisa", "mayor": "pantalón", "unidad_moneda": "R$"},
+    {"menor": "cuaderno", "mayor": "libro", "unidad_moneda": "R$"}
+]
+
+CONTEXTOS_M4_L1 = [
+    {"total": "dulces", "contenedor": "cajas", "pregunta": "¿Cuántos dulces van en cada caja?"},
+    {"total": "lápices", "contenedor": "estuches", "pregunta": "¿Cuántos lápices van en cada estuche?"},
+    {"total": "libros", "contenedor": "estantes", "pregunta": "¿Cuántos libros van en cada estante?"},
+    {"total": "papas", "contenedor": "sacos", "pregunta": "¿Cuántas papas van en cada saco?"}
+]
+
+CONTEXTOS_M4_L2 = [
+    {"total": "manzanas", "contenedor": "cajas", "pregunta_sobra": "¿Cuántas manzanas sobran al completar el máximo número de cajas posibles?"},
+    {"total": "chocolates", "contenedor": "bolsitas", "pregunta_sobra": "¿Cuántos chocolates sobran al completar el máximo número de bolsitas posibles?"},
+    {"total": "alumnos", "contenedor": "equipos", "pregunta_sobra": "¿Cuántos alumnos quedan sin equipo al formar la mayor cantidad de equipos de tamaño fijo?"},
+    {"total": "juguetes", "contenedor": "cajas", "pregunta_sobra": "¿Cuántos juguetes quedan en la última caja incompleta al llenar todas las posibles?"}
+]
+
+CONTEXTOS_M4_L3 = [
+    {"ciclo": ["Rojo (1)", "Verde (2)", "Azul (3)", "Amarillo (4)"], "nombre_dispositivo": "Una tira de luces", "accion": "parpadea cíclicamente", "paso_nombre": "parpadeo", "pregunta": "¿Qué número de color saldrá?"},
+    {"ciclo": ["Rojo (1)", "Amarillo (2)", "Verde (3)", "Azul (4)"], "nombre_dispositivo": "Un semáforo inteligente", "accion": "cambia cíclicamente de color", "paso_nombre": "cambio", "pregunta": "¿Qué número de color saldrá?"},
+    {"ciclo": ["Canastilla 1", "Canastilla 2", "Canastilla 3", "Canastilla 4"], "nombre_dispositivo": "Una rueda de la fortuna", "accion": "gira continuamente", "paso_nombre": "posición", "pregunta": "¿Qué canastilla queda abajo? (escribe el número de canastilla del 1 al 4)"},
+    {"ciclo": ["Lucas (1)", "Ana (2)", "Juan (3)", "Sofía (4)"], "nombre_dispositivo": "Un juego de cartas", "accion": "reparte cartas", "paso_nombre": "carta", "pregunta": "¿A qué número de jugador le cae?"}
+]
+
+CONTEXTOS_M5_L1 = [
+    {"sujeto": "una rana", "salto": "saltos", "unidad": "metros", "destino": "llegar exactamente a", "pregunta": "¿Cuántos saltos debe dar?"},
+    {"sujeto": "un saltamontes", "salto": "saltos", "unidad": "metros", "destino": "recorrer exactamente", "pregunta": "¿Cuántos saltos necesita?"},
+    {"sujeto": "un robot de juguete", "salto": "pasos", "unidad": "centímetros", "destino": "avanzar exactamente", "pregunta": "¿Cuántos pasos debe dar?"},
+    {"sujeto": "un canguro", "salto": "saltos", "unidad": "metros", "destino": "recorrer exactamente", "pregunta": "¿Cuántos saltos debe dar?"}
+]
+
+CONTEXTOS_M5_L2 = [
+    {"sujeto_a": "Un semáforo", "sujeto_b": "otro semáforo", "accion": "se enciende en verde", "unidad": "segundos", "pregunta": "¿en cuántos segundos volverán a coincidir?"},
+    {"sujeto_a": "Un faro marítimo", "sujeto_b": "otro faro", "accion": "parpadea", "unidad": "segundos", "pregunta": "¿en cuántos segundos volverán a parpadear juntos?"},
+    {"sujeto_a": "Una campana", "sujeto_b": "otra campana", "accion": "suena", "unidad": "minutos", "pregunta": "¿en cuántos minutos volverán a sonar juntas?"},
+    {"sujeto_a": "Un autobús de la línea A", "sujeto_b": "un autobús de la línea B", "accion": "sale de la terminal", "unidad": "minutos", "pregunta": "¿en cuántos minutos volverán a salir juntos?"}
+]
+
+CONTEXTOS_M5_L3 = [
+    {"sujeto": "dos cuerdas", "unidad": "metros", "pregunta": "¿De cuántos metros medirá cada pedazo?"},
+    {"sujeto": "dos listones de madera", "unidad": "centímetros", "pregunta": "¿De cuántos centímetros medirá cada listón?"},
+    {"sujeto": "dos cables eléctricos", "unidad": "metros", "pregunta": "¿De cuántos metros medirá cada cable?"},
+    {"sujeto": "dos tablas de metal", "unidad": "centímetros", "pregunta": "¿De cuántos centímetros medirá cada tabla?"}
+]
+
+# Mapa para vincular (modulo_id, nivel_id) con el pool de contextos correspondiente
+CONTEXTOS_MAP = {
+    (1, 1): CONTEXTOS_M1_L1,
+    (1, 2): CONTEXTOS_M1_L2,
+    (1, 3): CONTEXTOS_M1_L3,
+    (2, 1): CONTEXTOS_M2_L1,
+    (2, 2): CONTEXTOS_M2_L2,
+    (2, 3): CONTEXTOS_M2_L3,
+    (3, 1): CONTEXTOS_M3_L1,
+    (3, 2): CONTEXTOS_M3_L2,
+    (3, 3): CONTEXTOS_M3_L3,
+    (4, 1): CONTEXTOS_M4_L1,
+    (4, 2): CONTEXTOS_M4_L2,
+    (4, 3): CONTEXTOS_M4_L3,
+    (5, 1): CONTEXTOS_M5_L1,
+    (5, 2): CONTEXTOS_M5_L2,
+    (5, 3): CONTEXTOS_M5_L3,
+}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # GENERADOR DETERMINISTA DE PREGUNTAS Y VARIANTES ESPEJO
 # ─────────────────────────────────────────────────────────────────────────────
@@ -867,6 +993,12 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
     es_espejo = var > 0
     prefix = "[ESPEJO] " if es_espejo else ""
     
+    # Obtener el contexto correspondiente a la familia (fam) para que original y espejos coincidan en el tema
+    pool = CONTEXTOS_MAP.get((modulo_id, nivel_id))
+    if not pool:
+        raise ValueError(f"No hay contexto definido para modulo {modulo_id} nivel {nivel_id}")
+    contexto = pool[(fam - 1) % len(pool)]
+    
     # ── MÓDULO 1: El Detective Literario ─────────────────────────────────────
     if modulo_id == 1:
         if nivel_id == 1: # Aislamiento de Variables Críticas
@@ -874,8 +1006,8 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             bicicletas = rng.randint(3, 10)
             regala = rng.randint(2, 8)
             ans = manzanas - regala
-            enunciado = f"{prefix}Lucas tiene {manzanas} manzanas rojas y {bicicletas} bicicletas azules en su garaje. Regala {regala} manzanas a su amigo. ¿Cuántas manzanas le quedan?"
-            feedback = "Resta solo la cantidad de manzanas y descarta las bicicletas, ya que la pregunta es sobre manzanas."
+            enunciado = f"{prefix}{contexto['sujeto']} tiene {manzanas} {contexto['util']} y {bicicletas} {contexto['basura']} en su {contexto['ubicacion']}. {contexto['accion']} {regala} {contexto['short_util']} a su amigo. {contexto['pregunta']}"
+            feedback = f"Resta solo la cantidad de {contexto['short_util']} y descarta las {contexto['short_basura']}, ya que la pregunta es sobre {contexto['short_util']}."
             vals = {"manzanas": manzanas, "bicicletas": bicicletas, "regala": regala}
         elif nivel_id == 2: # Datos Útiles vs. Datos Basura
             edad = rng.randint(8, 12)
@@ -883,16 +1015,16 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             paletas = rng.randint(4, 12)
             regalo = rng.randint(3, 9)
             ans = chocolates - regalo
-            enunciado = f"{prefix}María tiene {edad} años. Ayer a las 4:00 PM compró {chocolates} chocolates y {paletas} paletas en la tienda. Le regaló {regalo} chocolates a su hermano de 6 años. ¿Cuántos chocolates le quedan?"
-            feedback = "Ignora la edad de María, la hora y los chupetines/paletas. Solo resta los chocolates que regaló de los iniciales."
+            enunciado = f"{prefix}{contexto['sujeto']} tiene {edad} años. Ayer a las 4:00 PM compró {chocolates} {contexto['util']} y {paletas} {contexto['basura']} en la tienda. Le regaló {regalo} {contexto['util']} a su hermano de 6 años. {contexto['pregunta']}"
+            feedback = f"Ignora la edad de {contexto['sujeto']}, la hora y las {contexto['basura']}. Solo resta los {contexto['util']} que regaló/perdió de los iniciales."
             vals = {"edad": edad, "chocolates": chocolates, "paletas": paletas, "regalo": regalo}
         else: # Descarte por Incongruencia
             libros = rng.randint(10, 25)
             litros = rng.randint(5, 15)
             cuadernos = rng.randint(5, 15)
             ans = libros + cuadernos
-            enunciado = f"{prefix}En un estante hay {libros} libros de aventuras, {litros} litros de jugo de naranja y {cuadernos} cuadernos escolares. ¿Cuántas unidades de papelería/lectura hay en total?"
-            feedback = "Los litros de jugo miden líquido y se descartan por incongruencia física. Suma solo libros y cuadernos."
+            enunciado = f"{prefix}En {contexto['ubicacion']} hay {libros} {contexto['util_1']}, {litros} {contexto['basura']} y {cuadernos} {contexto['util_2']}. {contexto['pregunta']}"
+            feedback = f"Las unidades de {contexto['short_basura']} se descartan por incongruencia física. Suma solo {contexto['short_util_1']} y {contexto['short_util_2']}."
             vals = {"libros": libros, "litros": litros, "cuadernos": cuadernos}
 
     # ── MÓDULO 2: Secuencia Temporal ──────────────────────────────────────────
@@ -902,23 +1034,23 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             bajan = rng.randint(5, 15)
             suben = rng.randint(6, 18)
             ans = inicial - bajan + suben
-            enunciado = f"{prefix}Un tren arranca la marcha con {inicial} pasajeros. En la primera parada se bajan {bajan} pasajeros y luego suben {suben}. ¿Cuántos pasajeros van en el tren?"
-            feedback = "Sigue la línea del tiempo paso a paso: resta primero los pasajeros que bajan, y a ese resultado súmale los que suben."
+            enunciado = f"{prefix}Un {contexto['vehiculo']} arranca la marcha con {inicial} {contexto['inicial']}. En la primera parada se bajan {bajan} {contexto['bajan']} y luego suben {suben} {contexto['suben']}. {contexto['pregunta']}"
+            feedback = "Sigue la línea del tiempo paso a paso: resta primero los que bajan, y a ese resultado súmale los que suben."
             vals = {"inicial": inicial, "bajan": bajan, "suben": suben}
         elif nivel_id == 2: # Álgebra Retrospectiva
             gasto = rng.randint(10, 30)
             final = rng.randint(15, 40)
             ans = final + gasto
-            enunciado = f"{prefix}Lucas gastó {gasto} monedas de oro en la armería. Ahora le quedan exactamente {final} monedas de oro. ¿Cuántas monedas tenía Lucas al inicio?"
-            feedback = "Camino inverso al pasado: si en el presente restaste lo gastado, para volver al inicio debes sumar lo que le queda más lo gastado."
+            enunciado = f"{prefix}{contexto['sujeto']} {contexto['accion']} {gasto} {contexto['objeto']} en {contexto['ubicacion']}. Ahora le quedan exactamente {final} {contexto['objeto']}. {contexto['pregunta']}"
+            feedback = f"Camino inverso al pasado: si en el presente restaste lo gastado/regalado, para volver al inicio debes sumar lo que le queda más lo gastado/regalado."
             vals = {"gasto": gasto, "final": final}
         else: # Mutaciones Sucesivas
             agua = rng.randint(40, 80)
             consumo = rng.randint(10, 25)
             cresce = (agua - consumo)
             ans = cresce * 2 - 10
-            enunciado = f"{prefix}Un tanque tiene {agua} litros de agua. Se consumen {consumo} litros por la mañana, luego se duplica la cantidad restante, y por la tarde se evaporan 10 litros. ¿Cuántos litros de agua quedan?"
-            feedback = "Resuelve en estricto orden: 1) resta el consumo, 2) multiplica por 2 el resultado, 3) resta 10 litros."
+            enunciado = f"{prefix}En {contexto['objeto']} hay {agua} {contexto['unidad']}. {contexto['accion_resta'].capitalize()} {consumo} {contexto['unidad'].split()[0]} por la mañana, luego se duplica la cantidad restante, y por la tarde {contexto['accion_evaporacion']} 10 {contexto['unidad'].split()[0]}. {contexto['pregunta']}"
+            feedback = "Resuelve en estricto orden: 1) resta lo consumido/vendido, 2) multiplica por 2 el resultado, 3) resta 10."
             vals = {"agua": agua, "consumo": consumo}
 
     # ── MÓDULO 3: Deducción de Precios ───────────────────────────────────────
@@ -931,8 +1063,8 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             tot_a = lapices * precio_lapiz + gomas * precio_goma
             tot_b = tot_a + precio_goma
             ans = precio_goma
-            enunciado = f"{prefix}Carrito A: {lapices} lápices y {gomas} gomas cuesta R$ {tot_a}. Carrito B: {lapices} lápices y {gomas+1} gomas cuesta R$ {tot_b}. ¿Cuánto cuesta 1 goma?"
-            feedback = "Deduce la diferencia: el Carrito B tiene exactamente una goma más y cuesta la diferencia de los precios totales."
+            enunciado = f"{prefix}{contexto['nombre_a']}: {lapices} {contexto['util']} y {gomas} {contexto['basura']} cuesta {contexto['unidad_moneda']} {tot_a}. {contexto['nombre_b']}: {lapices} {contexto['util']} y {gomas+1} {contexto['basura']} cuesta {contexto['unidad_moneda']} {tot_b}. ¿Cuánto cuesta 1 {contexto['singular_basura']}?"
+            feedback = f"Deduce la diferencia: el {contexto['nombre_b']} tiene exactamente una {contexto['singular_basura']} más y cuesta la diferencia de los precios totales."
             vals = {"lapices": lapices, "gomas": gomas, "tot_a": tot_a, "tot_b": tot_b}
         elif nivel_id == 2: # Grilla de Doble Entrada
             precio_regla = rng.randint(2, 15)
@@ -941,18 +1073,17 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             tot_a = cant_cuadernos * precio_cuaderno
             tot_b = tot_a + 2 * precio_regla
             ans = precio_regla
-            enunciado = f"{prefix}Si {cant_cuadernos} cuadernos cuestan R$ {tot_a} en total, y {cant_cuadernos} cuadernos con 2 reglas cuestan R$ {tot_b}, ¿cuánto cuesta 1 regla?"
-            feedback = "Sustituye el valor conocido de los cuadernos en la segunda cuenta, resta ese valor del total, y divide el sobrante entre las 2 reglas."
+            enunciado = f"{prefix}Si {cant_cuadernos} {contexto['util']} cuestan {contexto['unidad_moneda']} {tot_a} en total, y {cant_cuadernos} {contexto['util']} con 2 {contexto['basura']} cuestan {contexto['unidad_moneda']} {tot_b}, ¿cuánto cuesta 1 {contexto['singular_basura']}?"
+            feedback = f"Sustituye el valor conocido de los {contexto['util']} en la segunda cuenta, resta ese valor del total, y divide el sobrante entre las 2 {contexto['basura']}."
             vals = {"cuadernos": cant_cuadernos, "tot_a": tot_a, "tot_b": tot_b}
         else: # Álgebra Visual
             dif = rng.randint(2, 40)
             total = rng.randint(dif + 10, 250)
-            # Asegurar consistencia para evitar decimales extraños
             if (total - dif) % 2 != 0:
                 total += 1
             ans = (total - dif) // 2
-            enunciado = f"{prefix}Un estuche y una mochila cuestan R$ {total} en total. La mochila cuesta R$ {dif} más que el estuche. ¿Cuánto cuesta el estuche?"
-            feedback = "Estrategia de la Balanza: resta la diferencia (mochila extra) del total general, y divide la cantidad remanente entre 2."
+            enunciado = f"{prefix}Un {contexto['menor']} y un {contexto['mayor']} cuestan {contexto['unidad_moneda']} {total} en total. El/la {contexto['mayor']} cuesta {contexto['unidad_moneda']} {dif} más que el/la {contexto['menor']}. ¿Cuánto cuesta el/la {contexto['menor']}?"
+            feedback = "Estrategia de la Balanza: resta la diferencia del total general, y divide la cantidad remanente entre 2."
             vals = {"total": total, "dif": dif}
 
     # ── MÓDULO 4: Reparto y Residuos ─────────────────────────────────────────
@@ -961,23 +1092,23 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             cajas = rng.choice([4, 5, 6, 8, 10])
             dulces = cajas * rng.randint(15, 40)
             ans = dulces // cajas
-            enunciado = f"{prefix}Queremos empaquetar {dulces} dulces en {cajas} cajas de forma que cada una tenga exactamente la misma cantidad. ¿Cuántos dulces van en cada caja?"
-            feedback = "Esta es una división perfecta. Divide el total de dulces entre la cantidad de cajas de manera directa."
+            enunciado = f"{prefix}Queremos empaquetar {dulces} {contexto['total']} en {cajas} {contexto['contenedor']} de forma que cada una tenga exactamente la misma cantidad. {contexto['pregunta']}"
+            feedback = "Esta es una división perfecta. Divide el total de elementos entre la cantidad de contenedores de manera directa."
             vals = {"dulces": dulces, "cajas": cajas}
         elif nivel_id == 2: # Análisis de Resto
             capacidad = rng.randint(4, 8)
             manzanas = capacidad * rng.randint(5, 12) + rng.randint(1, capacidad - 1)
             ans = manzanas % capacidad
-            enunciado = f"{prefix}Tenemos {manzanas} manzanas para guardar en cajas de {capacidad} unidades cada una. ¿Cuántas manzanas sobran al completar el máximo número de cajas posibles?"
-            feedback = "El sobrante es el resto o residuo de la división entera. Divide las manzanas entre la capacidad y calcula el residuo."
+            enunciado = f"{prefix}Tenemos {manzanas} {contexto['total']} para guardar en {contexto['contenedor']} de {capacidad} unidades cada una. {contexto['pregunta_sobra']}"
+            feedback = "El sobrante es el resto o residuo de la división entera. Divide el total entre la capacidad y calcula el residuo."
             vals = {"manzanas": manzanas, "capacidad": capacidad}
         else: # Sucesión Circular
-            luces = ["Rojo", "Verde", "Azul", "Amarillo"]
             pasos = rng.randint(15, 60)
-            ans_idx = (pasos - 1) % 4
-            ans = ans_idx + 1  # 1 para Rojo, 2 para Verde, etc.
-            enunciado = f"{prefix}Una tira de luces parpadea cíclicamente en orden: Rojo (1), Verde (2), Azul (3), Amarillo (4), y repite. ¿Qué número de color saldrá en el parpadeo {pasos}?"
-            feedback = "Divide los pasos entre la longitud del ciclo (4). El residuo te indicará la posición exacta (un residuo de 0 representa la última posición, 4)."
+            ans_idx = (pasos - 1) % len(contexto['ciclo'])
+            ans = ans_idx + 1
+            elementos_ciclo = ", ".join(contexto['ciclo'])
+            enunciado = f"{prefix}{contexto['nombre_dispositivo']} {contexto['accion']} en orden: {elementos_ciclo}. ¿Qué número de color/posición/jugador saldrá en el/la {contexto['paso_nombre']} {pasos}?"
+            feedback = f"Divide el número de paso entre la longitud del ciclo ({len(contexto['ciclo'])}). El residuo te indicará la posición exacta."
             vals = {"pasos": pasos}
 
     # ── MÓDULO 5: Ciclos y Agrupaciones Máximas ──────────────────────────────
@@ -986,8 +1117,8 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             salto = rng.randint(3, 15)
             dist = salto * rng.randint(6, 40)
             ans = dist // salto
-            enunciado = f"{prefix}Una rana da saltos de {salto} metros de longitud en la recta numérica. ¿Cuántos saltos debe dar para llegar exactamente a los {dist} metros?"
-            feedback = "Divide la distancia total que debe recorrer entre la longitud de cada uno de sus saltos."
+            enunciado = f"{prefix}{contexto['sujeto']} da {contexto['salto']} de {salto} {contexto['unidad']} de longitud en la recta numérica. ¿Cuántos {contexto['salto']} debe dar para {contexto['destino']} {dist} {contexto['unidad']}?"
+            feedback = f"Divide la distancia total que debe recorrer entre la longitud de cada uno de sus {contexto['salto']}."
             vals = {"salto": salto, "dist": dist}
         elif nivel_id == 2: # Encuentros Periódicos - MCM
             a = rng.randint(3, 15)
@@ -995,8 +1126,8 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             while a == b:
                 b = rng.randint(4, 25)
             ans = math.lcm(a, b)
-            enunciado = f"{prefix}Un semáforo se enciende en verde cada {a} segundos, y otro semáforo lo hace cada {b} segundos. Si ambos se encienden juntos ahora, ¿en cuántos segundos volverán a coincidir?"
-            feedback = "Calcula el Mínimo Común Múltiplo (MCM) de ambos intervalos de tiempo. El menor múltiplo común es el point de encuentro."
+            enunciado = f"{prefix}{contexto['sujeto_a']} {contexto['accion']} cada {a} {contexto['unidad']}, y {contexto['sujeto_b']} lo hace cada {b} {contexto['unidad']}. Si ambos coinciden ahora, {contexto['pregunta']}"
+            feedback = "Calcula el Mínimo Común Múltiplo (MCM) de ambos intervalos de tiempo para hallar el momento de encuentro."
             vals = {"a": a, "b": b}
         else: # División Máxima Exacta - MCD
             g = rng.randint(2, 10)
@@ -1007,8 +1138,8 @@ def generate_practice_question(modulo_id: int, nivel_id: int, fam: int, var: int
             a = g * a_mult
             b = g * b_mult
             ans = math.gcd(a, b)
-            enunciado = f"{prefix}Queremos cortar dos cuerdas de {a} metros y {b} metros en pedazos iguales lo más largos posible, sin que sobre nada. ¿De cuántos metros medirá cada pedazo?"
-            feedback = "Calcula el Máximo Común Divisor (MCD) de las dos longitudes de cuerda para hallar el tamaño máximo de corte idéntico."
+            enunciado = f"{prefix}Queremos cortar {contexto['sujeto']} de {a} {contexto['unidad']} y {b} {contexto['unidad']} en pedazos iguales lo más largos posible, sin que sobre nada. {contexto['pregunta']}"
+            feedback = "Calcula el Máximo Común Divisor (MCD) de las dos longitudes para hallar el tamaño máximo de corte idéntico."
             vals = {"a": a, "b": b}
 
     explicacion_html = (
@@ -1069,40 +1200,75 @@ async def seed_preguntas_practica(session: AsyncSession):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# GENERADOR DETERMINISTA DE PREGUNTAS DE DESAFÍO
+# GENERADOR DETERMINISTA DE PREGUNTAS DE DESAFÍO Y SUS DISTRACTORES INTELIGENTES
 # ─────────────────────────────────────────────────────────────────────────────
 
 def generate_challenge_question(modulo_id: int, desafio_id: int, idx: int) -> Dict[str, Any]:
-    """Genera una pregunta única para los desafíos de la Fase 3."""
+    """Genera una pregunta única para los desafíos de la Fase 3, calculando distractores inteligentes."""
     seed = FASE3_ID * 1000000 + modulo_id * 10000 + desafio_id * 1000 + idx
     rng = random.Random(seed)
     
     # Múltiple opción para Desafíos 11 y 12. Evocación pura para 13.
     tipo = TipoPreguntaEnum.MULTIPLE_OPCION if desafio_id in (11, 12) else TipoPreguntaEnum.RESPUESTA_NUMERICA
     
+    opciones = []
+    
     if modulo_id == 1:
-        a = rng.randint(20, 60)
-        b = rng.randint(4, 15)
-        c = rng.randint(3, 10)
+        a = rng.randint(20, 60) # globos (útil)
+        b = rng.randint(4, 15)  # pelotas (basura)
+        c = rng.randint(3, 10)  # regaló
         ans = a - c
         enunciado = f"María de 12 años tiene {a} globos y {b} pelotas de tenis. Ayer a las 3:00 PM regaló {c} globos. ¿Cuántos globos tiene ahora?"
+        
+        # Opciones pedagógicas
+        opciones = [
+            {"texto": str(ans), "es_correcta": True, "tipo_error": None, "feedback_error": None},
+            {"texto": str(a - b), "es_correcta": False, "tipo_error": TipoErrorEnum.ATENCION, "feedback_error": "¡Cuidado! Restaste las pelotas de tenis en lugar de los globos."},
+            {"texto": str(a + c), "es_correcta": False, "tipo_error": TipoErrorEnum.OPERACION_INCORRECTA, "feedback_error": "¡Atención! Sumaste los globos regalados en lugar de restarlos."},
+            {"texto": str(ans + 2), "es_correcta": False, "tipo_error": TipoErrorEnum.CALCULO, "feedback_error": "Revisa bien tu resta, cometiste un pequeño error de cálculo."}
+        ]
+        
     elif modulo_id == 2:
-        a = rng.randint(15, 45)
-        b = rng.randint(5, 12)
-        c = rng.randint(6, 15)
+        a = rng.randint(15, 45) # inicial
+        b = rng.randint(5, 12)  # entregó (resta)
+        c = rng.randint(6, 15)  # cargó (suma)
         ans = a - b + c
         enunciado = f"Un camión sale del patio con {a} cajas de frutas. Entrega {b} cajas en el supermercado y luego carga {c} cajas nuevas. ¿Cuántas cajas lleva?"
+        
+        opciones = [
+            {"texto": str(ans), "es_correcta": True, "tipo_error": None, "feedback_error": None},
+            {"texto": str(a + b - c), "es_correcta": False, "tipo_error": TipoErrorEnum.OPERACION_INCORRECTA, "feedback_error": "¡Cuidado! Sumaste las cajas entregadas y restaste las cargadas."},
+            {"texto": str(a - b), "es_correcta": False, "tipo_error": TipoErrorEnum.PROBLEMA_INCOMPLETO, "feedback_error": "¡Atención! Olvidaste sumar las cajas nuevas que cargó el camión."},
+            {"texto": str(ans + 2), "es_correcta": False, "tipo_error": TipoErrorEnum.CALCULO, "feedback_error": "Revisa tus cálculos aritméticos finales."}
+        ]
+        
     elif modulo_id == 3:
-        p_item = rng.randint(3, 180)
+        p_item = rng.randint(15, 45)
         ans = p_item
         tot_a = 2 * p_item + 10
         tot_b = 3 * p_item + 10
         enunciado = f"Si 2 cuadernos y una cartuchera de R$ 10,00 cuestan R$ {tot_a}, y 3 cuadernos con la misma cartuchera cuestan R$ {tot_b}, ¿cuánto cuesta 1 cuaderno?"
+        
+        opciones = [
+            {"texto": str(ans), "es_correcta": True, "tipo_error": None, "feedback_error": None},
+            {"texto": str(tot_b - tot_a - 10), "es_correcta": False, "tipo_error": TipoErrorEnum.ATENCION, "feedback_error": "¡Cuidado! Restaste el valor de la cartuchera que ya estaba incluido en ambos totales."},
+            {"texto": str(tot_a // 2), "es_correcta": False, "tipo_error": TipoErrorEnum.CALCULO, "feedback_error": "¡Atención! Dividiste el total entre los cuadernos sin descontar la cartuchera."},
+            {"texto": str(ans + 5), "es_correcta": False, "tipo_error": TipoErrorEnum.CALCULO, "feedback_error": "Revisa bien la resta de la diferencia de precios."}
+        ]
+        
     elif modulo_id == 4:
         cap = rng.randint(4, 8)
         tot = cap * rng.randint(6, 12) + rng.randint(1, cap - 1)
         ans = tot % cap
         enunciado = f"Un panadero hizo {tot} panes y los agrupó en bolsas de {cap} panes cada una. ¿Cuántos panes quedaron sueltos fuera de las bolsas completas?"
+        
+        opciones = [
+            {"texto": str(ans), "es_correcta": True, "tipo_error": None, "feedback_error": None},
+            {"texto": str(tot // cap), "es_correcta": False, "tipo_error": TipoErrorEnum.OPERACION_INCORRECTA, "feedback_error": "¡Cuidado! Ese es el número de bolsas completas. Te preguntamos por los panes sueltos (el residuo)."},
+            {"texto": str(cap - ans), "es_correcta": False, "tipo_error": TipoErrorEnum.CALCULO, "feedback_error": "¡Atención! Calculaste cuántos panes faltan para completar otra bolsa, no el sobrante actual."},
+            {"texto": str((ans + 1) % cap), "es_correcta": False, "tipo_error": TipoErrorEnum.CALCULO, "feedback_error": "Revisa el cálculo del resto de tu división."}
+        ]
+        
     else: # Módulo 5
         g = rng.randint(2, 4)
         a_mult = rng.randint(2, 7)
@@ -1114,11 +1280,44 @@ def generate_challenge_question(modulo_id: int, desafio_id: int, idx: int) -> Di
         ans = math.lcm(a, b)
         enunciado = f"Un atleta corre en una pista y tarda {a} minutos por vuelta, y su compañero tarda {b} minutos. Si salen juntos, ¿en cuántos minutos se encuentran de nuevo?"
         
+        opciones = [
+            {"texto": str(ans), "es_correcta": True, "tipo_error": None, "feedback_error": None},
+            {"texto": str(a + b), "es_correcta": False, "tipo_error": TipoErrorEnum.OPERACION_INCORRECTA, "feedback_error": "¡Cuidado! No coinciden simplemente sumando ambos tiempos; debes hallar el Mínimo Común Múltiplo (MCM)."},
+            {"texto": str(a * b), "es_correcta": False, "tipo_error": TipoErrorEnum.CALCULO, "feedback_error": "¡Atención! Multiplicar directamente no da el menor punto de encuentro si comparten divisores."},
+            {"texto": str(math.gcd(a, b)), "es_correcta": False, "tipo_error": TipoErrorEnum.ATENCION, "feedback_error": "¡Cuidado! Calculaste el Máximo Común Divisor (MCD) en lugar del Mínimo Común Múltiplo (MCM)."}
+        ]
+        
+    # Asegurar unicidad de las respuestas erróneas por si se solapan en casos fortuitos
+    seen_texts = {str(ans)}
+    filtered_opciones = [{"texto": str(ans), "es_correcta": True, "tipo_error": None, "feedback_error": None}]
+    for opt in opciones:
+        if opt["es_correcta"]:
+            continue
+        opt_text = str(opt["texto"])
+        if opt_text not in seen_texts:
+            seen_texts.add(opt_text)
+            filtered_opciones.append(opt)
+            
+    # Rellenar con genéricos si hay colisiones fortuitas de números
+    offset = 1
+    while len(filtered_opciones) < 4:
+        dummy_val = int(ans) + offset * 3
+        offset += 1
+        if str(dummy_val) not in seen_texts:
+            seen_texts.add(str(dummy_val))
+            filtered_opciones.append({
+                "texto": str(dummy_val),
+                "es_correcta": False,
+                "tipo_error": TipoErrorEnum.CALCULO,
+                "feedback_error": "Revisa los cálculos matemáticos con calma."
+            })
+            
     return {
         "enunciado": enunciado,
         "respuesta_correcta": str(ans),
         "tipo_pregunta": tipo,
-        "operacion": "mixta"
+        "operacion": "mixta",
+        "opciones": filtered_opciones
     }
 
 
@@ -1132,7 +1331,6 @@ async def seed_preguntas_desafios(session: AsyncSession):
             
             for idx in range(1, 151):
                 q_data = generate_challenge_question(modulo_id, desafio_id, idx)
-                ans_val = int(q_data["respuesta_correcta"])
                 
                 desafio_q = Pregunta(
                     fase_id=FASE3_ID,
@@ -1150,26 +1348,10 @@ async def seed_preguntas_desafios(session: AsyncSession):
                 
                 # Crear alternativas para opción múltiple (Desafíos 11 y 12)
                 if q_data["tipo_pregunta"] == TipoPreguntaEnum.MULTIPLE_OPCION:
-                    # Crear opciones erróneas plausibles
-                    wrong_answers = {
-                        ans_val + 2,
-                        max(1, ans_val - 2),
-                        ans_val * 2
-                    }
-                    if len(wrong_answers) < 3:
-                        wrong_answers.add(ans_val + 5)
-                        wrong_answers.add(ans_val + 8)
-                    
-                    options = [{"texto": str(ans_val), "es_correcta": True, "tipo_error": None}]
-                    for idx_w, w in enumerate(list(wrong_answers)[:3]):
-                        options.append({
-                            "texto": str(w),
-                            "es_correcta": False,
-                            "tipo_error": TipoErrorEnum.CALCULO
-                        })
-                    
-                    # Mezclar opciones
+                    # Copiar y mezclar las opciones calculadas
+                    options = list(q_data["opciones"])
                     random.shuffle(options)
+                    
                     for order_idx, opt in enumerate(options):
                         alt = Alternativa(
                             pregunta_id=desafio_q.id,
@@ -1177,11 +1359,11 @@ async def seed_preguntas_desafios(session: AsyncSession):
                             es_correcta=opt["es_correcta"],
                             orden=order_idx + 1,
                             tipo_error=opt["tipo_error"],
-                            feedback_error="Revisa el cálculo matemático con calma." if not opt["es_correcta"] else None
+                            feedback_error=opt["feedback_error"]
                         )
                         session.add(alt)
                         
-            print(f"  Módulo {modulo_id} Desafío {desafio_id} (150 preguntas con alternativas) insertados.")
+            print(f"  Módulo {modulo_id} Desafío {desafio_id} (150 preguntas con alternativas inteligentes) insertados.")
             await session.flush()
             
     # Seed Desafío Mixto (99099) for Fase 3 to avoid sufficiency warnings

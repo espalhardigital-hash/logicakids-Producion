@@ -28,7 +28,7 @@ SEED_VERSIONS_KEY = "database_seed_versions"
 SEED_VERSIONS = {
     "fase_1": "20260601_v1",
     "fase_2": "20260609_v2",
-    "fase_3": "20260609_v1",
+    "fase_3": "20260619_v1",
     "fase_4": "20260609_v1",
     "fase_5": "20260609_v1",
     "fase_6": "20260609_v1",

@@ -187,7 +187,8 @@ export default function WelcomeScreenPhase9({
             return (
               <div
                 key={sim.numero}
-                className={`
+                onClick={() => !bloqueado && handleIniciar(sim)}
+                className={`fg-level-card
                   relative rounded-2xl border p-5 transition-all duration-200
                   ${bloqueado
                     ? 'bg-slate-900/40 border-slate-800/50 opacity-60'
@@ -257,7 +258,7 @@ export default function WelcomeScreenPhase9({
                   {/* Botão de ação */}
                   {!bloqueado && (
                     <button
-                      onClick={() => handleIniciar(sim)}
+                      onClick={(e) => { e.stopPropagation(); handleIniciar(sim); }}
                       className={`
                         flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 flex-shrink-0
                         ${concluido
@@ -360,7 +361,7 @@ export default function WelcomeScreenPhase9({
                 key={modulo.modulo_id}
                 onClick={() => !todoBloqueado && setModuloSelecionado(modulo.modulo_id)}
                 disabled={todoBloqueado}
-                className={`
+                className={`fg-module-card
                   relative text-left rounded-2xl border p-6 transition-all duration-200 group
                   ${todoBloqueado
                     ? 'bg-slate-900/40 border-slate-800/50 opacity-60 cursor-not-allowed'

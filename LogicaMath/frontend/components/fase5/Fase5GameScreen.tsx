@@ -12,6 +12,7 @@ import './Fase5Styles.css';
 import { getFase5Question, submitFase5Answer, getFase5Reading, closeFase5Rescate, graduateFase5 } from './Fase5Service';
 import { Fase5TheoryModal } from './Fase5TheoryModal';
 import { Fase5MirrorModal } from './Fase5MirrorModal';
+import { Fase5ThreeVisualizer } from './Fase5ThreeVisualizer';
 import type {
   Fase5Pregunta,
   Fase5AnswerResult,
@@ -1298,6 +1299,11 @@ const Fase5GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
 
           <main className="f5-game-body">
             <div className="f5-game-layout-wrap">
+              {pregunta.datos_numericos?.geometry && (
+                <div className="flex-1 min-w-[300px]">
+                  <Fase5ThreeVisualizer payload_tokenizado={pregunta.datos_numericos} />
+                </div>
+              )}
               <motion.div animate={shaking ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}} transition={{ duration: 0.4 }}
                 className={`f5-question-card ${shaking ? 'shake-error' : ''}`}
                 style={{ boxShadow: feedback.visible ? (feedback.esCorrecta ? '0 0 0 4px rgba(16, 185, 129, 0.5)' : '0 0 0 4px rgba(239, 68, 68, 0.5)') : 'none' }}

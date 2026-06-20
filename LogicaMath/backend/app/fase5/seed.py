@@ -25,6 +25,12 @@ from app.core.storage import storage_service
 
 FASE5_ID = 5
 
+# --- DICCIONARIOS DE CONTEXTO FASE 5 ---
+NOMBRES = ["Leo", "Emma", "Thiago", "Mia", "Hugo", "Alba"]
+ESCENARIOS_P = ["patio", "jardín", "cuadro de pintura", "campo de fútbol"]
+ESCENARIOS_A = ["alfombra", "piscina", "mosaico", "pista de baile"]
+ESCENARIOS_E = ["mapa del tesoro", "plano de la ciudad", "maqueta escolar"]
+
 # Cache en memoria para reutilizar URLs de gráficos generados
 _graphic_url_cache: Dict[str, str] = {}
 
@@ -235,12 +241,16 @@ async def seed_teoria_niveles(session: AsyncSession):
         session.add(nt)
 
 async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
+    nombre = rng.choice(NOMBRES)
+    errores_previstos = {}
+
     if mod_id == 1:
         # Perímetro
         a = rng.randint(3, 8)
         b = rng.randint(3, 8)
         ans = 2 * (a + b)
         ans_str = str(ans)
+        escenario = rng.choice(ESCENARIOS_P)
         
         # Generar gráfico para cuadrícula de perímetro
         cache_key = f"grid_p_{a}_{b}"
@@ -252,12 +262,16 @@ async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             url = await storage_service.upload_question_graphic(img_bytes, f"grid_p_{a}_{b}.png")
             _graphic_url_cache[cache_key] = url
             
+        errores_previstos[str(a*b)] = "Calculaste el área (base por altura) en lugar del perímetro (sumar los bordes)."
+        errores_previstos[str(a+b)] = "Solo sumaste dos lados. Recuerda que un rectángulo tiene 4 lados."
+            
         return {
-            "enunciado": f"Calcula el perímetro del rectángulo sombreado en la cuadrícula, cuyos lados miden {a} cm y {b} cm.",
+            "enunciado": f"{nombre} quiere cercar su {escenario} rectangular. En el plano de arriba, los lados miden {a} y {b} unidades. Calcula el perímetro total.",
             "datos_numericos": {"tipo_visual": "imagen", "url": url},
             "respuesta_correcta": ans_str,
-            "expl": f"Sumamos los 4 lados del rectángulo: {a} + {b} + {a} + {b} = {ans} cm.",
-            "alts": [ans_str, str(ans+2), str(ans-2), str(ans+4)]
+            "errores_previstos": errores_previstos,
+            "expl": f"Sumamos los 4 lados del rectángulo: {a} + {b} + {a} + {b} = {ans} unidades.",
+            "alts": [ans_str, str(a*b), str(a+b), str(ans+4)]
         }
     elif mod_id == 2:
         # Área
@@ -265,6 +279,7 @@ async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
         b = rng.randint(3, 7)
         ans = a * b
         ans_str = str(ans)
+        escenario = rng.choice(ESCENARIOS_A)
         
         # Generar gráfico para cuadrícula de área
         cache_key = f"grid_a_{a}_{b}"
@@ -276,12 +291,16 @@ async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             url = await storage_service.upload_question_graphic(img_bytes, f"grid_a_{a}_{b}.png")
             _graphic_url_cache[cache_key] = url
             
+        errores_previstos[str(2*(a+b))] = "Calculaste el perímetro (sumar bordes) en lugar del área (multiplicar dimensiones)."
+        errores_previstos[str(a+b)] = "Sumaste la base y la altura en lugar de multiplicarlas."
+            
         return {
-            "enunciado": f"Calcula el área del rectángulo sombreado en la cuadrícula, que tiene {a} cuadraditos de base por {b} cuadraditos de altura.",
+            "enunciado": f"{nombre} necesita cubrir su {escenario} rectangular con baldosas. La base mide {a} y la altura {b}. Calcula el área total.",
             "datos_numericos": {"tipo_visual": "imagen", "url": url},
             "respuesta_correcta": ans_str,
+            "errores_previstos": errores_previstos,
             "expl": f"Multiplicamos base por altura: {a} × {b} = {ans} unidades cuadradas.",
-            "alts": [ans_str, str(ans+3), str(ans-3), str(a+b)]
+            "alts": [ans_str, str(2*(a+b)), str(a+b), str(ans+3)]
         }
     elif mod_id == 3:
         # Figuras compuestas
@@ -289,9 +308,13 @@ async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             ejes = rng.choice([2, 4, 3])
             fig = "rectángulo" if ejes == 2 else "cuadrado" if ejes == 4 else "triángulo equilátero"
             ans_str = str(ejes)
+            
+            errores_previstos["0"] = "Esa figura sí tiene ejes de simetría. Imagina doblarla por la mitad."
+            
             return {
-                "enunciado": f"¿Cuántos ejes de simetría tiene un {fig}?",
+                "enunciado": f"En la clase de arte, {nombre} dibujó un {fig}. ¿Cuántos ejes de simetría tiene esta figura?",
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": f"El {fig} se puede doblar simétricamente de {ejes} formas distintas.",
                 "alts": [ans_str, "0", "1", "6"]
             }
@@ -300,11 +323,15 @@ async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             int_h = rng.randint(5, 25)
             ans = ext - int_h
             ans_str = str(ans)
+            
+            errores_previstos[str(ext+int_h)] = "Sumaste las áreas. Recuerda que el hueco interior debe RESTARSE."
+            
             return {
-                "enunciado": f"Un marco rectangular de fotos tiene un área total exterior de {ext} cm² y un hueco interior de {int_h} cm² para la foto. ¿Cuál es el área sombreada del marco?",
+                "enunciado": f"{nombre} construyó un marco rectangular que tiene un área total exterior de {ext} cm² y un hueco interior de {int_h} cm² para colocar una foto. ¿Cuál es el área sombreada del marco?",
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": f"Restamos el área interior del área total: {ext} - {int_h} = {ans} cm².",
-                "alts": [ans_str, str(ans+5), str(ans-5), str(ext+int_h)]
+                "alts": [ans_str, str(ext+int_h), str(ans+5), str(ans-5)]
             }
     else:
         # Escala, diagonal y superficie
@@ -313,17 +340,23 @@ async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             u = rng.randint(3, 12)
             ans = u * scale
             ans_str = str(ans)
+            escenario_e = rng.choice(ESCENARIOS_E)
+            
+            errores_previstos[str(u+scale)] = "Sumaste la unidad con la escala. Debes multiplicar para aplicar la escala."
+            
             return {
-                "enunciado": f"En un mapa, la escala es 1 u = {scale} metros. Si una calle mide {u} u en el plano, ¿cuál es su longitud real?",
+                "enunciado": f"{nombre} está observando un {escenario_e} donde la escala es 1 u = {scale} metros. Si una calle mide {u} u en el plano, ¿cuál es su longitud real?",
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": f"Multiplicamos las unidades del mapa por la escala: {u} × {scale} = {ans} metros.",
-                "alts": [ans_str, str(ans+u), str(ans-scale), str(u+scale)]
+                "alts": [ans_str, str(u+scale), str(ans+u), str(ans-scale)]
             }
         elif lvl_id == 2:
             ans_str = "la diagonal"
             return {
-                "enunciado": "¿Qué línea de medida física se utiliza universalmente para anunciar el tamaño de los televisores y pantallas?",
+                "enunciado": f"Cuando {nombre} va a comprar un televisor, ¿qué línea de medida física se utiliza universalmente para anunciar su tamaño en pulgadas?",
                 "respuesta_correcta": ans_str,
+                "errores_previstos": {},
                 "expl": "El tamaño de las pantallas de TV y celulares se mide en pulgadas a lo largo de su diagonal.",
                 "alts": [ans_str, "la base", "la altura", "el perímetro"]
             }
@@ -331,9 +364,13 @@ async def _gen_fase5_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
             m2 = rng.randint(1, 8)
             ans = m2 * 10000
             ans_str = str(ans)
+            
+            errores_previstos[str(m2*100)] = "Multiplicaste por 100 como si fuera longitud lineal. En área (m² a cm²) debes multiplicar por 100x100 (10,000)."
+            
             return {
-                "enunciado": f"¿Cuántos centímetros cuadrados (cm²) equivalen a {m2} metro(s) cuadrado(s) (m²)?",
+                "enunciado": f"{nombre} quiere saber: ¿Cuántos centímetros cuadrados (cm²) equivalen a {m2} metro(s) cuadrado(s) (m²)?",
                 "respuesta_correcta": ans_str,
+                "errores_previstos": errores_previstos,
                 "expl": f"Como 1 m² = 10,000 cm², multiplicamos {m2} × 10,000 = {ans} cm².",
                 "alts": [ans_str, str(m2*100), str(m2*1000), str(m2*100000)]
             }
@@ -362,12 +399,14 @@ async def seed_practica_pool(session: AsyncSession):
                 fase_id=FASE5_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
                 tipo_pregunta=TipoPreguntaEnum.MULTIPLE_OPCION, enunciado=q_data["enunciado"],
                 respuesta_correcta=q_data["respuesta_correcta"], datos_numericos=datos_finales,
+                errores_previstos=q_data.get("errores_previstos", {}),
                 explicacion_paso_a_paso={"titulo": "Resolución", "pasos": [{"orden": 1, "texto": q_data["expl"]}]},
                 estado=StatusEnum.ACTIVO
             )
             for idx, alt in enumerate(q_data["alts"]):
                 is_correct = (alt == q_data["respuesta_correcta"])
-                p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx+1))
+                error_msg = q_data.get("errores_previstos", {}).get(alt, "Esa alternativa es incorrecta.") if not is_correct else None
+                p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx+1, tipo_error=TipoErrorEnum.CALCULO if not is_correct else None, feedback_error=error_msg))
             session.add(p)
     await session.commit()
 
@@ -393,6 +432,7 @@ async def seed_preguntas_desafios(session: AsyncSession):
                     fase_id=FASE5_ID, seccion=seccion_id, operacion=OperacionEnum.MIXTA,
                     tipo_pregunta=tipo_pregunta, enunciado=q_data["enunciado"],
                     respuesta_correcta=q_data["respuesta_correcta"], datos_numericos=datos_finales,
+                    errores_previstos=q_data.get("errores_previstos", {}),
                     explicacion_paso_a_paso={"titulo": "Desafío", "pasos": [{"orden": 1, "texto": q_data["expl"]}]},
                     estado=StatusEnum.ACTIVO
                 )
@@ -400,7 +440,8 @@ async def seed_preguntas_desafios(session: AsyncSession):
                 if tipo_pregunta == TipoPreguntaEnum.MULTIPLE_OPCION:
                     for idx_alt, alt in enumerate(q_data["alts"]):
                         is_correct = (alt == q_data["respuesta_correcta"])
-                        p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx_alt+1))
+                        error_msg = q_data.get("errores_previstos", {}).get(alt, "Esa alternativa es incorrecta.") if not is_correct else None
+                        p.alternativas.append(Alternativa(texto=alt, es_correcta=is_correct, orden=idx_alt+1, tipo_error=TipoErrorEnum.CALCULO if not is_correct else None, feedback_error=error_msg))
                 session.add(p)
     await session.commit()
 async def seed_configuracion_progreso(session: AsyncSession):
