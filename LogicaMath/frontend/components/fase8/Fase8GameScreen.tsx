@@ -1124,7 +1124,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
       <AnimatePresence>
         {showSplash && (
           <motion.div 
-            initial={{ opacity: 0 }} 
+            initial={{ opacity: 1 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
             transition={{ duration: 0.3 }}

@@ -35,13 +35,17 @@ const IconArrowLeft: React.FC = () => (
 // ─────────────────────────────────────────────────────────────────────────────
 
 const MODULE_NAMES: Record<number, string> = {
-  1: 'Fracciones Visuales',
-  2: 'Operaciones con Fracciones',
-  3: 'Decimales Visuales',
+  1: 'Orientación Cardinal',
+  2: 'Plano Cartesiano',
+  3: 'La Mecánica del Tiempo',
+  4: 'Horarios y Apps',
 };
 
 const MODULE_COLORS: Record<number, string> = {
-  1: '#10B981', 2: '#8B5CF6', 3: '#F59E0B',
+  1: '#14B8A6',
+  2: '#0D9488',
+  3: '#0F766E',
+  4: '#115E59',
 };
 
 interface Props {
@@ -1136,7 +1140,7 @@ const Fase7GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
       <AnimatePresence>
         {showSplash && (
           <motion.div 
-            initial={{ opacity: 0 }} 
+            initial={{ opacity: 1 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
             transition={{ duration: 0.3 }}
@@ -1329,11 +1333,12 @@ const Fase7GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
 
           <main className="f7-game-body">
             <div className="f7-game-layout-wrap">
-              {pregunta.datos_numericos?.vertices && (
-                <div className="flex-1 min-w-[300px]">
-                  <Fase7SplitVisualizer
-                    datos_numericos={pregunta.datos_numericos}
-                    onStateChange={setPolygonPoints}
+              {pregunta.datos_numericos?.svg_base64 && (
+                <div className="flex-1 min-w-[300px] flex justify-center items-center my-4 p-4 bg-slate-800/30 rounded-3xl border border-white/5">
+                  <img 
+                    src={pregunta.datos_numericos.svg_base64} 
+                    alt="Visualización Fase 7" 
+                    className="max-h-[320px] w-auto object-contain select-none filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" 
                   />
                 </div>
               )}

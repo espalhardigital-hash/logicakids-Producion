@@ -22,6 +22,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Delete, ArrowRight, Trophy, Star, Target, Award, Compass, Clock } from 'lucide-react';
 import { getCurrentUserFull } from '../../services/storageService';
 import { useNavigate } from 'react-router-dom';
+import { ClockVisualizer } from '../shared/ClockVisualizer';
+import { ThermometerVisualizer } from '../shared/ThermometerVisualizer';
+import { ImageVisualizer } from '../shared/ImageVisualizer';
 
 // ── Íconos inline ─────────────────────────────────────────────────────────
 
@@ -1114,7 +1117,7 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
       <AnimatePresence>
         {showSplash && (
           <motion.div 
-            initial={{ opacity: 0 }} 
+            initial={{ opacity: 1 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
             transition={{ duration: 0.3 }}
@@ -1315,6 +1318,28 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                 {pregunta.tipo_pregunta === 'respuesta_numerica' && (
                   <div className="flex flex-col h-full justify-between">
                     <div className="f6-question-text-box"><div className={(pregunta.enunciado || '').length < 25 ? "f6-question-text short" : "f6-question-text"} dangerouslySetInnerHTML={{ __html: pregunta.enunciado }} /></div>
+                    
+                    {pregunta.datos_numericos?.tipo_visual === 'reloj' && (
+                      <ClockVisualizer 
+                        timeStr={pregunta.datos_numericos?.hora || "12:00"} 
+                        size={160} 
+                      />
+                    )}
+                    {pregunta.datos_numericos?.tipo_visual === 'termometro' && (
+                      <ThermometerVisualizer 
+                        value={pregunta.datos_numericos?.valor || 0}
+                        min={pregunta.datos_numericos?.min || 0}
+                        max={pregunta.datos_numericos?.max || 100}
+                        unit={pregunta.datos_numericos?.unidad || "°C"}
+                        height={180}
+                      />
+                    )}
+                    {pregunta.datos_numericos?.tipo_visual === 'imagen' && (
+                      <ImageVisualizer 
+                        url={pregunta.datos_numericos?.url} 
+                      />
+                    )}
+
                     <div className="f6-numeric-input-wrap">
                       <div className={`f6-custom-input-box ${feedback.visible ? (feedback.esCorrecta ? 'correct' : 'incorrect') : 'focused'}`} onClick={() => inputRef.current?.focus()}>
                         <input ref={inputRef} type="text" value={respuesta} onChange={e => !feedback.visible && /^[0-9,.\-]*$/.test(e.target.value) && setRespuesta(e.target.value)} onKeyDown={handleKeyDown} className="f6-hidden-input" autoFocus autoComplete="off" inputMode="none" />
@@ -1356,6 +1381,28 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                 {pregunta.tipo_pregunta === 'multiple_opcion' && (
                   <div className="flex flex-col h-full justify-between">
                      <div className="f6-question-text-box"><div className="f6-question-text" dangerouslySetInnerHTML={{ __html: pregunta.enunciado }} /></div>
+                     
+                     {pregunta.datos_numericos?.tipo_visual === 'reloj' && (
+                       <ClockVisualizer 
+                         timeStr={pregunta.datos_numericos?.hora || "12:00"} 
+                         size={160} 
+                       />
+                     )}
+                     {pregunta.datos_numericos?.tipo_visual === 'termometro' && (
+                       <ThermometerVisualizer 
+                         value={pregunta.datos_numericos?.valor || 0}
+                         min={pregunta.datos_numericos?.min || 0}
+                         max={pregunta.datos_numericos?.max || 100}
+                         unit={pregunta.datos_numericos?.unidad || "°C"}
+                         height={180}
+                       />
+                     )}
+                     {pregunta.datos_numericos?.tipo_visual === 'imagen' && (
+                       <ImageVisualizer 
+                         url={pregunta.datos_numericos?.url} 
+                       />
+                     )}
+
                      <div className="grid gap-3 mt-6">
                        {pregunta.alternativas?.map(alt => (
                          <button key={alt.id} disabled={feedback.visible} onClick={() => setSelectedAltId(alt.id)}
@@ -1391,6 +1438,27 @@ const Fase6GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                     <div className="f6-question-text-box">
                       <div className="f6-question-text" dangerouslySetInnerHTML={{ __html: cleanEnunciado(pregunta.enunciado) }} />
                     </div>
+
+                    {pregunta.datos_numericos?.tipo_visual === 'reloj' && (
+                      <ClockVisualizer 
+                        timeStr={pregunta.datos_numericos?.hora || "12:00"} 
+                        size={160} 
+                      />
+                    )}
+                    {pregunta.datos_numericos?.tipo_visual === 'termometro' && (
+                      <ThermometerVisualizer 
+                        value={pregunta.datos_numericos?.valor || 0}
+                        min={pregunta.datos_numericos?.min || 0}
+                        max={pregunta.datos_numericos?.max || 100}
+                        unit={pregunta.datos_numericos?.unidad || "°C"}
+                        height={180}
+                      />
+                    )}
+                    {pregunta.datos_numericos?.tipo_visual === 'imagen' && (
+                      <ImageVisualizer 
+                        url={pregunta.datos_numericos?.url} 
+                      />
+                    )}
 
                     <div className="flex flex-col gap-4 my-2">
                       {/* Paso 1 */}

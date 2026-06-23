@@ -1030,7 +1030,7 @@ async def responder_fase9(
                         ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO,
                     ))
                 )
-                if res_aprob.scalar() >= 26:
+                if res_aprob.scalar() >= 20:
                     fase_completada = True
 
             await db.commit()
@@ -1117,7 +1117,7 @@ async def responder_fase9(
                     ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
                 ))
             )
-            if res_aprob.scalar() >= 26:
+            if res_aprob.scalar() >= 20:
                 fase_completada = True
 
             # Sincronizar espejo visual heredado
@@ -1252,7 +1252,7 @@ async def cerrar_rescate_fase9(
                 ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
             ))
         )
-        if res_aprob.scalar() >= 26:
+        if res_aprob.scalar() >= 20:
             fase_completada = True
 
         # Sincronizar espejo visual heredado

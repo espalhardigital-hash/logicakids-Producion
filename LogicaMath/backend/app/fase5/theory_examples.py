@@ -9,7 +9,7 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
         (1, 1): [
             {
                 "enunciado": "Calcula el perímetro de esta figura contando cada segmento del contorno en la cuadrícula:<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #A855F7; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='-15 -10 150 135' style='margin:10px auto; display:block; background:#111827; border:2px solid #A855F7; border-radius:12px;'>"
                              "  <!-- Grilla -->"
                              "  <path d='M20,0 V120 M40,0 V120 M60,0 V120 M80,0 V120 M100,0 V120 M0,20 H120 M0,40 H120 M0,60 H120 M0,80 H120 M0,100 H120' stroke='#374151' stroke-width='0.5'/>"
                              "  <!-- Polígono -->"
@@ -27,13 +27,13 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Un rectángulo tiene lados de 3 y 4 unidades. ¿Cuál es su perímetro?<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #A855F7; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='-15 -15 150 145' style='margin:10px auto; display:block; background:#111827; border:2px solid #A855F7; border-radius:12px;'>"
                              "  <path d='M20,0 V120 M40,0 V120 M60,0 V120 M80,0 V120 M100,0 V120 M0,20 H120 M0,40 H120 M0,60 H120 M0,80 H120 M0,100 H120' stroke='#374151' stroke-width='0.5'/>"
                              "  <rect x='30' y='20' width='60' height='80' fill='#A855F7' fill-opacity='0.2' stroke='#A855F7' stroke-width='3.5'/>"
                              "  <text x='60' y='14' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>3 unidades</text>"
-                             "  <text x='60' y='112' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>3 unidades</text>"
-                             "  <text x='15' y='64' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>4 u</text>"
-                             "  <text x='105' y='64' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>4 u</text>"
+                             "  <text x='60' y='122' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>3 unidades</text>"
+                             "  <text x='18' y='64' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>4 u</text>"
+                             "  <text x='102' y='64' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>4 u</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Un rectángulo tiene 4 lados. Lados paralelos son del mismo tamaño."},
@@ -43,11 +43,11 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Un cuadrado tiene un lado de 5 unidades. ¿Cuál es su perímetro?<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #A855F7; border-radius:12px;'>"
+                             "<svg width='280' height='260' viewBox='-25 -10 170 140' style='margin:10px auto; display:block; background:#111827; border:2px solid #A855F7; border-radius:12px;'>"
                              "  <path d='M20,0 V120 M40,0 V120 M60,0 V120 M80,0 V120 M100,0 V120 M0,20 H120 M0,40 H120 M0,60 H120 M0,80 H120 M0,100 H120' stroke='#374151' stroke-width='0.5'/>"
                              "  <rect x='10' y='10' width='100' height='100' fill='#A855F7' fill-opacity='0.2' stroke='#A855F7' stroke-width='3.5'/>"
                              "  <text x='60' y='65' fill='#FFF' font-size='14' font-weight='bold' text-anchor='middle'>Lado = 5</text>"
-                             "  <text x='60' y='116' fill='#A855F7' font-size='11' font-weight='bold' text-anchor='middle'>Todos los lados miden 5</text>"
+                             "  <text x='60' y='125' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>Todos los lados miden 5 unidades</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Un cuadrado tiene 4 lados idénticos."},
@@ -57,9 +57,9 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "El perímetro de un triángulo con lados de 6 unidades cada uno es:<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #A855F7; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='-15 -10 150 135' style='margin:10px auto; display:block; background:#111827; border:2px solid #A855F7; border-radius:12px;'>"
                              "  <polygon points='60,20 100,100 20,100' fill='#A855F7' fill-opacity='0.2' stroke='#A855F7' stroke-width='3.5'/>"
-                             "  <text x='60' y='114' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>6 u</text>"
+                             "  <text x='60' y='122' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>6 u</text>"
                              "  <text x='30' y='65' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>6 u</text>"
                              "  <text x='90' y='65' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>6 u</text>"
                              "</svg>",
@@ -73,14 +73,14 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
         (1, 2): [
             {
                 "enunciado": "Calcula el perímetro de esta figura irregular sumando las longitudes de sus lados:<br/>"
-                             "<svg width='280' height='200' viewBox='0 0 140 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
+                             "<svg width='280' height='200' viewBox='-15 -10 170 115' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
                              "  <polygon points='20,20 120,20 120,80 80,80 80,50 20,50' fill='#F59E0B' fill-opacity='0.2' stroke='#F59E0B' stroke-width='3'/>"
                              "  <text x='70' y='14' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>10 cm</text>"
-                             "  <text x='128' y='55' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>6 cm</text>"
-                             "  <text x='100' y='94' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>4 cm</text>"
+                             "  <text x='126' y='55' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>6 cm</text>"
+                             "  <text x='100' y='98' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>4 cm</text>"
                              "  <text x='70' y='65' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>3 cm</text>"
                              "  <text x='50' y='44' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>6 cm</text>"
-                             "  <text x='12' y='38' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>3 cm</text>"
+                             "  <text x='15' y='38' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>3 cm</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Apuntamos todas las aristas exteriores de la figura."},
@@ -90,10 +90,10 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Una figura tiene lados de 2, 3, 2 y 3. ¿Cuál es su perímetro?<br/>"
-                             "<svg width='280' height='200' viewBox='0 0 140 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
+                             "<svg width='280' height='200' viewBox='-15 -10 170 115' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
                              "  <rect x='30' y='20' width='80' height='60' fill='#F59E0B' fill-opacity='0.2' stroke='#F59E0B' stroke-width='3'/>"
                              "  <text x='70' y='14' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>3</text>"
-                             "  <text x='70' y='94' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>3</text>"
+                             "  <text x='70' y='98' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>3</text>"
                              "  <text x='18' y='54' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>2</text>"
                              "  <text x='122' y='54' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>2</text> "
                              "</svg>",
@@ -105,9 +105,9 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Una estrella geométrica tiene 5 lados iguales y cada uno mide 1 cm. ¿Cuál es el perímetro?<br/>"
-                             "<svg width='280' height='200' viewBox='0 0 140 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
+                             "<svg width='280' height='200' viewBox='-15 -10 170 115' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
                              "  <polygon points='70,15 110,45 95,90 45,90 30,45' fill='#F59E0B' fill-opacity='0.2' stroke='#F59E0B' stroke-width='3'/>"
-                             "  <text x='70' y='98' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>1 cm</text>"
+                             "  <text x='70' y='102' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>1 cm</text>"
                              "  <text x='25' y='72' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>1 cm</text>"
                              "  <text x='115' y='72' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>1 cm</text>"
                              "  <text x='42' y='32' fill='#FFF' font-size='11' font-weight='bold' text-anchor='middle'>1 cm</text>"
@@ -121,10 +121,10 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Calcula el contorno de un rectángulo con lados de 10, 5, 10 y 5 cm.<br/>"
-                             "<svg width='280' height='200' viewBox='0 0 140 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
+                             "<svg width='280' height='200' viewBox='-15 -10 170 115' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
                              "  <rect x='20' y='20' width='100' height='50' fill='#F59E0B' fill-opacity='0.2' stroke='#F59E0B' stroke-width='3'/>"
                              "  <text x='70' y='14' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>10 cm</text>"
-                             "  <text x='70' y='84' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>10 cm</text>"
+                             "  <text x='70' y='88' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>10 cm</text>"
                              "  <text x='10' y='48' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>5 cm</text>"
                              "  <text x='130' y='48' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>5 cm</text>"
                              "</svg>",
@@ -193,12 +193,12 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
         (2, 1): [
             {
                 "enunciado": "Calcula el área contando los cuadrados completos ocupados por el rectángulo:<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #EC4899; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='-15 -10 150 135' style='margin:10px auto; display:block; background:#111827; border:2px solid #EC4899; border-radius:12px;'>"
                              "  <path d='M20,0 V120 M40,0 V120 M60,0 V120 M80,0 V120 M100,0 V120 M0,20 H120 M0,40 H120 M0,60 H120 M0,80 H120 M0,100 H120' stroke='#374151' stroke-width='0.5'/>"
                              "  <!-- Rectángulo de 2x3 -->"
                              "  <rect x='40' y='20' width='40' height='60' fill='#EC4899' fill-opacity='0.3' stroke='#EC4899' stroke-width='3'/>"
                              "  <text x='60' y='55' fill='#FFF' font-size='12' font-weight='bold' text-anchor='middle'>Área = 6</text>"
-                             "  <text x='60' y='110' fill='#EC4899' font-size='10' font-weight='bold' text-anchor='middle'>2 de base x 3 de alto</text>"
+                             "  <text x='60' y='122' fill='#EC4899' font-size='10' font-weight='bold' text-anchor='middle'>2 de base x 3 de alto</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "El área mide el <span class=\"keyword-highlight\">espacio interior</span> en cuadraditos."},
@@ -313,7 +313,7 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
         (2, 3): [
             {
                 "enunciado": "Suma el área de esta figura irregular en la cuadrícula:<br/>"
-                             "<svg width='260' height='260' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #10B981; border-radius:12px;'>"
+                             "<svg width='260' height='260' viewBox='-15 -10 150 135' style='margin:10px auto; display:block; background:#111827; border:2px solid #10B981; border-radius:12px;'>"
                              "  <path d='M20,0 V120 M40,0 V120 M60,0 V120 M80,0 V120 M100,0 V120 M0,20 H120 M0,40 H120 M0,60 H120 M0,80 H120 M0,100 H120' stroke='#374151' stroke-width='0.5'/>"
                              "  <!-- 8 enteros y 8 mitades -->"
                              "  <rect x='40' y='40' width='40' height='40' fill='#10B981' fill-opacity='0.3' stroke='#10B981' stroke-width='2.5'/>"
@@ -326,7 +326,7 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
                              "  <polygon points='40,80 20,60 40,60' fill='#10B981' fill-opacity='0.2' stroke='#10B981'/>"
                              "  <polygon points='20,60 20,40 40,40' fill='#10B981' fill-opacity='0.2' stroke='#10B981'/>"
                              "  <text x='60' y='64' fill='#FFF' font-size='10' font-weight='bold' text-anchor='middle'>Centro: 8</text>"
-                             "  <text x='60' y='110' fill='#10B981' font-size='10' font-weight='bold' text-anchor='middle'>8 puntas triangulares</text>"
+                             "  <text x='60' y='122' fill='#10B981' font-size='10' font-weight='bold' text-anchor='middle'>8 puntas triangulares</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Primero contamos los cuadros enteros en el centro de la figura: hay <span class=\"keyword-highlight\">8 enteros</span>."},
@@ -376,14 +376,14 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
         (3, 1): [
             {
                 "enunciado": "Calcula el área total de esta figura en 'L' descomponiéndola en dos rectángulos independientes:<br/>"
-                             "<svg width='280' height='200' viewBox='0 0 120 100' style='margin:10px auto; display:block; background:#111827; border:2px solid #EC4899; border-radius:12px;'>"
+                             "<svg width='280' height='200' viewBox='-15 -10 150 115' style='margin:10px auto; display:block; background:#111827; border:2px solid #EC4899; border-radius:12px;'>"
                              "  <!-- Rectángulo A (vertical) -->"
                              "  <rect x='20' y='10' width='30' height='70' fill='#A855F7' fill-opacity='0.3' stroke='#A855F7' stroke-width='2.5'/>"
                              "  <!-- Rectángulo B (horizontal) -->"
                              "  <rect x='50' y='50' width='50' height='30' fill='#06B6D4' fill-opacity='0.3' stroke='#06B6D4' stroke-width='2.5'/>"
                              "  <text x='35' y='48' fill='#FFF' font-weight='bold' font-size='12' text-anchor='middle'>A</text>"
                              "  <text x='75' y='70' fill='#FFF' font-weight='bold' font-size='12' text-anchor='middle'>B</text>"
-                             "  <text x='60' y='94' fill='#FFF' font-size='9' text-anchor='middle'>Área total = Área A + Área B</text>"
+                             "  <text x='60' y='104' fill='#FFF' font-size='9' text-anchor='middle'>Área total = Área A + Área B</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Descomponemos la figura 'L' en dos rectángulos independientes: el A y el B."},
@@ -439,12 +439,12 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
         (3, 2): [
             {
                 "enunciado": "Si cortamos una hoja de papel de 10 cm² en varios pedazos para armar un barco con Tangram, ¿cuál es el área total del barco?<br/>"
-                             "<svg width='260' height='180' viewBox='0 0 120 80' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
+                             "<svg width='260' height='180' viewBox='-15 -10 150 95' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
                              "  <!-- Silueta de barco simple -->"
                              "  <polygon points='30,50 90,50 80,70 40,70' fill='#F59E0B' stroke='#B45309' stroke-width='2'/>"
                              "  <polygon points='60,15 60,45 85,45' fill='#EC4899' stroke='#BE185D' stroke-width='2'/>"
                              "  <polygon points='55,20 55,45 35,45' fill='#3B82F6' stroke='#1D4ED8' stroke-width='2'/>"
-                             "  <text x='60' y='76' fill='#FFF' font-size='7' text-anchor='middle'>El área total es la misma</text>"
+                             "  <text x='60' y='86' fill='#FFF' font-size='7' text-anchor='middle'>El área total es la misma</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "El principio de <span class=\"keyword-highlight\">conservación del área</span> nos dice que mover, rotar o cortar piezas no cambia el espacio total."},
@@ -454,11 +454,11 @@ def obtener_ejemplos_expandidos_fase5(modulo_id: int, nivel_id: int) -> list:
             },
             {
                 "enunciado": "Si un triángulo de 3 u² se rota o gira, ¿cuál es su nueva área?<br/>"
-                             "<svg width='260' height='140' viewBox='0 0 160 80' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
+                             "<svg width='260' height='140' viewBox='-15 -10 190 95' style='margin:10px auto; display:block; background:#111827; border:2px solid #F59E0B; border-radius:12px;'>"
                              "  <polygon points='30,20 70,20 50,60' fill='#F59E0B' fill-opacity='0.3' stroke='#F59E0B' stroke-width='2'/>"
                              "  <polygon points='110,60 150,60 110,20' fill='#F59E0B' fill-opacity='0.3' stroke='#F59E0B' stroke-width='2' transform='rotate(45 130 40)'/>"
-                             "  <text x='50' y='72' fill='#FFF' font-size='9' text-anchor='middle'>Original = 3 u²</text>"
-                             "  <text x='125' y='72' fill='#FFF' font-size='9' text-anchor='middle'>Rotado = 3 u²</text>"
+                             "  <text x='50' y='84' fill='#FFF' font-size='9' text-anchor='middle'>Original = 3 u²</text>"
+                             "  <text x='125' y='84' fill='#FFF' font-size='9' text-anchor='middle'>Rotado = 3 u²</text>"
                              "</svg>",
                 "pasos": [
                     {"orden": 1, "texto": "Girar un triángulo no altera su tamaño, solo su posición en el espacio."},

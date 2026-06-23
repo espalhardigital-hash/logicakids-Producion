@@ -1740,6 +1740,15 @@
   margin-bottom: 0.75rem;
 }
 
+.f5-ex-q svg,
+.f5-question-text svg,
+.f5-question-text.short svg {
+  max-width: 100%;
+  height: auto !important;
+  box-sizing: content-box;
+  -webkit-text-fill-color: initial;
+}
+
 .f5-ex-steps {
   display: flex;
   flex-direction: column;

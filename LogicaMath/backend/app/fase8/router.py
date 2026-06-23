@@ -1130,7 +1130,7 @@ async def responder_fase8(
                         ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO,
                     ))
                 )
-                if res_aprob.scalar() >= 26:
+                if res_aprob.scalar() >= 18:
                     fase_completada = True
 
             await db.commit()
@@ -1217,7 +1217,7 @@ async def responder_fase8(
                     ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
                 ))
             )
-            if res_aprob.scalar() >= 26:
+            if res_aprob.scalar() >= 18:
                 fase_completada = True
 
             # Sincronizar espejo visual heredado
@@ -1352,7 +1352,7 @@ async def cerrar_rescate_fase8(
                 ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
             ))
         )
-        if res_aprob.scalar() >= 26:
+        if res_aprob.scalar() >= 18:
             fase_completada = True
 
         # Sincronizar espejo visual heredado
@@ -1377,7 +1377,7 @@ async def cerrar_rescate_fase8(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ENDPOINT 5 — Graduación a Fase 3 (Exige 26 niveles aprobados)
+# ENDPOINT 5 — Graduación a Fase 9 (Exige 18 niveles aprobados)
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.post("/graduate")
@@ -1386,7 +1386,7 @@ async def graduate_fase8(
     alumno: Alumno = Depends(get_current_student),
 ):
     """
-    Gradúa al alumno de Fase 2 a Fase 3 si todos los 26 niveles (14 práctica + 12 desafíos) están dominados.
+    Gradúa al alumno de Fase 8 a Fase 9 si todos los 18 niveles (9 de práctica y 9 desafíos) están dominados.
     """
 
     result = await db.execute(
@@ -1397,24 +1397,24 @@ async def graduate_fase8(
         ))
     )
     aprobados = result.scalar()
-    if aprobados < 26:
+    if aprobados < 18:
         raise HTTPException(
             status_code=400,
-            detail=f"Debes dominar los 26 niveles de Fase 2 (14 de práctica y 12 desafíos). Llevas {aprobados}/26.",
+            detail=f"Debes dominar los 18 niveles de Fase 8 (9 de práctica y 9 desafíos). Llevas {aprobados}/18.",
         )
 
-    result = await db.execute(select(Fase).where(Fase.orden == 3))
-    fase3 = result.scalar_one_or_none()
-    if not fase3:
-        raise HTTPException(status_code=500, detail="La Fase 3 aún no ha sido configurada.")
+    result = await db.execute(select(Fase).where(Fase.orden == 9))
+    fase9 = result.scalar_one_or_none()
+    if not fase9:
+        raise HTTPException(status_code=500, detail="La Fase 9 aún no ha sido configurada.")
 
-    alumno.fase_actual_id = fase3.id
+    alumno.fase_actual_id = fase9.id
     await db.commit()
 
     return {
-        "message": "¡Felicitaciones! ¡Has dominado la Fase 2 y avanzas a la Fase 3!",
-        "nueva_fase_id": fase3.id,
-        "nueva_fase_nombre": fase3.nombre,
+        "message": "¡Felicitaciones! ¡Has dominado la Fase 8 y avanzas a la Fase 9!",
+        "nueva_fase_id": fase9.id,
+        "nueva_fase_nombre": fase9.nombre,
     }
 
 

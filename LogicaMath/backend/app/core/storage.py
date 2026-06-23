@@ -3,6 +3,7 @@ from botocore.exceptions import ClientError, EndpointConnectionError
 import uuid
 import os
 import aiofiles
+import asyncio
 from ..config import settings
 import logging
 
@@ -40,7 +41,8 @@ class StorageService:
         if self.s3_client:
             try:
                 # La subida boto3 síncrona puede bloquear el event loop pero se puede mejorar con asyncio.to_thread si fuera pesado.
-                self.s3_client.put_object(
+                await asyncio.to_thread(
+                    self.s3_client.put_object,
                     Bucket=self.bucket_name,
                     Key=unique_filename,
                     Body=file_contents,
@@ -76,7 +78,8 @@ class StorageService:
         # Intentar S3
         if self.s3_client:
             try:
-                self.s3_client.put_object(
+                await asyncio.to_thread(
+                    self.s3_client.put_object,
                     Bucket=self.bucket_name,
                     Key=unique_filename,
                     Body=file_contents,

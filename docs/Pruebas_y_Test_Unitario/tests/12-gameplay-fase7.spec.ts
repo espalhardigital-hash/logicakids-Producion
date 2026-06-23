@@ -152,7 +152,21 @@ test.describe('12 - Gameplay Fase 7 E2E', () => {
                 
                 if (isModalVisible) {
                     console.log(`[DEBUG] Theory modal found. Calling navigateGenericTheoryModal...`);
-                    await navigateGenericTheoryModal(page, {}, 'f7');
+                    const interactivosAnswers: Record<string, string> = {
+                        "Si estás mirando al Este y giras 90° a la derecha, ¿Hacia dónde miras?": "Sur",
+                        "Si el mapa dice 'Mueve 3 pasos a la izquierda', ¿Qué letra de punto cardinal usas?": "O",
+                        "Si debes ir 1 paso al Este y 2 al Norte. ¿Cuántos pasos das en total?": "3",
+                        "Si el tesoro está en X=5 y Y=2. Escríbelo en formato coordenada con paréntesis: (X,Y)": "(5,2)",
+                        "Estás en (2, 4) y te mueves 1 paso a la derecha. ¿Cuál es tu nueva X?": "3",
+                        "Calcula la distancia desde (1, 1) hasta (3, 2).": "3",
+                        "¿Cuántos segundos hay en 2 minutos?": "120",
+                        "Convierte las 3:00 PM al formato de 24 horas sumando 12.": "15",
+                        "Si tienes 80 minutos, ¿cuántos minutos sueltos quedan después de sacar 1 hora?": "20",
+                        "Si un bus pasa cada 20 minutos y el primero salió a las 9:00. ¿A qué hora sale el segundo?": "9:20",
+                        "Tu viaje duró 40 minutos en total. Viajaste 15 mins en el Bus A y 20 mins en el Bus B. ¿Cuánto tiempo estuviste ESPERANDO?": "5",
+                        "Bus X tarda 20m. Bus Y tarda 15m. Ambos salen a las 10:00. ¿Cuál optimiza el tiempo de llegada?": "Y"
+                    };
+                    await navigateGenericTheoryModal(page, interactivosAnswers, 'f7');
                 } else {
                     console.log(`[DEBUG] Theory modal NOT found within 8000ms.`);
                 }

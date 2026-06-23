@@ -254,9 +254,16 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 enunciado = (
                     f"¿Cuántas {param} tiene un cubo regular?<br/>"
                     "<svg width='160' height='160' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
-                    "  <polygon points='60,20 90,35 60,50 30,35' fill='#3B82F6' fill-opacity='0.6' stroke='#1E3A8A' stroke-width='2'/>"
-                    "  <polygon points='30,35 60,50 60,90 30,75' fill='#1D4ED8' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
-                    "  <polygon points='60,50 90,35 90,75 60,90' fill='#1E40AF' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <!-- Estructura interna trasera (3 aristas ocultas) -->"
+                    "  <line x1='60' y1='20' x2='60' y2='60' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='60' y1='60' x2='90' y2='75' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='30' y1='75' x2='60' y2='60' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <!-- Cara superior -->"
+                    "  <polygon points='60,20 90,35 60,50 30,35' fill='#3B82F6' fill-opacity='0.25' stroke='#3B82F6' stroke-width='2'/>"
+                    "  <!-- Cara frontal izquierda -->"
+                    "  <polygon points='30,35 60,50 60,90 30,75' fill='#3B82F6' fill-opacity='0.15' stroke='#3B82F6' stroke-width='2'/>"
+                    "  <!-- Cara frontal derecha -->"
+                    "  <polygon points='60,50 90,35 90,75 60,90' fill='#3B82F6' fill-opacity='0.2' stroke='#3B82F6' stroke-width='2'/>"
                     "</svg>"
                 )
             elif solid_type == "prisma rectangular":
@@ -270,9 +277,16 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 enunciado = (
                     f"¿Cuántas {param} tiene un prisma rectangular?<br/>"
                     "<svg width='160' height='160' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
-                    "  <polygon points='60,25 100,40 60,55 20,40' fill='#3B82F6' fill-opacity='0.6' stroke='#1E3A8A' stroke-width='2'/>"
-                    "  <polygon points='20,40 60,55 60,95 20,80' fill='#1D4ED8' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
-                    "  <polygon points='60,55 100,40 100,80 60,95' fill='#1E40AF' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <!-- Estructura interna trasera (3 aristas ocultas) -->"
+                    "  <line x1='60' y1='25' x2='60' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='60' y1='65' x2='100' y2='80' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='20' y1='80' x2='60' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <!-- Cara superior -->"
+                    "  <polygon points='60,25 100,40 60,55 20,40' fill='#3B82F6' fill-opacity='0.25' stroke='#3B82F6' stroke-width='2'/>"
+                    "  <!-- Cara frontal izquierda -->"
+                    "  <polygon points='20,40 60,55 60,95 20,80' fill='#3B82F6' fill-opacity='0.15' stroke='#3B82F6' stroke-width='2'/>"
+                    "  <!-- Cara frontal derecha -->"
+                    "  <polygon points='60,55 100,40 100,80 60,95' fill='#3B82F6' fill-opacity='0.2' stroke='#3B82F6' stroke-width='2'/>"
                     "</svg>"
                 )
             elif solid_type == "pirámide cuadrangular":
@@ -286,11 +300,14 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 enunciado = (
                     f"¿Cuántas {param} tiene una pirámide con base cuadrada (pirámide cuadrangular)?<br/>"
                     "<svg width='160' height='160' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
+                    "  <!-- Estructura interna trasera (3 aristas ocultas) -->"
                     "  <line x1='30' y1='80' x2='60' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
                     "  <line x1='90' y1='80' x2='60' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
                     "  <line x1='60' y1='65' x2='60' y2='25' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
-                    "  <polygon points='60,25 30,80 60,95' fill='#3B82F6' fill-opacity='0.6' stroke='#1E3A8A' stroke-width='2'/>"
-                    "  <polygon points='60,25 60,95 90,80' fill='#1D4ED8' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <!-- Cara frontal izquierda -->"
+                    "  <polygon points='60,25 30,80 60,95' fill='#3B82F6' fill-opacity='0.2' stroke='#3B82F6' stroke-width='2'/>"
+                    "  <!-- Cara frontal derecha -->"
+                    "  <polygon points='60,25 60,95 90,80' fill='#3B82F6' fill-opacity='0.25' stroke='#3B82F6' stroke-width='2'/>"
                     "</svg>"
                 )
             else: # prisma triangular
@@ -304,14 +321,16 @@ async def _gen_fase6_pool(rng: random.Random, mod_id: int, lvl_id: int) -> dict:
                 enunciado = (
                     f"¿Cuántas {param} tiene un prisma triangular?<br/>"
                     "<svg width='160' height='160' viewBox='0 0 120 120' style='margin:10px auto; display:block; background:#111827; border:2px solid #3B82F6; border-radius:12px;'>"
-                    "  <line x1='30' y1='40' x2='60' y2='25' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
-                    "  <line x1='90' y1='40' x2='60' y2='25' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
-                    "  <line x1='30' y1='80' x2='65' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
-                    "  <line x1='90' y1='80' x2='65' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
-                    "  <line x1='60' y1='25' x2='65' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
-                    "  <polygon points='30,40 30,80 75,95 75,55' fill='#3B82F6' fill-opacity='0.6' stroke='#1E3A8A' stroke-width='2'/>"
-                    "  <polygon points='75,55 75,95 90,80 90,40' fill='#1D4ED8' fill-opacity='0.8' stroke='#1E3A8A' stroke-width='2'/>"
-                    "  <polygon points='30,40 75,55 90,40' fill='#1E40AF' fill-opacity='0.5' stroke='#1E3A8A' stroke-width='2'/>"
+                    "  <!-- Estructura interna trasera (5 aristas ocultas) -->"
+                    "  <line x1='30' y1='45' x2='60' y2='25' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='90' y1='45' x2='60' y2='25' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='30' y1='85' x2='60' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='90' y1='85' x2='60' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <line x1='60' y1='25' x2='60' y2='65' stroke='#94A3B8' stroke-width='1.5' stroke-dasharray='3,3'/>"
+                    "  <!-- Base superior -->"
+                    "  <polygon points='30,45 90,45 60,25' fill='#3B82F6' fill-opacity='0.15' stroke='none'/>"
+                    "  <!-- Cara frontal -->"
+                    "  <polygon points='30,45 90,45 90,85 30,85' fill='#3B82F6' fill-opacity='0.2' stroke='#3B82F6' stroke-width='2'/>"
                     "</svg>"
                 )
             

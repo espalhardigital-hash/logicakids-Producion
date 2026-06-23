@@ -1126,7 +1126,7 @@ async def responder_fase6(
                         ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO,
                     ))
                 )
-                if res_aprob.scalar() >= 26:
+                if res_aprob.scalar() >= 24:
                     fase_completada = True
 
             await db.commit()
@@ -1144,8 +1144,6 @@ async def responder_fase6(
                 feedback_error=feedback_mostrado,
             )
 
-
-    else:
         # Práctica Libre (1-10): No contamos intentos ni aciertos si es una variante espejo 
         # para no penalizar el "Score" visual del alumno en modo entrenamiento.
         es_variante_espejo = (pregunta.datos_numericos and pregunta.datos_numericos.get("es_espejo"))
@@ -1213,7 +1211,7 @@ async def responder_fase6(
                     ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
                 ))
             )
-            if res_aprob.scalar() >= 26:
+            if res_aprob.scalar() >= 24:
                 fase_completada = True
 
             # Sincronizar espejo visual heredado
@@ -1348,7 +1346,7 @@ async def cerrar_rescate_fase6(
                 ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
             ))
         )
-        if res_aprob.scalar() >= 26:
+        if res_aprob.scalar() >= 24:
             fase_completada = True
 
         # Sincronizar espejo visual heredado
@@ -1371,9 +1369,8 @@ async def cerrar_rescate_fase6(
     )
 
 
-
 # ─────────────────────────────────────────────────────────────────────────────
-# ENDPOINT 5 — Graduación a Fase 3 (Exige 26 niveles aprobados)
+# ENDPOINT 5 — Graduación a Fase 7 (Exige 24 niveles aprobados)
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.post("/graduate")
@@ -1382,7 +1379,7 @@ async def graduate_fase6(
     alumno: Alumno = Depends(get_current_student),
 ):
     """
-    Gradúa al alumno de Fase 2 a Fase 3 si todos los 26 niveles (14 práctica + 12 desafíos) están dominados.
+    Gradúa al alumno de Fase 6 a Fase 7 si todos los 24 niveles (12 de práctica y 12 desafíos) están dominados.
     """
 
     result = await db.execute(
@@ -1393,25 +1390,22 @@ async def graduate_fase6(
         ))
     )
     aprobados = result.scalar()
-    if aprobados < 26:
+    if aprobados < 24:
         raise HTTPException(
             status_code=400,
-            detail=f"Debes dominar los 26 niveles de Fase 2 (14 de práctica y 12 desafíos). Llevas {aprobados}/26.",
+            detail=f"Debes dominar los 24 niveles de Fase 6 (12 de práctica y 12 desafíos). Llevas {aprobados}/24.",
         )
 
-    result = await db.execute(select(Fase).where(Fase.orden == 3))
-    fase3 = result.scalar_one_or_none()
-    if not fase3:
-        raise HTTPException(status_code=500, detail="La Fase 3 aún no ha sido configurada.")
+    result = await db.execute(select(Fase).where(Fase.orden == 7))
+    fase7 = result.scalar_one_or_none()
+    if not fase7:
+        raise HTTPException(status_code=500, detail="La Fase 7 aún no ha sido configurada.")
 
-    alumno.fase_actual_id = fase3.id
+    alumno.fase_actual_id = fase7.id
     await db.commit()
 
     return {
-        "message": "¡Felicitaciones! ¡Has dominado la Fase 2 y avanzas a la Fase 3!",
-        "nueva_fase_id": fase3.id,
-        "nueva_fase_nombre": fase3.nombre,
+        "message": "¡Felicitaciones! ¡Has dominado la Fase 6 y avanzas a la Fase 7!",
+        "nueva_fase_id": fase7.id,
+        "nueva_fase_nombre": fase7.nombre,
     }
-
-
-

@@ -80,21 +80,25 @@ async def _sync_unlocked_levels(db: AsyncSession, alumno_id: int, operacion: str
 # ─────────────────────────────────────────────────────────────────────────────
 
 MODULOS_META = {
-    1: {"nombre": "Fracciones Visuales", "descripcion": "Identificar fracciones con grillas.", "icono": "pie-chart", "color": "#10B981"},
-    2: {"nombre": "Operaciones con Fracciones", "descripcion": "Sumar y restar fracciones.", "icono": "plus-square", "color": "#8B5CF6"},
-    3: {"nombre": "Decimales Visuales", "descripcion": "Relacionar fracciones y decimales.", "icono": "hash", "color": "#F59E0B"},
+    1: {"nombre": "Orientación Cardinal", "descripcion": "Navega usando los puntos cardinales.", "icono": "compass", "color": "#14B8A6"},
+    2: {"nombre": "Plano Cartesiano", "descripcion": "Coordenadas ortogonales y traslación bidimensional.", "icono": "crosshair", "color": "#0D9488"},
+    3: {"nombre": "La Mecánica del Tiempo", "descripcion": "Sistema sexagesimal y cálculo de intervalos.", "icono": "clock", "color": "#0F766E"},
+    4: {"nombre": "Horarios y Apps", "descripcion": "Tablas de horarios y optimización de viajes.", "icono": "calendar", "color": "#115E59"},
 }
 
 NIVELES_META = {
-    (1, 1): {"nombre": "Identificación Visual", "descripcion": "Asignar fracciones a áreas sombreadas."},
-    (1, 2): {"nombre": "Fracciones Equivalentes", "descripcion": "Simplificar y amplificar fracciones."},
-    (1, 3): {"nombre": "Comparación de Fracciones", "descripcion": "Mayor que, menor que, igual."},
-    (2, 1): {"nombre": "Suma con igual denominador", "descripcion": "Sumar fracciones homogéneas."},
-    (2, 2): {"nombre": "Suma con distinto denominador", "descripcion": "Usar Mínimo Común Múltiplo."},
-    (2, 3): {"nombre": "Resta de Fracciones", "descripcion": "Restar fracciones heterogéneas."},
-    (3, 1): {"nombre": "Décimas y Centésimas", "descripcion": "Entender la notación decimal base 10."},
-    (3, 2): {"nombre": "Conversión Fracción-Decimal", "descripcion": "De 1/2 a 0.5."},
-    (3, 3): {"nombre": "Operaciones con Decimales", "descripcion": "Sumar y restar números con punto decimal."},
+    (1, 1): {"nombre": "Descubrimiento", "descripcion": "Identificar Norte, Sur, Este y Oeste."},
+    (1, 2): {"nombre": "Consolidación", "descripcion": "Traducción de instrucciones verbales a vectores."},
+    (1, 3): {"nombre": "Fluidez", "descripcion": "Detección de rutas imposibles y distancias óptimas."},
+    (2, 1): {"nombre": "Descubrimiento", "descripcion": "Pares ordenados (X,Y) en primer cuadrante."},
+    (2, 2): {"nombre": "Consolidación", "descripcion": "Traslación de figuras en el plano cartesiano."},
+    (2, 3): {"nombre": "Fluidez", "descripcion": "Distancia Manhattan (conteo vectorial)."},
+    (3, 1): {"nombre": "Descubrimiento", "descripcion": "Lectura de reloj y conversiones temporales."},
+    (3, 2): {"nombre": "Consolidación", "descripcion": "Duración de eventos AM/PM y formato 24h."},
+    (3, 3): {"nombre": "Fluidez", "descripcion": "Aritmética sexagesimal (suma y resta de tiempos)."},
+    (4, 1): {"nombre": "Descubrimiento", "descripcion": "Lectura de tablas de horarios de transporte."},
+    (4, 2): {"nombre": "Consolidación", "descripcion": "Tiempos compuestos (viaje, espera, transbordo)."},
+    (4, 3): {"nombre": "Fluidez", "descripcion": "Optimización y comparación de opciones de transporte."},
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -279,7 +283,7 @@ async def get_fase7_dashboard(
     modulos = []
     modulo_niveles_map = {1: 3, 2: 3, 3: 3, 4: 3}
     
-    for mod_id in range(1, 4):
+    for mod_id in range(1, 5):
         meta = MODULOS_META[mod_id]
         niveles = []
         desafios = []
@@ -1130,7 +1134,7 @@ async def responder_fase7(
                         ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO,
                     ))
                 )
-                if res_aprob.scalar() >= 26:
+                if res_aprob.scalar() >= 24:
                     fase_completada = True
 
             await db.commit()
@@ -1217,7 +1221,7 @@ async def responder_fase7(
                     ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
                 ))
             )
-            if res_aprob.scalar() >= 26:
+            if res_aprob.scalar() >= 24:
                 fase_completada = True
 
             # Sincronizar espejo visual heredado
@@ -1352,7 +1356,7 @@ async def cerrar_rescate_fase7(
                 ProgresoMaestria.estado == EstadoProgresoEnum.APROBADO
             ))
         )
-        if res_aprob.scalar() >= 26:
+        if res_aprob.scalar() >= 24:
             fase_completada = True
 
         # Sincronizar espejo visual heredado
@@ -1377,7 +1381,7 @@ async def cerrar_rescate_fase7(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ENDPOINT 5 — Graduación a Fase 3 (Exige 26 niveles aprobados)
+# ENDPOINT 5 — Graduación a Fase 8 (Exige 24 niveles aprobados)
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.post("/graduate")
@@ -1386,7 +1390,7 @@ async def graduate_fase7(
     alumno: Alumno = Depends(get_current_student),
 ):
     """
-    Gradúa al alumno de Fase 2 a Fase 3 si todos los 26 niveles (14 práctica + 12 desafíos) están dominados.
+    Gradúa al alumno de Fase 7 a Fase 8 si todos los 24 niveles (12 práctica + 12 desafíos) están dominados.
     """
 
     result = await db.execute(
@@ -1397,24 +1401,24 @@ async def graduate_fase7(
         ))
     )
     aprobados = result.scalar()
-    if aprobados < 26:
+    if aprobados < 24:
         raise HTTPException(
             status_code=400,
-            detail=f"Debes dominar los 26 niveles de Fase 2 (14 de práctica y 12 desafíos). Llevas {aprobados}/26.",
+            detail=f"Debes dominar los 24 niveles de Fase 7 (12 de práctica y 12 desafíos). Llevas {aprobados}/24.",
         )
 
-    result = await db.execute(select(Fase).where(Fase.orden == 3))
-    fase3 = result.scalar_one_or_none()
-    if not fase3:
-        raise HTTPException(status_code=500, detail="La Fase 3 aún no ha sido configurada.")
+    result = await db.execute(select(Fase).where(Fase.orden == 8))
+    fase8 = result.scalar_one_or_none()
+    if not fase8:
+        raise HTTPException(status_code=500, detail="La Fase 8 aún no ha sido configurada.")
 
-    alumno.fase_actual_id = fase3.id
+    alumno.fase_actual_id = fase8.id
     await db.commit()
 
     return {
-        "message": "¡Felicitaciones! ¡Has dominado la Fase 2 y avanzas a la Fase 3!",
-        "nueva_fase_id": fase3.id,
-        "nueva_fase_nombre": fase3.nombre,
+        "message": "¡Felicitaciones! ¡Has dominado la Fase 7 y avanzas a la Fase 8!",
+        "nueva_fase_id": fase8.id,
+        "nueva_fase_nombre": fase8.nombre,
     }
 
 

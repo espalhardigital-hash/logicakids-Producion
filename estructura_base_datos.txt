@@ -1,0 +1,260 @@
+# 🗄️ Estructura Completa de la Base de Datos — LogicaKids Pro
+
+Este documento contiene la especificación completa de la arquitectura de base de datos de LogicaKids Pro, diseñada para que un LLM pueda replicarla o adaptarla para otra aplicación similar.
+
+## 1. Stack Tecnológico
+
+*   **Base de datos**: PostgreSQL 15
+*   **ORM**: SQLAlchemy ≥ 2.0 (modo asyncio con `DeclarativeBase`)
+*   **Driver async**: asyncpg ≥ 0.28
+*   **Migraciones**: Alembic ≥ 1.11
+
+## 2. Configuración Core (SQLAlchemy)
+
+### 2.1 Clase Base (DeclarativeBase)
+
+```python
+from sqlalchemy.orm import DeclarativeBase
+
+class Base(DeclarativeBase):
+    pass
+```
+
+### 2.2 Enumeraciones (Enums)
+
+Todos los enums usan `native_enum=False` (almacenados como VARCHAR en PostgreSQL) para facilitar la extensibilidad sin requerir migraciones complejas de tipos ENUM en BD.
+
+```python
+import enum
+
+class StatusEnum(str, enum.Enum):
+    ACTIVO = "activo"
+    INACTIVO = "inactivo"
+    ELIMINADO = "eliminado"
+
+class OperacionEnum(str, enum.Enum):
+    SUMA = "suma"
+    RESTA = "resta"
+    MULTIPLICACION = "multiplicacion"
+    DIVISION = "division"
+    MIXTA = "mixta"
+
+class TipoPreguntaEnum(str, enum.Enum):
+    CALCULO_DIRECTO = "calculo_directo"
+    PROBLEMA_CONTEXTO = "problema_contexto"
+    PROBLEMA_MIXTO = "problema_mixto"
+    IDENTIFICAR_OPERACION = "identificar_operacion"
+    MULTIPLE_OPCION = "multiple_opcion"
+    RESPUESTA_NUMERICA = "respuesta_numerica"
+    SUBRAYADO_TOKENS = "subrayado_tokens"
+    CONSTRUCTOR_CHAINED = "constructor_soluciones_chained"
+
+class EstadoProgresoEnum(str, enum.Enum):
+    BLOQUEADO = "bloqueado"
+    EN_PROGRESO = "en_progreso"
+    EN_REVISION = "en_revision"
+    APROBADO = "aprobado"
+
+class TipoErrorEnum(str, enum.Enum):
+    CALCULO = "calculo"
+    LECTURA = "lectura"
+    ATENCION = "atencion"
+    OPERACION_INCORRECTA = "operacion_incorrecta"
+    NO_IDENTIFICA_DATOS = "no_identifica_datos"
+    PROBLEMA_INCOMPLETO = "problema_incompleto"
+    TABUADA = "tabuada"
+    DIVISION = "division"
+    VALOR_POSICIONAL = "valor_posicional"
+    TROCO = "troco"
+    INFERENCIA = "inferencia"
+
+class EstadoSimuladoEnum(str, enum.Enum):
+    EN_CURSO = "EN_CURSO"
+    FINALIZADO = "FINALIZADO"
+```
+
+## 3. Modelos y Relaciones (Tablas)
+
+### 3.1 Dominio de Autenticación y Usuarios
+
+**Tabla `users`** (Autenticación base)
+*   `id`: String (UUID), PK
+*   `username`: String, NOT NULL
+*   `email`: String, UNIQUE, NOT NULL
+*   `password_hash`: String, nullable
+*   `role`: String, default "USER"
+*   `status`: String, default "ACTIVE"
+*   `avatar`: String, nullable
+*   `settings`: JSONB, default `{}` (Índice GIN: `idx_users_settings_gin`)
+*   `unlocked_level`: Integer, default 0
+*   `created_at`: DateTime(tz), server_default func.now()
+*   `last_login`: DateTime(tz), nullable
+*   *Relaciones*: `alumno` (1:1, cascade delete)
+
+**Tabla `alumnos`** (Perfil del dominio)
+*   `id`: Integer, PK, autoincrement
+*   `user_id`: String, FK(users.id), UNIQUE, NOT NULL, ON DELETE CASCADE
+*   `nombre`: String(120), NOT NULL
+*   `edad`: Integer, nullable
+*   `fase_actual_id`: Integer, FK(fases.id), default 1, NOT NULL
+*   `estado`: Enum(StatusEnum), default ACTIVO, NOT NULL
+*   `fecha_creacion`: DateTime, default utcnow, NOT NULL
+*   `ultima_modificacion`: DateTime, default utcnow, onupdate utcnow, NOT NULL
+*   *Relaciones*: `fase_actual` (N:1), `pools` (1:N), `progresos` (1:N), `intentos` (1:N), `simulados` (1:N)
+
+### 3.2 Dominio de Estructura Pedagógica
+
+**Tabla `fases`** (Módulos/Niveles principales)
+*   `id`: Integer, PK
+*   `nombre`: String(120), NOT NULL
+*   `descripcion`: Text, nullable
+*   `orden`: Integer, NOT NULL
+*   `estado`: Enum(StatusEnum), default ACTIVO, NOT NULL
+*   `fecha_creacion` / `ultima_modificacion`: DateTime
+*   *Relaciones*: `preguntas` (1:N), `configuraciones` (1:N), `progresos` (1:N)
+
+**Tabla `configuracion_progreso`** (Reglas de negocio)
+*   `id`: Integer, PK
+*   `fase_id`: Integer, FK(fases.id), NOT NULL
+*   `seccion`: Integer, NOT NULL
+*   `operacion`: Enum(OperacionEnum), NOT NULL
+*   `cantidad_requerida`: Integer, NOT NULL
+*   `porcentaje_aprobacion`: Integer, NOT NULL
+*   `orden_desbloqueo`: Integer, NOT NULL
+*   `tipo_feedback`: String(20), default "simple", NOT NULL
+*   `usa_cronometro`: Boolean, default False, NOT NULL
+*   `tiempo_default_segundos`: Integer, nullable
+*   `activo`: Boolean, default True, NOT NULL
+*   `fecha_creacion` / `ultima_modificacion`: DateTime
+*   *Constraints*: UniqueConstraint(`fase_id`, `seccion`, `operacion`)
+
+### 3.3 Dominio de Ejercicios y Preguntas
+
+**Tabla `preguntas`** (Banco central)
+*   `id`: Integer, PK
+*   `fase_id`: Integer, FK(fases.id), NOT NULL
+*   `seccion`: Integer, NOT NULL
+*   `sub_nivel`: Integer, nullable
+*   `estructura_padre_id`: String(255), nullable, indexado
+*   `operacion`: Enum(OperacionEnum), NOT NULL
+*   `tipo_pregunta`: Enum(TipoPreguntaEnum), NOT NULL
+*   `enunciado`: Text, NOT NULL
+*   `respuesta_correcta`: String(255), NOT NULL
+*   `datos_numericos`: JSONB, nullable (Índice GIN)
+*   `payload_tokenizado`: JSONB, nullable
+*   `explicacion_paso_a_paso`: JSONB, nullable
+*   `requiere_subrayado`: Boolean, default False, NOT NULL
+*   `palabras_clave`: JSONB, nullable (Índice GIN)
+*   `errores_previstos`: JSONB, nullable (Índice GIN)
+*   `creado_por` / `modificado_por`: String, FK(users.id), nullable
+*   `estado`: Enum(StatusEnum), default ACTIVO, NOT NULL
+*   `fecha_creacion` / `ultima_modificacion`: DateTime
+*   *Índice compuesto*: `idx_preguntas_fase_seccion_operacion_estado` (B-tree)
+
+**Tabla `alternativas`** (Opciones)
+*   `id`: Integer, PK
+*   `pregunta_id`: Integer, FK(preguntas.id), NOT NULL
+*   `texto`: String(255), NOT NULL
+*   `es_correcta`: Boolean, default False, NOT NULL
+*   `orden`: Integer, nullable
+*   `tipo_error`: Enum(TipoErrorEnum), nullable
+*   `feedback_error`: Text, nullable
+*   *Índice*: `idx_alternativas_pregunta`
+
+### 3.4 Dominio de Progreso e Historial
+
+**Tabla `pool_asignado_alumno`** (Subset aleatorio)
+*   `id`: Integer, PK
+*   `alumno_id`: Integer, FK(alumnos.id), NOT NULL
+*   `pregunta_id`: Integer, FK(preguntas.id), NOT NULL
+*   `fase_id`: Integer, FK(fases.id), NOT NULL
+*   `seccion`: Integer, NOT NULL
+*   `operacion`: Enum(OperacionEnum), NOT NULL
+*   `respondida_correctamente`: Boolean, default False, NOT NULL
+*   `respondida_alguna_vez`: Boolean, default False, NOT NULL
+*   `numero_intentos`: Integer, default 0, NOT NULL
+*   `fecha_asignacion` / `ultima_actualizacion`: DateTime
+*   *Constraints*: UniqueConstraint(`alumno_id`, `pregunta_id`)
+*   *Índices compuestos*: `idx_pool_alumno_bloque`, `idx_pool_pendientes`
+
+**Tabla `progreso_maestria`** (Progreso agregado)
+*   `id`: Integer, PK
+*   `alumno_id`: Integer, FK(alumnos.id), NOT NULL
+*   `fase_id`: Integer, FK(fases.id), NOT NULL
+*   `seccion`: Integer, NOT NULL
+*   `operacion`: Enum(OperacionEnum), NOT NULL
+*   `estado`: Enum(EstadoProgresoEnum), default BLOQUEADO, NOT NULL
+*   `aciertos_acumulados`: Integer, default 0, NOT NULL
+*   `intentos_totales`: Integer, default 0, NOT NULL
+*   `porcentaje_actual`: Integer, default 0, NOT NULL
+*   `aprobado_por_admin`: Boolean, default False, NOT NULL
+*   `fecha_inicio`: DateTime, default utcnow
+*   `fecha_aprobacion`: DateTime, nullable
+*   *Constraints*: UniqueConstraint(`alumno_id`, `fase_id`, `seccion`, `operacion`)
+*   *Índices*: `idx_progreso_alumno_fase`, `idx_progreso_alumno_estado`
+
+**Tabla `intentos`** (Historial analítico)
+*   `id`: Integer, PK
+*   `alumno_id`: Integer, FK(alumnos.id), NOT NULL
+*   `pregunta_id`: Integer, FK(preguntas.id), NOT NULL
+*   `alternativa_id`: Integer, FK(alternativas.id), nullable
+*   `respuesta_dada`: String(255), nullable
+*   `es_correcta`: Boolean, NOT NULL
+*   `fase_id`: Integer, FK(fases.id), NOT NULL
+*   `seccion`: Integer, NOT NULL
+*   `operacion`: Enum(OperacionEnum), NOT NULL
+*   `tipo_error`: Enum(TipoErrorEnum), nullable
+*   `feedback_mostrado`: Text, nullable
+*   `explicacion_mostrada`: JSONB, nullable
+*   `tiempo_respuesta_segundos`: Float, nullable
+*   `fecha`: DateTime, default utcnow
+*   *Índices*: `idx_intentos_alumno_fecha`, `idx_intentos_alumno_bloque`, `idx_intentos_pregunta`, `idx_intentos_tipo_error`
+
+### 3.5 Dominios Adicionales (Simulacros, Teoría, Admin)
+
+**Tabla `simulado_sessions`** (Sesiones activas)
+*   `id`: String(36), PK (UUID)
+*   `alumno_id`: Integer, FK(alumnos.id), indexado
+*   `fase_id`: Integer, FK(fases.id), indexado
+*   `modulo_id` / `nivel_id`: Integer
+*   `simulacro_numero`: Integer, nullable, indexado
+*   `estado`: Enum(EstadoSimuladoEnum), default EN_CURSO
+*   `respuestas_json` / `marcadores_revision` / `pregunta_ids_json`: JSON
+*   `tiempo_restante_segundos`: Integer
+*   `fecha_inicio` / `fecha_fin`: DateTime
+
+**Tabla `simulado_questao`** (Banco cerrado)
+*   `id`: Integer, PK
+*   `simulacro_numero`: Integer, NOT NULL, indexado
+*   `ordem_na_prova`: Integer, NOT NULL
+*   `enunciado`: Text, NOT NULL
+*   `alternativa_a/b/c/d`: Text, NOT NULL
+*   `alternativa_correta`: String(1), NOT NULL
+*   `resolucao`: JSON, NOT NULL
+*   `tema` / `dificuldade`: String
+*   `ano_prova`: Integer, nullable
+
+**Tabla `niveles_teoria_pool`** (Teoría)
+*   `id`: Integer, PK
+*   `fase_id`: Integer, FK(fases.id)
+*   `modulo_id` / `nivel_id`: Integer, indexados
+*   `titulo`: String(255)
+*   `texto_descubrimiento`: Text
+*   `diccionario` / `ejemplos` / `interactivos`: JSONB
+*   `advertencia`: Text
+
+**Tabla `platform_settings`** (Key-Value global)
+*   `id`: Integer, PK
+*   `key`: String(100), UNIQUE, indexado
+*   `value`: JSONB
+*   `updated_at`: DateTime
+
+**Tabla `audit_logs`** (Auditoría)
+*   `id`: Integer, PK
+*   `admin_id` / `action` / `endpoint` / `method` / `ip_address`: String
+*   `payload_summary`: Text
+*   `timestamp`: DateTime(tz)
+
+## 4. Estrategia de Índices
+*   Se utilizan índices compuestos **B-Tree** para las combinaciones de columnas frecuentemente consultadas en bloque (ej. `alumno_id` + `fase_id` + `seccion` + `operacion`).
+*   Se utilizan índices **GIN** para las columnas `JSONB` que almacenan datos semi-estructurados y que requieren búsquedas internas.
