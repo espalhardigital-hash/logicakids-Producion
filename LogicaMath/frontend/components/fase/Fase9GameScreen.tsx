@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSimuladoStore } from '../../store/simuladoStore';
 import { Flag, Clock, CheckCircle, ChevronLeft, ChevronRight, AlertTriangle, Send } from 'lucide-react';
-import api from '../../services/api';
+
 
 const formatTime = (totalSeconds: number) => {
   const m = Math.floor(totalSeconds / 60);

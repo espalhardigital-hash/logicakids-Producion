@@ -221,7 +221,7 @@ const AdminPanel: React.FC<Props> = ({ onBack, onLogout }) => {
             {activeTab === 'pedagogy' && (
               <motion.div key="pedagogy" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                 <ErrorBoundary>
-                  <PedagogyTab showConfirm={showConfirm} showAlert={showAlert} />
+                  <PedagogyTab />
                 </ErrorBoundary>
               </motion.div>
             )}

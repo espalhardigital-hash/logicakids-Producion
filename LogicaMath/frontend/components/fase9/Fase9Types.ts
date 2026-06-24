@@ -23,6 +23,7 @@ export interface Fase9Pregunta {
   aciertos_acumulados?: number;
   intentos_totales?: number;
   porcentaje_actual?: number;
+  enunciado_seed?: any;
 }
 
 export interface Fase9AnswerPayload {
@@ -32,6 +33,7 @@ export interface Fase9AnswerPayload {
   respuesta_dada?: string;
   alternativa_id?: number;
   tiempo_respuesta_segundos?: number;
+  enunciado_seed?: any;
 }
 
 export interface Fase9AnswerResult {

@@ -154,6 +154,18 @@ export interface GlobalDesafiosSubConfig {
 export interface PedagogyConfig {
   practica_libre: GlobalPedagogySubConfig;
   desafios: GlobalDesafiosSubConfig;
+  // Legacy / Fase-1 compatibility fields (optional)
+  passingScore?: number;
+  questionsPerPhase?: number;
+  useTimer?: boolean;
+  timers?: {
+    easy?: number;
+    easy_medium?: number;
+    medium?: number;
+    medium_hard?: number;
+    hard?: number;
+    random_tables?: number;
+  };
 }
 
 export interface ConfiguracionProgreso {

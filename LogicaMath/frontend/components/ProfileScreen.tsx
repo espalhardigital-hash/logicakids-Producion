@@ -111,7 +111,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onUpdateUser, onBack }) => {
 
     try {
       // 1. Avatar upload
-      let finalAvatarUrl = formData.avatar || user.avatar || '';
+      let finalAvatarUrl = user.avatar || '';
       if (pendingFile) {
         setStatus({ type: 'loading', message: 'Subiendo imagen de perfil...' });
         try {

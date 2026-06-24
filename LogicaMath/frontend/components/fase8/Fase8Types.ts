@@ -14,7 +14,7 @@ export interface Fase8Pregunta {
   modulo_id: number;
   nivel_id: number;
   enunciado: string;
-  tipo_pregunta: 'respuesta_numerica' | 'multiple_opcion';
+  tipo_pregunta: 'respuesta_numerica' | 'multiple_opcion' | 'subrayado_tokens' | 'constructor_soluciones_chained';
   respuesta_correcta?: string;
   tiene_cronometro: boolean;
   tiempo_limite_segundos?: number;
@@ -23,6 +23,9 @@ export interface Fase8Pregunta {
   aciertos_acumulados?: number;
   intentos_totales?: number;
   porcentaje_actual?: number;
+  cantidad_requerida?: number;
+  enunciado_seed?: any;
+  pasos_encadenados?: any;
 }
 
 export interface Fase8AnswerPayload {
@@ -32,6 +35,7 @@ export interface Fase8AnswerPayload {
   respuesta_dada?: string;
   alternativa_id?: number;
   tiempo_respuesta_segundos?: number;
+  enunciado_seed?: any;
 }
 
 export interface Fase8AnswerResult {
@@ -51,6 +55,9 @@ export interface Fase8AnswerResult {
   early_exit?: boolean;
   errores_sesion?: number;
   max_errores_tolerados?: number;
+  valor_paso1_congelado?: string;
+  paso_aprobado?: boolean;
+  paso_approved?: boolean;
 }
 
 export interface Fase8NivelInfo {
@@ -105,4 +112,9 @@ export interface Fase8Lectura {
   ejemplos?: Array<any>;
   interactivos?: Array<any>;
   tip_pedagogico?: string;
+}
+
+export interface Fase8Token {
+  id: number;
+  texto: string;
 }

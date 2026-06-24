@@ -55,9 +55,9 @@ const keypadVariants = {
   show: {
     opacity: 1,
     scale: 1,
-    transition: { staggerChildren: 0.05, type: "spring", stiffness: 300, damping: 20 }
+    transition: { staggerChildren: 0.05, type: 'spring' as const, stiffness: 300, damping: 20 }
   }
-};
+} as const;
 
 const keyVariants = {
   hidden: { opacity: 0, y: 10 },

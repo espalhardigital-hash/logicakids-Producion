@@ -34,6 +34,7 @@ interface StaticModule {
   name: string;
   levels?: StaticSubLevel[];
   challenges?: StaticChallenge[];
+  isFinalExam?: boolean;
 }
 
 interface StaticPhase {
@@ -142,23 +143,31 @@ const STATIC_PHASES: StaticPhase[] = [
           { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 40, defaultQty: 25 },
           { id: 13, name: "Desafío Final (Maestría)", defaultTime: 50, defaultQty: 10 }
         ]
+      },
+      {
+        seccion: 99099,
+        modulo_id: 99,
+        operacion: "mixta",
+        name: "🏆 Examen Final de Fase",
+        isFinalExam: true,
+        challenges: [
+          { id: 99, name: "Desafío Mixto (Graduación)", defaultTime: 180, defaultQty: 30 }
+        ]
       }
     ]
   },
   {
-    id: 3, // Fase 3 (Problemas de Texto)
-    name: "Fase 3: Problemas de Texto",
+    id: 3,
+    name: "Fase 3: Problemas de Texto y Sistemas Simples",
     description: "Selección de datos, elección reflexiva de operación y resolución de problemas de texto complejos.",
     modules: [
       {
-        seccion: 1,
-        modulo_id: 1,
-        operacion: "mixta",
-        name: "Módulo 1: El Escáner de la Verdad",
+        seccion: 1, modulo_id: 1, operacion: "mixta",
+        name: "Módulo 1: El Detective Literario",
         levels: [
-          { id: 1, name: "El Lápiz Mágico" },
-          { id: 2, name: "El Escudo Anti-Basura" },
-          { id: 3, name: "El Laberinto Numérico" }
+          { id: 1, name: "Aislamiento de Variables Críticas" },
+          { id: 2, name: "Datos Útiles vs. Datos Basura" },
+          { id: 3, name: "Descarte por Incongruencia" }
         ],
         challenges: [
           { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
@@ -167,15 +176,12 @@ const STATIC_PHASES: StaticPhase[] = [
         ]
       },
       {
-        seccion: 2,
-        modulo_id: 2,
-        operacion: "mixta",
-        name: "Módulo 2: La Máquina del Tiempo",
+        seccion: 2, modulo_id: 2, operacion: "mixta",
+        name: "Módulo 2: Secuencia Temporal",
         levels: [
-          { id: 1, name: "El Reloj hacia Adelante" },
-          { id: 2, name: "El Reloj en Reversa" },
-          { id: 3, name: "El Tiempo Multiplicado" },
-          { id: 4, name: "El Laberinto del Tiempo" }
+          { id: 1, name: "Operaciones aditivas acumulativas" },
+          { id: 2, name: "Álgebra retrospectiva" },
+          { id: 3, name: "Resolución de textos complejos" }
         ],
         challenges: [
           { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
@@ -184,14 +190,12 @@ const STATIC_PHASES: StaticPhase[] = [
         ]
       },
       {
-        seccion: 3,
-        modulo_id: 3,
-        operacion: "mixta",
-        name: "Módulo 3: El Ojo del Comerciante",
+        seccion: 3, modulo_id: 3, operacion: "mixta",
+        name: "Módulo 3: Deducción de Precios",
         levels: [
-          { id: 1, name: "El Enigma de los Carritos" },
-          { id: 2, name: "Cruce de Datos" },
-          { id: 3, name: "El Código Oculto" }
+          { id: 1, name: "Deducción de valores unitarios por diferencia" },
+          { id: 2, name: "Completado analítico de tablas matriciales" },
+          { id: 3, name: "Sistemas simples de dos variables" }
         ],
         challenges: [
           { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
@@ -200,19 +204,41 @@ const STATIC_PHASES: StaticPhase[] = [
         ]
       },
       {
-        seccion: 4,
-        modulo_id: 4,
-        operacion: "mixta",
-        name: "Módulo 4: El Maestro del Empaque",
+        seccion: 4, modulo_id: 4, operacion: "mixta",
+        name: "Módulo 4: Reparto y Residuos",
         levels: [
-          { id: 1, name: "El Reparto Perfecto" },
-          { id: 2, name: "Las Piezas Sobrantes" },
-          { id: 3, name: "El Ciclo Infinito" }
+          { id: 1, name: "Cálculo de repartos exactos" },
+          { id: 2, name: "Interpretación lógica del residuo" },
+          { id: 3, name: "Patrones modulares y congruencias cíclicas" }
         ],
         challenges: [
           { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
           { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
           { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 5, modulo_id: 5, operacion: "mixta",
+        name: "Módulo 5: Ciclos y Agrupaciones Máximas",
+        levels: [
+          { id: 1, name: "Visualización de Saltos y Empaques" },
+          { id: 2, name: "Encuentros Periódicos - MCM" },
+          { id: 3, name: "División Máxima Exacta - MCD" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 99099,
+        modulo_id: 99,
+        operacion: "mixta",
+        name: "🏆 Examen Final de Fase",
+        isFinalExam: true,
+        challenges: [
+          { id: 99, name: "Desafío Mixto (Graduación)", defaultTime: 180, defaultQty: 30 }
         ]
       }
     ]
@@ -241,57 +267,236 @@ const STATIC_PHASES: StaticPhase[] = [
         seccion: 4, modulo_id: 4, operacion: "mixta", name: "Módulo 4: Razón y Mezclas",
         levels: [{ id: 1, name: "Razones y Proporciones" }, { id: 2, name: "Reparto de Volúmenes" }, { id: 3, name: "Mezclas Complejas" }],
         challenges: [{ id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 }, { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 }, { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }]
+      },
+      {
+        seccion: 99099,
+        modulo_id: 99,
+        operacion: "mixta",
+        name: "🏆 Examen Final de Fase",
+        isFinalExam: true,
+        challenges: [
+          { id: 99, name: "Desafío Mixto (Graduación)", defaultTime: 180, defaultQty: 30 }
+        ]
       }
     ]
   },
   {
     id: 5,
-    name: "Fase 5: Geometría y Espacio",
-    description: "Perímetro, área, volumen y razonamiento espacial lógico.",
+    name: "Fase 5: Geometría Plana y Medidas",
+    description: "Perímetros, áreas, figuras compuestas, simetría y conversión de unidades lineales y de superficie.",
     modules: [
       {
-        seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: Perímetros y Áreas",
-        levels: [{ id: 1, name: "Figuras Planas" }, { id: 2, name: "Áreas Compuestas" }],
-        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+        seccion: 1, modulo_id: 1, operacion: "mixta",
+        name: "Módulo 1: Perímetro y Borde",
+        levels: [
+          { id: 1, name: "Conteo directo de unidades lineales" },
+          { id: 2, name: "Cálculo analítico de perímetros" },
+          { id: 3, name: "Conversión de unidades de longitud" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
       },
       {
-        seccion: 2, modulo_id: 2, operacion: "mixta", name: "Módulo 2: Volúmenes y 3D",
-        levels: [{ id: 1, name: "Identificación de Cuerpos" }, { id: 2, name: "Cálculo de Volumen" }],
-        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+        seccion: 2, modulo_id: 2, operacion: "mixta",
+        name: "Módulo 2: Área en Malha",
+        levels: [
+          { id: 1, name: "Conteo analítico de unidades (u²)" },
+          { id: 2, name: "Fusión de sectores triangulares" },
+          { id: 3, name: "Estimación de áreas irregulares" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 3, modulo_id: 3, operacion: "mixta",
+        name: "Módulo 3: Figuras Compuestas y Simetría",
+        levels: [
+          { id: 1, name: "Descomposición de polígonos" },
+          { id: 2, name: "Conservación del área (Tangram)" },
+          { id: 3, name: "Cálculo de áreas sombreadas" },
+          { id: 4, name: "Identificación de Ejes de Simetría" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 4, modulo_id: 4, operacion: "mixta",
+        name: "Módulo 4: Conversión y Pantallas",
+        levels: [
+          { id: 1, name: "Escala gráfica: unidades reales" },
+          { id: 2, name: "Diagonal como medida estándar" },
+          { id: 3, name: "Conversión de unidades de superficie (m², cm², dm²)" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 99099,
+        modulo_id: 99,
+        operacion: "mixta",
+        name: "🏆 Examen Final de Fase",
+        isFinalExam: true,
+        challenges: [
+          { id: 99, name: "Desafío Mixto (Graduación)", defaultTime: 180, defaultQty: 30 }
+        ]
       }
     ]
   },
   {
     id: 6,
-    name: "Fase 6: Álgebra Básica",
-    description: "Introducción a variables, patrones y ecuaciones simples.",
+    name: "Fase 6: Geometría Espacial, Volumen y Magnitudes Físicas",
+    description: "Visualización tridimensional, razonamiento abstracto analítico y medición de magnitudes.",
     modules: [
       {
-        seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: Patrones y Secuencias",
-        levels: [{ id: 1, name: "Secuencias Numéricas" }, { id: 2, name: "Patrones Geométricos" }],
-        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+        seccion: 1, modulo_id: 1, operacion: "mixta",
+        name: "Módulo 1: Reconocimiento 3D",
+        levels: [
+          { id: 1, name: "Identificación de poliedros (caras, aristas, vértices)" },
+          { id: 2, name: "Detección de bloques ocultos por perspectiva" },
+          { id: 3, name: "Planificaciones (moldes desplegados) y sólidos 3D" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
       },
       {
-        seccion: 2, modulo_id: 2, operacion: "mixta", name: "Módulo 2: Ecuaciones de 1er Grado",
-        levels: [{ id: 1, name: "Concepto de Variable" }, { id: 2, name: "Despeje Simple" }],
-        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+        seccion: 2, modulo_id: 2, operacion: "mixta",
+        name: "Módulo 2: Patrones de Crecimiento",
+        levels: [
+          { id: 1, name: "Sucesiones geométricas tridimensionales" },
+          { id: 2, name: "Conteo volumétrico estratificado por capas" },
+          { id: 3, name: "Generalización algebraica: bloques en etapa N" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 3, modulo_id: 3, operacion: "mixta",
+        name: "Módulo 3: Cubos Unitarios",
+        levels: [
+          { id: 1, name: "Volumen: suma de unidades cúbicas (u³)" },
+          { id: 2, name: "Cálculo en prismas: Largo × Ancho × Alto" },
+          { id: 3, name: "Conversión: volumen cúbico y capacidad en litros" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 4, modulo_id: 4, operacion: "mixta",
+        name: "Módulo 4: Medidas de Masa y Temperatura",
+        levels: [
+          { id: 1, name: "Balanzas y Termómetros analógicos (kg, g, °C)" },
+          { id: 2, name: "Variaciones térmicas lineales en Celsius" },
+          { id: 3, name: "La Máquina Kelvin: conversión °C ↔ K (±273)" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 99099,
+        modulo_id: 99,
+        operacion: "mixta",
+        name: "🏆 Examen Final de Fase",
+        isFinalExam: true,
+        challenges: [
+          { id: 99, name: "Desafío Mixto (Graduación)", defaultTime: 180, defaultQty: 30 }
+        ]
       }
     ]
   },
   {
     id: 7,
-    name: "Fase 7: Coordenadas y Tiempo",
-    description: "Lectura de mapas, coordenadas cartesianas y husos horarios.",
+    name: "Fase 7: Coordenadas, Rutas y Tiempo",
+    description: "Orientación en el plano de referencia, vectorización del movimiento y aritmética del tiempo.",
     modules: [
       {
-        seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: Plano Cartesiano",
-        levels: [{ id: 1, name: "Lectura de Coordenadas" }, { id: 2, name: "Desplazamientos" }],
-        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+        seccion: 1, modulo_id: 1, operacion: "mixta",
+        name: "Módulo 1: Orientación Cardinal y Ángulos",
+        levels: [
+          { id: 1, name: "Puntos Cardinales y giros de 90° y 180°" },
+          { id: 2, name: "Instrucciones verbales a trayectos vectoriales" },
+          { id: 3, name: "Trayectorias críticas y distancias en grillas" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
       },
       {
-        seccion: 2, modulo_id: 2, operacion: "mixta", name: "Módulo 2: Medición del Tiempo",
-        levels: [{ id: 1, name: "Conversiones de Tiempo" }, { id: 2, name: "Husos Horarios" }],
-        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+        seccion: 2, modulo_id: 2, operacion: "mixta",
+        name: "Módulo 2: Plano Cartesiano",
+        levels: [
+          { id: 1, name: "Lectura y ubicación de pares ordenados (X, Y)" },
+          { id: 2, name: "Traslación de figuras en el plano" },
+          { id: 3, name: "Cálculo de Distancia Manhattan" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 3, modulo_id: 3, operacion: "mixta",
+        name: "Módulo 3: La Mecánica del Tiempo",
+        levels: [
+          { id: 1, name: "Lectura analógica y digital del reloj" },
+          { id: 2, name: "Duración de eventos cruzando AM/PM y husos de 24h" },
+          { id: 3, name: "Aritmética sexagesimal: adición y sustracción" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 4, modulo_id: 4, operacion: "mixta",
+        name: "Módulo 4: Horarios y Apps",
+        levels: [
+          { id: 1, name: "Lectura de tablas de horarios de transporte" },
+          { id: 2, name: "Cálculo de tiempos compuestos y transbordos" },
+          { id: 3, name: "Optimización: comparar opciones de transporte" }
+        ],
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 99099,
+        modulo_id: 99,
+        operacion: "mixta",
+        name: "🏆 Examen Final de Fase",
+        isFinalExam: true,
+        challenges: [
+          { id: 99, name: "Desafío Mixto (Graduación)", defaultTime: 180, defaultQty: 30 }
+        ]
       }
     ]
   },
@@ -303,12 +508,30 @@ const STATIC_PHASES: StaticPhase[] = [
       {
         seccion: 1, modulo_id: 1, operacion: "mixta", name: "Módulo 1: Combinatoria",
         levels: [{ id: 1, name: "Arreglos Simples" }, { id: 2, name: "Permutaciones" }],
-        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
       },
       {
         seccion: 2, modulo_id: 2, operacion: "mixta", name: "Módulo 2: Probabilidad Básica",
         levels: [{ id: 1, name: "Sucesos Posibles" }, { id: 2, name: "Eventos Compuestos" }],
-        challenges: [{ id: 11, name: "Desafío Estándar", defaultTime: 60, defaultQty: 20 }, { id: 13, name: "Desafío Final", defaultTime: 120, defaultQty: 10 }]
+        challenges: [
+          { id: 11, name: "Desafío 1 (Estándar)", defaultTime: 60, defaultQty: 20 },
+          { id: 12, name: "Desafío 2 (Avanzado)", defaultTime: 90, defaultQty: 20 },
+          { id: 13, name: "Desafío Final (Maestría)", defaultTime: 120, defaultQty: 10 }
+        ]
+      },
+      {
+        seccion: 99099,
+        modulo_id: 99,
+        operacion: "mixta",
+        name: "🏆 Examen Final de Fase",
+        isFinalExam: true,
+        challenges: [
+          { id: 99, name: "Desafío Mixto (Graduación)", defaultTime: 180, defaultQty: 30 }
+        ]
       }
     ]
   },
@@ -347,8 +570,8 @@ const DEFAULT_GLOBAL_CONFIG: PedagogyConfig = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-};
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 24 } }
+} as const;
 
 // ==========================================
 // PRESET SLIDER WITH FLOATING TOOLTIP
@@ -484,7 +707,7 @@ const PedagogyTab: React.FC = () => {
   // Accordion state for operation categories
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
     const saved = localStorage.getItem('pedagogyExpandedCategories');
-    return saved ? JSON.parse(saved) : { basicas: true, avanzadas: true, desafios: true };
+    return saved ? JSON.parse(saved) : { basicas: true, avanzadas: true, desafios: true, final_exam: true };
   });
 
   const toggleCategory = (cat: string) => {
@@ -558,7 +781,10 @@ const PedagogyTab: React.FC = () => {
   const selectModule = (phaseId: number, mod: StaticModule) => {
     setSelectedPhaseId(phaseId);
     setSelectedModule(mod);
-    if (mod.levels && mod.levels.length > 0) {
+    if (mod.isFinalExam) {
+      setSelectedSubLevelId(99);
+      setIsSelectedChallenge(true);
+    } else if (mod.levels && mod.levels.length > 0) {
       setSelectedSubLevelId(mod.levels[0].id);
       setIsSelectedChallenge(false);
     } else {
@@ -579,10 +805,13 @@ const PedagogyTab: React.FC = () => {
   // Mapped DB keys for selected sub-item
   const getSelectedSubItemKeys = () => {
     if (!selectedModule) return { seccion: 0, operacion: '' };
+    const modId = selectedModule.modulo_id || 1;
+    if (modId === 99) {
+      return { seccion: 99099, operacion: 'mixta' };
+    }
     if (selectedSubLevelId === null) {
       return { seccion: selectedModule.seccion, operacion: selectedModule.operacion };
     }
-    const modId = selectedModule.modulo_id || 1;
     let oper = selectedModule.operacion;
     
     // CRITICAL FIX: Fase 5-9 use a different ID structure for their sections
@@ -1015,13 +1244,14 @@ const PedagogyTab: React.FC = () => {
               </button>
 
               {(() => {
-                const basicas = activePhase?.modules.filter(m => ['suma', 'resta'].includes(m.operacion)) || [];
-                const avanzadas = activePhase?.modules.filter(m => ['multiplicacion', 'division'].includes(m.operacion)) || [];
-                const desafios = activePhase?.modules.filter(m => !['suma', 'resta', 'multiplicacion', 'division'].includes(m.operacion)) || [];
+                const basicas = activePhase?.modules.filter(m => !m.isFinalExam && ['suma', 'resta'].includes(m.operacion)) || [];
+                const avanzadas = activePhase?.modules.filter(m => !m.isFinalExam && ['multiplicacion', 'division'].includes(m.operacion)) || [];
+                const desafios = activePhase?.modules.filter(m => !m.isFinalExam && !['suma', 'resta', 'multiplicacion', 'division'].includes(m.operacion)) || [];
+                const finalExam = activePhase?.modules.filter(m => m.isFinalExam) || [];
 
                 const renderCategory = (id: string, title: string, iconColor: string, mods: StaticModule[]) => {
                   if (mods.length === 0) return null;
-                  const isExpanded = expandedCategories[id];
+                  const isExpanded = expandedCategories[id] !== false;
                   
                   return (
                     <div key={id} className="bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
@@ -1113,7 +1343,8 @@ const PedagogyTab: React.FC = () => {
                   <>
                     {renderCategory('basicas', 'Operaciones Básicas', 'bg-blue-500/10 text-blue-500', basicas)}
                     {renderCategory('avanzadas', 'Operaciones Avanzadas', 'bg-purple-500/10 text-purple-500', avanzadas)}
-                    {renderCategory('desafios', 'Desafíos', 'bg-amber-500/10 text-amber-500', desafios)}
+                    {renderCategory('desafios', 'Módulos Temáticos', 'bg-amber-500/10 text-amber-500', desafios)}
+                    {renderCategory('final_exam', '🏆 Examen Final de Fase', 'bg-red-500/10 text-red-500', finalExam)}
                   </>
                 );
               })()}

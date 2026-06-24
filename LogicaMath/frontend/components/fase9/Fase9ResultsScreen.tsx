@@ -38,7 +38,7 @@ interface ResultadosData {
 
 // ─── Componente de una pregunta expandible ─────────────────────────────────
 
-function QuestaoCard({ detalhe, index }: { detalhe: DetalleQuestao; index: number }) {
+const QuestaoCard: React.FC<{ detalhe: DetalleQuestao; index: number }> = ({ detalhe, index }) => {
   const [expanded, setExpanded] = useState(false);
   const { es_correcta, resposta_alumno, resposta_correta, alternativas, resolucao } = detalhe;
 

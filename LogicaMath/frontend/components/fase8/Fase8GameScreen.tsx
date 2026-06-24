@@ -1320,7 +1320,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
               {pregunta.datos_numericos?.labels && (
                 <div className="flex-1 min-w-[300px]">
                   <Fase8FabricHistogram
-                    datos_numericos={pregunta.datos_numericos}
+                    datos_numericos={pregunta.datos_numericos as any}
                     onStateChange={setHistogramValues}
                   />
                 </div>

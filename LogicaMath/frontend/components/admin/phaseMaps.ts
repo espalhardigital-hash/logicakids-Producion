@@ -16,6 +16,7 @@ export interface PhaseMap {
   id: number;
   name: string;
   modules: ModuleMap[];
+  levels?: LevelMap[]; // Optional: direct levels (used in ContentTab for Fase 1 compatibility)
 }
 
 export const PHASE_MAPS: PhaseMap[] = [
@@ -275,228 +276,134 @@ export const PHASE_MAPS: PhaseMap[] = [
   },
   {
     id: 3,
-    name: "Fase 3: Problemas de Texto",
+    name: "Fase 3: Problemas de Texto y Sistemas Simples",
     modules: [
       {
         id: 1,
-        name: "Módulo 1: Lectura Matemática",
+        name: "Módulo 1: El Detective Literario",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 3011,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 3012,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 3013,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Aislamiento de Variables Críticas", seccion: 101, operacion: "mixta" },
+          { id: 2, name: "Datos Útiles vs. Datos Basura", seccion: 102, operacion: "mixta" },
+          { id: 3, name: "Descarte por Incongruencia", seccion: 103, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 1011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 1012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 1013, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 2,
-        name: "Módulo 2: Extracción de Datos",
+        name: "Módulo 2: Secuencia Temporal",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 3021,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 3022,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 3023,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Operaciones Cronológicas", seccion: 201, operacion: "mixta" },
+          { id: 2, name: "Álgebra Retrospectiva", seccion: 202, operacion: "mixta" },
+          { id: 3, name: "Mutaciones Sucesivas", seccion: 203, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 2011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 2012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 2013, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 3,
-        name: "Módulo 3: Enigmas Numéricos",
+        name: "Módulo 3: Deducción de Precios",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 3031,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 3032,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 3033,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Comparación de Carritos", seccion: 301, operacion: "mixta" },
+          { id: 2, name: "Grilla de Doble Entrada", seccion: 302, operacion: "mixta" },
+          { id: 3, name: "Álgebra Visual", seccion: 303, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 3011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 3012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 3013, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 4,
-        name: "Módulo 4: Historias con Contexto",
+        name: "Módulo 4: Reparto y Residuos",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 3041,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 3042,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 3043,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Agrupación Visual", seccion: 401, operacion: "mixta" },
+          { id: 2, name: "Análisis de Resto", seccion: 402, operacion: "mixta" },
+          { id: 3, name: "Sucesión Circular", seccion: 403, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 4011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 4012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 4013, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 5,
+        name: "Módulo 5: Ciclos y Agrupaciones Máximas",
+        levels: [
+          { id: 1, name: "Visualización de Saltos y Empaques", seccion: 501, operacion: "mixta" },
+          { id: 2, name: "Encuentros Periódicos - MCM", seccion: 502, operacion: "mixta" },
+          { id: 3, name: "División Máxima Exacta - MCD", seccion: 503, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 5011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 5012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 5013, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 99,
+        name: "Graduación y Examen Final",
+        levels: [
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
         ]
       }
     ]
   },
   {
     id: 4,
-    name: "Fase 4: Fracciones, Porcentajes y Proporciones",
+    name: "Fase 4: Fracciones y Proporciones",
     modules: [
       {
         id: 1,
         name: "Módulo 1: La Fracción Visual",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 4011,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 4012,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 4013,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Lectura de Fracciones", seccion: 101, operacion: "mixta" },
+          { id: 2, name: "Fracciones Equivalentes", seccion: 102, operacion: "mixta" },
+          { id: 3, name: "Áreas y Asimetrías", seccion: 103, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 1011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 1012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 1013, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 2,
         name: "Módulo 2: Fracción de Cantidad",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 4021,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 4022,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 4023,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Porciones de un Grupo", seccion: 201, operacion: "mixta" },
+          { id: 2, name: "El Motor de Dos Pasos", seccion: 202, operacion: "mixta" },
+          { id: 3, name: "Lógica del Complemento", seccion: 203, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 2011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 2012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 2013, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 3,
         name: "Módulo 3: Porcentajes Rápidos",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 4031,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 4032,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 4033,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Porcentajes Intuitivos", seccion: 301, operacion: "mixta" },
+          { id: 2, name: "Gráficos Circulares", seccion: 302, operacion: "mixta" },
+          { id: 3, name: "Gráficos de Barras", seccion: 303, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 3011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 3012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 3013, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 4,
         name: "Módulo 4: Razón y Mezclas",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 4041,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 4042,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 4043,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Razones y Proporciones", seccion: 401, operacion: "mixta" },
+          { id: 2, name: "Reparto de Volúmenes", seccion: 402, operacion: "mixta" },
+          { id: 3, name: "Mezclas Complejas", seccion: 403, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 4011, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 4012, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 4013, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 99,
+        name: "Graduación y Examen Final",
+        levels: [
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
         ]
       }
     ]
@@ -509,195 +416,117 @@ export const PHASE_MAPS: PhaseMap[] = [
         id: 1,
         name: "Módulo 1: Perímetro y Borde",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 5011,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 5012,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 5013,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Conteo directo de unidades lineales", seccion: 5011, operacion: "mixta" },
+          { id: 2, name: "Cálculo analítico de perímetros", seccion: 5012, operacion: "mixta" },
+          { id: 3, name: "Conversión de unidades de longitud", seccion: 5013, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 50111, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 50112, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 50113, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 2,
-        name: "Módulo 2: Área en Cuadrícula",
+        name: "Módulo 2: Área en Malha",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 5021,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 5022,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 5023,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Conteo analítico de unidades (u²)", seccion: 5021, operacion: "mixta" },
+          { id: 2, name: "Fusión de sectores triangulares", seccion: 5022, operacion: "mixta" },
+          { id: 3, name: "Estimación de áreas irregulares", seccion: 5023, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 50211, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 50212, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 50213, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 3,
-        name: "Módulo 3: Figuras Compuestas",
+        name: "Módulo 3: Figuras Compuestas y Simetría",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 5031,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 5032,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 5033,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Descomposición de polígonos", seccion: 5031, operacion: "mixta" },
+          { id: 2, name: "Conservación del área (Tangram)", seccion: 5032, operacion: "mixta" },
+          { id: 3, name: "Cálculo de áreas sombreadas", seccion: 5033, operacion: "mixta" },
+          { id: 4, name: "Identificación de Ejes de Simetría", seccion: 5034, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 50311, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 50312, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 50313, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 4,
         name: "Módulo 4: Conversión y Pantallas",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 5041,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 5042,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 5043,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Escala gráfica: unidades reales", seccion: 5041, operacion: "mixta" },
+          { id: 2, name: "Diagonal como medida estándar", seccion: 5042, operacion: "mixta" },
+          { id: 3, name: "Conversión de unidades de superficie (m², cm², dm²)", seccion: 5043, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 50411, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 50412, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 50413, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 99,
+        name: "Graduación y Examen Final",
+        levels: [
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
         ]
       }
     ]
   },
   {
     id: 6,
-    name: "Fase 6: Geometría Espacial y Volumen",
+    name: "Fase 6: Geometría Espacial, Volumen y Magnitudes Físicas",
     modules: [
       {
         id: 1,
         name: "Módulo 1: Reconocimiento 3D",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 6011,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 6012,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 6013,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Identificación de poliedros (caras, aristas, vértices)", seccion: 6011, operacion: "mixta" },
+          { id: 2, name: "Detección de bloques ocultos por perspectiva", seccion: 6012, operacion: "mixta" },
+          { id: 3, name: "Planificaciones (moldes desplegados) y sólidos 3D", seccion: 6013, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 60111, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 60112, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 60113, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 2,
         name: "Módulo 2: Patrones de Crecimiento",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 6021,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 6022,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 6023,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Sucesiones geométricas tridimensionales", seccion: 6021, operacion: "mixta" },
+          { id: 2, name: "Conteo volumétrico estratificado por capas", seccion: 6022, operacion: "mixta" },
+          { id: 3, name: "Generalización algebraica: bloques en etapa N", seccion: 6023, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 60211, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 60212, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 60213, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 3,
         name: "Módulo 3: Cubos Unitarios",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 6031,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 6032,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 6033,
-            operacion: "mixta",
-            isChallenge: false
-          }
+          { id: 1, name: "Volumen: suma de unidades cúbicas (u³)", seccion: 6031, operacion: "mixta" },
+          { id: 2, name: "Cálculo en prismas: Largo × Ancho × Alto", seccion: 6032, operacion: "mixta" },
+          { id: 3, name: "Conversión: volumen cúbico y capacidad en litros", seccion: 6033, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 60311, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 60312, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 60313, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 4,
+        name: "Módulo 4: Medidas de Masa y Temperatura",
+        levels: [
+          { id: 1, name: "Balanzas y Termómetros analógicos (kg, g, °C)", seccion: 6041, operacion: "mixta" },
+          { id: 2, name: "Variaciones térmicas lineales en Celsius", seccion: 6042, operacion: "mixta" },
+          { id: 3, name: "La Máquina Kelvin: conversión °C ↔ K (±273)", seccion: 6043, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 60411, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 60412, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 60413, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 99,
+        name: "Graduación y Examen Final",
+        levels: [
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
         ]
       }
     ]
@@ -708,344 +537,92 @@ export const PHASE_MAPS: PhaseMap[] = [
     modules: [
       {
         id: 1,
-        name: "Módulo 1: Orientación Cardinal",
+        name: "Módulo 1: Orientación Cardinal y Ángulos",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 7011,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 7012,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 7013,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 11,
-            name: "Desafío 1: Navegación",
-            seccion: 70111,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 12,
-            name: "Desafío 2: Explorador",
-            seccion: 70112,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 13,
-            name: "Desafío Final: Maestro",
-            seccion: 70113,
-            operacion: "mixta",
-            isChallenge: true
-          }
+          { id: 1, name: "Puntos Cardinales y giros de 90° y 180°", seccion: 7011, operacion: "mixta" },
+          { id: 2, name: "Instrucciones verbales a trayectos vectoriales", seccion: 7012, operacion: "mixta" },
+          { id: 3, name: "Trayectorias críticas y distancias en grillas", seccion: 7013, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 70111, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 70112, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 70113, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 2,
         name: "Módulo 2: Plano Cartesiano",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 7021,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 7022,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 7023,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 11,
-            name: "Desafío 1: Cartesiano",
-            seccion: 70211,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 12,
-            name: "Desafío 2: Topógrafo",
-            seccion: 70212,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 13,
-            name: "Desafío Final: Geómetra",
-            seccion: 70213,
-            operacion: "mixta",
-            isChallenge: true
-          }
+          { id: 1, name: "Lectura y ubicación de pares ordenados (X, Y)", seccion: 7021, operacion: "mixta" },
+          { id: 2, name: "Traslación de figuras en el plano", seccion: 7022, operacion: "mixta" },
+          { id: 3, name: "Cálculo de Distancia Manhattan", seccion: 7023, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 70211, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 70212, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 70213, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 3,
         name: "Módulo 3: La Mecánica del Tiempo",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 7031,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 7032,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 7033,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 11,
-            name: "Desafío 1: Cronómetro",
-            seccion: 70311,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 12,
-            name: "Desafío 2: Calculista",
-            seccion: 70312,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 13,
-            name: "Desafío Final: Maestro del Tiempo",
-            seccion: 70313,
-            operacion: "mixta",
-            isChallenge: true
-          }
+          { id: 1, name: "Lectura analógica y digital del reloj", seccion: 7031, operacion: "mixta" },
+          { id: 2, name: "Duración de eventos cruzando AM/PM y husos de 24h", seccion: 7032, operacion: "mixta" },
+          { id: 3, name: "Aritmética sexagesimal: adición y sustracción", seccion: 7033, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 70311, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 70312, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 70313, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 4,
         name: "Módulo 4: Horarios y Apps",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 7041,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 7042,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 7043,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 11,
-            name: "Desafío 1: Coordinador",
-            seccion: 70411,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 12,
-            name: "Desafío 2: Despachador",
-            seccion: 70412,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 13,
-            name: "Desafío Final: Logístico",
-            seccion: 70413,
-            operacion: "mixta",
-            isChallenge: true
-          }
+          { id: 1, name: "Lectura de tablas de horarios de transporte", seccion: 7041, operacion: "mixta" },
+          { id: 2, name: "Cálculo de tiempos compuestos y transbordos", seccion: 7042, operacion: "mixta" },
+          { id: 3, name: "Optimización: comparar opciones de transporte", seccion: 7043, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 70411, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 70412, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 70413, operacion: "mixta", isChallenge: true }
+        ]
+      },
+      {
+        id: 99,
+        name: "Graduación y Examen Final",
+        levels: [
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
         ]
       }
     ]
   },
   {
     id: 8,
-    name: "Fase 8: Lógica, Combinatoria y Probabilidad",
+    name: "Fase 8: Probabilidad y Lógica",
     modules: [
       {
         id: 1,
-        name: "Módulo 1: Secuencias Lógicas",
+        name: "Módulo 1: Combinatoria",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 8011,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 8012,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 8013,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 11,
-            name: "Desafío 1: Extensión directa",
-            seccion: 80111,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 12,
-            name: "Desafío 2: Reglas simultáneas",
-            seccion: 80112,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 13,
-            name: "Desafío Final: Exponencial",
-            seccion: 80113,
-            operacion: "mixta",
-            isChallenge: true
-          }
+          { id: 1, name: "Arreglos Simples", seccion: 8011, operacion: "mixta" },
+          { id: 2, name: "Permutaciones", seccion: 8012, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 80111, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 80112, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 80113, operacion: "mixta", isChallenge: true }
         ]
       },
       {
         id: 2,
-        name: "Módulo 2: Combinatoria Visual",
+        name: "Módulo 2: Probabilidad Básica",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 8021,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 8022,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 8023,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 11,
-            name: "Desafío 1: Multiplicación",
-            seccion: 80211,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 12,
-            name: "Desafío 2: Restricciones",
-            seccion: 80212,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 13,
-            name: "Desafío Final: Empaquetado tech",
-            seccion: 80213,
-            operacion: "mixta",
-            isChallenge: true
-          }
+          { id: 1, name: "Sucesos Posibles", seccion: 8021, operacion: "mixta" },
+          { id: 2, name: "Eventos Compuestos", seccion: 8022, operacion: "mixta" },
+          { id: 11, name: "Desafío 1 (Estándar)", seccion: 80211, operacion: "mixta", isChallenge: true },
+          { id: 12, name: "Desafío 2 (Avanzado)", seccion: 80212, operacion: "mixta", isChallenge: true },
+          { id: 13, name: "Desafío Final (Maestría)", seccion: 80213, operacion: "mixta", isChallenge: true }
         ]
       },
       {
-        id: 3,
-        name: "Módulo 3: Probabilidad",
+        id: 99,
+        name: "Graduación y Examen Final",
         levels: [
-          {
-            id: 1,
-            name: "Descubrimiento",
-            seccion: 8031,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 2,
-            name: "Consolidación",
-            seccion: 8032,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 3,
-            name: "Fluidez",
-            seccion: 8033,
-            operacion: "mixta",
-            isChallenge: false
-          },
-          {
-            id: 11,
-            name: "Desafío 1: Fracción simple",
-            seccion: 80311,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 12,
-            name: "Desafío 2: Cambio de espacio",
-            seccion: 80312,
-            operacion: "mixta",
-            isChallenge: true
-          },
-          {
-            id: 13,
-            name: "Desafío Final: Mezcla compleja",
-            seccion: 80313,
-            operacion: "mixta",
-            isChallenge: true
-          }
+          { id: 99, name: "Desafío Mixto (Examen Final)", seccion: 99099, operacion: "mixta", isChallenge: true }
         ]
       }
     ]
