@@ -1342,12 +1342,12 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
                 {/* Micro-sparkle ambient hover effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
                 
-                <span>{feedback.visible ? (feedback.esCorrecta ? 'Continuar →' : 'Intentar de nuevo ↺') : 'CONFIRMAR'}</span>
+                <span>{feedback.visible ? ((feedback.esCorrecta || isChallenge) ? 'Continuar →' : 'Intentar de nuevo ↺') : 'CONFIRMAR'}</span>
                 
                 {/* Integrated checkmark circle */}
                 <div className="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white bg-transparent flex-shrink-0">
                   <span className="text-white text-2xl font-black">
-                    {feedback.visible ? (feedback.esCorrecta ? '→' : '↺') : '✓'}
+                    {feedback.visible ? ((feedback.esCorrecta || isChallenge) ? '→' : '↺') : '✓'}
                   </span>
                 </div>
               </button>
@@ -1505,10 +1505,10 @@ export const Fase4GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
                     {/* Micro-sparkle ambient hover effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
                     
-                    <span>{feedback.visible ? (feedback.esCorrecta ? 'Continuar →' : 'Intentar de nuevo ↺') : 'CONFIRMAR'}</span>
+                    <span>{feedback.visible ? ((feedback.esCorrecta || isChallenge) ? 'Continuar →' : 'Intentar de nuevo ↺') : 'CONFIRMAR'}</span>
                     <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-transparent flex-shrink-0">
                       <span className="text-white text-xl font-black">
-                        {feedback.visible ? (feedback.esCorrecta ? '→' : '↺') : '✓'}
+                        {feedback.visible ? ((feedback.esCorrecta || isChallenge) ? '→' : '↺') : '✓'}
                       </span>
                     </div>
                   </button>

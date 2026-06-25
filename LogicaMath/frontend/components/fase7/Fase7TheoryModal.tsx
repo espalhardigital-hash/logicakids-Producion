@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, CheckCircle, XCircle, ArrowRight, ArrowLeft, LogOut } from 'lucide-react';
 import { Fase7Lectura } from './Fase7Types';
+import { formatContent, fixEncoding } from '../../services/textService';
 import { getAvatarUrl } from '../../services/storageService';
 import './Fase7Styles.css';
 
@@ -149,7 +150,7 @@ export const Fase7TheoryModal: React.FC<Fase7TheoryModalProps> = ({
               Módulo {readingData.modulo_id}: {MODULE_NAMES[readingData.modulo_id] || 'Cálculo'} • Nivel {readingData.nivel_id}
             </div>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>
-               ✨ {readingData.titulo}
+               ✨ {fixEncoding(readingData.titulo)}
             </h2>
           </div>
           
@@ -197,7 +198,7 @@ export const Fase7TheoryModal: React.FC<Fase7TheoryModalProps> = ({
                 className="f7-flashcard-content"
               >
                 {readingData.parrafos.map((p, idx) => (
-                  <p key={idx} className="f7-reading-p">{p}</p>
+                  <p key={idx} className="f7-reading-p" dangerouslySetInnerHTML={{ __html: formatContent(p) }} />
                 ))}
 
                 {readingData.diccionario && Object.keys(readingData.diccionario).length > 0 && (
@@ -206,8 +207,8 @@ export const Fase7TheoryModal: React.FC<Fase7TheoryModalProps> = ({
                     <div className="f7-dict-grid">
                       {Object.entries(readingData.diccionario).map(([termino, definicion], idx) => (
                         <div key={idx} className="f7-dict-card" style={{ borderColor: `${moduleColor}55` }}>
-                          <div className="f7-dict-term" style={{ color: moduleColor }}>{termino}</div>
-                          <div className="f7-dict-def">{definicion as string}</div>
+                          <div className="f7-dict-term" style={{ color: moduleColor }} dangerouslySetInnerHTML={{ __html: formatContent(termino) }} />
+                          <div className="f7-dict-def" dangerouslySetInnerHTML={{ __html: formatContent(definicion as string) }} />
                         </div>
                       ))}
                     </div>

@@ -857,6 +857,9 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
         setShaking(true);
         setTimeout(() => setShaking(false), 450);
         setFeedback({ visible: true, esCorrecta: false, resultado });
+        if (isChallenge) {
+          setTimeout(() => handleFeedbackClose(), 1800);
+        }
       }
     } catch (error: any) {
       setFeedback({
@@ -1147,7 +1150,7 @@ export const Fase3GameScreen: React.FC<{ isEvaluatorMode?: boolean }> = ({ isEva
               </div>
               <div className="mt-8">
                 <motion.button onClick={() => handleSubmit()} disabled={selectedAltId === null && !feedback.visible} className="w-full p-4 rounded-2xl font-bold text-lg text-white transition-all cursor-pointer" style={{ background: selectedAltId === null && !feedback.visible ? 'rgba(255, 255, 255, 0.05)' : feedback.visible ? (feedback.esCorrecta ? '#10B981' : '#EF4444') : moduleColor }}>
-                  {feedback.visible ? (feedback.esCorrecta ? 'Siguiente Pregunta →' : 'Intentar de nuevo ↺') : 'Confirmar Respuesta'}
+                  {feedback.visible ? ((feedback.esCorrecta || isChallenge) ? 'Siguiente Pregunta →' : 'Intentar de nuevo ↺') : 'Confirmar Respuesta'}
                 </motion.button>
               </div>
             </motion.div>

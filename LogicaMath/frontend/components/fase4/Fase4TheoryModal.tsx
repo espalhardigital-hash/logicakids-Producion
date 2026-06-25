@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, CheckCircle, XCircle, ArrowRight, ArrowLeft, LogOut, Sparkles } from 'lucide-react';
 import { Fase4Lectura } from './Fase4Types';
+import { formatContent, fixEncoding } from '../../services/textService';
 import { PizzaFractionVisualizer } from './PizzaFractionVisualizer';
 import { PieChartVisualizer } from './PieChartVisualizer';
 import './Fase4Styles.css';
@@ -174,7 +175,7 @@ export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
               MÓDULO {readingData.modulo_id}: {MODULE_NAMES[readingData.modulo_id] || 'Fracciones'} • NIVEL {readingData.nivel_id}
             </div>
             <h2 className="f4-reading-title">
-               💡 {readingData.titulo}
+               💡 {fixEncoding(readingData.titulo)}
             </h2>
           </div>
           
@@ -209,7 +210,7 @@ export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
                 className="f4-flashcard-content"
               >
                 {readingData.parrafos.map((p, idx) => (
-                  <p key={idx} className="f4-reading-p">{p}</p>
+                  <p key={idx} className="f4-reading-p" dangerouslySetInnerHTML={{ __html: formatContent(p) }} />
                 ))}
 
                 {readingData.diccionario && Object.keys(readingData.diccionario).length > 0 && (
@@ -218,8 +219,8 @@ export const Fase4TheoryModal: React.FC<Fase4TheoryModalProps> = ({
                     <div className="f4-dict-grid">
                       {Object.entries(readingData.diccionario).map(([termino, definicion], idx) => (
                         <div key={idx} className="f4-dict-card" style={{ borderColor: `${moduleColor}33` }}>
-                          <div className="f4-dict-term" style={{ color: moduleColor }}>{termino}</div>
-                          <div className="f4-dict-def">{definicion as string}</div>
+                          <div className="f4-dict-term" style={{ color: moduleColor }} dangerouslySetInnerHTML={{ __html: formatContent(termino) }} />
+                          <div className="f4-dict-def" dangerouslySetInnerHTML={{ __html: formatContent(definicion as string) }} />
                         </div>
                       ))}
                     </div>

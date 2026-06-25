@@ -1364,7 +1364,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                         gap: '8px'
                       }}
                     >
-                      {feedback.visible ? 'Continuar →' : 'Confirmar'}
+                      {feedback.visible ? (feedback.esCorrecta || isChallenge ? 'Continuar →' : 'Intentar de nuevo') : 'Confirmar'}
                     </button>
 
                     {!isChallenge && <div className="f8-scores-container"><div className="f8-score-box correct"><span className="f8-score-label">CORRECTAS</span><span className="f8-score-value">{progreso.aciertos}</span></div><div className="f8-score-box incorrect"><span className="f8-score-label">ERRORES</span><span className="f8-score-value">{feedback.resultado?.errores_sesion ?? (progreso.intentos - progreso.aciertos)}</span></div></div>}
@@ -1400,7 +1400,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                          gap: '8px'
                        }}
                      >
-                        {feedback.visible ? 'Continuar →' : 'Confirmar'}
+                        {feedback.visible ? (feedback.esCorrecta || isChallenge ? 'Continuar →' : 'Intentar de nuevo') : 'Confirmar'}
                      </button>
                   </div>
                 )}
@@ -1547,7 +1547,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                         gap: '8px'
                       }}
                     >
-                      {feedback.visible ? 'Continuar →' : 'Confirmar'}
+                      {feedback.visible ? (feedback.esCorrecta || isChallenge ? 'Continuar →' : 'Intentar de nuevo') : 'Confirmar'}
                     </button>
 
                     {!isChallenge && <div className="f8-scores-container"><div className="f8-score-box correct"><span className="f8-score-label">CORRECTAS</span><span className="f8-score-value">{progreso.aciertos}</span></div><div className="f8-score-box incorrect"><span className="f8-score-label">ERRORES</span><span className="f8-score-value">{feedback.resultado?.errores_sesion ?? (progreso.intentos - progreso.aciertos)}</span></div></div>}
@@ -1558,7 +1558,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                    <div className="flex flex-col h-full items-center justify-center p-10 text-center">
                      <p className="text-xl font-bold mb-4">Módulo en Construcción</p>
                      <p className="opacity-70">El tipo {pregunta.tipo_pregunta} estará disponible en la próxima actualización.</p>
-                     <button className="mt-8 px-6 py-3 bg-white/10 rounded-xl" onClick={loadPregunta}>Saltar pregunta</button>
+                     <button className="mt-8 px-6 py-3 bg-white/10 rounded-xl" onClick={() => loadPregunta()}>Saltar pregunta</button>
                    </div>
                 )}
               </motion.div>
@@ -1576,7 +1576,7 @@ const Fase8GameScreen: React.FC<Props> = ({ moduloId, nivelId, isEvaluatorMode, 
                        <button onClick={handleBackspace} disabled={feedback.visible} className="aspect-square rounded-[1.5rem] bg-red-500/10 text-red-400 flex items-center justify-center"><Delete size={28} /></button>
                      </div>
                      <button onClick={handleSubmit} disabled={!feedback.visible && !pregunta.datos_numericos?.initialValues && !respuesta.trim()} className="w-full mt-4 py-4 rounded-[1.5rem] bg-blue-600 text-white flex items-center justify-center font-bold text-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
-                       {feedback.visible ? 'Continuar' : 'Confirmar'} <ArrowRight size={24} className="ml-2"/>
+                       {feedback.visible ? (feedback.esCorrecta || isChallenge ? 'Continuar' : 'Intentar de nuevo') : 'Confirmar'} <ArrowRight size={24} className="ml-2"/>
                      </button>
                   </div>
                 </motion.div>

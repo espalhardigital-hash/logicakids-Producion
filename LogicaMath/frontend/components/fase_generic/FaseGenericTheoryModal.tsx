@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, CheckCircle, XCircle, ArrowRight, ArrowLeft, LogOut } from 'lucide-react';
+import { formatContent, fixEncoding } from '../../services/textService';
 import { FaseTeoria } from './faseMetadata';
 import './FaseGenericStyles.css';
 
@@ -191,7 +192,7 @@ export const FaseGenericTheoryModal: React.FC<FaseGenericTheoryModalProps> = ({
                 className="fg-flashcard-content"
               >
                 {teoria.parrafos.map((p, idx) => (
-                  <p key={idx} className="fg-reading-p">{p}</p>
+                  <p key={idx} className="fg-reading-p" dangerouslySetInnerHTML={{ __html: formatContent(p) }} />
                 ))}
 
                 {teoria.diccionario && Object.keys(teoria.diccionario).length > 0 && (
@@ -200,7 +201,7 @@ export const FaseGenericTheoryModal: React.FC<FaseGenericTheoryModalProps> = ({
                     <div className="fg-dict-grid">
                       {Object.entries(teoria.diccionario).map(([termino, definicion], idx) => (
                         <div key={idx} className="fg-dict-card" style={{ borderColor: `${moduleColor}55` }}>
-                          <div className="fg-dict-term" style={{ color: moduleColor }}>{termino}</div>
+                          <div className="fg-dict-term" style={{ color: moduleColor }} dangerouslySetInnerHTML={{ __html: formatContent(termino) }} />
                           <div className="fg-dict-def">{definicion as string}</div>
                         </div>
                       ))}
