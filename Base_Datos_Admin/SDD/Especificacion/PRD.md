@@ -50,12 +50,20 @@ El Panel Administrador es el núcleo de gestión y control del ecosistema Logica
   - Integrar el diccionario de módulos en el frontend para reemplazar los números de sección (ej: Módulo 100) por nombres amigables (ej: "Sumas", "Gimnasio Numérico Mental").
 
 ### C. Banco de Preguntas Renovado
-- **Navegación en Tres Niveles:**
+- **Navegación en Niveles:**
   - Pestañas de Fases en la parte superior.
   - Menú lateral secundario con los Módulos de la fase elegida.
   - Sub-pestañas horizontales para: General del Módulo, Teoría, Preguntas Libres, Desafíos.
+  - Sub-pestañas de Segmentación (Preguntas y Desafíos): 
+    - En **Preguntas**: Permite filtrar por niveles (Todos, Nivel 1: Básico, Nivel 2: Intermedio, Nivel 3: Avanzado).
+    - En **Desafíos**: Permite filtrar por niveles (Todos, Desafío 1: Estándar, Desafío 2: Avanzada, Desafío Final: Maestría).
 - **Formulario Inteligente:**
   - El botón "Nueva Pregunta" autocompleta Fase y Módulo según la ubicación actual del usuario.
+- **Editor de Teoría Enriquecida:**
+  - Panel para información general (Título, Texto Pedagógico, Advertencia).
+  - Gestor dinámico del Glosario (Diccionario clave-valor) para agregar y remover términos en tiempo real.
+  - Gestor de Ejemplos Guiados con enunciados y creación interactiva de pasos explicativos numerados auto-reordenables.
+  - Gestor de Ejercicios Prácticos (Interactivos) con inputs de enunciado, respuesta, y retroalimentaciones específicas de acierto y error.
 - **Modo Vista Alumno (Simulador):**
   - Renderizado interactivo del ejercicio imitando el estilo visual de la aplicación móvil/juego.
   - Navegación secuencial con botones "Atrás" y "Adelante".
@@ -80,3 +88,27 @@ El Panel Administrador es el núcleo de gestión y control del ecosistema Logica
 
 ## 7. Criterios de Aceptación (Ejemplo)
 - *Dado* que el administrador ha seleccionado 5 alumnos en la tabla, *cuando* presiona "Eliminar Seleccionados" y confirma en el modal, *entonces* el sistema debe responder exitosamente, refrescar la lista (eliminando las filas), y las 5 imágenes asociadas ya no deben existir en el storage de MinIO.
+
+---
+
+## 8. Reforma Pedagógica y Variabilidad de Datos (Fases 3, 4 y 5)
+Para combatir la fatiga de repetición y mejorar el valor pedagógico del banco de preguntas del alumno, se implementó un proceso de reformulación narrativa en los desafíos:
+
+### A. Variabilidad Narrativa de Desafíos
+- **Fase 3 (2,400 desafíos):** Se estructuraron 5 contextos narrativos diferentes rotativos por módulo (M1 a M5). Se corrigieron precios en R$ a euros/pesos en M3, se eliminaron datos distractores redundantes en M1/99099 y se resolvió la ambigüedad de encuentro de vueltas completas en M5.
+- **Fase 4 (360 desafíos):** Se implementaron 12 contextos narrativos rotativos (`id % 12`) específicos por cada módulo (M1-M4) que mantienen la lógica matemática original:
+  - **M1 (Fracción Visual):** Barras de chocolate, pizzas redondas, tartas de cumpleaños, huertos escolares, paneles de ventanas, cuñas de queso, murales rectangulares, secciones de jardín, rebanadas de pan, cubos de gelatina, alfombras fraccionadas y mosaicos blancos.
+  - **M2 (Fracción de Cantidad):** Cajas de lápices, libros infantiles, canastas de manzanas, bolsas de caramelos, globos inflados, bloques de construcción, álbumes de estampitas, galletas, flores sembradas, alcancías con monedas, crayones y hojas de papel dobladas.
+  - **M3 (Porcentajes Rápidos y Promedios):** Partidos de baloncesto, minutos leídos, monedas de alcancía, páginas de cuento, juegos de canicas, caminatas recorridas, galletas por bandeja, lápices recolectados, fotos tomadas, aciertos de exámenes, naranjas por árbol, juguetes ordenados (Promedios) e informes escolares, talleres de ajedrez, árboles frutales, jugueterías, calificaciones máximas, ilustraciones de libros, etc. (Porcentajes).
+  - **M4 (Razón y Mezclas):** Jarras de limonada, mezclas de pintura verde, tornillos en estantes, tazas de arroz, chocolate caliente, tazas de harina, comida para mascotas, desinfectante casero, plastilina casera, tetera de infusión, jugo mixto y cola blanca para pegamento.
+- **Fase 5 (360 desafíos):** Se implementaron 12 contextos narrativos rotativos (`id % 12`) específicos por cada módulo (M1-M4):
+  - **M1 (Perímetro de Rectángulos):** Cercas de jardín, delimitación de huertos, marcos de madera de pinturas, áreas de juego cercadas, barandas de piscinas, líneas exteriores de canchas, zócalos de habitaciones, cintas protectoras de mesa, tiras LED en espejos, senderos de parques, guirnaldas de ventanas y contornos de pizarra.
+  - **M2 (Área de Rectángulos):** Alfombrado de habitaciones, césped sintético de jardín, azulejos de cocina, terrenos de siembra, pintura de paredes, barnizado de mesas, forrado de cartelera escolar, pistas de baile de madera, cortinas de ventana, pulido de canchas, estanques de peces y papel transparente de cuadernos.
+  - **M3 (Área Sombreada):** Portarretratos rectangulares, terrenos con piscinas, ventanas con paneles de madera, tarjetas con fotos centrales, patios con canteros de flores, caminos sobre manteles, paredes con cuadros colgados, paneles de mosaicos con espejos, terrenos con zonas de voleibol, placas metálicas grabadas, cajas de regalo con acetato y alfombras estampadas.
+  - **M4 (Pitágoras y Diagonales):** Pantallas en pulgadas de televisores, monitores de computadora, pantallas de celular, tabletas nuevas, laptops, consolas portátiles de videojuegos, relojes inteligentes, folletos de cine, marcos digitales de fotos, pantallas de GPS, libros electrónicos (e-readers) y refrigeradores inteligentes (resolviendo el problema de repetición del televisor).
+
+### B. Sustitución en M5 de Fase 3
+- Se sustituyeron aleatoriamente 50 preguntas en M5 de Fase 3 correspondientes a MCM y 50 preguntas a MCD (100 preguntas en total) para dotar de mayor variabilidad al banco del alumno.
+
+### C. Mantenimiento del Rigor Técnico y Consistencia
+- En todas las actualizaciones de enunciados, las cantidades numéricas y nombres involucrados en la lógica del problema original se extrajeron y reinyectaron en los nuevos contextos usando expresiones regulares (`substring(enunciado FROM 'patrón')`), lo que garantiza que la lógica, las alternativas de opción múltiple (`opcion_a`, `opcion_b`, `opcion_c`) y la `respuesta_correcta` sean 100% consistentes con los datos históricos de los alumnos.

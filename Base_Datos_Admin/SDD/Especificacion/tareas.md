@@ -67,11 +67,11 @@ Este documento contiene la lista detallada y secuencial de tareas de desarrollo 
 ## 📝 Fase F: Reforma del Banco de Preguntas (Frontend)
 
 - [x] **Tarea F.1: Refactor de layout jerárquico**
-  * *Acción:* Modificar [PreguntasPage.tsx](file:///d:/Antigravity/APP_Logica_Matematicas_kids/Base_Datos_Admin/logicakids-admin/src/features/ejercicios/pages/PreguntasPage.tsx) para incluir la navegación por Fases (superior), Módulos (menú lateral) y Sub-pestañas horizontales (General, Teoría, Preguntas, Desafíos).
+  * *Acción:* Modificar [PreguntasPage.tsx](file:///d:/Antigravity/APP_Logica_Matematicas_kids/Base_Datos_Admin/logicakids-admin/src/features/ejercicios/pages/PreguntasPage.tsx) para incluir la navegación por Fases (superior), Módulos (menú lateral) y Sub-pestañas horizontales (General, Teoría, Preguntas, Desafíos). Adicionalmente, incluir segmentación secundaria de Desafíos por niveles (Estándar, Avanzada, Maestría) y de Preguntas por niveles (Básico, Intermedio, Avanzado).
 - [x] **Tarea F.2: Implementar Pestaña "General del Módulo"**
   * *Acción:* Mostrar resumen de configuraciones y permitir editarlas en lote.
 - [x] **Tarea F.3: Implementar Pestaña "Teoría"**
-  * *Acción:* Integrar editor visual de texto y campos descriptivos (diccionario, ejemplos, advertencia) para la teoría del módulo por nivel.
+  * *Acción:* Implementar un editor estructurado dinámico para los datos enriquecidos de la teoría por nivel, permitiendo la creación, edición y guardado de los términos del Diccionario (Glosario), Ejemplos Guiados (con enunciados y secuencias de pasos auto-reordenables) y Ejercicios Prácticos (Interactivos con respuestas y retroalimentaciones).
 - [x] **Tarea F.4: Modo Simulación Alumno (WYSIWYG)**
   * *Acción:* Crear el modal/tarjeta de simulación interactiva donde la pregunta se vea como en la app móvil. Habilitar la barra de progreso, la navegación secuencial (Atrás/Adelante) y el checkbox de revisión.
 
@@ -87,4 +87,21 @@ Este documento contiene la lista detallada y secuencial de tareas de desarrollo 
   * *Acción:* Adaptar el enrutador y los layouts para leer el tema activo en `localStorage` e inyectar dinámicamente la clase `dark` en la etiqueta raíz `<html>` o `<body>` de forma fluida.
 - [x] **Tarea G.4: Estilización de Tablas y Paneles de Control**
   * *Acción:* Aplicar las reglas visuales (`rounded-2xl`, sombras tenues `shadow-sm`, y bordes `border-slate-100` / `border-zinc-800` en modo oscuro) en las vistas de Alumnos, Fases de Pedagogía y el Banco de Preguntas.
+
+---
+
+## 🧠 Reforma Pedagógica de Contenidos y Desafíos
+
+- [x] **Tarea H.1: Reformulación de Desafíos de la Fase 3 (2,400 preguntas)**
+  * *Acción:* Ejecutar script SQL de migración transaccional con rotación de 5 contextos narrativos por módulo y normalización de monedas/enunciados.
+  * *Destino:* Base de datos local/producción (`reformulacion_desafios_f3.sql`).
+- [x] **Tarea H.2: Sustitución de Preguntas de MCM y MCD (Fase 3 M5)**
+  * *Acción:* Sustituir 50 preguntas de MCM (sección 5012) y 50 preguntas de MCD (sección 5013) aleatoriamente por preguntas nuevas de mayor calidad y variedad.
+  * *Destino:* Base de datos local/producción (`replace_mcm_mcd_questions.py`).
+- [x] **Tarea H.3: Reformulación de Desafíos de la Fase 4 y Fase 5 (720 preguntas)**
+  * *Acción:* Ejecutar script SQL transaccional con rotación de 12 contextos narrativos específicos por módulo de la Fase 4 (M1-M4) y Fase 5 (M1-M4) sin alterar la respuesta correcta.
+  * *Destino:* Base de datos local/producción (`reformulacion_desafios_f4_f5.sql`).
+- [x] **Tarea H.4: Validaciones Post-Migración y Documentación**
+  * *Acción:* Verificar que no haya fallas de captura en el texto reformulado y actualizar los documentos de especificación técnica del proyecto.
+
 

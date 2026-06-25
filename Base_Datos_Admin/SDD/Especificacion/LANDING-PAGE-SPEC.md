@@ -39,6 +39,7 @@ Este documento especifica la estructura visual, distribución de componentes y n
   - **Columna Derecha (Área de Trabajo Principal - 75% de ancho):**
     - Cabecera con el título del módulo y el botón "Nueva Pregunta".
     - Fila de sub-pestañas horizontales para alternar entre: General, Teoría, Preguntas Libres y Desafíos.
+    - **Navegación de Nivel 2 (Sub-pestañas de Desafíos):** Al activar la pestaña "Desafíos", se muestra una fila secundaria para segmentar por nivel: *Todos, Desafío 1: Estándar, Desafío 2: Avanzada, Desafío Final: Maestría*.
 
 ---
 

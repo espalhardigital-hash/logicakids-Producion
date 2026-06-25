@@ -46,6 +46,8 @@ export const PreguntasPage: React.FC = () => {
   const [faseId, setFaseId] = useState<number>(1);
   const [moduloId, setModuloId] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<"general" | "teoria" | "preguntas" | "desafios">("preguntas");
+  const [activeChallengeFilter, setActiveChallengeFilter] = useState<"Todos" | "Desafío 1" | "Desafío 2" | "Maestría">("Todos");
+  const [activePreguntaFilter, setActivePreguntaFilter] = useState<"Todos" | "Nivel 1" | "Nivel 2" | "Nivel 3">("Todos");
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPreguntaForEdit, setSelectedPreguntaForEdit] = useState<any>(null);
@@ -74,16 +76,30 @@ export const PreguntasPage: React.FC = () => {
   const [theoryTitle, setTheoryTitle] = useState("");
   const [theoryText, setTheoryText] = useState("");
   const [theoryWarning, setTheoryWarning] = useState("");
+  const [diccionarioList, setDiccionarioList] = useState<{ termino: string; definicion: string }[]>([]);
+  const [theoryEjemplos, setTheoryEjemplos] = useState<any[]>([]);
+  const [theoryInteractivos, setTheoryInteractivos] = useState<any[]>([]);
 
   useEffect(() => {
     if (teoria) {
       setTheoryTitle(teoria.titulo || "");
       setTheoryText(teoria.texto_descubrimiento || "");
       setTheoryWarning(teoria.advertencia || "");
+      
+      const dictArray = Object.entries(teoria.diccionario || {}).map(([termino, definicion]) => ({
+        termino,
+        definicion: String(definicion)
+      }));
+      setDiccionarioList(dictArray);
+      setTheoryEjemplos(teoria.ejemplos || []);
+      setTheoryInteractivos(teoria.interactivos || []);
     } else {
       setTheoryTitle("");
       setTheoryText("");
       setTheoryWarning("");
+      setDiccionarioList([]);
+      setTheoryEjemplos([]);
+      setTheoryInteractivos([]);
     }
   }, [teoria]);
 
@@ -111,24 +127,42 @@ export const PreguntasPage: React.FC = () => {
     return seccion >= 1000 ? seccion % 1000 : seccion % 100;
   };
 
-  const modulePreguntas = preguntas.filter(p => {
+  const baseModulePreguntas = preguntas.filter(p => {
     const mId = getModuloIdFromSeccion(p.seccion);
     const subId = getSubIdFromSeccion(p.seccion);
     return mId === moduloId && subId < 11;
   });
 
-  const moduleDesafios = preguntas.filter(p => {
+  const modulePreguntas = baseModulePreguntas.filter(p => {
+    if (activePreguntaFilter === "Todos") return true;
+    const subId = getSubIdFromSeccion(p.seccion);
+    if (activePreguntaFilter === "Nivel 1") return subId === 1;
+    if (activePreguntaFilter === "Nivel 2") return subId === 2;
+    if (activePreguntaFilter === "Nivel 3") return subId >= 3;
+    return true;
+  });
+
+  const baseModuleDesafios = preguntas.filter(p => {
     const mId = getModuloIdFromSeccion(p.seccion);
     const subId = getSubIdFromSeccion(p.seccion);
     return mId === moduloId && subId >= 11;
+  });
+
+  const moduleDesafios = baseModuleDesafios.filter(p => {
+    if (activeChallengeFilter === "Todos") return true;
+    const subId = getSubIdFromSeccion(p.seccion);
+    if (activeChallengeFilter === "Desafío 1") return subId === 11;
+    if (activeChallengeFilter === "Desafío 2") return subId === 12;
+    if (activeChallengeFilter === "Maestría") return subId >= 13;
+    return true;
   });
 
   // Lista combinada de preguntas para el simulador
   const simulationList = activeTab === "desafios" ? moduleDesafios : modulePreguntas;
 
   // Calcular progreso de revisión (Fase F.4)
-  const totalPreguntas = modulePreguntas.length + moduleDesafios.length;
-  const revisadasCount = [...modulePreguntas, ...moduleDesafios].filter(p => p.revisado_admin).length;
+  const totalPreguntas = baseModulePreguntas.length + baseModuleDesafios.length;
+  const revisadasCount = [...baseModulePreguntas, ...baseModuleDesafios].filter(p => p.revisado_admin).length;
   const revisionProgress = totalPreguntas > 0 ? Math.round((revisadasCount / totalPreguntas) * 100) : 0;
 
   // Filtrar configuraciones del módulo
@@ -137,6 +171,13 @@ export const PreguntasPage: React.FC = () => {
   // Guardar teoría
   const handleSaveTeoria = async () => {
     try {
+      const diccionarioObj: Record<string, string> = {};
+      diccionarioList.forEach(item => {
+        if (item.termino.trim()) {
+          diccionarioObj[item.termino.trim()] = item.definicion;
+        }
+      });
+
       await saveTeoria({
         fase_id: faseId,
         modulo_id: moduloId,
@@ -144,9 +185,9 @@ export const PreguntasPage: React.FC = () => {
         titulo: theoryTitle,
         texto_descubrimiento: theoryText,
         advertencia: theoryWarning,
-        diccionario: teoria?.diccionario || {},
-        ejemplos: teoria?.ejemplos || [],
-        interactivos: teoria?.interactivos || []
+        diccionario: diccionarioObj,
+        ejemplos: theoryEjemplos,
+        interactivos: theoryInteractivos
       });
       showAlert("Teoría guardada exitosamente.", "success");
     } catch (err: any) {
@@ -302,6 +343,12 @@ export const PreguntasPage: React.FC = () => {
                     onClick={() => {
                       setActiveTab(tab);
                       setSimulatedItemIndex(null);
+                      if (tab !== "desafios") {
+                        setActiveChallengeFilter("Todos");
+                      }
+                      if (tab !== "preguntas") {
+                        setActivePreguntaFilter("Todos");
+                      }
                     }}
                     className={`px-3.5 py-1.5 rounded-lg font-bold capitalize transition-all ${
                       activeTab === tab
@@ -388,45 +435,325 @@ export const PreguntasPage: React.FC = () => {
 
             {/* B. PESTAÑA: TEORÍA (Fase F.3) */}
             {activeTab === "teoria" && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {isLoadingTeoria ? (
-                  <p className="text-slate-400 text-xs">Cargando guion de teoría...</p>
+                  <div className="py-8 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-indigo-500" /></div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold uppercase text-slate-500">Título de Teoría</label>
-                      <input 
-                        type="text" 
-                        className="w-full border p-2.5 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-sm" 
-                        value={theoryTitle}
-                        onChange={e => setTheoryTitle(e.target.value)}
-                        placeholder="Ej: Sumas Simples"
-                      />
+                  <div className="space-y-6">
+                    {/* Información General de la Teoría */}
+                    <div className="border border-slate-100 dark:border-zinc-800 bg-slate-50/20 dark:bg-zinc-900/10 rounded-2xl p-5 space-y-4">
+                      <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 border-b pb-2 dark:border-zinc-800">
+                        <HelpCircle className="h-4 w-4 text-indigo-500" /> Información General
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold uppercase text-slate-500">Título de Teoría</label>
+                          <input 
+                            type="text" 
+                            className="w-full border p-2.5 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-sm" 
+                            value={theoryTitle}
+                            onChange={e => setTheoryTitle(e.target.value)}
+                            placeholder="Ej: Sumas Simples"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold uppercase text-slate-500">Texto de Descubrimiento (Pedagógico)</label>
+                          <textarea 
+                            rows={4}
+                            className="w-full border p-3 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-sm" 
+                            value={theoryText}
+                            onChange={e => setTheoryText(e.target.value)}
+                            placeholder="Guion y explicación de aprendizaje..."
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold uppercase text-slate-500">Advertencia / Tip del Tutor (Opcional)</label>
+                          <input 
+                            type="text" 
+                            className="w-full border p-2.5 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-sm" 
+                            value={theoryWarning}
+                            onChange={e => setTheoryWarning(e.target.value)}
+                            placeholder="Evita trampas comunes..."
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold uppercase text-slate-500">Texto de Descubrimiento (Pedagógico)</label>
-                      <textarea 
-                        rows={6}
-                        className="w-full border p-3 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-sm" 
-                        value={theoryText}
-                        onChange={e => setTheoryText(e.target.value)}
-                        placeholder="Guion y explicación de aprendizaje..."
-                      />
+
+                    {/* Sección 1: Diccionario Pedagógico */}
+                    <div className="border border-slate-100 dark:border-zinc-800 bg-slate-50/20 dark:bg-zinc-900/10 rounded-2xl p-5 space-y-4">
+                      <div className="flex justify-between items-center border-b pb-2.5 dark:border-zinc-800">
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-indigo-500" /> Diccionario Pedagógico (Glosario)
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setDiccionarioList([...diccionarioList, { termino: "", definicion: "" }])}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold hover:bg-indigo-100/70 transition-all"
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Agregar Término
+                        </button>
+                      </div>
+
+                      {diccionarioList.length === 0 ? (
+                        <p className="text-xs text-slate-400 text-center py-2">No hay términos definidos en el glosario.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {diccionarioList.map((item, idx) => (
+                            <div key={idx} className="flex gap-3 items-start">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
+                                <input
+                                  type="text"
+                                  placeholder="Término (ej: Ignorar)"
+                                  className="border p-2.5 rounded-xl text-xs dark:bg-zinc-800 dark:border-zinc-700 w-full font-semibold"
+                                  value={item.termino}
+                                  onChange={e => {
+                                    const newList = [...diccionarioList];
+                                    newList[idx].termino = e.target.value;
+                                    setDiccionarioList(newList);
+                                  }}
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Definición o explicación del término..."
+                                  className="border p-2.5 rounded-xl text-xs dark:bg-zinc-800 dark:border-zinc-700 w-full"
+                                  value={item.definicion}
+                                  onChange={e => {
+                                    const newList = [...diccionarioList];
+                                    newList[idx].definicion = e.target.value;
+                                    setDiccionarioList(newList);
+                                  }}
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setDiccionarioList(diccionarioList.filter((_, i) => i !== idx))}
+                                className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all self-center"
+                                title="Eliminar Término"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold uppercase text-slate-500">Advertencia / Tip del Tutor (Opcional)</label>
-                      <input 
-                        type="text" 
-                        className="w-full border p-2.5 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-sm" 
-                        value={theoryWarning}
-                        onChange={e => setTheoryWarning(e.target.value)}
-                        placeholder="Evita trampas comunes..."
-                      />
+
+                    {/* Sección 2: Ejemplos Guiados */}
+                    <div className="border border-slate-100 dark:border-zinc-800 bg-slate-50/20 dark:bg-zinc-900/10 rounded-2xl p-5 space-y-4">
+                      <div className="flex justify-between items-center border-b pb-2.5 dark:border-zinc-800">
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                          <Play className="h-4 w-4 text-emerald-500" /> Ejemplos Guiados (Paso a Paso)
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setTheoryEjemplos([...theoryEjemplos, { enunciado: "", pasos: [] }])}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-bold hover:bg-emerald-100/70 transition-all"
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Agregar Ejemplo
+                        </button>
+                      </div>
+
+                      {theoryEjemplos.length === 0 ? (
+                        <p className="text-xs text-slate-400 text-center py-2">No hay ejemplos guiados registrados.</p>
+                      ) : (
+                        <div className="space-y-6">
+                          {theoryEjemplos.map((ej, idx) => (
+                            <div key={idx} className="p-4 border rounded-xl dark:border-zinc-850 bg-white dark:bg-zinc-900/50 space-y-4">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">EJEMPLO #{idx + 1}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setTheoryEjemplos(theoryEjemplos.filter((_, i) => i !== idx))}
+                                  className="flex items-center gap-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 px-2 py-1 rounded-lg transition-all"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" /> Eliminar Ejemplo
+                                </button>
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold uppercase text-slate-400">Enunciado del Ejemplo</label>
+                                <textarea
+                                  rows={2}
+                                  placeholder="Introduce el enunciado completo del ejemplo..."
+                                  className="w-full border p-2.5 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs"
+                                  value={ej.enunciado}
+                                  onChange={e => {
+                                    const newEjs = [...theoryEjemplos];
+                                    newEjs[idx].enunciado = e.target.value;
+                                    setTheoryEjemplos(newEjs);
+                                  }}
+                                />
+                              </div>
+
+                              {/* Pasos del Ejemplo */}
+                              <div className="space-y-3 pl-4 border-l-2 border-emerald-500/30">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[11px] font-bold uppercase text-slate-400">Pasos Explicativos</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newEjs = [...theoryEjemplos];
+                                      const pasos = newEjs[idx].pasos || [];
+                                      const nextOrder = pasos.length + 1;
+                                      newEjs[idx].pasos = [...pasos, { orden: nextOrder, texto: "" }];
+                                      setTheoryEjemplos(newEjs);
+                                    }}
+                                    className="flex items-center gap-1 text-[10px] text-indigo-500 hover:text-indigo-600 font-bold"
+                                  >
+                                    <Plus className="h-3 w-3" /> Agregar Paso
+                                  </button>
+                                </div>
+
+                                {(ej.pasos || []).length === 0 ? (
+                                  <p className="text-[10px] text-slate-400 italic">No hay pasos explicativos en este ejemplo.</p>
+                                ) : (
+                                  <div className="space-y-2">
+                                    {(ej.pasos || []).map((paso: any, pIdx: number) => (
+                                      <div key={pIdx} className="flex gap-2 items-center">
+                                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded-lg shrink-0">
+                                          Paso {paso.orden || pIdx + 1}
+                                        </span>
+                                        <input
+                                          type="text"
+                                          placeholder="Explicación del paso (soporta html básico)..."
+                                          className="w-full border p-2 rounded-lg dark:bg-zinc-800 dark:border-zinc-700 text-xs"
+                                          value={paso.texto}
+                                          onChange={e => {
+                                            const newEjs = [...theoryEjemplos];
+                                            newEjs[idx].pasos[pIdx].texto = e.target.value;
+                                            setTheoryEjemplos(newEjs);
+                                          }}
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newEjs = [...theoryEjemplos];
+                                            const filteredPasos = newEjs[idx].pasos.filter((_: any, i: number) => i !== pIdx);
+                                            newEjs[idx].pasos = filteredPasos.map((p: any, i: number) => ({
+                                              ...p,
+                                              orden: i + 1
+                                            }));
+                                            setTheoryEjemplos(newEjs);
+                                          }}
+                                          className="text-red-400 hover:text-red-500 p-1 rounded hover:bg-slate-100 dark:hover:bg-zinc-800"
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Sección 3: Ejercicios Prácticos (Interactivos) */}
+                    <div className="border border-slate-100 dark:border-zinc-800 bg-slate-50/20 dark:bg-zinc-900/10 rounded-2xl p-5 space-y-4">
+                      <div className="flex justify-between items-center border-b pb-2.5 dark:border-zinc-800">
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                          <Award className="h-4 w-4 text-violet-500" /> Ejercicios Prácticos (Entrenamiento)
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setTheoryInteractivos([...theoryInteractivos, { enunciado: "", respuesta: "", feedback_acierto: "", feedback_error: "" }])}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 dark:bg-violet-950/30 text-violet-600 dark:text-violet-400 rounded-xl text-xs font-bold hover:bg-violet-100/70 transition-all"
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Agregar Ejercicio
+                        </button>
+                      </div>
+
+                      {theoryInteractivos.length === 0 ? (
+                        <p className="text-xs text-slate-400 text-center py-2">No hay ejercicios prácticos registrados.</p>
+                      ) : (
+                        <div className="space-y-6">
+                          {theoryInteractivos.map((inter, idx) => (
+                            <div key={idx} className="p-4 border rounded-xl dark:border-zinc-850 bg-white dark:bg-zinc-900/50 space-y-4">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs font-black text-violet-600 dark:text-violet-400">EJERCICIO #{idx + 1}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setTheoryInteractivos(theoryInteractivos.filter((_, i) => i !== idx))}
+                                  className="flex items-center gap-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 px-2 py-1 rounded-lg transition-all"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" /> Eliminar Ejercicio
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-1.5 md:col-span-2">
+                                  <label className="text-[11px] font-bold uppercase text-slate-400">Enunciado del Ejercicio</label>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="Introduce la pregunta para el alumno..."
+                                    className="w-full border p-2.5 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs"
+                                    value={inter.enunciado}
+                                    onChange={e => {
+                                      const newInters = [...theoryInteractivos];
+                                      newInters[idx].enunciado = e.target.value;
+                                      setTheoryInteractivos(newInters);
+                                    }}
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <label className="text-[11px] font-bold uppercase text-slate-400">Respuesta Correcta</label>
+                                  <input
+                                    type="text"
+                                    placeholder="Ej: 5"
+                                    className="w-full border p-2.5 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs font-bold"
+                                    value={inter.respuesta}
+                                    onChange={e => {
+                                      const newInters = [...theoryInteractivos];
+                                      newInters[idx].respuesta = e.target.value;
+                                      setTheoryInteractivos(newInters);
+                                    }}
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <label className="text-[11px] font-bold uppercase text-emerald-600 dark:text-emerald-400">Feedback Acierto (¡Bien hecho!)</label>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="Explicación cuando acierte..."
+                                    className="w-full border p-2.5 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs"
+                                    value={inter.feedback_acierto}
+                                    onChange={e => {
+                                      const newInters = [...theoryInteractivos];
+                                      newInters[idx].feedback_acierto = e.target.value;
+                                      setTheoryInteractivos(newInters);
+                                    }}
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <label className="text-[11px] font-bold uppercase text-red-500 dark:text-red-400">Feedback Error (Recomendación)</label>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="Guía para cuando falle..."
+                                    className="w-full border p-2.5 rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs"
+                                    value={inter.feedback_error}
+                                    onChange={e => {
+                                      const newInters = [...theoryInteractivos];
+                                      newInters[idx].feedback_error = e.target.value;
+                                      setTheoryInteractivos(newInters);
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botón de Guardar */}
                     <div className="flex justify-end gap-3 pt-2">
                       <button 
                         onClick={handleSaveTeoria}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors"
+                        className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm"
                       >
                         <Save className="h-4 w-4" /> Guardar Teoría
                       </button>
@@ -439,6 +766,27 @@ export const PreguntasPage: React.FC = () => {
             {/* C. PESTAÑA: PREGUNTAS (Listado y Simulador) */}
             {activeTab === "preguntas" && (
               <div className="space-y-4">
+                {/* Sub-pestañas de Segmentación de Preguntas */}
+                <div className="flex flex-wrap gap-2 mb-2 p-1.5 rounded-xl bg-slate-50 dark:bg-zinc-800/40 w-fit border border-slate-100 dark:border-zinc-800">
+                  {(["Todos", "Nivel 1", "Nivel 2", "Nivel 3"] as const).map(filter => (
+                    <button
+                      key={filter}
+                      onClick={() => {
+                        setActivePreguntaFilter(filter);
+                        setSimulatedItemIndex(null);
+                      }}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        activePreguntaFilter === filter
+                          ? "bg-white text-indigo-600 shadow-sm border-b-2 border-indigo-600 dark:bg-zinc-900 dark:text-indigo-400 dark:border-indigo-500"
+                          : "text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-zinc-800"
+                      }`}
+                    >
+                      {filter === "Nivel 1" ? "Nivel 1: Básico" : 
+                       filter === "Nivel 2" ? "Nivel 2: Intermedio" : 
+                       filter === "Nivel 3" ? "Nivel 3: Avanzado" : "Todos"}
+                    </button>
+                  ))}
+                </div>
                 {isLoadingPreguntas ? (
                   <div className="py-8 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-indigo-500" /></div>
                 ) : modulePreguntas.length === 0 ? (
@@ -517,6 +865,28 @@ export const PreguntasPage: React.FC = () => {
             {/* D. PESTAÑA: DESAFÍOS (Fase F.1) */}
             {activeTab === "desafios" && (
               <div className="space-y-4">
+                {/* Sub-pestañas de Segmentación de Desafíos */}
+                <div className="flex flex-wrap gap-2 mb-2 p-1.5 rounded-xl bg-slate-50 dark:bg-zinc-800/40 w-fit border border-slate-100 dark:border-zinc-800">
+                  {(["Todos", "Desafío 1", "Desafío 2", "Maestría"] as const).map(filter => (
+                    <button
+                      key={filter}
+                      onClick={() => {
+                        setActiveChallengeFilter(filter);
+                        setSimulatedItemIndex(null);
+                      }}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        activeChallengeFilter === filter
+                          ? "bg-white text-indigo-600 shadow-sm border-b-2 border-indigo-600 dark:bg-zinc-900 dark:text-indigo-400 dark:border-indigo-500"
+                          : "text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-zinc-800"
+                      }`}
+                    >
+                      {filter === "Desafío 1" ? "Desafío 1: Estándar" : 
+                       filter === "Desafío 2" ? "Desafío 2: Avanzada" : 
+                       filter === "Maestría" ? "Desafío Final: Maestría" : "Todos"}
+                    </button>
+                  ))}
+                </div>
+
                 {isLoadingPreguntas ? (
                   <div className="py-8 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-indigo-500" /></div>
                 ) : moduleDesafios.length === 0 ? (
