@@ -3,12 +3,12 @@ import { ENDPOINTS } from "../../../api/endpoints";
 import { Pregunta } from "../../../types/db-models";
 
 export const ejerciciosApi = {
-  getPreguntas: async (faseId?: number | null, seccion?: number | null, operacion?: string | null): Promise<Pregunta[]> => {
-    const params: any = {};
-    if (faseId !== undefined && faseId !== null) params.fase_id = faseId;
-    if (seccion !== undefined && seccion !== null) params.seccion = seccion;
-    if (operacion !== undefined && operacion !== null) params.operacion = operacion;
-    const response = await apiClient.get<Pregunta[]>(ENDPOINTS.ADMIN_EJERCICIOS.PREGUNTAS, { params });
+  getPreguntas: async (faseId?: number | null): Promise<Pregunta[]> => {
+    const response = await apiClient.get<Pregunta[]>(ENDPOINTS.ADMIN_EJERCICIOS.PREGUNTAS, { params: faseId ? { fase_id: faseId } : {} });
+    return response.data;
+  },
+  deletePregunta: async (id: number): Promise<any> => {
+    const response = await apiClient.delete(ENDPOINTS.ADMIN_EJERCICIOS.PREGUNTA_BY_ID(id));
     return response.data;
   },
   createPregunta: async (payload: any): Promise<Pregunta> => {
@@ -19,11 +19,7 @@ export const ejerciciosApi = {
     const response = await apiClient.patch<Pregunta>(ENDPOINTS.ADMIN_EJERCICIOS.PREGUNTA_BY_ID(id), payload);
     return response.data;
   },
-  deletePregunta: async (id: number): Promise<any> => {
-    const response = await apiClient.delete(ENDPOINTS.ADMIN_EJERCICIOS.PREGUNTA_BY_ID(id));
-    return response.data;
-  },
-  getTeoria: async (faseId: number, moduloId: number, nivelId = 1): Promise<any> => {
+  getTeoria: async (faseId: number, moduloId: number, nivelId: number): Promise<any> => {
     const response = await apiClient.get(ENDPOINTS.ADMIN_EJERCICIOS.TEORIA, {
       params: { fase_id: faseId, modulo_id: moduloId, nivel_id: nivelId }
     });

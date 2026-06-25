@@ -31,5 +31,7 @@ export const useAuth = () => {
     window.location.href = "/login";
   };
 
-  return { login, logout };
+  const user = { username: "amilcar_admin" };
+
+  return { login, logout, user };
 };

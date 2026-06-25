@@ -536,9 +536,9 @@ export const PreguntasPage: React.FC = () => {
       </div>
 
       <div className="flex gap-2 p-1.5 rounded-xl bg-slate-100 w-fit">
-        <button onClick={() => setFaseId(null)} className={\`px-4 py-2 rounded-lg text-xs font-bold \${!faseId ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}\`}>Todas</option>
+        <button onClick={() => setFaseId(null)} className={\`px-4 py-2 rounded-lg text-xs font-bold \${!faseId ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}\`}>Todas</button>
         {[1, 2, 3, 4].map(id => (
-          <button key={id} onClick={() => setFaseId(id)} className={\`px-4 py-2 rounded-lg text-xs font-bold \${faseId === id ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}\`}>Fase {id}</option>
+          <button key={id} onClick={() => setFaseId(id)} className={\`px-4 py-2 rounded-lg text-xs font-bold \${faseId === id ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}\`}>Fase {id}</button>
         ))}
       </div>
 

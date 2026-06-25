@@ -15,10 +15,30 @@ from ..schemas import (
 from ..db.session import get_db
 from ..models.sql_models import (
     Fase, Pregunta, Alternativa, ConfiguracionProgreso, StatusEnum, PlatformSettings,
-    Alumno, ProgresoMaestria, User, NivelTeoria, EstadoProgresoEnum
+    Alumno, ProgresoMaestria, User, NivelTeoria, EstadoProgresoEnum,
+    IntentoPregunta, IntentoPaso, Intento, SimuladoSession, AuditLog, PoolAsignadoAlumno
 )
 from ..auth import get_admin_user
 from ..services.pedagogia_service import recalcular_y_sincronizar_fase_actual
+from ..core.storage import storage_service
+
+class BulkDeletePayload(BaseModel):
+    user_ids: List[str]
+
+async def registrar_auditoria(db: AsyncSession, admin_id: str, action: str, endpoint: str, method: str, payload_summary: str):
+    try:
+        log = AuditLog(
+            admin_id=admin_id,
+            action=action,
+            endpoint=endpoint,
+            method=method,
+            payload_summary=payload_summary
+        )
+        db.add(log)
+        await db.flush()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error al registrar auditoría: {e}")
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -261,6 +281,14 @@ async def create_pregunta(pregunta_data: PreguntaCreate, db: AsyncSession = Depe
         nueva_alt = Alternativa(**alt_data.model_dump(), pregunta_id=new_pregunta.id)
         db.add(nueva_alt)
         
+    await registrar_auditoria(
+        db=db,
+        admin_id=admin_user["id"],
+        action="CREATE_QUESTION",
+        endpoint="/admin/preguntas",
+        method="POST",
+        payload_summary=f"Pregunta creada (ID: {new_pregunta.id}): {new_pregunta.enunciado[:100]}"
+    )
     await db.commit()
     await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "pregunta_created"}))
     
@@ -295,6 +323,14 @@ async def update_pregunta(pregunta_id: int, pregunta_data: PreguntaUpdate, db: A
         setattr(pregunta, key, value)
         
     pregunta.modificado_por = admin_user["id"]
+    await registrar_auditoria(
+        db=db,
+        admin_id=admin_user["id"],
+        action="UPDATE_QUESTION",
+        endpoint=f"/admin/preguntas/{pregunta_id}",
+        method="PATCH",
+        payload_summary=f"Pregunta actualizada (ID: {pregunta_id}). Campos modificados: {', '.join(update_data.keys())}"
+    )
     await db.commit()
     await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "pregunta_updated"}))
     await db.refresh(pregunta)
@@ -313,7 +349,16 @@ async def delete_pregunta(pregunta_id: int, db: AsyncSession = Depends(get_db), 
     if not pregunta:
         raise HTTPException(status_code=404, detail="Pregunta no encontrada")
     
+    enunciado_resumen = pregunta.enunciado[:100] if pregunta.enunciado else ""
     await db.delete(pregunta)
+    await registrar_auditoria(
+        db=db,
+        admin_id=admin_user["id"],
+        action="DELETE_QUESTION",
+        endpoint=f"/admin/preguntas/{pregunta_id}",
+        method="DELETE",
+        payload_summary=f"Pregunta eliminada (ID: {pregunta_id}): {enunciado_resumen}"
+    )
     await db.commit()
     await manager.broadcast(json.dumps({"type": "SYNC_REQUIRED", "source": "pregunta_deleted"}))
     return {"status": "ok", "message": "Pregunta eliminada exitosamente"}
@@ -350,6 +395,14 @@ async def save_teoria(payload: NivelTeoriaSave, db: AsyncSession = Depends(get_d
         theory = NivelTeoria(**payload.model_dump())
         db.add(theory)
     
+    await registrar_auditoria(
+        db=db,
+        admin_id=admin_user["id"],
+        action="SAVE_THEORY",
+        endpoint="/admin/teoria",
+        method="PUT",
+        payload_summary=f"Teoría guardada para Fase {payload.fase_id}, Módulo {payload.modulo_id}, Nivel {payload.nivel_id}. Título: {payload.titulo}"
+    )
     await db.commit()
     return {"status": "ok", "message": "Teoría guardada exitosamente"}
 
@@ -373,7 +426,10 @@ async def search_alumnos(query: str = "", skip: int = 0, limit: int = 50, db: As
     for u in users:
         if u.alumno:
             out.append({
-                "id": u.id,
+                "id": u.alumno.id,
+                "user_id": u.id,
+                "nombre": u.alumno.nombre,
+                "edad": u.alumno.edad,
                 "username": u.username,
                 "email": u.email,
                 "alumno_id": u.alumno.id,
@@ -382,6 +438,64 @@ async def search_alumnos(query: str = "", skip: int = 0, limit: int = 50, db: As
                 "estado": u.alumno.estado.value if hasattr(u.alumno.estado, "value") else u.alumno.estado,
             })
     return {"data": out, "total": total, "page": (skip // limit) + 1 if limit > 0 else 1, "limit": limit}
+
+@router.delete("/users/bulk")
+async def bulk_delete_users(
+    payload: BulkDeletePayload,
+    db: AsyncSession = Depends(get_db),
+    admin_user: dict = Depends(get_admin_user)
+):
+    # Evitar que el administrador se elimine a sí mismo
+    if admin_user["id"] in payload.user_ids:
+        raise HTTPException(
+            status_code=400,
+            detail="Operación inválida: Un administrador no puede eliminarse a sí mismo en lote."
+        )
+
+    # 1. Buscar los alumnos asociados a los user_ids
+    result_alumnos = await db.execute(select(Alumno).where(Alumno.user_id.in_(payload.user_ids)))
+    alumnos = result_alumnos.scalars().all()
+    alumno_ids = [a.id for a in alumnos]
+
+    # 2. Borrar avatares en MinIO o filesystem local (tolerante a fallos)
+    for u_id in payload.user_ids:
+        result_u = await db.execute(select(User).where(User.id == u_id))
+        u = result_u.scalar_one_or_none()
+        if u and u.avatar:
+            await storage_service.delete_file(u.avatar)
+
+    # 3. Borrar registros dependientes de alumnos en base de datos en cascada manual
+    if alumno_ids:
+        await db.execute(delete(IntentoPaso).where(IntentoPaso.intento_pregunta_id.in_(
+            select(IntentoPregunta.id).where(IntentoPregunta.alumno_id.in_(alumno_ids))
+        )))
+        await db.execute(delete(IntentoPregunta).where(IntentoPregunta.alumno_id.in_(alumno_ids)))
+        await db.execute(delete(PoolAsignadoAlumno).where(PoolAsignadoAlumno.alumno_id.in_(alumno_ids)))
+        await db.execute(delete(ProgresoMaestria).where(ProgresoMaestria.alumno_id.in_(alumno_ids)))
+        await db.execute(delete(Intento).where(Intento.alumno_id.in_(alumno_ids)))
+        await db.execute(delete(SimuladoSession).where(SimuladoSession.alumno_id.in_(alumno_ids)))
+        await db.execute(delete(Alumno).where(Alumno.id.in_(alumno_ids)))
+
+    # 4. Eliminar usuarios
+    await db.execute(delete(User).where(User.id.in_(payload.user_ids)))
+
+    # 5. Registrar en la auditoría
+    await registrar_auditoria(
+        db=db,
+        admin_id=admin_user["id"],
+        action="BULK_DELETE_USERS",
+        endpoint="/admin/users/bulk",
+        method="DELETE",
+        payload_summary=f"Eliminados {len(payload.user_ids)} usuarios. IDs: {', '.join(payload.user_ids)}"
+    )
+
+    # 6. Guardar cambios en la DB
+    await db.commit()
+
+    return {
+        "status": "ok",
+        "message": f"Se eliminaron {len(payload.user_ids)} alumnos exitosamente del sistema."
+    }
 
 @router.get("/alumnos/{alumno_id}/progress")
 async def get_alumno_progress(alumno_id: int, db: AsyncSession = Depends(get_db), admin_user: dict = Depends(get_admin_user)):

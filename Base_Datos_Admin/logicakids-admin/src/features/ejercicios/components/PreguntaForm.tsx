@@ -28,7 +28,7 @@ export const PreguntaForm: React.FC<PreguntaFormProps> = ({
   const { alert: showAlert } = useCustomDialog();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const { register, control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<PreguntaInput>({
+  const { register, control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<any>({
     resolver: zodResolver(preguntaSchema),
     defaultValues: {
       fase_id: 1,
@@ -86,7 +86,7 @@ export const PreguntaForm: React.FC<PreguntaFormProps> = ({
 
   if (!isOpen) return null;
 
-  const onSubmit = async (data: PreguntaInput) => {
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
       if (initialData) {
@@ -127,7 +127,7 @@ export const PreguntaForm: React.FC<PreguntaFormProps> = ({
                 className="w-full border p-2.5 rounded-xl dark:bg-slate-800 dark:border-slate-700"
                 {...register("fase_id", { valueAsNumber: true })}
               />
-              {errors.fase_id && <p className="text-xs text-red-500">{errors.fase_id.message}</p>}
+              {errors.fase_id && <p className="text-xs text-red-500">{errors.fase_id.message as React.ReactNode}</p>}
             </div>
 
             <div className="space-y-1">
@@ -138,7 +138,7 @@ export const PreguntaForm: React.FC<PreguntaFormProps> = ({
                 className="w-full border p-2.5 rounded-xl dark:bg-slate-800 dark:border-slate-700"
                 {...register("seccion", { valueAsNumber: true })}
               />
-              {errors.seccion && <p className="text-xs text-red-500">{errors.seccion.message}</p>}
+              {errors.seccion && <p className="text-xs text-red-500">{errors.seccion.message as React.ReactNode}</p>}
             </div>
 
             <div className="space-y-1">
@@ -186,7 +186,7 @@ export const PreguntaForm: React.FC<PreguntaFormProps> = ({
               className="w-full border p-3 rounded-xl dark:bg-slate-800 dark:border-slate-700"
               {...register("enunciado")}
             />
-            {errors.enunciado && <p className="text-xs text-red-500">{errors.enunciado.message}</p>}
+            {errors.enunciado && <p className="text-xs text-red-500">{errors.enunciado.message as React.ReactNode}</p>}
           </div>
 
           <div className="space-y-1">
@@ -197,7 +197,7 @@ export const PreguntaForm: React.FC<PreguntaFormProps> = ({
               className="w-full border p-2.5 rounded-xl dark:bg-slate-800 dark:border-slate-700"
               {...register("respuesta_correcta")}
             />
-            {errors.respuesta_correcta && <p className="text-xs text-red-500">{errors.respuesta_correcta.message}</p>}
+            {errors.respuesta_correcta && <p className="text-xs text-red-500">{errors.respuesta_correcta.message as React.ReactNode}</p>}
           </div>
 
           {/* EDITOR HÍBRIDO MINIO / SVG */}

@@ -74,6 +74,11 @@ class Pregunta(Base):
         nullable=False,
     )
 
+    # Campos de revisión de administración
+    revisado_admin = Column(Boolean, default=False, nullable=False)
+    revisado_por = Column(String, nullable=True)
+    fecha_revision = Column(DateTime, nullable=True)
+
     # Relaciones
     fase = relationship("Fase", back_populates="preguntas")
     alternativas = relationship(

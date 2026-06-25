@@ -321,20 +321,25 @@ async def admin_create_user(user_data: AdminUserCreate, db: AsyncSession = Depen
     db.add(user)
     await db.flush()
     
-    from ..models.sql_models import Fase, Alumno
-    # Find Fase 0 (the initial phase)
-    result = await db.execute(select(Fase).where(Fase.orden == 0))
-    fase_cero = result.scalar_one_or_none()
+    from ..models.sql_models import Fase, Alumno, StatusEnum
+    # Buscar la fase activa con el menor orden (generalmente Fase 1)
+    result = await db.execute(
+        select(Fase)
+        .where(Fase.estado == StatusEnum.ACTIVO)
+        .order_by(Fase.orden.asc())
+        .limit(1)
+    )
+    fase_inicial = result.scalar_one_or_none()
     
-    if not fase_cero:
-        # Fallback: get the phase with the lowest order
+    if not fase_inicial:
+        # Fallback: buscar la fase de menor orden sin importar estado
         result = await db.execute(select(Fase).order_by(Fase.orden.asc()).limit(1))
-        fase_cero = result.scalar_one_or_none()
+        fase_inicial = result.scalar_one_or_none()
         
     alumno = Alumno(
         user_id=user.id,
         nombre=user.username,
-        fase_actual_id=fase_cero.id if fase_cero else None
+        fase_actual_id=fase_inicial.id if fase_inicial else None
     )
     db.add(alumno)
     await db.commit()

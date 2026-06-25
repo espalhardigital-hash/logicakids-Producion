@@ -3,6 +3,12 @@ import { ejerciciosApi } from "../services/ejerciciosApi";
 
 export const usePreguntaMutations = () => {
   const queryClient = useQueryClient();
+  
+  const deleteMutation = useMutation({
+    mutationFn: ejerciciosApi.deletePregunta,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ejercicios"] })
+  });
+
   const createMutation = useMutation({
     mutationFn: ejerciciosApi.createPregunta,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ejercicios"] })
@@ -13,20 +19,15 @@ export const usePreguntaMutations = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ejercicios"] })
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: ejerciciosApi.deletePregunta,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ejercicios"] })
-  });
-
   const saveTeoriaMutation = useMutation({
     mutationFn: ejerciciosApi.saveTeoria,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ejercicios", "teoria"] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["teoria"] })
   });
 
-  return { 
+  return {
+    deletePregunta: deleteMutation.mutateAsync,
     createPregunta: createMutation.mutateAsync,
     updatePregunta: updateMutation.mutateAsync,
-    deletePregunta: deleteMutation.mutateAsync,
     saveTeoria: saveTeoriaMutation.mutateAsync
   };
 };

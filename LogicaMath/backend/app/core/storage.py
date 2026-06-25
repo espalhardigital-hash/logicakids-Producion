@@ -104,4 +104,54 @@ class StorageService:
         url = f"/static/graphics/{unique_name}"
         return url
 
+    async def delete_file(self, file_url: str):
+        """
+        Elimina un archivo del storage. Detecta si es local o de S3.
+        No arroja excepciones para que no interrumpa el flujo del llamador (tolerante a fallos).
+        """
+        if not file_url:
+            return
+
+        # 1. Caso archivo local
+        if "/static/avatars/" in file_url:
+            try:
+                filename = file_url.split("/static/avatars/")[-1]
+                local_path = os.path.join("app/static/avatars", filename)
+                if os.path.exists(local_path):
+                    os.remove(local_path)
+                    logger.info(f"Local file deleted: {local_path}")
+            except Exception as e:
+                logger.error(f"Failed to delete local avatar file: {e}")
+            return
+
+        if "/static/graphics/" in file_url:
+            try:
+                filename = file_url.split("/static/graphics/")[-1]
+                local_path = os.path.join("app/static/graphics", filename)
+                if os.path.exists(local_path):
+                    os.remove(local_path)
+                    logger.info(f"Local graphic deleted: {local_path}")
+            except Exception as e:
+                logger.error(f"Failed to delete local graphic file: {e}")
+            return
+
+        # 2. Caso S3 / MinIO
+        if self.s3_client:
+            try:
+                # Extraer la key de la URL
+                if self.bucket_name in file_url:
+                    parts = file_url.split(f"{self.bucket_name}/")
+                    key = parts[1] if len(parts) > 1 else file_url
+                else:
+                    key = file_url.split("/")[-1]
+
+                await asyncio.to_thread(
+                    self.s3_client.delete_object,
+                    Bucket=self.bucket_name,
+                    Key=key
+                )
+                logger.info(f"S3 file deleted from bucket '{self.bucket_name}': {key}")
+            except Exception as e:
+                logger.warning(f"S3 Delete failed for file '{file_url}'. Error: {e}")
+
 storage_service = StorageService()
